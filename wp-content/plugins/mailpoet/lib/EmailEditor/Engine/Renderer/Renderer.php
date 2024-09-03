@@ -5,122 +5,91 @@ namespace MailPoet\EmailEditor\Engine\Renderer;
 if (!defined('ABSPATH')) exit;
 
 
-use MailPoet\EmailEditor\Engine\SettingsController;
-use MailPoet\Util\pQuery\DomNode;
+use MailPoet\EmailEditor\Engine\Renderer\ContentRenderer\ContentRenderer;
+use MailPoet\EmailEditor\Engine\Templates\Templates;
+use MailPoet\EmailEditor\Engine\ThemeController;
 use MailPoetVendor\Html2Text\Html2Text;
+use MailPoetVendor\Pelago\Emogrifier\CssInliner;
+use WP_Style_Engine;
+use WP_Theme_JSON;
 
 class Renderer {
+  private ThemeController $themeController;
+  private ContentRenderer $contentRenderer;
+  private Templates $templates;
+  /** @var WP_Theme_JSON|null */
+  private static $theme = null;
 
-  /** @var \MailPoetVendor\CSS */
-  private $cssInliner;
+  const TEMPLATE_FILE = 'template-canvas.php';
+  const TEMPLATE_STYLES_FILE = 'template-canvas.css';
 
-  /** @var BlocksRegistry */
-  private $blocksRegistry;
-
-  /** @var PreprocessManager */
-  private $preprocessManager;
-
-  /** @var SettingsController */
-  private $settingsController;
-
-  const TEMPLATE_FILE = 'template.html';
-  const TEMPLATE_STYLES_FILE = 'styles.css';
+  public function __construct(
+    ContentRenderer $contentRenderer,
+    Templates $templates,
+    ThemeController $themeController
+  ) {
+    $this->contentRenderer = $contentRenderer;
+    $this->templates = $templates;
+    $this->themeController = $themeController;
+  }
 
   /**
-   * @param \MailPoetVendor\CSS $cssInliner
+   * During rendering, this stores the theme data for the template being rendered.
    */
-  public function __construct(
-    \MailPoetVendor\CSS $cssInliner,
-    PreprocessManager $preprocessManager,
-    BlocksRegistry $blocksRegistry,
-    SettingsController $settingsController
-  ) {
-    $this->cssInliner = $cssInliner;
-    $this->preprocessManager = $preprocessManager;
-    $this->blocksRegistry = $blocksRegistry;
-    $this->settingsController = $settingsController;
+  public static function getTheme() {
+    return self::$theme;
   }
 
   public function render(\WP_Post $post, string $subject, string $preHeader, string $language, $metaRobots = ''): array {
-    $parser = new \WP_Block_Parser();
-    $parsedBlocks = $parser->parse($post->post_content); // phpcs:ignore Squiz.NamingConventions.ValidVariableName.MemberNotCamelCaps
+    $templateId = 'mailpoet/mailpoet//' . (get_page_template_slug($post) ?: 'email-general');
+    $template = $this->templates->getBlockTemplate($templateId);
+    $theme = $this->templates->getBlockTemplateTheme($templateId, $template->wp_id); // phpcs:ignore Squiz.NamingConventions.ValidVariableName.MemberNotCamelCaps
 
-    $layoutStyles = $this->settingsController->getEmailLayoutStyles();
-    $themeData = $this->settingsController->getTheme()->get_data();
-    $contentBackground = $themeData['styles']['color']['background'] ?? $layoutStyles['background'];
-    $parsedBlocks = $this->preprocessManager->preprocess($parsedBlocks, $layoutStyles);
-    $renderedBody = $this->renderBlocks($parsedBlocks);
+    // Set the theme for the template. This is merged with base theme.json and core json before rendering.
+    self::$theme = new WP_Theme_JSON($theme, 'default');
 
-    $styles = (string)file_get_contents(dirname(__FILE__) . '/' . self::TEMPLATE_STYLES_FILE);
-    $styles = apply_filters('mailpoet_email_renderer_styles', $styles, $post);
+    $emailStyles = $this->themeController->getStyles($post, $template, true);
+    $templateHtml = $this->contentRenderer->render($post, $template);
 
-    $template = (string)file_get_contents(dirname(__FILE__) . '/' . self::TEMPLATE_FILE);
+    ob_start();
+    include self::TEMPLATE_FILE;
+    $renderedTemplate = (string)ob_get_clean();
 
-    // Apply layout styles
-    $template = str_replace(
-      ['{{width}}', '{{layout_background}}', '{{content_background}}', '{{padding_top}}', '{{padding_right}}', '{{padding_bottom}}', '{{padding_left}}'],
-      [$layoutStyles['width'], $layoutStyles['background'], $contentBackground, $layoutStyles['padding']['top'], $layoutStyles['padding']['right'], $layoutStyles['padding']['bottom'], $layoutStyles['padding']['left']],
-      $template
-    );
-
-    /**
-     * Replace template variables
-     * {{email_language}}
-     * {{email_subject}}
-     * {{email_meta_robots}}
-     * {{email_template_styles}}
-     * {{email_preheader}}
-     * {{email_body}}
-     */
-    $templateWithContents = $this->injectContentIntoTemplate(
-      $template,
+    $templateStyles =
+    WP_Style_Engine::compile_css(
       [
-        $language,
-        esc_html($subject),
-        $metaRobots,
-        $styles,
-        esc_html($preHeader),
-        $renderedBody,
-      ]
+            'background-color' => $emailStyles['color']['background'] ?? 'inherit',
+            'color' => $emailStyles['color']['text'] ?? 'inherit',
+            'padding-top' => $emailStyles['spacing']['padding']['top'] ?? '0px',
+            'padding-bottom' => $emailStyles['spacing']['padding']['bottom'] ?? '0px',
+            'font-family' => $emailStyles['typography']['fontFamily'] ?? 'inherit',
+            'line-height' => $emailStyles['typography']['lineHeight'] ?? '1.5',
+            'font-size' => $emailStyles['typography']['fontSize'] ?? 'inherit',
+          ],
+      'body, .email_layout_wrapper'
     );
+    $templateStyles .= file_get_contents(dirname(__FILE__) . '/' . self::TEMPLATE_STYLES_FILE);
+    $templateStyles = '<style>' . wp_strip_all_tags((string)apply_filters('mailpoet_email_renderer_styles', $templateStyles, $post)) . '</style>';
+    $renderedTemplate = $this->inlineCSSStyles($templateStyles . $renderedTemplate);
 
-    $templateWithContentsDom = $this->inlineCSSStyles($templateWithContents);
-    $templateWithContents = $this->postProcessTemplate($templateWithContentsDom);
-    return [
-      'html' => $templateWithContents,
-      'text' => $this->renderTextVersion($templateWithContents),
-    ];
-  }
-
-  public function renderBlocks(array $parsedBlocks): string {
-    do_action('mailpoet_blocks_renderer_initialized', $this->blocksRegistry);
-
-    $content = '';
-    foreach ($parsedBlocks as $parsedBlock) {
-      $content .= render_block($parsedBlock);
+    // This is a workaround to support link :hover in some clients. Ideally we would remove the ability to set :hover
+    // however this is not possible using the color panel from Gutenberg.
+    if (isset($emailStyles['elements']['link'][':hover']['color']['text'])) {
+      $renderedTemplate = str_replace('<!-- Forced Styles -->', '<style>a:hover { color: ' . esc_attr($emailStyles['elements']['link'][':hover']['color']['text']) . ' !important; }</style>', $renderedTemplate);
     }
 
-    /**
-     *  As we use default WordPress filters, we need to remove them after email rendering
-     *  so that we don't interfere with possible post rendering that might happen later.
-     */
-    $this->blocksRegistry->removeAllBlockRendererFilters();
-
-    return $content;
-  }
-
-  private function injectContentIntoTemplate($template, array $content) {
-    return preg_replace_callback('/{{\w+}}/', function($matches) use (&$content) {
-      return array_shift($content);
-    }, $template);
+    return [
+      'html' => $renderedTemplate,
+      'text' => $this->renderTextVersion($renderedTemplate),
+    ];
   }
 
   /**
    * @param string $template
-   * @return DomNode
+   * @return string
    */
   private function inlineCSSStyles($template) {
-    return $this->cssInliner->inlineCSS($template);
+    return CssInliner::fromHtml($template)->inlineCss()->render();
   }
 
   /**
@@ -130,20 +99,5 @@ class Renderer {
   private function renderTextVersion($template) {
     $template = (mb_detect_encoding($template, 'UTF-8', true)) ? $template : mb_convert_encoding($template, 'UTF-8', mb_list_encodings());
     return @Html2Text::convert($template);
-  }
-
-  /**
-   * @param DomNode $templateDom
-   * @return string
-   */
-  private function postProcessTemplate(DomNode $templateDom) {
-    // replace spaces in image tag URLs
-    foreach ($templateDom->query('img') as $image) {
-      $image->src = str_replace(' ', '%20', $image->src);
-    }
-    // because tburry/pquery contains a bug and replaces the opening non mso condition incorrectly we have to replace the opening tag with correct value
-    $template = $templateDom->__toString();
-    $template = str_replace('<!--[if !mso]><![endif]-->', '<!--[if !mso]><!-- -->', $template);
-    return $template;
   }
 }

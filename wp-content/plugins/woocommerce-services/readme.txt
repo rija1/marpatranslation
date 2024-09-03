@@ -1,12 +1,13 @@
 === WooCommerce Shipping & Tax ===
 Contributors: woocommerce, automattic, woothemes, allendav, kellychoffman, jkudish, jeffstieler, nabsul, robobot3000, danreylop, mikeyarce, shaunkuschel, orangesareorange, pauldechov, dappermountain, radogeorgiev, bor0, royho, cshultz88, bartoszbudzanowski, harriswong, ferdev, superdav42
 Tags: shipping, stamps, usps, woocommerce, taxes, payment, dhl, labels
-Requires PHP: 7.3
-Requires at least: 6.2
-Tested up to: 6.4
-WC requires at least: 8.0
-WC tested up to: 8.3
-Stable tag: 2.4.2
+Requires PHP: 7.4
+Requires at least: 6.4
+Requires Plugins: woocommerce
+Tested up to: 6.6
+WC requires at least: 8.8
+WC tested up to: 9.0
+Stable tag: 2.7.0
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 
@@ -77,6 +78,43 @@ The source code is freely available [in GitHub](https://github.com/Automattic/wo
 6. Checking and exporting the label purchase reports
 
 == Changelog ==
+
+= 2.7.0 - 2024-07-25 =
+* Add - Parallel compatibility with WooCommerce Shipping plugin.
+
+= 2.6.2 - 2024-07-16 =
+* Fix - Require HS Tariff number on customs form for EU destination countries.
+
+= 2.6.1 - 2024-07-02 =
+* Tweak - WooCommerce 9.0 and WordPress 6.6 compatibility.
+
+= 2.6.0 - 2024-06-04 =
+* Add - Logger for "Live Rates" feature on the front-end.
+
+= 2.5.7 - 2024-05-13 =
+* Add - wc_connect_shipment_item_quantity_threshold and wc_connect_max_shipments_if_quantity_exceeds_threshold filter hooks to be able to cap the number of shipment splits possible for an item with very large quantity.
+
+= 2.5.6 - 2024-05-06 =
+* Tweak - WooCommerce 8.8 compatibility.
+
+= 2.5.5 - 2024-04-29 =
+* Add - Prevent upcoming Woo Shipping and Woo Tax plugins from running in parallel with this plugin unless both are active, then they will take over for this plugin.
+
+= 2.5.4 - 2024-03-25 =
+* Tweak - WordPress 6.5 compatibility.
+
+= 2.5.3 - 2024-03-12 =
+* Fix - Colorado tax nexus workaround should only apply to Colorado from addresses.
+
+= 2.5.2 - 2024-03-04 =
+* Fix - Miscalculation tax from TaxJar and decided to use nexus address.
+
+= 2.5.1 - 2024-02-12 =
+* Fix - Cannot call constructor in classes/wc-api-dev/class-wc-rest-dev-data-continents-controller.php.
+
+= 2.5.0 - 2024-01-08 =
+* Add - Ability to keep connected to WordPress.com after Jetpack is uninstalled.
+* Fix - Deprecation notices for PHP 8.2.
 
 = 2.4.2 - 2023-11-30 =
 * Fix - When automated taxes are enabled, the order refund button will fail

@@ -2,10 +2,10 @@
 /**
  * Title: Just Arrived Full Hero
  * Slug: woocommerce-blocks/just-arrived-full-hero
- * Categories: WooCommerce
+ * Categories: WooCommerce, Intro
  */
 
-use Automattic\WooCommerce\Blocks\Patterns\PatternsHelper;
+use Automattic\WooCommerce\Blocks\AIContent\PatternsHelper;
 
 $pattern_title       = $content['titles'][0]['default'] ?? '';
 $pattern_description = $content['descriptions'][0]['default'] ?? '';

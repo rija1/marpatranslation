@@ -184,15 +184,11 @@ class SendingQueue {
     // pre-process newsletter (render, replace shortcodes/links, etc.)
     $newsletter = $this->newsletterTask->preProcessNewsletter($newsletter, $task);
 
+    // During pre-processing we may find that the newsletter can't be sent and we delete it including all associated entities
+    // E.g. post notification history newsletter when there are no posts to send
     if (!$newsletter) {
-      $this->deleteTask($task);
       return;
     }
-
-    $isTransactional = in_array($newsletter->getType(), [
-      NewsletterEntity::TYPE_AUTOMATION_TRANSACTIONAL,
-      NewsletterEntity::TYPE_WC_TRANSACTIONAL_EMAIL,
-    ]);
 
     // configure mailer
     $this->mailerTask->configureMailer($newsletter);
@@ -230,7 +226,12 @@ class SendingQueue {
 
     // get subscribers
     $subscriberBatches = new BatchIterator($task->getId(), $this->getBatchSize());
-    if ($subscriberBatches->count() === 0) {
+
+    // Set invalid state for sending task for non-campaign (no-bulk) newsletters with no subscribers (e.g. welcome emails, automatic emails).
+    // This cover cases when a welcome or automatic email was scheduled but before processing it the subscriber was deleted.
+    // The non-campaign emails are sent only to a single recipient, and we count stats based on sending tasks statues, so we can't mark them as completed.
+    // At the same time we want to keep a record abut processing them
+    if ($subscriberBatches->count() === 0 && !in_array($newsletter->getType(), NewsletterEntity::CAMPAIGN_TYPES, true)) {
       $this->loggerFactory->getLogger(LoggerFactory::TOPIC_NEWSLETTERS)->info(
         'no subscribers to process',
         ['task_id' => $task->getId()]
@@ -269,7 +270,7 @@ class SendingQueue {
           ->setParameter('subscriberIds', $subscribersToProcessIds)
           ->andWhere('s.deletedAt IS NULL');
 
-        if ($newsletter->getType() === NewsletterEntity::TYPE_AUTOMATION_TRANSACTIONAL) {
+        if ($newsletter->isTransactional()) {
           $queryBuilder->andWhere('s.status != :bouncedStatus')
             ->setParameter('bouncedStatus', SubscriberEntity::STATUS_BOUNCED);
         } else {
@@ -293,11 +294,7 @@ class SendingQueue {
         $this->scheduledTaskSubscribersRepository->deleteByScheduledTaskAndSubscriberIds($task, $subscribersToRemove);
         $this->sendingQueuesRepository->updateCounts($queue);
 
-        if (!$queue->getCountToProcess()) {
-          $this->newsletterTask->markNewsletterAsSent($newsletter);
-          continue;
-        }
-        // if there aren't any subscribers to process in batch (e.g. all unsubscribed or were deleted) continue with next batch
+        // if there aren't any subscribers to process in the batch (e.g. all unsubscribed or were deleted), continue with the next batch
         if (count($foundSubscribersIds) === 0) {
           continue;
         }
@@ -324,7 +321,7 @@ class SendingQueue {
           $foundSubscribers,
           $timer
         );
-        if (!$isTransactional) {
+        if (!$newsletter->isTransactional()) {
           $this->entityManager->wrapInTransaction(function() use ($foundSubscribersIds) {
             $now = Carbon::createFromTimestamp((int)current_time('timestamp'));
             $this->subscribersRepository->bulkUpdateLastSendingAt($foundSubscribersIds, $now);
@@ -336,13 +333,11 @@ class SendingQueue {
           'after queue chunk processing',
           ['newsletter_id' => $newsletter->getId(), 'task_id' => $task->getId()]
         );
+        // In case we finished end sending properly before enforcing sending and execution limits
+        // The limit enforcing throws and exception and the sending end wouldn't be processed properly (stats notification, newsletter marked as sent etc.)
         if ($task->getStatus() === ScheduledTaskEntity::STATUS_COMPLETED) {
-          $this->loggerFactory->getLogger(LoggerFactory::TOPIC_NEWSLETTERS)->info(
-            'completed newsletter sending',
-            ['newsletter_id' => $newsletter->getId(), 'task_id' => $task->getId()]
-          );
-          $this->newsletterTask->markNewsletterAsSent($newsletter);
-          $this->statsNotificationsScheduler->schedule($newsletter);
+          $this->endSending($task, $newsletter);
+          return;
         }
         $this->enforceSendingAndExecutionLimits($timer);
       } else {
@@ -351,8 +346,12 @@ class SendingQueue {
           'Can\'t send corrupt newsletter',
           ['newsletter_id' => $newsletter->getId(), 'task_id' => $task->getId()]
         );
+        return;
       }
     }
+    // At this point all batches were processed or there are no batches to process
+    // Also none of the checks above paused or invalidated the task
+    $this->endSending($task, $newsletter);
   }
 
   public function getBatchSize(): int {
@@ -543,12 +542,30 @@ class SendingQueue {
 
     // log statistics
     $this->statisticsNewslettersRepository->createMultiple($statistics);
+
     // update the sent count
     $this->mailerTask->updateSentCount();
+
     // enforce execution limits if queue is still being processed
     if ($task->getStatus() !== ScheduledTaskEntity::STATUS_COMPLETED) {
       $this->enforceSendingAndExecutionLimits($timer);
     }
+
+    // trigger automation email sent hook for automation emails
+    if (
+      $task->getStatus() === ScheduledTaskEntity::STATUS_COMPLETED
+      && isset($task->getMeta()['automation'])
+    ) {
+      try {
+        $this->wp->doAction('mailpoet_automation_email_sent', $task->getMeta()['automation']);
+      } catch (Throwable $e) {
+        $this->loggerFactory->getLogger(LoggerFactory::TOPIC_NEWSLETTERS)->error(
+          'Error while executing "mailpoet_automation_email_sent action" hook',
+          ['task_id' => $task->getId(), 'error' => $e->getMessage()]
+        );
+      }
+    }
+
     $this->throttlingHandler->processSuccess();
   }
 
@@ -578,12 +595,17 @@ class SendingQueue {
   }
 
   private function stopProgress(ScheduledTaskEntity $task): void {
+    // if task is not managed by entity manager, it's already deleted and detached
+    // it can be deleted in self::processSending method
+    if (!$this->entityManager->contains($task)) {
+      return;
+    }
     $task->setInProgress(false);
     $this->scheduledTasksRepository->flush();
   }
 
   private function isTimeout(ScheduledTaskEntity $task): bool {
-    $currentTime = Carbon::createFromTimestamp($this->wp->currentTime('timestamp'));
+    $currentTime = Carbon::now()->millisecond(0);
     $updatedAt = new Carbon($task->getUpdatedAt());
     if ($updatedAt->diffInSeconds($currentTime, false) > $this->getExecutionLimit()) {
       return true;
@@ -618,5 +640,43 @@ class SendingQueue {
     $this->scheduledTaskSubscribersRepository->deleteByScheduledTask($task);
     $this->scheduledTasksRepository->remove($task);
     $this->scheduledTasksRepository->flush();
+  }
+
+  private function endSending(ScheduledTaskEntity $task, NewsletterEntity $newsletter): void {
+    // We should handle all transitions into these states in the processSending method and end processing there or we throw an exception
+    // This might theoretically happen when multiple cron workers are running in parallel which we don't support and try to prevent
+    $unexpectedStates = [
+      ScheduledTaskEntity::STATUS_PAUSED,
+      ScheduledTaskEntity::STATUS_INVALID,
+      ScheduledTaskEntity::STATUS_SCHEDULED,
+    ];
+    if (in_array($task->getStatus(), $unexpectedStates)) {
+      $this->loggerFactory->getLogger(LoggerFactory::TOPIC_NEWSLETTERS)->error(
+        'Sending task reached end of processing in sending queue worker in an unexpected state.',
+        ['task_id' => $task->getId(), 'status' => $task->getStatus()]
+      );
+      return;
+    }
+    // The task is running but there is no one to send to.
+    // This may happen when we send to all but the execution is interrupted (e.g. by PHP time limit) and we don't update the task status
+    // or if we trigger sending to a newsletter without any subscriber (e.g. scheduled for long time but all were deleted)
+    // Lets set status to completed and update the queue counts
+    if ($task->getStatus() === null && $this->scheduledTaskSubscribersRepository->countUnprocessed($task) === 0) {
+      $task->setStatus(ScheduledTaskEntity::STATUS_COMPLETED);
+      $queue = $task->getSendingQueue();
+      if ($queue) {
+        $this->sendingQueuesRepository->updateCounts($queue);
+      }
+      $this->scheduledTasksRepository->flush();
+    }
+    // Task is completed let's do all the stuff for the completed task
+    if ($task->getStatus() === ScheduledTaskEntity::STATUS_COMPLETED) {
+      $this->loggerFactory->getLogger(LoggerFactory::TOPIC_NEWSLETTERS)->info(
+        'completed newsletter sending',
+        ['newsletter_id' => $newsletter->getId(), 'task_id' => $task->getId()]
+      );
+      $this->newsletterTask->markNewsletterAsSent($newsletter);
+      $this->statsNotificationsScheduler->schedule($newsletter);
+    }
   }
 }

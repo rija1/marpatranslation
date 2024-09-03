@@ -64,7 +64,6 @@ abstract class UPE_Payment_Method {
 	/**
 	 * Should payment method be restricted to only domestic payments.
 	 * E.g. only to Stripe's connected account currency.
-	 * gs
 	 *
 	 * @var boolean
 	 */
@@ -83,6 +82,20 @@ abstract class UPE_Payment_Method {
 	 * @var string
 	 */
 	protected $icon_url;
+
+	/**
+	 * Payment method icon URL for dark themes (optional)
+	 *
+	 * @var string
+	 */
+	protected $dark_icon_url;
+
+	/**
+	 * Is the payment method a BNPL (Buy Now Pay Later) method?
+	 *
+	 * @var boolean
+	 */
+	protected $is_bnpl = false;
 
 	/**
 	 * Supported customer locations for which charges for a payment method can be processed
@@ -113,11 +126,14 @@ abstract class UPE_Payment_Method {
 	/**
 	 * Returns payment method title
 	 *
-	 * @param array|bool $payment_details Optional payment details from charge object.
+	 * @param string|null $account_country Country of merchants account.
+	 * @param array|false $payment_details Optional payment details from charge object.
 	 *
 	 * @return string
+	 *
+	 * @phpcs:disable VariableAnalysis.CodeAnalysis.VariableAnalysis.UnusedVariable
 	 */
-	public function get_title( $payment_details = false ) {
+	public function get_title( string $account_country = null, $payment_details = false ) {
 		return $this->title;
 	}
 
@@ -128,6 +144,16 @@ abstract class UPE_Payment_Method {
 	 */
 	public function get_currencies() {
 		return $this->currencies;
+	}
+
+	/**
+	 * Determines whether the payment method is restricted to the Stripe account's currency.
+	 * E.g.: Afterpay/Clearpay and Affirm only supports domestic payments; Klarna also implements a simplified version of these market restrictions.
+	 *
+	 * @return bool
+	 */
+	public function has_domestic_transactions_restrictions() {
+		return $this->accept_only_domestic_payment;
 	}
 
 	/**
@@ -182,6 +208,16 @@ abstract class UPE_Payment_Method {
 	}
 
 	/**
+	 * Returns boolean dependent on whether payment method
+	 * will support BNPL (Buy Now Pay Later) payments
+	 *
+	 * @return bool
+	 */
+	public function is_bnpl() {
+		return $this->is_bnpl;
+	}
+
+	/**
 	 * Returns boolean dependent on whether payment method will accept charges
 	 * with chosen currency
 	 *
@@ -193,7 +229,7 @@ abstract class UPE_Payment_Method {
 	public function is_currency_valid( string $account_domestic_currency, $order_id = null ) {
 		$current_store_currency = $this->get_currency( $order_id );
 
-		if ( $this->accept_only_domestic_payment ) {
+		if ( $this->has_domestic_transactions_restrictions() ) {
 			if ( strtolower( $current_store_currency ) !== strtolower( $account_domestic_currency ) ) {
 				return false;
 			}
@@ -224,10 +260,41 @@ abstract class UPE_Payment_Method {
 	/**
 	 * Returns the payment method icon URL or an empty string.
 	 *
+	 * @param string|null $account_country Optional account country.
+	 * @return string
+	 *
+	 * @phpcs:disable VariableAnalysis.CodeAnalysis.VariableAnalysis.UnusedVariable
+	 */
+	public function get_icon( string $account_country = null ) {
+		return isset( $this->icon_url ) ? $this->icon_url : '';
+	}
+
+	/**
+	 * Returns icon to use on dark themes.
+	 *
+	 * @param string|null $account_country Optional account country.
 	 * @return string
 	 */
-	public function get_icon() {
-		return isset( $this->icon_url ) ? $this->icon_url : '';
+	public function get_dark_icon( string $account_country = null ) {
+		return isset( $this->dark_icon_url ) ? $this->dark_icon_url : $this->get_icon( $account_country );
+	}
+
+	/**
+	 * Gets the theme appropriate icon for the payment method for a given location and context.
+	 *
+	 * @param string  $location The location to get the icon for.
+	 * @param boolean $is_blocks Whether the icon is for blocks.
+	 * @param string  $account_country Optional account country.
+	 * @return string
+	 */
+	public function get_payment_method_icon_for_location( string $location = 'checkout', bool $is_blocks = true, string $account_country = null ) {
+		$appearance_theme = WC_Payments_Utils::get_active_upe_theme_transient_for_location( $location, $is_blocks ? 'blocks' : 'classic' );
+
+		if ( 'night' === $appearance_theme ) {
+			return $this->get_dark_icon( $account_country );
+		}
+
+		return $this->get_icon( $account_country );
 	}
 
 	/**
@@ -236,7 +303,10 @@ abstract class UPE_Payment_Method {
 	 * @return array
 	 */
 	public function get_countries() {
-		return $this->countries;
+		$account         = \WC_Payments::get_account_service()->get_cached_account_data();
+		$account_country = isset( $account['country'] ) ? strtoupper( $account['country'] ) : '';
+
+		return $this->has_domestic_transactions_restrictions() ? [ $account_country ] : $this->countries;
 	}
 
 	/**

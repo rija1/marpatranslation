@@ -9,7 +9,7 @@ namespace Automattic\WooCommerce\Database\Migrations;
  * Base class for implementing migrations from the standard WordPress meta table
  * to custom structured tables.
  *
- * @package Automattic\WooCommerce\Database\Migrations\CustomOrderTable
+ * @package Automattic\WooCommerce\Database\Migrations
  */
 abstract class MetaToCustomTableMigrator extends TableMigrator {
 
@@ -262,7 +262,7 @@ abstract class MetaToCustomTableMigrator extends TableMigrator {
 		$this->clear_errors();
 		$exception = null;
 
-		if ( count( $data['data'] ) === 0 ) {
+		if ( ! isset( $data['data'] ) || ! is_array( $data['data'] ) || count( $data['data'] ) === 0 ) {
 			return array(
 				'errors'    => $this->get_errors(),
 				'exception' => null,

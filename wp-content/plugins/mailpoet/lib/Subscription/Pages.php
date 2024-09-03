@@ -154,10 +154,10 @@ class Pages {
   }
 
   public function initPageFilters() {
-    $this->wp->addFilter('wp_title', [$this,'setWindowTitle'], 10, 3);
-    $this->wp->addFilter('document_title_parts', [$this,'setWindowTitleParts'], 10, 1);
-    $this->wp->addFilter('the_title', [$this,'setPageTitle'], 10, 1);
-    $this->wp->addFilter('the_content', [$this,'setPageContent'], 10, 1);
+    $this->wp->addFilter('wp_title', [$this, 'setWindowTitle'], 10, 3);
+    $this->wp->addFilter('document_title_parts', [$this, 'setWindowTitleParts'], 10, 1);
+    $this->wp->addFilter('the_title', [$this, 'setPageTitle'], 10, 1);
+    $this->wp->addFilter('the_content', [$this, 'setPageContent'], 10, 1);
     $this->wp->removeAction('wp_head', 'noindex', 1);
     $this->wp->addAction('wp_head', [$this, 'setMetaRobots'], 1);
   }
@@ -197,8 +197,8 @@ class Pages {
 
     $this->subscriber->setStatus(SubscriberEntity::STATUS_SUBSCRIBED);
     $this->subscriber->setConfirmedIp(Helpers::getIP());
-    $this->subscriber->setConfirmedAt(Carbon::createFromTimestamp($this->wp->currentTime('timestamp')));
-    $this->subscriber->setLastSubscribedAt(Carbon::createFromTimestamp($this->wp->currentTime('timestamp')));
+    $this->subscriber->setConfirmedAt(Carbon::now()->millisecond(0));
+    $this->subscriber->setLastSubscribedAt(Carbon::now()->millisecond(0));
     $this->subscriber->setUnconfirmedData(null);
 
     try {
@@ -331,8 +331,10 @@ class Pages {
 
       switch ($this->action) {
         case self::ACTION_CAPTCHA:
-
-          $captchaSessionId = isset($this->data['captcha_session_id']) ? $this->data['captcha_session_id'] : null;
+          $captchaSessionId = $this->data['captcha_session_id'] ?? null;
+          if (!$captchaSessionId) {
+            return false;
+          }
           $content = $this->captchaRenderer->getCaptchaPageContent($captchaSessionId);
           break;
         case self::ACTION_CONFIRM:

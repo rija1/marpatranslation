@@ -9,9 +9,11 @@ namespace WCPay\WooPay;
 
 use WC_Payments_Features;
 use WC_Payments_Subscriptions_Utilities;
+use WCPay\Logger;
 use WooPay_Extension;
 use WC_Geolocation;
 use WC_Payments;
+use Jetpack_Options;
 
 /**
  * WooPay
@@ -118,7 +120,11 @@ class WooPay_Utilities {
 	 * @return boolean
 	 */
 	public function should_save_platform_customer() {
-		$session_data = WC()->session->get( WooPay_Extension::WOOPAY_SESSION_KEY );
+		$session_data = [];
+
+		if ( isset( WC()->session ) && method_exists( WC()->session, 'has_session' ) && WC()->session->has_session() ) {
+			$session_data = WC()->session->get( WooPay_Extension::WOOPAY_SESSION_KEY );
+		}
 
 		return ( isset( $_POST['save_user_in_woopay'] ) && filter_var( wp_unslash( $_POST['save_user_in_woopay'] ), FILTER_VALIDATE_BOOLEAN ) ) || ( isset( $session_data['save_user_in_woopay'] ) && filter_var( $session_data['save_user_in_woopay'], FILTER_VALIDATE_BOOLEAN ) ); // phpcs:ignore WordPress.Security.NonceVerification
 	}
@@ -248,18 +254,96 @@ class WooPay_Utilities {
 	}
 
 	/**
-	 * Returns true if an extension WooPay supports is installed .
+	 * Get the store blog token.
 	 *
-	 * @return bool
+	 * @return mixed|string the store blog token.
 	 */
-	public function has_adapted_extension_installed() {
-		foreach ( self::ADAPTED_EXTENSIONS as $supported_extension ) {
-			if ( in_array( $supported_extension, apply_filters( 'active_plugins', get_option( 'active_plugins' ) ), true ) ) {
-				return true;
-			}
+	public static function get_store_blog_token() {
+		if ( self::get_woopay_url() === self::DEFAULT_WOOPAY_URL ) {
+			// Using WooPay production: Use the blog token secret from the store blog.
+			return Jetpack_Options::get_option( 'blog_token' );
+		} elseif ( apply_filters( 'wcpay_woopay_use_blog_token', false ) ) {
+			// Requested to use the blog token secret from the store blog.
+			return Jetpack_Options::get_option( 'blog_token' );
+		} elseif ( defined( 'DEV_BLOG_TOKEN_SECRET' ) ) {
+			// Has a defined dev blog token secret: Use it.
+			return DEV_BLOG_TOKEN_SECRET;
+		} else {
+			Logger::log( __( 'WooPay blog_token is currently misconfigured.', 'woocommerce-payments' ) );
+			return '';
+		}
+	}
+
+	/**
+	 * Return an array with encrypted and signed data.
+	 *
+	 * @param array $data The data to be encrypted and signed.
+	 * @return array The encrypted and signed data.
+	 */
+	public static function encrypt_and_sign_data( $data ) {
+		$store_blog_token = self::get_store_blog_token();
+
+		if ( empty( $store_blog_token ) ) {
+			return [];
 		}
 
-		return false;
+		$message = wp_json_encode( $data );
+
+		// Generate an initialization vector (IV) for encryption.
+		$iv = openssl_random_pseudo_bytes( openssl_cipher_iv_length( 'aes-256-cbc' ) );
+
+		// Encrypt the JSON session.
+		$session_encrypted = openssl_encrypt( $message, 'aes-256-cbc', $store_blog_token, OPENSSL_RAW_DATA, $iv );
+
+		// Create an HMAC hash for data integrity.
+		$hash = hash_hmac( 'sha256', $session_encrypted, $store_blog_token );
+
+		$data = [
+			'session' => $session_encrypted,
+			'iv'      => $iv,
+			'hash'    => $hash,
+		];
+
+		return [
+			'blog_id' => Jetpack_Options::get_option( 'id' ),
+			'data'    => array_map( 'base64_encode', $data ),
+		];
+	}
+
+	/**
+	 * Decode encrypted and signed data and return it.
+	 *
+	 * @param array $data The session, iv, and hash data for the encryption.
+	 * @return mixed The decoded data.
+	 */
+	public static function decrypt_signed_data( $data ) {
+		$store_blog_token = self::get_store_blog_token();
+
+		if ( empty( $store_blog_token ) ) {
+			return null;
+		}
+
+		// Decode the data.
+		$decoded_data_request = array_map( 'base64_decode', $data );
+
+		// Verify the HMAC hash before decryption to ensure data integrity.
+		$computed_hash = hash_hmac( 'sha256', $decoded_data_request['iv'] . $decoded_data_request['data'], $store_blog_token );
+
+		// If the hashes don't match, the message may have been tampered with.
+		if ( ! hash_equals( $computed_hash, $decoded_data_request['hash'] ) ) {
+			return null;
+		}
+
+		// Decipher the data using the blog token and the IV.
+		$decrypted_data = openssl_decrypt( $decoded_data_request['data'], 'aes-256-cbc', $store_blog_token, OPENSSL_RAW_DATA, $decoded_data_request['iv'] );
+
+		if ( false === $decrypted_data ) {
+			return null;
+		}
+
+		$decrypted_data = json_decode( $decrypted_data, true );
+
+		return $decrypted_data;
 	}
 
 	/**

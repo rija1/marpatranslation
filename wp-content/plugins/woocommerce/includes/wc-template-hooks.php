@@ -54,6 +54,13 @@ add_action( 'woocommerce_before_main_content', 'woocommerce_breadcrumb', 20, 0 )
 add_action( 'woocommerce_sidebar', 'woocommerce_get_sidebar', 10 );
 
 /**
+ * Archive header.
+ *
+ * @see woocommerce_product_taxonomy_archive_header()
+ */
+add_action( 'woocommerce_shop_loop_header', 'woocommerce_product_taxonomy_archive_header' );
+
+/**
  * Archive descriptions.
  *
  * @see woocommerce_taxonomy_archive_description()
@@ -172,7 +179,7 @@ add_action( 'woocommerce_review_comment_text', 'woocommerce_review_display_comme
  * @see woocommerce_single_variation()
  * @see woocommerce_single_variation_add_to_cart_button()
  */
-add_action( 'woocommerce_single_product_summary', 'woocommerce_template_single_add_to_cart', 30 );
+// add_action( 'woocommerce_single_product_summary', 'woocommerce_template_single_add_to_cart', 30 );
 add_action( 'woocommerce_simple_add_to_cart', 'woocommerce_simple_add_to_cart', 30 );
 add_action( 'woocommerce_grouped_add_to_cart', 'woocommerce_grouped_add_to_cart', 30 );
 add_action( 'woocommerce_variable_add_to_cart', 'woocommerce_variable_add_to_cart', 30 );
@@ -312,3 +319,8 @@ add_action( 'woocommerce_before_customer_login_form', 'woocommerce_output_all_no
 add_action( 'woocommerce_before_lost_password_form', 'woocommerce_output_all_notices', 10 );
 add_action( 'before_woocommerce_pay', 'woocommerce_output_all_notices', 10 );
 add_action( 'woocommerce_before_reset_password_form', 'woocommerce_output_all_notices', 10 );
+
+/**
+ * Hooked blocks.
+ */
+add_action( 'after_switch_theme', 'wc_set_hooked_blocks_version_on_theme_switch', 10, 2 );

@@ -9,6 +9,7 @@
  */
 
 use Automattic\Jetpack\Constants;
+use Automattic\WooCommerce\Internal\Utilities\HtmlSanitizer;
 
 defined( 'ABSPATH' ) || exit;
 
@@ -469,7 +470,7 @@ function wc_get_loop_class() {
 	$loop_index = wc_get_loop_prop( 'loop', 0 );
 	$columns    = absint( max( 1, wc_get_loop_prop( 'columns', wc_get_default_products_per_row() ) ) );
 
-	$loop_index ++;
+	++$loop_index;
 	wc_set_loop_prop( 'loop', $loop_index );
 
 	if ( 0 === ( $loop_index - 1 ) % $columns || 1 === $columns ) {
@@ -896,10 +897,11 @@ function wc_terms_and_conditions_page_content() {
 		return;
 	}
 
-	$page = get_post( $terms_page_id );
+	$sanitizer = wc_get_container()->get( HtmlSanitizer::class );
+	$page      = get_post( $terms_page_id );
 
 	if ( $page && 'publish' === $page->post_status && $page->post_content && ! has_shortcode( $page->post_content, 'woocommerce_checkout' ) ) {
-		echo '<div class="woocommerce-terms-and-conditions" style="display: none; max-height: 200px; overflow: auto;">' . wc_format_content( wp_kses_post( $page->post_content ) ) . '</div>'; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
+		echo '<div class="woocommerce-terms-and-conditions" style="display: none; max-height: 200px; overflow: auto;">' . wc_format_content( $sanitizer->styled_post_content( $page->post_content ) ) . '</div>'; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
 	}
 }
 
@@ -1245,6 +1247,15 @@ if ( ! function_exists( 'woocommerce_template_loop_category_link_close' ) ) {
 	}
 }
 
+if ( ! function_exists( 'woocommerce_product_taxonomy_archive_header' ) ) {
+	/**
+	 * Output the products header on taxonomy archives.
+	 */
+	function woocommerce_product_taxonomy_archive_header() {
+		wc_get_template( 'loop/header.php' );
+	}
+}
+
 if ( ! function_exists( 'woocommerce_taxonomy_archive_description' ) ) {
 	/**
 	 * Show an archive description on taxonomy archives.
@@ -1354,8 +1365,8 @@ if ( ! function_exists( 'woocommerce_template_loop_add_to_cart' ) ) {
 
 		if ( $product ) {
 			$defaults = array(
-				'quantity'   => 1,
-				'class'      => implode(
+				'quantity'              => 1,
+				'class'                 => implode(
 					' ',
 					array_filter(
 						array(
@@ -1367,11 +1378,11 @@ if ( ! function_exists( 'woocommerce_template_loop_add_to_cart' ) ) {
 						)
 					)
 				),
-				'attributes' => array(
+				'aria-describedby_text' => $product->add_to_cart_aria_describedby(),
+				'attributes'            => array(
 					'data-product_id'  => $product->get_id(),
 					'data-product_sku' => $product->get_sku(),
 					'aria-label'       => $product->add_to_cart_description(),
-					'aria-describedby' => $product->add_to_cart_aria_describedby(),
 					'rel'              => 'nofollow',
 				),
 			);
@@ -1435,8 +1446,8 @@ if ( ! function_exists( 'woocommerce_get_product_thumbnail' ) ) {
 	 * Get the product thumbnail, or the placeholder if not set.
 	 *
 	 * @param string $size (default: 'woocommerce_thumbnail').
-	 * @param  array $attr Image attributes.
-	 * @param  bool  $placeholder True to return $placeholder if no image is found, or false to return an empty string.
+	 * @param  array  $attr Image attributes.
+	 * @param  bool   $placeholder True to return $placeholder if no image is found, or false to return an empty string.
 	 * @return string
 	 */
 	function woocommerce_get_product_thumbnail( $size = 'woocommerce_thumbnail', $attr = array(), $placeholder = true ) {
@@ -1597,6 +1608,7 @@ function wc_get_gallery_image_html( $attachment_id, $main_image = false ) {
 	$image_size        = apply_filters( 'woocommerce_gallery_image_size', $flexslider || $main_image ? 'woocommerce_single' : $thumbnail_size );
 	$full_size         = apply_filters( 'woocommerce_gallery_full_size', apply_filters( 'woocommerce_product_thumbnails_large_size', 'full' ) );
 	$thumbnail_src     = wp_get_attachment_image_src( $attachment_id, $thumbnail_size );
+	$thumbnail_srcset  = wp_get_attachment_image_srcset( $attachment_id, $thumbnail_size );
 	$full_src          = wp_get_attachment_image_src( $attachment_id, $full_size );
 	$alt_text          = trim( wp_strip_all_tags( get_post_meta( $attachment_id, '_wp_attachment_image_alt', true ) ) );
 	$image             = wp_get_attachment_image(
@@ -1620,7 +1632,7 @@ function wc_get_gallery_image_html( $attachment_id, $main_image = false ) {
 		)
 	);
 
-	return '<div data-thumb="' . esc_url( $thumbnail_src[0] ) . '" data-thumb-alt="' . esc_attr( $alt_text ) . '" class="woocommerce-product-gallery__image"><a href="' . esc_url( $full_src[0] ) . '">' . $image . '</a></div>';
+	return '<div data-thumb="' . esc_url( $thumbnail_src[0] ) . '" data-thumb-alt="' . esc_attr( $alt_text ) . '" data-thumb-srcset="' . esc_attr( $thumbnail_srcset ) . '" class="woocommerce-product-gallery__image"><a href="' . esc_url( $full_src[0] ) . '">' . $image . '</a></div>';
 }
 
 if ( ! function_exists( 'woocommerce_output_product_data_tabs' ) ) {
@@ -2830,6 +2842,8 @@ if ( ! function_exists( 'woocommerce_form_field' ) ) {
 			'default'           => '',
 			'autofocus'         => '',
 			'priority'          => '',
+			'unchecked_value'   => null,
+			'checked_value'     => '1',
 		);
 
 		$args = wp_parse_args( $args, $defaults );
@@ -2956,8 +2970,24 @@ if ( ! function_exists( 'woocommerce_form_field' ) ) {
 
 				break;
 			case 'checkbox':
-				$field = '<label class="checkbox ' . implode( ' ', $args['label_class'] ) . '" ' . implode( ' ', $custom_attributes ) . '>
-						<input type="' . esc_attr( $args['type'] ) . '" class="input-checkbox ' . esc_attr( implode( ' ', $args['input_class'] ) ) . '" name="' . esc_attr( $key ) . '" id="' . esc_attr( $args['id'] ) . '" value="1" ' . checked( $value, 1, false ) . ' /> ' . $args['label'] . $required . '</label>';
+				$field = '<label class="checkbox ' . esc_attr( implode( ' ', $args['label_class'] ) ) . '" ' . implode( ' ', $custom_attributes ) . '>';
+
+				// Output a hidden field so a value is POSTed if the box is not checked.
+				if ( ! is_null( $args['unchecked_value'] ) ) {
+					$field .= sprintf( '<input type="hidden" name="%1$s" value="%2$s" />', esc_attr( $key ), esc_attr( $args['unchecked_value'] ) );
+				}
+
+				$field .= sprintf(
+					'<input type="checkbox" name="%1$s" id="%2$s" value="%3$s" class="%4$s" %5$s /> %6$s',
+					esc_attr( $key ),
+					esc_attr( $args['id'] ),
+					esc_attr( $args['checked_value'] ),
+					esc_attr( 'input-checkbox ' . implode( ' ', $args['input_class'] ) ),
+					checked( $value, $args['checked_value'], false ),
+					wp_kses_post( $args['label'] )
+				);
+
+				$field .= $required . '</label>';
 
 				break;
 			case 'text':
@@ -3487,10 +3517,10 @@ if ( ! function_exists( 'wc_display_item_downloads' ) ) {
 
 		$downloads = is_object( $item ) && $item->is_type( 'line_item' ) ? $item->get_item_downloads() : array();
 
-		if ( $downloads ) {
+		if ( ! empty( $downloads ) ) {
 			$i = 0;
 			foreach ( $downloads as $file ) {
-				$i ++;
+				++$i;
 
 				if ( $args['show_url'] ) {
 					$strings[] = '<strong class="wc-item-download-label">' . esc_html( $file['name'] ) . ':</strong> ' . esc_html( $file['download_url'] );
@@ -3836,30 +3866,32 @@ function wc_get_formatted_cart_item_data( $cart_item, $flat = false ) {
 	// Filter item data to allow 3rd parties to add more to the array.
 	$item_data = apply_filters( 'woocommerce_get_item_data', $item_data, $cart_item );
 
-	// Format item data ready to display.
-	foreach ( $item_data as $key => $data ) {
-		// Set hidden to true to not display meta on cart.
-		if ( ! empty( $data['hidden'] ) ) {
-			unset( $item_data[ $key ] );
-			continue;
-		}
-		$item_data[ $key ]['key']     = ! empty( $data['key'] ) ? $data['key'] : $data['name'];
-		$item_data[ $key ]['display'] = ! empty( $data['display'] ) ? $data['display'] : $data['value'];
-	}
-
-	// Output flat or in list format.
-	if ( count( $item_data ) > 0 ) {
-		ob_start();
-
-		if ( $flat ) {
-			foreach ( $item_data as $data ) {
-				echo esc_html( $data['key'] ) . ': ' . wp_kses_post( $data['display'] ) . "\n";
+	if ( is_array( $item_data ) ) {
+		// Format item data ready to display.
+		foreach ( $item_data as $key => $data ) {
+			// Set hidden to true to not display meta on cart.
+			if ( ! empty( $data['hidden'] ) ) {
+				unset( $item_data[ $key ] );
+				continue;
 			}
-		} else {
-			wc_get_template( 'cart/cart-item-data.php', array( 'item_data' => $item_data ) );
+			$item_data[ $key ]['key']     = ! empty( $data['key'] ) ? $data['key'] : $data['name'];
+			$item_data[ $key ]['display'] = ! empty( $data['display'] ) ? $data['display'] : $data['value'];
 		}
 
-		return ob_get_clean();
+		// Output flat or in list format.
+		if ( count( $item_data ) > 0 ) {
+			ob_start();
+
+			if ( $flat ) {
+				foreach ( $item_data as $data ) {
+					echo esc_html( $data['key'] ) . ': ' . wp_kses_post( $data['display'] ) . "\n";
+				}
+			} else {
+				wc_get_template( 'cart/cart-item-data.php', array( 'item_data' => $item_data ) );
+			}
+
+			return ob_get_clean();
+		}
 	}
 
 	return '';
@@ -3958,9 +3990,74 @@ function wc_get_pay_buttons() {
 
 	echo '<div class="woocommerce-pay-buttons">';
 	foreach ( $supported_gateways as $pay_button_id ) {
-		echo sprintf( '<div class="woocommerce-pay-button__%1$s %1$s" id="%1$s"></div>', esc_attr( $pay_button_id ) );
+		printf( '<div class="woocommerce-pay-button__%1$s %1$s" id="%1$s"></div>', esc_attr( $pay_button_id ) );
 	}
 	echo '</div>';
 }
 
+/**
+ * Update the product archive title to the title of the shop page. Fallback to
+ * 'Shop' if the shop page doesn't exist.
+ *
+ * @param string $post_type_name Post type 'name' label.
+ * @param string $post_type      Post type.
+ *
+ * @return string
+ */
+function wc_update_product_archive_title( $post_type_name, $post_type ) {
+	if ( is_shop() && 'product' === $post_type ) {
+		$shop_page_title = get_the_title( wc_get_page_id( 'shop' ) );
+		if ( $shop_page_title ) {
+			return $shop_page_title;
+		}
+
+		return __( 'Shop', 'woocommerce' );
+	}
+
+	return $post_type_name;
+}
+add_filter( 'post_type_archive_title', 'wc_update_product_archive_title', 10, 2 );
+
 // phpcs:enable Generic.Commenting.Todo.TaskFound
+
+/**
+ * Set the version of the hooked blocks in the database. Used when WC is installed for the first time.
+ *
+ * @since 9.2.0
+ *
+ * @return void
+ */
+function wc_set_hooked_blocks_version() {
+	// Only set the version if the current theme is a block theme.
+	if ( ! wc_current_theme_is_fse_theme() && ! current_theme_supports( 'block-template-parts' ) ) {
+		return;
+	}
+
+	$option_name = 'woocommerce_hooked_blocks_version';
+
+	if ( get_option( $option_name ) ) {
+		return;
+	}
+
+	add_option( $option_name, WC()->version );
+}
+
+/**
+ * If the user switches from a classic to a block theme and they haven't already got a woocommerce_hooked_blocks_version,
+ * set the version of the hooked blocks in the database, or as "no" to disable all block hooks then set as the latest WC version.
+ *
+ * @since 9.2.0
+ *
+ * @param string    $old_name Old theme name.
+ * @param \WP_Theme $old_theme Instance of the old theme.
+ * @return void
+ */
+function wc_set_hooked_blocks_version_on_theme_switch( $old_name, $old_theme ) {
+	$option_name  = 'woocommerce_hooked_blocks_version';
+	$option_value = get_option( $option_name, false );
+
+	// Sites with the option value set to "no" have already been migrated, and block hooks have been disabled. Checking explicitly for false to avoid setting the option again.
+	if ( ! $old_theme->is_block_theme() && ( wc_current_theme_is_fse_theme() || current_theme_supports( 'block-template-parts' ) ) && false === $option_value ) {
+		add_option( $option_name, WC()->version );
+	}
+}

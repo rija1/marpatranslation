@@ -1,18 +1,18 @@
 <?php
 /**
  * Plugin Name: WooPayments
- * Plugin URI: https://woo.com/payments/
+ * Plugin URI: https://woocommerce.com/payments/
  * Description: Accept payments via credit card. Manage transactions within WordPress.
- * Author: Automattic
- * Author URI: https://woo.com/
- * Woo: 5278104:bf3cf30871604e15eec560c962593c1f
+ * Author: WooCommerce
+ * Author URI: https://woocommerce.com/
  * Text Domain: woocommerce-payments
  * Domain Path: /languages
  * WC requires at least: 7.6
- * WC tested up to: 8.4.0
+ * WC tested up to: 9.2.0
  * Requires at least: 6.0
  * Requires PHP: 7.3
- * Version: 7.1.0
+ * Version: 8.1.1
+ * Requires Plugins: woocommerce
  *
  * @package WooCommerce\Payments
  */
@@ -66,11 +66,14 @@ if ( ! $is_autoloading_ready ) {
 	return;
 }
 
-// Subscribe to automated translations.
-add_filter( 'woocommerce_translations_updates_for_woocommerce-payments', '__return_true' );
 
 /**
  * Initialize the Jetpack functionalities: connection, identity crisis, etc.
+ *
+ * PSR-11 containers declares to throw an un-throwable interface
+ * (it does not extend Throwable), and Psalm does not accept it.
+ *
+ * @psalm-suppress MissingThrowsDocblock
  */
 function wcpay_jetpack_init() {
 	if ( ! wcpay_check_old_jetpack_version() ) {
@@ -95,7 +98,7 @@ function wcpay_jetpack_init() {
 		]
 	);
 
-	// When only WooPayments is active, minimize the data to send back to WPcom for supporting Woo Mobile apps.
+	// When only WooPayments is active, minimize the data to send back to WPCOM, tied to merchant's privacy settings.
 	$jetpack_config->ensure(
 		'sync',
 		array_merge_recursive(
@@ -103,8 +106,10 @@ function wcpay_jetpack_init() {
 			[
 				'jetpack_sync_modules'           =>
 					[
-						'Automattic\\Jetpack\\Sync\\Modules\\Options',
-						'Automattic\\Jetpack\\Sync\\Modules\\Full_Sync',
+						'Automattic\Jetpack\Sync\Modules\Full_Sync_Immediately',
+						'Automattic\Jetpack\Sync\Modules\Options',
+						'Automattic\Jetpack\Sync\Modules\Posts',
+						'Automattic\Jetpack\Sync\Modules\Meta',
 					],
 				'jetpack_sync_options_whitelist' =>
 					[
@@ -143,12 +148,16 @@ add_action( 'plugins_loaded', 'wcpay_jetpack_init', 1 );
  */
 function wcpay_init() {
 	require_once WCPAY_ABSPATH . '/includes/class-wc-payments.php';
+	require_once WCPAY_ABSPATH . '/includes/class-wc-payments-payment-request-session.php';
 	WC_Payments::init();
 	/**
 	 * Needs to be loaded as soon as possible
 	 * Check https://github.com/Automattic/woocommerce-payments/issues/4759
 	 */
 	\WCPay\WooPay\WooPay_Session::init();
+	if ( WC_Payments_Features::is_tokenized_cart_prb_enabled() ) {
+		( new WC_Payments_Payment_Request_Session() )->init();
+	}
 }
 
 // Make sure this is run *after* WooCommerce has a chance to initialize its packages (wc-admin, etc). That is run with priority 10.
@@ -165,7 +174,7 @@ if ( ! function_exists( 'wcpay_init_subscriptions_core' ) ) {
 			return;
 		}
 
-		$is_plugin_active = function( $plugin_name ) {
+		$is_plugin_active = function ( $plugin_name ) {
 			$plugin_slug = "$plugin_name/$plugin_name.php";
 
 			// Check if the specified $plugin_name is in the process of being activated via the Admin > Plugins screen.
@@ -271,7 +280,7 @@ function wcpay_show_old_jetpack_notice() {
 		<p><b>WooPayments</b></p>
 		<p>
 			<?php
-				echo sprintf(
+				printf(
 					/* translators: %1 WooPayments. */
 					esc_html( __( 'The version of Jetpack installed is too old to be used with %1$s. %1$s has been disabled. Please deactivate or update Jetpack.', 'woocommerce-payments' ) ),
 					'WooPayments'
@@ -316,7 +325,7 @@ function wcpay_get_jetpack_idc_custom_content(): array {
 			__( 'We’ve detected that you have duplicate sites connected to %s. When Safe Mode is active, payments will not be interrupted. However, some features may not be available until you’ve resolved this issue below. Safe Mode is most frequently activated when you’re transferring your site from one domain to another, or creating a staging site for testing. A site adminstrator can resolve this issue. <safeModeLink>Learn more</safeModeLink>', 'woocommerce-payments' ),
 			'WooPayments'
 		),
-		'supportURL'                => 'https://woo.com/document/woopayments/testing-and-troubleshooting/safe-mode/',
+		'supportURL'                => 'https://woocommerce.com/document/woopayments/testing-and-troubleshooting/safe-mode/',
 		'adminBarSafeModeLabel'     => sprintf(
 			/* translators: %s: WooPayments. */
 			__( '%s Safe Mode', 'woocommerce-payments' ),
@@ -327,7 +336,7 @@ function wcpay_get_jetpack_idc_custom_content(): array {
 			__( "<strong>Notice:</strong> It appears that your 'wp-config.php' file might be using dynamic site URL values. Dynamic site URLs could cause %s to enter Safe Mode. <dynamicSiteUrlSupportLink>Learn how to set a static site URL.</dynamicSiteUrlSupportLink>", 'woocommerce-payments' ),
 			'WooPayments'
 		),
-		'dynamicSiteUrlSupportLink' => 'https://woo.com/document/woopayments/testing-and-troubleshooting/safe-mode/#dynamic-site-urls',
+		'dynamicSiteUrlSupportLink' => 'https://woocommerce.com/document/woopayments/testing-and-troubleshooting/safe-mode/#dynamic-site-urls',
 	];
 
 	$urls = Automattic\Jetpack\Identity_Crisis::get_mismatched_urls();
@@ -402,9 +411,10 @@ add_action( 'woocommerce_blocks_loaded', 'register_woopay_extension' );
  */
 add_action(
 	'before_woocommerce_init',
-	function() {
+	function () {
 		if ( class_exists( '\Automattic\WooCommerce\Utilities\FeaturesUtil' ) ) {
-			\Automattic\WooCommerce\Utilities\FeaturesUtil::declare_compatibility( 'custom_order_tables', 'woocommerce-payments/woocommerce-payments.php', true );
+			\Automattic\WooCommerce\Utilities\FeaturesUtil::declare_compatibility( 'cart_checkout_blocks', __FILE__, true );
+			\Automattic\WooCommerce\Utilities\FeaturesUtil::declare_compatibility( 'custom_order_tables', __FILE__, true );
 		}
 	}
 );

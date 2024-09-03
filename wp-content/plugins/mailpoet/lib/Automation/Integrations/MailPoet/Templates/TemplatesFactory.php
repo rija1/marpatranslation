@@ -35,9 +35,13 @@ class TemplatesFactory {
 
     if ($this->woocommerce->isWooCommerceActive()) {
       $templates[] = $this->createFirstPurchaseTemplate();
-      $templates[] = $this->createLoyalCustomersTemplate();
+      $templates[] = $this->createThankLoyalCustomersTemplate();
+      $templates[] = $this->createWinBackCustomersTemplate();
       $templates[] = $this->createAbandonedCartTemplate();
       $templates[] = $this->createAbandonedCartCampaignTemplate();
+      $templates[] = $this->createPurchasedProductTemplate();
+      $templates[] = $this->createPurchasedProductWithTagTemplate();
+      $templates[] = $this->createPurchasedInCategoryTemplate();
     }
 
     return $templates;
@@ -49,7 +53,7 @@ class TemplatesFactory {
       'welcome',
       __('Welcome new subscribers', 'mailpoet'),
       __(
-        "Send a welcome email when someone subscribes to your list. Optionally, you can choose to send this email after a specified period.",
+        'Send a welcome email when someone subscribes to your list. Optionally, you can choose to send this email after a specified period.',
         'mailpoet'
       ),
       function (): Automation {
@@ -65,7 +69,10 @@ class TemplatesFactory {
           ]
         );
       },
-      AutomationTemplate::TYPE_FREE_ONLY
+      [
+        'automationSteps' => 1,
+      ],
+      AutomationTemplate::TYPE_DEFAULT
     );
   }
 
@@ -75,7 +82,7 @@ class TemplatesFactory {
       'welcome',
       __('Welcome new WordPress users', 'mailpoet'),
       __(
-        "Send a welcome email when a new WordPress user registers to your website. Optionally, you can choose to send this email after a specified period.",
+        'Send a welcome email when a new WordPress user registers to your website. Optionally, you can choose to send this email after a specified period.',
         'mailpoet'
       ),
       function (): Automation {
@@ -91,7 +98,10 @@ class TemplatesFactory {
           ]
         );
       },
-      AutomationTemplate::TYPE_FREE_ONLY
+      [
+        'automationSteps' => 1,
+      ],
+      AutomationTemplate::TYPE_DEFAULT
     );
   }
 
@@ -101,7 +111,7 @@ class TemplatesFactory {
       'welcome',
       __('Welcome series for new subscribers', 'mailpoet'),
       __(
-        "Welcome new subscribers and start building a relationship with them. Send an email immediately after someone subscribes to your list to introduce your brand and a follow-up two days later to keep the conversation going.",
+        'Welcome new subscribers and start building a relationship with them. Send an email immediately after someone subscribes to your list to introduce your brand and a follow-up two days later to keep the conversation going.',
         'mailpoet'
       ),
       function (): Automation {
@@ -110,6 +120,9 @@ class TemplatesFactory {
           []
         );
       },
+      [
+        'automationSteps' => 2,
+      ],
       AutomationTemplate::TYPE_PREMIUM
     );
   }
@@ -120,7 +133,7 @@ class TemplatesFactory {
       'welcome',
       __('Welcome series for new WordPress users', 'mailpoet'),
       __(
-        "Welcome new WordPress users to your site. Send an email immediately after a WordPress user registers. Send a follow-up email two days later with more in-depth information.",
+        'Welcome new WordPress users to your site. Send an email immediately after a WordPress user registers. Send a follow-up email two days later with more in-depth information.',
         'mailpoet'
       ),
       function (): Automation {
@@ -129,6 +142,9 @@ class TemplatesFactory {
           []
         );
       },
+      [
+        'automationSteps' => 2,
+      ],
       AutomationTemplate::TYPE_PREMIUM
     );
   }
@@ -139,7 +155,7 @@ class TemplatesFactory {
       'woocommerce',
       __('Celebrate first-time buyers', 'mailpoet'),
       __(
-        "Welcome your first-time customers by sending an email with a special offer for their next purchase. Make them feel appreciated within your brand.",
+        'Welcome your first-time customers by sending an email with a special offer for their next purchase. Make them feel appreciated within your brand.',
         'mailpoet'
       ),
       function (): Automation {
@@ -147,11 +163,7 @@ class TemplatesFactory {
           __('Celebrate first-time buyers', 'mailpoet'),
           [
             [
-              'key' => 'woocommerce:order-status-changed',
-              'args' => [
-                'from' => 'any',
-                'to' => 'wc-completed',
-              ],
+              'key' => 'woocommerce:order-completed',
               'filters' => [
                 'operator' => 'and',
                 'groups' => [
@@ -177,17 +189,20 @@ class TemplatesFactory {
           ]
         );
       },
+      [
+        'automationSteps' => 1,
+      ],
       AutomationTemplate::TYPE_DEFAULT
     );
   }
 
-  private function createLoyalCustomersTemplate(): AutomationTemplate {
+  private function createThankLoyalCustomersTemplate(): AutomationTemplate {
     return new AutomationTemplate(
-      'loyal-customers',
+      'thank-loyal-customers',
       'woocommerce',
       __('Thank loyal customers', 'mailpoet'),
       __(
-        "These are your most important customers. Make them feel special by sending a thank you note for supporting your brand.",
+        'These are your most important customers. Make them feel special by sending a thank you note for supporting your brand.',
         'mailpoet'
       ),
       function (): Automation {
@@ -196,7 +211,32 @@ class TemplatesFactory {
           []
         );
       },
-      AutomationTemplate::TYPE_COMING_SOON
+      [
+        'automationSteps' => 1,
+      ],
+      AutomationTemplate::TYPE_PREMIUM
+    );
+  }
+
+  private function createWinBackCustomersTemplate(): AutomationTemplate {
+    return new AutomationTemplate(
+      'win-back-customers',
+      'woocommerce',
+      __('Win-back customers', 'mailpoet'),
+      __(
+        'Rekindle the relationship with past customers by reminding them of their favorite products and showcasing what’s new, encouraging a return to your brand.',
+        'mailpoet'
+      ),
+      function (): Automation {
+        return $this->builder->createFromSequence(
+          __('Win-back customers', 'mailpoet'),
+          []
+        );
+      },
+      [
+        'automationSteps' => 4,
+      ],
+      AutomationTemplate::TYPE_PREMIUM
     );
   }
 
@@ -206,7 +246,7 @@ class TemplatesFactory {
       'abandoned-cart',
       __('Abandoned cart reminder', 'mailpoet'),
       __(
-        "Nudge your shoppers to complete the purchase after they have added a product to the cart but haven't completed the order.",
+        'Nudge your shoppers to complete the purchase after they have added a product to the cart but haven’t completed the order.',
         'mailpoet'
       ),
       function (): Automation {
@@ -217,13 +257,16 @@ class TemplatesFactory {
             [
               'key' => 'mailpoet:send-email',
               'args' => [
-                'name' => 'Abandoned cart',
-                'subject' => 'Looks like you forgot something',
+                'name' => __('Abandoned cart', 'mailpoet'),
+                'subject' => __('Looks like you forgot something', 'mailpoet'),
               ],
             ],
           ]
         );
       },
+      [
+        'automationSteps' => 1,
+      ],
       AutomationTemplate::TYPE_DEFAULT
     );
   }
@@ -234,7 +277,7 @@ class TemplatesFactory {
       'abandoned-cart',
       __('Abandoned cart campaign', 'mailpoet'),
       __(
-        "Encourage your potential customers to finalize their purchase when they have added items to their cart but haven't finished the order yet. Offer a coupon code as a last resort to convert them to customers.",
+        'Encourage your potential customers to finalize their purchase when they have added items to their cart but haven’t finished the order yet. Offer a coupon code as a last resort to convert them to customers.',
         'mailpoet'
       ),
       function (): Automation {
@@ -243,7 +286,102 @@ class TemplatesFactory {
           []
         );
       },
-      AutomationTemplate::TYPE_COMING_SOON
+      [
+        'automationSteps' => 5,
+      ],
+      AutomationTemplate::TYPE_PREMIUM
     );
+  }
+
+  private function createPurchasedProductTemplate(): AutomationTemplate {
+    return new AutomationTemplate(
+      'purchased-product',
+      'woocommerce',
+      __('Purchased a product', 'mailpoet'),
+      __(
+        'Share care instructions or simply thank the customer for making an order.',
+        'mailpoet'
+      ),
+      function (): Automation {
+        return $this->builder->createFromSequence(
+          __('Purchased a product', 'mailpoet'),
+          $this->createPurchasedTemplateBody('woocommerce:order:products')
+        );
+      },
+      [
+        'automationSteps' => 1,
+      ],
+      AutomationTemplate::TYPE_DEFAULT
+    );
+  }
+
+  private function createPurchasedProductWithTagTemplate(): AutomationTemplate {
+    return new AutomationTemplate(
+      'purchased-product-with-tag',
+      'woocommerce',
+      __('Purchased a product with a tag', 'mailpoet'),
+      __(
+        'Share care instructions or simply thank the customer for making an order.',
+        'mailpoet'
+      ),
+      function (): Automation {
+        return $this->builder->createFromSequence(
+          __('Purchased a product with a tag', 'mailpoet'),
+          $this->createPurchasedTemplateBody('woocommerce:order:tags')
+        );
+      },
+      [
+        'automationSteps' => 1,
+      ],
+      AutomationTemplate::TYPE_DEFAULT
+    );
+  }
+
+  private function createPurchasedInCategoryTemplate(): AutomationTemplate {
+    return new AutomationTemplate(
+      'purchased-in-category',
+      'woocommerce',
+      __('Purchased in a category', 'mailpoet'),
+      __(
+        'Share care instructions or simply thank the customer for making an order.',
+        'mailpoet'
+      ),
+      function (): Automation {
+        return $this->builder->createFromSequence(
+          __('Purchased in a category', 'mailpoet'),
+          $this->createPurchasedTemplateBody('woocommerce:order:categories')
+        );
+      },
+      [
+        'automationSteps' => 1,
+      ],
+      AutomationTemplate::TYPE_DEFAULT
+    );
+  }
+
+  private function createPurchasedTemplateBody(string $filterField): array {
+    return [
+      [
+        'key' => 'woocommerce:order-completed',
+        'filters' => [
+          'operator' => 'and',
+          'groups' => [
+            [
+              'operator' => 'and',
+              'filters' => [
+                ['field' => $filterField, 'condition' => 'matches-any-of', 'value' => null],
+              ],
+            ],
+          ],
+        ],
+      ],
+      [
+        'key' => 'mailpoet:send-email',
+        'args' => [
+          'name' => __('Important information about your order', 'mailpoet'),
+          'subject' => __('Important information about your order', 'mailpoet'),
+        ],
+      ],
+    ];
   }
 }

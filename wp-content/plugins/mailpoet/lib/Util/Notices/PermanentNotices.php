@@ -13,6 +13,7 @@ use MailPoet\Settings\TrackingConfig;
 use MailPoet\Subscribers\SubscribersRepository;
 use MailPoet\Util\License\Features\Subscribers as SubscribersFeature;
 use MailPoet\WP\Functions as WPFunctions;
+use MailPoetVendor\Doctrine\ORM\EntityManager;
 
 class PermanentNotices {
 
@@ -52,6 +53,9 @@ class PermanentNotices {
   /** @var DisabledMailFunctionNotice */
   private $disabledMailFunctionNotice;
 
+  /** @var DisabledWPCronNotice */
+  private $disabledWPCronNotice;
+
   /** @var PendingApprovalNotice */
   private $pendingApprovalNotice;
 
@@ -64,8 +68,12 @@ class PermanentNotices {
   /** @var SenderDomainAuthenticationNotices */
   private $senderDomainAuthenticationNotices;
 
+  /** @var DatabaseEngineNotice */
+  private $databaseEngineNotice;
+  
   public function __construct(
     WPFunctions $wp,
+    EntityManager $entityManager,
     TrackingConfig $trackingConfig,
     SubscribersRepository $subscribersRepository,
     SettingsController $settings,
@@ -86,9 +94,11 @@ class PermanentNotices {
     $this->changedTrackingNotice = new ChangedTrackingNotice($wp);
     $this->deprecatedFilterNotice = new DeprecatedFilterNotice($wp);
     $this->disabledMailFunctionNotice = new DisabledMailFunctionNotice($wp, $settings, $subscribersFeature, $mailerFactory);
+    $this->disabledWPCronNotice = new DisabledWPCronNotice($wp, $settings);
     $this->pendingApprovalNotice = new PendingApprovalNotice($settings);
     $this->woocommerceVersionWarning = new WooCommerceVersionWarning($wp);
     $this->premiumFeaturesAvailableNotice = new PremiumFeaturesAvailableNotice($subscribersFeature, $serviceChecker, $wp);
+    $this->databaseEngineNotice = new DatabaseEngineNotice($wp, $entityManager);
     $this->senderDomainAuthenticationNotices = $senderDomainAuthenticationNotices;
   }
 
@@ -137,6 +147,9 @@ class PermanentNotices {
     $this->disabledMailFunctionNotice->init(
       Menu::isOnMailPoetAdminPage($excludeSetupWizard)
     );
+    $this->disabledWPCronNotice->init(
+      Menu::isOnMailPoetAdminPage($excludeSetupWizard)
+    );
     $this->pendingApprovalNotice->init(
       Menu::isOnMailPoetAdminPage($excludeSetupWizard)
     );
@@ -144,6 +157,9 @@ class PermanentNotices {
       Menu::isOnMailPoetAdminPage($excludeSetupWizard)
     );
     $this->premiumFeaturesAvailableNotice->init(
+      Menu::isOnMailPoetAdminPage($excludeSetupWizard)
+    );
+    $this->databaseEngineNotice->init(
       Menu::isOnMailPoetAdminPage($excludeSetupWizard)
     );
     $excludeDomainAuthenticationNotices = [
@@ -180,11 +196,17 @@ class PermanentNotices {
       case (ChangedTrackingNotice::OPTION_NAME):
         $this->changedTrackingNotice->disable();
         break;
+      case (DisabledWPCronNotice::OPTION_NAME):
+        $this->disabledWPCronNotice->disable();
+        break;
       case (DeprecatedFilterNotice::OPTION_NAME):
         $this->deprecatedFilterNotice->disable();
         break;
       case (WooCommerceVersionWarning::OPTION_NAME):
         $this->woocommerceVersionWarning->disable();
+        break;
+      case (DatabaseEngineNotice::OPTION_NAME):
+        $this->databaseEngineNotice->disable();
         break;
       case (PremiumFeaturesAvailableNotice::OPTION_NAME):
         $this->premiumFeaturesAvailableNotice->disable();
