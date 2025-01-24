@@ -757,6 +757,15 @@ class PodsAdmin {
 
 		$pod = pods_get_instance( $pod_name );
 
+		if ( empty( $pod->pod_data ) ) {
+			printf(
+				'<div class="wrap"><p>%s</p></div>',
+				esc_html__( 'This content type is not configured correctly. There could be an issue in your configuration storagae. Please contact support.', 'pods' )
+			);
+
+			return;
+		}
+
 		if ( 'custom' !== pods_v( 'ui_style', $pod->pod_data['options'], 'settings', true ) ) {
 			$actions_disabled = array(
 				'manage'    => 'manage',
@@ -2026,7 +2035,7 @@ class PodsAdmin {
 
 		if ( ! $callouts ) {
 			$callouts = [
-				'friends_2023_docs' => 1,
+				'friends_2024_docs' => 1,
 				'access_rights'     => (
 					PodsInit::$version_last
 					&& version_compare( PodsInit::$version_last, '3.1.0-a-1', '<' )
@@ -2038,7 +2047,7 @@ class PodsAdmin {
 
 		// Handle callouts logic.
 		$callouts['access_rights'] = ! isset( $callouts['access_rights'] ) || $callouts['access_rights'] ? 1 : 0;
-		$callouts['friends_2023_docs'] = ! isset( $callouts['friends_2023_docs'] ) || $callouts['friends_2023_docs'] || $force_callouts ? 1 : 0;
+		$callouts['friends_2024_docs'] = ! isset( $callouts['friends_2024_docs'] ) || $callouts['friends_2024_docs'] || $force_callouts ? 1 : 0;
 
 		/**
 		 * Allow hooking into whether or not the specific callouts should show.
@@ -2108,7 +2117,7 @@ class PodsAdmin {
 
 		if ( $is_demo ) {
 			// Disable Friends of Pods callout on demos.
-			$callout_dismiss = 'friends_2023_docs';
+			$callout_dismiss = 'friends_2024_docs';
 		}
 
 		if ( $callout_dismiss ) {
@@ -2188,10 +2197,10 @@ class PodsAdmin {
 			$did_callout = true;
 
 			pods_view( PODS_DIR . 'ui/admin/callouts/access_rights.php', compact( array_keys( get_defined_vars() ) ) );
-		} elseif ( ! empty( $callouts['friends_2023_docs'] ) ) {
+		} elseif ( ! empty( $callouts['friends_2024_docs'] ) ) {
 			$did_callout = true;
 
-			pods_view( PODS_DIR . 'ui/admin/callouts/friends_2023_docs.php', compact( array_keys( get_defined_vars() ) ) );
+			pods_view( PODS_DIR . 'ui/admin/callouts/friends_2024_docs.php', compact( array_keys( get_defined_vars() ) ) );
 		}
 	}
 
@@ -4817,7 +4826,16 @@ class PodsAdmin {
 					$value = $setting_field['site_health_data'][ $value ];
 				} elseif ( $has_value && isset( $setting_field['data'] ) && isset( $setting_field['data'][ $value ] ) ) {
 					$value = $setting_field['data'][ $value ];
-				} elseif ( 'boolean' === $setting_field['data'] || '1' === $value || '0' === $value ) {
+				} elseif (
+					(
+						isset( $setting_field['data'] )
+						&& 'boolean' === $setting_field['data']
+					)
+					&& (
+						'1' === $value
+						|| '0' === $value
+					)
+				) {
 					$value = '1' === $value ? __( 'Yes', 'pods' ) : __( 'No', 'pods' );
 				}
 			}

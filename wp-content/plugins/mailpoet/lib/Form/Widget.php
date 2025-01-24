@@ -100,7 +100,7 @@ class Widget extends \WP_Widget {
 
     try {
       // We control the template and the data is sanitized
-      // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped, WordPressDotOrg.sniffs.OutputEscaping.UnescapedOutputParameter
+      // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
       echo $this->renderer->render('form/iframe.html', $data);
     } catch (\Exception $e) {
       echo esc_html($e->getMessage());
@@ -114,8 +114,8 @@ class Widget extends \WP_Widget {
    */
   public function update($newInstance, $oldInstance) {
     $instance = $oldInstance;
-    $instance['title'] = strip_tags($newInstance['title']);
-    $instance['form'] = (int)$newInstance['form'];
+    $instance['title'] = strip_tags(is_string($newInstance['title']) ? $newInstance['title'] : '');
+    $instance['form'] = is_numeric($newInstance['form']) ? (int)$newInstance['form'] : null;
     return $instance;
   }
 
@@ -171,6 +171,8 @@ class Widget extends \WP_Widget {
   }
 
   /**
+   * @phpstan-ignore-next-line $args are not passed to parent and our rendering is custom so it is ok that $args doesn't match parent's $arg shape.
+   * @param array{form?: int|string, form_type?: string, before_widget?: string, after_widget?: string, before_title?: string, after_title?: string } $args Widget arguments.
    * Output the widget itself.
    */
   public function widget($args, $instance = null) {
@@ -274,7 +276,7 @@ class Widget extends \WP_Widget {
     if ($formType === 'widget') {
       /** @var string $output */
       // We control the template and the data is sanitized
-      // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped, WordPressDotOrg.sniffs.OutputEscaping.UnescapedOutputParameter
+      // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
       echo $output;
     } else {
       return $output;

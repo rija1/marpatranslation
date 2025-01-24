@@ -194,7 +194,7 @@ class WC_Payments_Captured_Event_Note {
 		// Format and return the net string.
 		return sprintf(
 			/* translators: %s is a monetary amount */
-			__( 'Net deposit: %s', 'woocommerce-payments' ),
+			__( 'Net payout: %s', 'woocommerce-payments' ),
 			WC_Payments_Utils::format_explicit_currency( $net, $currency )
 		);
 	}
@@ -327,9 +327,9 @@ class WC_Payments_Captured_Event_Note {
 
 		$res['additional-fx'] = 0 !== $fixed_rate
 			/* translators: %1$s% is the fee percentage and %2$s is the fixed rate */
-			? __( 'Foreign exchange fee: %1$s%% + %2$s', 'woocommerce-payments' )
+			? __( 'Currency conversion fee: %1$s%% + %2$s', 'woocommerce-payments' )
 			/* translators: %1$s% is the fee percentage */
-			: __( 'Foreign exchange fee: %1$s%%', 'woocommerce-payments' );
+			: __( 'Currency conversion fee: %1$s%%', 'woocommerce-payments' );
 
 		$res['additional-wcpay-subscription'] = 0 !== $fixed_rate
 			/* translators: %1$s% is the fee percentage and %2$s is the fixed rate */

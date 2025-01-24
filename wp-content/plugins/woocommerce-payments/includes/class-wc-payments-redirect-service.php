@@ -8,6 +8,7 @@
 use WCPay\Core\Server\Request\Get_Account_Capital_Link;
 use WCPay\Core\Server\Request\Get_Account_Login_Data;
 use WCPay\Exceptions\API_Exception;
+use WCPay\Tracker;
 
 if ( ! defined( 'ABSPATH' ) ) {
 	exit; // Exit if accessed directly.
@@ -49,22 +50,23 @@ class WC_Payments_Redirect_Service {
 	}
 
 	/**
-	 * Redirects to the wcpay-connect URL, which then redirects to the KYC flow.
+	 * Redirects to a wcpay-connect URL which then handles the next step for the onboarding flow.
 	 *
-	 * This URL is used by the KYC reminder email. We can't take the merchant
-	 * directly to the wcpay-connect URL because it's nonced, and the
-	 * nonce will likely be expired by the time the user follows the link.
-	 * That's why we need this middleman instead.
+	 * This is a sure way to ensure that the user is redirected to the correct URL to continue their onboarding.
 	 *
-	 * @param string $from Source of the redirect.
+	 * @param string $from              Source of the redirect.
+	 * @param array  $additional_params Optional. Additional URL params to add to the redirect URL.
 	 */
-	public function redirect_to_wcpay_connect( string $from = '' ): void {
+	public function redirect_to_wcpay_connect( string $from = '', array $additional_params = [] ): void {
 		// Take the user to the 'wcpay-connect' URL.
 		// We handle creating and redirecting to the account link there.
 		$params = [
 			'wcpay-connect' => '1',
 			'_wpnonce'      => wp_create_nonce( 'wcpay-connect' ),
 		];
+
+		$params = array_merge( $params, $additional_params );
+
 		if ( '' !== $from ) {
 			$params['from'] = $from;
 		}
@@ -91,6 +93,7 @@ class WC_Payments_Redirect_Service {
 			$request->set_refresh_url( $refresh_url );
 
 			$capital_link = $request->send();
+			Tracker::track_admin( 'wcpay_capital_view_offer_redirect' );
 			$this->redirect_to( $capital_link['url'] );
 		} catch ( Exception $e ) {
 
@@ -167,6 +170,34 @@ class WC_Payments_Redirect_Service {
 
 		if ( count( $params ) === count( array_intersect_assoc( $_GET, $params ) ) ) { // phpcs:disable WordPress.Security.NonceVerification.Recommended
 			// We are already in the onboarding wizard. Do nothing.
+			return;
+		}
+
+		$params = array_merge( $params, $additional_params );
+
+		if ( ! empty( $from ) ) {
+			$params['from'] = $from;
+		}
+
+		$this->redirect_to( admin_url( add_query_arg( $params, 'admin.php' ) ) );
+	}
+
+	/**
+	 * Immediately redirect to the settings page.
+	 *
+	 * Note that this function immediately ends the execution.
+	 *
+	 * @param string|null $from              Optional. Source of the redirect.
+	 * @param array       $additional_params Optional. Additional URL params to add to the redirect URL.
+	 */
+	public function redirect_to_settings_page( ?string $from = null, array $additional_params = [] ): void {
+		$params = [
+			'page' => 'wc-settings',
+			'tab'  => 'checkout',
+		];
+
+		if ( count( $params ) === count( array_intersect_assoc( $_GET, $params ) ) ) { // phpcs:disable WordPress.Security.NonceVerification.Recommended
+			// We are already in the settings page. Do nothing.
 			return;
 		}
 

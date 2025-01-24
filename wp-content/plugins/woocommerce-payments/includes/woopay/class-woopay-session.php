@@ -33,6 +33,8 @@ class WooPay_Session {
 
 	const STORE_API_NAMESPACE_PATTERN = '@^wc/store(/v[\d]+)?$@';
 
+	const WOOPAY_SESSION_KEY = 'woopay-user-data';
+
 	/**
 	 * Init the hooks.
 	 *
@@ -43,6 +45,7 @@ class WooPay_Session {
 		add_filter( 'woocommerce_session_handler', [ __CLASS__, 'add_woopay_store_api_session_handler' ], 20 );
 		add_action( 'woocommerce_order_payment_status_changed', [ __CLASS__, 'woopay_order_payment_status_changed' ] );
 		add_action( 'woopay_restore_order_customer_id', [ __CLASS__, 'restore_order_customer_id_from_requests_with_verified_email' ] );
+		add_filter( 'woocommerce_order_needs_payment', [ __CLASS__, 'woopay_trial_subscriptions_handler' ], 20, 3 );
 
 		register_deactivation_hook( WCPAY_PLUGIN_FILE, [ __CLASS__, 'run_and_remove_woopay_restore_order_customer_id_schedules' ] );
 
@@ -61,11 +64,11 @@ class WooPay_Session {
 		$cart_token = wc_clean( wp_unslash( $_SERVER['HTTP_CART_TOKEN'] ?? null ) );
 
 		if (
-			$cart_token &&
-			self::is_request_from_woopay() &&
-			\WC_Payments_Utils::is_store_api_request() &&
-			class_exists( JsonWebToken::class ) &&
-			JsonWebToken::validate( $cart_token, '@' . wp_salt() )
+		$cart_token &&
+		self::is_request_from_woopay() &&
+		\WC_Payments_Utils::is_store_api_request() &&
+		class_exists( JsonWebToken::class ) &&
+		JsonWebToken::validate( $cart_token, '@' . wp_salt() )
 		) {
 			return SessionHandler::class;
 		}
@@ -121,7 +124,7 @@ class WooPay_Session {
 		$session_data    = $session_handler->get_session( $payload->user_id );
 		$customer        = maybe_unserialize( $session_data['customer'] );
 
-			// If the token is already authenticated, return the customer ID.
+		// If the token is already authenticated, return the customer ID.
 		if ( is_numeric( $customer['id'] ) && intval( $customer['id'] ) > 0 ) {
 			return intval( $customer['id'] );
 		}
@@ -230,7 +233,7 @@ class WooPay_Session {
 
 		$args = [
 			'meta_key' => 'woopay_merchant_customer_id', //phpcs:ignore WordPress.DB.SlowDBQuery.slow_db_query_meta_key
-			'return'   => 'ids',
+		'return'       => 'ids',
 		];
 
 		$order_ids = wc_get_orders( $args );
@@ -268,6 +271,33 @@ class WooPay_Session {
 		$automatewoo_referral = (int) wc_clean( wp_unslash( $_GET['automatewoo_referral_id'] ) ); // phpcs:ignore WordPress.Security.NonceVerification
 
 		return $automatewoo_referral;
+	}
+
+	/**
+	 * Process trial subscriptions for WooPay.
+	 *
+	 * @param bool      $needs_payment If the order needs payment.
+	 * @param \WC_Order $order The order.
+	 * @param array     $valid_order_statuses The valid order statuses.
+	 */
+	public static function woopay_trial_subscriptions_handler( $needs_payment, $order, $valid_order_statuses ) {
+		if ( ! self::is_request_from_woopay() || ! \WC_Payments_Utils::is_store_api_request() ) {
+			return $needs_payment;
+		}
+
+		if ( ! self::is_woopay_enabled() ) {
+			return $needs_payment;
+		}
+
+		if ( ! class_exists( 'WC_Subscriptions_Cart' ) || $order->get_total() > 0 ) {
+			return $needs_payment;
+		}
+
+		if ( \WC_Subscriptions_Cart::cart_contains_subscription() ) {
+			return true;
+		}
+
+		return $needs_payment;
 	}
 
 	/**
@@ -385,7 +415,7 @@ class WooPay_Session {
 	 * @param \WP_User $user The user object.
 	 * @return string The user email.
 	 */
-	private static function get_user_email( $user ) {
+	public static function get_user_email( $user ) {
 		if ( ! empty( $_POST['email'] ) ) { // phpcs:ignore WordPress.Security.NonceVerification
 			return sanitize_email( wp_unslash( $_POST['email'] ) ); // phpcs:ignore WordPress.Security.NonceVerification
 		}
@@ -400,6 +430,21 @@ class WooPay_Session {
 
 			if ( ! empty( $decrypted_data['user_email'] ) ) {
 				return sanitize_email( wp_unslash( $decrypted_data['user_email'] ) );
+			}
+		}
+
+		// Get the email from the customer object if it's available.
+		if ( ! empty( WC()->customer ) ) {
+			$billing_email = WC()->customer->get_billing_email();
+
+			if ( ! empty( $billing_email ) ) {
+				return $billing_email;
+			}
+
+			$customer_email = WC()->customer->get_email();
+
+			if ( ! empty( $customer_email ) ) {
+				return $customer_email;
 			}
 		}
 
@@ -475,11 +520,12 @@ class WooPay_Session {
 			'store_data'           => [
 				'store_name'                     => get_bloginfo( 'name' ),
 				'store_logo'                     => $store_logo,
-				'custom_message'                 => self::get_formatted_custom_message(),
+				'custom_message'                 => self::get_formatted_custom_terms(),
 				'blog_id'                        => Jetpack_Options::get_option( 'id' ),
 				'blog_url'                       => get_site_url(),
 				'blog_checkout_url'              => ! $is_pay_for_order ? wc_get_checkout_url() : $order->get_checkout_payment_url(),
 				'blog_shop_url'                  => get_permalink( wc_get_page_id( 'shop' ) ),
+				'blog_timezone'                  => wp_timezone_string(),
 				'store_api_url'                  => self::get_store_api_url(),
 				'account_id'                     => $account_id,
 				'test_mode'                      => WC_Payments::mode()->is_test(),
@@ -636,6 +682,49 @@ class WooPay_Session {
 	}
 
 	/**
+	 * Save the blocks checkout phone number in session.
+	 *
+	 * @return void
+	 */
+	public static function ajax_set_woopay_phone_number() {
+		$is_nonce_valid = check_ajax_referer( 'woopay_session_nonce', false, false );
+
+		if ( ! $is_nonce_valid ) {
+			wp_send_json_error(
+				__( 'You aren’t authorized to do that.', 'woocommerce-payments' ),
+				403
+			);
+		}
+
+		if ( ! ( isset( WC()->session ) && WC()->session->has_session() ) ) {
+			WC()->session->set_customer_session_cookie( true );
+		}
+
+		if ( ! empty( $_POST['empty'] ) && filter_var( wp_unslash( $_POST['empty'] ), FILTER_VALIDATE_BOOLEAN ) ) {
+			WC()->session->__unset( self::WOOPAY_SESSION_KEY );
+
+			wp_send_json_success();
+
+			return;
+		}
+
+		$data = [
+			'save_user_in_woopay'     => filter_var( wp_unslash( $_POST['save_user_in_woopay'] ), FILTER_VALIDATE_BOOLEAN ),
+			'woopay_source_url'       =>
+			wc_clean( wp_unslash( $_POST['woopay_source_url'] ) ),
+			'woopay_is_blocks'        => filter_var( wp_unslash( $_POST['save_user_in_woopay'] ), FILTER_VALIDATE_BOOLEAN ),
+			'woopay_viewport'         => wc_clean( wp_unslash( $_POST['woopay_viewport'] ) ),
+			'woopay_user_phone_field' => [
+				'full' => wc_clean( wp_unslash( $_POST['woopay_user_phone_field']['full'] ) ),
+			],
+		];
+
+		WC()->session->set( self::WOOPAY_SESSION_KEY, $data );
+
+		wp_send_json_success();
+	}
+
+	/**
 	 * Used to initialize woopay session on frontend
 	 *
 	 * @return void
@@ -782,7 +871,7 @@ class WooPay_Session {
 	 *
 	 * @return string The custom message with the placeholders replaced.
 	 */
-	private static function get_formatted_custom_message() {
+	private static function get_formatted_custom_terms() {
 		$custom_message = WC_Payments::get_gateway()->get_option( 'platform_checkout_custom_message' );
 
 		$terms_value          = wc_terms_and_conditions_page_id() ?
@@ -809,9 +898,15 @@ class WooPay_Session {
 	 */
 	private static function get_option_fields_status() {
 		// Shortcode checkout options.
-		$company   = get_option( 'woocommerce_checkout_company_field', 'optional' );
-		$address_2 = get_option( 'woocommerce_checkout_address_2_field', 'optional' );
-		$phone     = get_option( 'woocommerce_checkout_phone_field', 'required' );
+		$company                              = get_option( 'woocommerce_checkout_company_field', 'optional' );
+		$address_2                            = get_option( 'woocommerce_checkout_address_2_field', 'optional' );
+		$phone                                = get_option( 'woocommerce_checkout_phone_field', 'required' );
+		$has_terms_and_condition_page         = ! empty( get_option( 'woocommerce_terms_page_id', null ) );
+		$terms_and_conditions                 = wp_kses_post( wc_replace_policy_page_link_placeholders( wc_get_terms_and_conditions_checkbox_text() ) );
+		$has_privacy_policy_page              = ! empty( get_option( 'wp_page_for_privacy_policy', null ) );
+		$custom_below_place_order_button_text = self::get_formatted_custom_terms();
+		$below_place_order_button_text        = $custom_below_place_order_button_text;
+		$show_terms_checkbox                  = false;
 
 		// Blocks checkout options. To get the blocks checkout options, we need
 		// to parse the checkout page content because the options are stored
@@ -819,11 +914,29 @@ class WooPay_Session {
 		$checkout_page_id = get_option( 'woocommerce_checkout_page_id' );
 		$checkout_page    = get_post( $checkout_page_id );
 
+		/*
+		 * Will show the terms checkbox if the terms page is set.
+		 * Will show the checkbox even when the text is loaded from the custom field or the policy page field.
+		 */
+		if ( $has_terms_and_condition_page && $terms_and_conditions ) {
+			$show_terms_checkbox = true;
+			if ( ! $below_place_order_button_text ) {
+				$below_place_order_button_text = $terms_and_conditions;
+			}
+		}
+
+		if ( ! $below_place_order_button_text && $has_privacy_policy_page ) {
+			$show_terms_checkbox           = false;
+			$below_place_order_button_text = wp_kses_post( wc_replace_policy_page_link_placeholders( wc_get_privacy_policy_text( 'checkout' ) ) );
+		}
+
 		if ( empty( $checkout_page ) ) {
 			return [
-				'company'   => $company,
-				'address_2' => $address_2,
-				'phone'     => $phone,
+				'company'        => $company,
+				'address_2'      => $address_2,
+				'phone'          => $phone,
+				'terms_checkbox' => $show_terms_checkbox,
+				'custom_terms'   => $below_place_order_button_text,
 			];
 		}
 
@@ -831,39 +944,77 @@ class WooPay_Session {
 		$checkout_block_index = array_search( 'woocommerce/checkout', array_column( $checkout_page_blocks, 'blockName' ), true );
 
 		// If we can find the index, it means the merchant checkout page is using blocks checkout.
-		if ( false !== $checkout_block_index && ! empty( $checkout_page_blocks[ $checkout_block_index ]['attrs'] ) ) {
-			$checkout_block_attrs = $checkout_page_blocks[ $checkout_block_index ]['attrs'];
+		if ( false !== $checkout_block_index ) {
+			$below_place_order_button_text = $custom_below_place_order_button_text;
+			$company                       = 'optional';
+			$address_2                     = 'optional';
+			$phone                         = 'optional';
 
-			$company   = 'optional';
-			$address_2 = 'optional';
-			$phone     = 'optional';
+			if ( ! empty( $checkout_page_blocks[ $checkout_block_index ]['attrs'] ) ) {
+				$checkout_block_attrs = $checkout_page_blocks[ $checkout_block_index ]['attrs'];
 
-			if ( ! empty( $checkout_block_attrs['requireCompanyField'] ) ) {
-				$company = 'required';
+				if ( ! empty( $checkout_block_attrs['requireCompanyField'] ) ) {
+					$company = 'required';
+				}
+
+				if ( ! empty( $checkout_block_attrs['requirePhoneField'] ) ) {
+					$phone = 'required';
+				}
+
+				// showCompanyField is undefined by default.
+				if ( empty( $checkout_block_attrs['showCompanyField'] ) ) {
+					$company = 'hidden';
+				}
+
+				if ( isset( $checkout_block_attrs['showApartmentField'] ) && false === $checkout_block_attrs['showApartmentField'] ) {
+					$address_2 = 'hidden';
+				}
+
+				if ( isset( $checkout_block_attrs['showPhoneField'] ) && false === $checkout_block_attrs['showPhoneField'] ) {
+					$phone = 'hidden';
+				}
 			}
 
-			if ( ! empty( $checkout_block_attrs['requirePhoneField'] ) ) {
-				$phone = 'required';
-			}
-
-			// showCompanyField is undefined by default.
-			if ( empty( $checkout_block_attrs['showCompanyField'] ) ) {
-				$company = 'hidden';
-			}
-
-			if ( isset( $checkout_block_attrs['showApartmentField'] ) && false === $checkout_block_attrs['showApartmentField'] ) {
-				$address_2 = 'hidden';
-			}
-
-			if ( isset( $checkout_block_attrs['showPhoneField'] ) && false === $checkout_block_attrs['showPhoneField'] ) {
-				$phone = 'hidden';
-			}
+			$fields_block        = self::get_inner_block( $checkout_page_blocks[ $checkout_block_index ], 'woocommerce/checkout-fields-block' );
+			$terms_block         = self::get_inner_block( $fields_block, 'woocommerce/checkout-terms-block' );
+			$show_terms_checkbox = isset( $terms_block['attrs']['checkbox'] ) && $terms_block['attrs']['checkbox'];
 		}
 
 		return [
-			'company'   => $company,
-			'address_2' => $address_2,
-			'phone'     => $phone,
+			'company'        => $company,
+			'address_2'      => $address_2,
+			'phone'          => $phone,
+			'terms_checkbox' => $show_terms_checkbox,
+			'custom_terms'   => $below_place_order_button_text,
 		];
+	}
+
+	/**
+	 * Searches for an inner block with the given name.
+	 *
+	 * @param array  $current_block A block that contains child blocks.
+	 * @param string $inner_block_name The name of a child block.
+	 * @return array|null
+	 */
+	private static function get_inner_block( $current_block, $inner_block_name ) {
+
+		if ( ! isset( $current_block['innerBlocks'] ) ) {
+			return;
+		}
+
+		$inner_block_index = array_search(
+			$inner_block_name,
+			array_column(
+				$current_block['innerBlocks'],
+				'blockName'
+			),
+			true
+		);
+
+		if ( ! isset( $current_block['innerBlocks'][ $inner_block_index ] ) ) {
+			return;
+		}
+
+		return $current_block['innerBlocks'][ $inner_block_index ];
 	}
 }

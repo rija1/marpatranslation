@@ -20,7 +20,19 @@ use WCPay\Constants\Payment_Initiated_By;
 use WCPay\Constants\Intent_Status;
 use WCPay\Constants\Payment_Type;
 use WCPay\Constants\Payment_Method;
-use WCPay\Exceptions\{ Add_Payment_Method_Exception, Amount_Too_Small_Exception, Process_Payment_Exception, Intent_Authentication_Exception, API_Exception, Invalid_Address_Exception, Fraud_Prevention_Enabled_Exception, Invalid_Phone_Number_Exception, Rate_Limiter_Enabled_Exception, Order_ID_Mismatch_Exception, Order_Not_Found_Exception, New_Process_Payment_Exception };
+use WCPay\Exceptions\{Add_Payment_Method_Exception,
+	Amount_Too_Small_Exception,
+	API_Merchant_Exception,
+	Process_Payment_Exception,
+	Intent_Authentication_Exception,
+	API_Exception,
+	Invalid_Address_Exception,
+	Fraud_Prevention_Enabled_Exception,
+	Invalid_Phone_Number_Exception,
+	Rate_Limiter_Enabled_Exception,
+	Order_ID_Mismatch_Exception,
+	Order_Not_Found_Exception,
+	New_Process_Payment_Exception};
 use WCPay\Core\Server\Request\Cancel_Intention;
 use WCPay\Core\Server\Request\Capture_Intention;
 use WCPay\Core\Server\Request\Create_And_Confirm_Intention;
@@ -271,12 +283,12 @@ class WC_Payment_Gateway_WCPay extends WC_Payment_Gateway_CC {
 	 * @param WC_Payments_Action_Scheduler_Service $action_scheduler_service             - Action Scheduler service instance.
 	 * @param UPE_Payment_Method                   $payment_method                       - Specific UPE_Payment_Method instance for gateway.
 	 * @param array                                $payment_methods                      - Array of UPE payment methods.
-	 * @param Session_Rate_Limiter|null            $failed_transaction_rate_limiter      - Rate Limiter for failed transactions.
 	 * @param WC_Payments_Order_Service            $order_service                        - Order class instance.
 	 * @param Duplicate_Payment_Prevention_Service $duplicate_payment_prevention_service - Service for preventing duplicate payments.
 	 * @param WC_Payments_Localization_Service     $localization_service                 - Localization service instance.
 	 * @param WC_Payments_Fraud_Service            $fraud_service                        - Fraud service instance.
 	 * @param Duplicates_Detection_Service         $duplicate_payment_methods_detection_service - Service for finding duplicate enabled payment methods.
+	 * @param Session_Rate_Limiter|null            $failed_transaction_rate_limiter      - Rate Limiter for failed transactions.
 	 */
 	public function __construct(
 		WC_Payments_API_Client $payments_api_client,
@@ -286,12 +298,12 @@ class WC_Payment_Gateway_WCPay extends WC_Payment_Gateway_CC {
 		WC_Payments_Action_Scheduler_Service $action_scheduler_service,
 		UPE_Payment_Method $payment_method,
 		array $payment_methods,
-		Session_Rate_Limiter $failed_transaction_rate_limiter = null,
 		WC_Payments_Order_Service $order_service,
 		Duplicate_Payment_Prevention_Service $duplicate_payment_prevention_service,
 		WC_Payments_Localization_Service $localization_service,
 		WC_Payments_Fraud_Service $fraud_service,
-		Duplicates_Detection_Service $duplicate_payment_methods_detection_service
+		Duplicates_Detection_Service $duplicate_payment_methods_detection_service,
+		?Session_Rate_Limiter $failed_transaction_rate_limiter = null
 	) {
 		$this->payment_methods = $payment_methods;
 		$this->payment_method  = $payment_method;
@@ -309,13 +321,11 @@ class WC_Payment_Gateway_WCPay extends WC_Payment_Gateway_CC {
 		$this->fraud_service                               = $fraud_service;
 		$this->duplicate_payment_methods_detection_service = $duplicate_payment_methods_detection_service;
 
-		$this->id                 = static::GATEWAY_ID;
-		$this->icon               = $this->get_theme_icon();
-		$this->has_fields         = true;
-		$this->method_title       = 'WooPayments';
-		$this->method_description = $this->get_method_description();
+		$this->id           = static::GATEWAY_ID;
+		$this->icon         = $this->get_theme_icon();
+		$this->has_fields   = true;
+		$this->method_title = 'WooPayments';
 
-		$this->title       = $payment_method->get_title();
 		$this->description = '';
 		$this->supports    = [
 			'products',
@@ -323,11 +333,61 @@ class WC_Payment_Gateway_WCPay extends WC_Payment_Gateway_CC {
 		];
 
 		if ( 'card' !== $this->stripe_id ) {
-			$this->id           = self::GATEWAY_ID . '_' . $this->stripe_id;
-			$this->method_title = "WooPayments ($this->title)";
+			$this->id = self::GATEWAY_ID . '_' . $this->stripe_id;
 		}
 
-		// Define setting fields.
+		// Capabilities have different keys than the payment method ID's,
+		// so instead of appending '_payments' to the end of the ID, it'll be better
+		// to have a map for it instead, just in case the pattern changes.
+		$this->payment_method_capability_key_map = [
+			'sofort'            => 'sofort_payments',
+			'giropay'           => 'giropay_payments',
+			'bancontact'        => 'bancontact_payments',
+			'eps'               => 'eps_payments',
+			'ideal'             => 'ideal_payments',
+			'p24'               => 'p24_payments',
+			'card'              => 'card_payments',
+			'sepa_debit'        => 'sepa_debit_payments',
+			'au_becs_debit'     => 'au_becs_debit_payments',
+			'link'              => 'link_payments',
+			'affirm'            => 'affirm_payments',
+			'afterpay_clearpay' => 'afterpay_clearpay_payments',
+			'klarna'            => 'klarna_payments',
+			'jcb'               => 'jcb_payments',
+		];
+
+		// WooPay utilities.
+		$this->woopay_util = new WooPay_Utilities();
+
+		// Load the settings.
+		$this->init_settings();
+
+		// Check if subscriptions are enabled and add support for them.
+		$this->maybe_init_subscriptions();
+
+		// If the setting to enable saved cards is enabled, then we should support tokenization and adding payment methods.
+		if ( $this->is_saved_cards_enabled() ) {
+			array_push( $this->supports, 'tokenization', 'add_payment_method' );
+		}
+	}
+
+	/**
+	 * Return the gateway's title.
+	 *
+	 * @return string
+	 */
+	public function get_title() {
+		$this->title        = $this->payment_method->get_title();
+		$this->method_title = "WooPayments ($this->title)";
+		return parent::get_title();
+	}
+
+	/**
+	 * Get the form fields after they are initialized.
+	 *
+	 * @return array of options
+	 */
+	public function get_form_fields() {
 		$this->form_fields = [
 			'enabled'                            => [
 				'title'       => __( 'Enable/disable', 'woocommerce-payments' ),
@@ -401,7 +461,7 @@ class WC_Payment_Gateway_WCPay extends WC_Payment_Gateway_CC {
 				'title'       => __( 'Button type', 'woocommerce-payments' ),
 				'type'        => 'select',
 				'description' => __( 'Select the button type you would like to show.', 'woocommerce-payments' ),
-				'default'     => 'buy',
+				'default'     => 'default',
 				'desc_tip'    => true,
 				'options'     => [
 					'default' => __( 'Only icon', 'woocommerce-payments' ),
@@ -497,39 +557,7 @@ class WC_Payment_Gateway_WCPay extends WC_Payment_Gateway_CC {
 			'platform_checkout_custom_message'   => [ 'default' => __( 'By placing this order, you agree to our [terms] and understand our [privacy_policy].', 'woocommerce-payments' ) ],
 		];
 
-		// Capabilities have different keys than the payment method ID's,
-		// so instead of appending '_payments' to the end of the ID, it'll be better
-		// to have a map for it instead, just in case the pattern changes.
-		$this->payment_method_capability_key_map = [
-			'sofort'            => 'sofort_payments',
-			'giropay'           => 'giropay_payments',
-			'bancontact'        => 'bancontact_payments',
-			'eps'               => 'eps_payments',
-			'ideal'             => 'ideal_payments',
-			'p24'               => 'p24_payments',
-			'card'              => 'card_payments',
-			'sepa_debit'        => 'sepa_debit_payments',
-			'au_becs_debit'     => 'au_becs_debit_payments',
-			'link'              => 'link_payments',
-			'affirm'            => 'affirm_payments',
-			'afterpay_clearpay' => 'afterpay_clearpay_payments',
-			'klarna'            => 'klarna_payments',
-			'jcb'               => 'jcb_payments',
-		];
-
-		// WooPay utilities.
-		$this->woopay_util = new WooPay_Utilities();
-
-		// Load the settings.
-		$this->init_settings();
-
-		// Check if subscriptions are enabled and add support for them.
-		$this->maybe_init_subscriptions();
-
-		// If the setting to enable saved cards is enabled, then we should support tokenization and adding payment methods.
-		if ( $this->is_saved_cards_enabled() ) {
-			array_push( $this->supports, 'tokenization', 'add_payment_method' );
-		}
+		return parent::get_form_fields();
 	}
 
 	/**
@@ -767,12 +795,12 @@ class WC_Payment_Gateway_WCPay extends WC_Payment_Gateway_CC {
 	 * @return string Connection URL.
 	 */
 	public function get_connection_url() {
-		$account_data = $this->account->get_cached_account_data();
-
-		// The onboarding is finished if account_id is set. `Set up` will be shown instead of `Connect`.
-		if ( isset( $account_data['account_id'] ) ) {
+		// If we have an account, `Set up` will be shown instead of `Connect`.
+		if ( $this->is_connected() ) {
 			return '';
 		}
+
+		// Note: Payments Task is not a very accurate from value, but it is the best we can do, for now.
 		return html_entity_decode( WC_Payments_Account::get_connect_url( WC_Payments_Onboarding_Service::FROM_WCADMIN_PAYMENTS_TASK ) );
 	}
 
@@ -825,6 +853,9 @@ class WC_Payment_Gateway_WCPay extends WC_Payment_Gateway_CC {
 	 * @return bool Whether the gateway is enabled and ready to accept payments.
 	 */
 	public function is_available() {
+		if ( ! WC_Payments::get_gateway()->is_enabled() ) {
+			return false;
+		}
 		$processing_payment_method = $this->payment_methods[ $this->payment_method->get_id() ];
 		if ( ! $processing_payment_method->is_enabled_at_checkout( $this->get_account_country() ) ) {
 			return false;
@@ -865,6 +896,15 @@ class WC_Payment_Gateway_WCPay extends WC_Payment_Gateway_CC {
 	 */
 	public function is_saved_cards_enabled() {
 		return 'yes' === $this->get_option( 'saved_cards' );
+	}
+
+	/**
+	 * Checks if the setting to show the payment request buttons is enabled.
+	 *
+	 * @return bool Whether the setting to show the payment request buttons is enabled or not.
+	 */
+	public function is_payment_request_enabled() {
+		return 'yes' === $this->get_option( 'payment_request' );
 	}
 
 	/**
@@ -1242,6 +1282,9 @@ class WC_Payment_Gateway_WCPay extends WC_Payment_Gateway_CC {
 				);
 
 				$error_details = esc_html( rtrim( $e->getMessage(), '.' ) );
+				if ( $e instanceof API_Merchant_Exception ) {
+					$error_details = $error_details . '. ' . esc_html( rtrim( $e->get_merchant_message(), '.' ) );
+				}
 
 				if ( $e instanceof API_Exception && 'card_error' === $e->get_error_type() ) {
 					// If the payment failed with a 'card_error' API exception, initialize the fraud meta box
@@ -1559,7 +1602,6 @@ class WC_Payment_Gateway_WCPay extends WC_Payment_Gateway_CC {
 				throw new Exception( WC_Payments_Utils::get_filtered_error_message( $e ) );
 			}
 
-			$payment_methods = $this->get_payment_method_types( $payment_information );
 			// The sanitize_user call here is deliberate: it seems the most appropriate sanitization function
 			// for a string that will only contain latin alphanumeric characters and underscores.
 			// phpcs:ignore WordPress.Security.NonceVerification.Missing
@@ -1590,6 +1632,8 @@ class WC_Payment_Gateway_WCPay extends WC_Payment_Gateway_CC {
 			}
 
 			if ( empty( $intent ) ) {
+				$payment_methods = $this->get_payment_method_types( $payment_information );
+
 				$request = Create_And_Confirm_Intention::create();
 				$request->set_amount( $converted_amount );
 				$request->set_currency_code( $currency );
@@ -1838,8 +1882,11 @@ class WC_Payment_Gateway_WCPay extends WC_Payment_Gateway_CC {
 			$payment_method_details = $charge ? $charge->get_payment_method_details() : [];
 			$payment_method_type    = $payment_method_details ? $payment_method_details['type'] : null;
 
-			if ( $order->get_meta( 'is_woopay' ) && 'card' === $payment_method_type && isset( $payment_method_details['card']['last4'] ) ) {
+			if ( 'card' === $payment_method_type && isset( $payment_method_details['card']['last4'] ) ) {
 				$order->add_meta_data( 'last4', $payment_method_details['card']['last4'], true );
+				if ( isset( $payment_method_details['card']['brand'] ) ) {
+					$order->add_meta_data( '_card_brand', $payment_method_details['card']['brand'], true );
+				}
 				$order->save_meta_data();
 			}
 		} else {
@@ -2111,9 +2158,6 @@ class WC_Payment_Gateway_WCPay extends WC_Payment_Gateway_CC {
 			$order           = $payment_information->get_order();
 			$order_id        = $order instanceof WC_Order ? $order->get_id() : null;
 			$payment_methods = $this->get_payment_methods_from_gateway_id( $token->get_gateway_id(), $order_id );
-		} else {
-			// Final fallback case, if all else fails.
-			$payment_methods = WC_Payments::get_gateway()->get_payment_method_ids_enabled_at_checkout( null, true );
 		}
 
 		return $payment_methods;
@@ -3195,12 +3239,9 @@ class WC_Payment_Gateway_WCPay extends WC_Payment_Gateway_CC {
 	}
 
 	/**
-	 * The get_icon() method from the WC_Payment_Gateway class wraps the icon URL into a prepared HTML element, but there are situations when this
-	 * element needs to be rendered differently on the UI (e.g. additional styles or `display` property).
+	 * The URL for the current payment method's icon.
 	 *
-	 * This is why we need a usual getter like this to provide a raw icon URL to the UI, which will render it according to particular requirements.
-	 *
-	 * @return string Returns the payment method icon URL.
+	 * @return string The payment method icon URL.
 	 */
 	public function get_icon_url() {
 		return $this->payment_method->get_icon();
@@ -3363,7 +3404,7 @@ class WC_Payment_Gateway_WCPay extends WC_Payment_Gateway_CC {
 		$this->attach_exchange_info_to_order( $order, $charge_id );
 
 		if ( Intent_Status::SUCCEEDED === $status ) {
-			$this->order_service->update_order_status_from_intent( $order, $intent );
+			$this->order_service->process_captured_payment( $order, $intent );
 		} elseif ( $is_authorization_expired ) {
 			$this->order_service->mark_payment_capture_expired( $order, $intent_id, Intent_Status::CANCELED, $charge_id );
 		} else {
@@ -3566,7 +3607,9 @@ class WC_Payment_Gateway_WCPay extends WC_Payment_Gateway_CC {
 				wc_reduce_stock_levels( $order_id );
 				WC()->cart->empty_cart();
 
-				if ( ! empty( $payment_method_id ) ) {
+				$is_subscription            = function_exists( 'wcs_order_contains_subscription' ) && wcs_order_contains_subscription( $order );
+				$should_save_payment_method = $is_subscription || ( isset( $_POST['should_save_payment_method'] ) && 'true' === $_POST['should_save_payment_method'] );
+				if ( $should_save_payment_method && ! empty( $payment_method_id ) ) {
 					try {
 						$token = $this->token_service->add_payment_method_to_user( $payment_method_id, wp_get_current_user() );
 						$this->add_token_to_order( $order, $token );
@@ -3749,7 +3792,7 @@ class WC_Payment_Gateway_WCPay extends WC_Payment_Gateway_CC {
 	 *
 	 * @throws Exception - When an error occurs in intent creation.
 	 */
-	public function create_intent( WC_Order $order, array $payment_methods, string $capture_method = 'automatic', array $metadata = [], string $customer_id = null ) {
+	public function create_intent( WC_Order $order, array $payment_methods, string $capture_method = 'automatic', array $metadata = [], ?string $customer_id = null ) {
 		$currency         = strtolower( $order->get_currency() );
 		$converted_amount = WC_Payments_Utils::prepare_amount( $order->get_total(), $currency );
 		$order_number     = $order->get_order_number();
@@ -4282,20 +4325,22 @@ class WC_Payment_Gateway_WCPay extends WC_Payment_Gateway_CC {
 	 * @return array WooCommerce checkout fields.
 	 */
 	public function checkout_update_email_field_priority( $fields ) {
-		$is_link_enabled = in_array(
-			Link_Payment_Method::PAYMENT_METHOD_STRIPE_ID,
-			\WC_Payments::get_gateway()->get_payment_method_ids_enabled_at_checkout_filtered_by_fees( null, true ),
-			true
-		);
+		if ( is_checkout() || has_block( 'woocommerce/checkout' ) ) {
+			$is_link_enabled = in_array(
+				Link_Payment_Method::PAYMENT_METHOD_STRIPE_ID,
+				\WC_Payments::get_gateway()->get_payment_method_ids_enabled_at_checkout_filtered_by_fees( null, true ),
+				true
+			);
 
-		if ( $is_link_enabled && isset( $fields['billing_email'] ) ) {
-			// Update the field priority.
-			$fields['billing_email']['priority'] = 1;
+			if ( $is_link_enabled && isset( $fields['billing_email'] ) ) {
+				// Update the field priority.
+				$fields['billing_email']['priority'] = 1;
 
-			// Add extra `wcpay-checkout-email-field` class.
-			$fields['billing_email']['class'][] = 'wcpay-checkout-email-field';
+				// Add extra `wcpay-checkout-email-field` class.
+				$fields['billing_email']['class'][] = 'wcpay-checkout-email-field';
 
-			add_filter( 'woocommerce_form_field_email', [ $this, 'append_stripelink_button' ], 10, 4 );
+				add_filter( 'woocommerce_form_field_email', [ $this, 'append_stripelink_button' ], 10, 4 );
+			}
 		}
 
 		return $fields;
@@ -4484,39 +4529,40 @@ class WC_Payment_Gateway_WCPay extends WC_Payment_Gateway_CC {
 		return $this->duplicate_payment_methods_detection_service->find_duplicates();
 	}
 
-	// Start: Deprecated functions.
-
 	/**
-	 * Check the defined constant to determine the current plugin mode.
+	 * Get the recommended payment methods list.
 	 *
-	 * @deprecated 5.6.0
+	 * @param string $country_code Optional. The business location country code. Provide a 2-letter ISO country code.
+	 *                             If not provided, the account country will be used if the account is connected.
+	 *                             Otherwise, the store's base country will be used.
 	 *
-	 * @return bool
+	 * @return array List of recommended payment methods for the given country.
+	 *               Empty array if there are no recommendations available.
+	 *               Each item in the array should be an associative array with at least the following entries:
+	 *               - @string id: The payment method ID.
+	 *               - @string title: The payment method title/name.
+	 *               - @bool enabled: Whether the payment method is enabled.
+	 *               - @int order/priority: The order/priority of the payment method.
 	 */
-	public function is_in_dev_mode() {
-		wc_deprecated_function( __FUNCTION__, '5.6.0', 'WC_Payments::mode()->is_dev()' );
-		return WC_Payments::mode()->is_dev();
-	}
+	public function get_recommended_payment_methods( string $country_code = '' ): array {
+		if ( empty( $country_code ) ) {
+			// If the account is connected, use the account country.
+			if ( $this->account->is_provider_connected() ) {
+				$country_code = $this->get_account_country();
+			} else {
+				// If the account is not connected, use the store's base country.
+				$country_code = WC()->countries->get_base_country();
+			}
+		}
 
-	/**
-	 * Returns whether test_mode or dev_mode is active for the gateway
-	 *
-	 * @deprecated 5.6.0
-	 *
-	 * @return boolean Test mode enabled if true, disabled if false
-	 */
-	public function is_in_test_mode() {
-		wc_deprecated_function( __FUNCTION__, '5.6.0', 'WC_Payments::mode()->is_test()' );
-		return WC_Payments::mode()->is_test();
+		return $this->account->get_recommended_payment_methods( $country_code );
 	}
-
-	// End: Deprecated functions.
 
 	/**
 	 * Determine whether redirection is needed for the non-card UPE payment method.
 	 *
 	 * @param array $payment_methods The list of payment methods used for the order processing, usually consists of one method only.
-	 * @return boolean True if the arrray consist of only one payment method which is not a card. False otherwise.
+	 * @return boolean True if the array consist of only one payment method which is not a card. False otherwise.
 	 */
 	private function upe_needs_redirection( $payment_methods ) {
 		return 1 === count( $payment_methods ) && 'card' !== $payment_methods[0];

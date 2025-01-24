@@ -9,6 +9,7 @@ defined( 'ABSPATH' ) || exit;
 
 use WCPay\Constants\Intent_Status;
 use WCPay\Exceptions\API_Exception;
+use WCPay\Exceptions\API_Merchant_Exception;
 use WCPay\Exceptions\Amount_Too_Small_Exception;
 use WCPay\Exceptions\Amount_Too_Large_Exception;
 use WCPay\Exceptions\Connection_Exception;
@@ -21,11 +22,12 @@ use WCPay\Database_Cache;
 use WCPay\Core\Server\Request;
 use WCPay\Core\Server\Request\List_Fraud_Outcome_Transactions;
 use WCPay\Exceptions\Cannot_Combine_Currencies_Exception;
+use WCPay\MultiCurrency\Interfaces\MultiCurrencyApiClientInterface;
 
 /**
  * Communicates with WooCommerce Payments API.
  */
-class WC_Payments_API_Client {
+class WC_Payments_API_Client implements MultiCurrencyApiClientInterface {
 
 	const ENDPOINT_BASE          = 'https://public-api.wordpress.com/wpcom/v2';
 	const ENDPOINT_SITE_FRAGMENT = 'sites/%s';
@@ -80,6 +82,7 @@ class WC_Payments_API_Client {
 	const FRAUD_RULESET_API            = 'fraud_ruleset';
 	const COMPATIBILITY_API            = 'compatibility';
 	const REPORTING_API                = 'reporting/payment_activity';
+	const RECOMMENDED_PAYMENT_METHODS  = 'payment_methods/recommended';
 
 	/**
 	 * Common keys in API requests/responses that we might want to redact.
@@ -191,7 +194,7 @@ class WC_Payments_API_Client {
 	 *
 	 * @return bool
 	 */
-	public function is_server_connected() {
+	public function is_server_connected(): bool {
 		return $this->http_client->is_connected();
 	}
 
@@ -450,6 +453,65 @@ class WC_Payments_API_Client {
 		}
 
 		return $this->request( $filters, self::TRANSACTIONS_API . '/download', self::POST );
+	}
+
+	/**
+	 * Fetch account recommended payment methods data for a given country.
+	 *
+	 * @param string $country_code The account's business location country code. Provide a 2-letter ISO country code.
+	 * @param string $locale       Optional. The locale to instruct the platform to use for i18n.
+	 *
+	 * @return array The recommended payment methods data.
+	 * @throws API_Exception Exception thrown on request failure.
+	 */
+	public function get_recommended_payment_methods( string $country_code, string $locale = '' ): array {
+		// We can't use the request method here because this route doesn't require a connected store
+		// and we request this data pre-onboarding.
+		// By this point, we have an expired transient or the store context has changed.
+		// Query for incentives by calling the WooPayments API.
+		$url = add_query_arg(
+			[
+				'country_code' => $country_code,
+				'locale'       => $locale,
+			],
+			self::ENDPOINT_BASE . '/' . self::ENDPOINT_REST_BASE . '/' . self::RECOMMENDED_PAYMENT_METHODS,
+		);
+
+		$response = wp_remote_get(
+			$url,
+			[
+				'headers'    => apply_filters(
+					'wcpay_api_request_headers',
+					[
+						'Content-type' => 'application/json; charset=utf-8',
+					]
+				),
+				'user-agent' => $this->user_agent,
+				'timeout'    => self::API_TIMEOUT_SECONDS,
+				'sslverify'  => false,
+			]
+		);
+
+		if ( is_wp_error( $response ) ) {
+			Logger::error( 'HTTP_REQUEST_ERROR ' . var_export( $response, true ) ); // phpcs:ignore WordPress.PHP.DevelopmentFunctions.error_log_var_export
+			$message = sprintf(
+			// translators: %1: original error message.
+				__( 'Http request failed. Reason: %1$s', 'woocommerce-payments' ),
+				$response->get_error_message()
+			);
+			throw new API_Exception( $message, 'wcpay_http_request_failed', 500 );
+		}
+
+		$results = [];
+		if ( 200 === wp_remote_retrieve_response_code( $response ) ) {
+			// Decode the results, falling back to an empty array.
+			$results = $this->extract_response_body( $response );
+			if ( ! is_array( $results ) ) {
+				$results = [];
+			}
+		}
+
+		return $results;
 	}
 
 	/**
@@ -857,7 +919,7 @@ class WC_Payments_API_Client {
 	 *
 	 * @throws API_Exception - Error contacting the API.
 	 */
-	public function get_currency_rates( string $currency_from, $currencies_to = null ) {
+	public function get_currency_rates( string $currency_from, $currencies_to = null ): array {
 		if ( empty( $currency_from ) ) {
 			throw new API_Exception(
 				__( 'Currency From parameter is required', 'woocommerce-payments' ),
@@ -968,6 +1030,62 @@ class WC_Payments_API_Client {
 		);
 
 		return $this->request( $request_args, self::ONBOARDING_API . '/init', self::POST, true, true );
+	}
+
+	/**
+	 * Initialize the onboarding embedded KYC flow, returning a session object which is used by the frontend.
+	 *
+	 * @param bool  $live_account Whether to create live account.
+	 * @param array $site_data Site data.
+	 * @param array $user_data User data.
+	 * @param array $account_data Account data to be prefilled.
+	 * @param array $actioned_notes Actioned notes to be sent.
+	 * @param bool  $progressive Whether progressive onboarding should be enabled for this onboarding.
+	 *
+	 * @return array
+	 *
+	 * @throws API_Exception
+	 */
+	public function initialize_onboarding_embedded_kyc( bool $live_account, array $site_data = [], array $user_data = [], array $account_data = [], array $actioned_notes = [], bool $progressive = false ): array {
+		$request_args = apply_filters(
+			'wc_payments_get_onboarding_data_args',
+			[
+				'site_data'           => $site_data,
+				'user_data'           => $user_data,
+				'account_data'        => $account_data,
+				'actioned_notes'      => $actioned_notes,
+				'create_live_account' => $live_account,
+				'progressive'         => $progressive,
+			]
+		);
+
+		$session = $this->request( $request_args, self::ONBOARDING_API . '/embedded', self::POST, true, true );
+
+		if ( ! is_array( $session ) ) {
+			return [];
+		}
+
+		return $session;
+	}
+
+	/**
+	 * Finalize the onboarding embedded KYC flow.
+	 *
+	 * @param string $locale         The locale to use to i18n the data.
+	 * @param string $source         The source of the onboarding flow.
+	 * @param array  $actioned_notes The actioned notes on the account related to this onboarding.
+	 * @return array
+	 *
+	 * @throws API_Exception
+	 */
+	public function finalize_onboarding_embedded_kyc( string $locale, string $source, array $actioned_notes ): array {
+		$request_args = [
+			'locale'         => $locale,
+			'source'         => $source,
+			'actioned_notes' => $actioned_notes,
+		];
+
+		return $this->request( $request_args, self::ONBOARDING_API . '/embedded/finalize', self::POST, true, true );
 	}
 
 	/**
@@ -1645,7 +1763,7 @@ class WC_Payments_API_Client {
 	 *
 	 * @throws API_Exception If an error occurs.
 	 */
-	public function register_terminal_reader( string $location, string $registration_code, string $label = null, array $metadata = null ) {
+	public function register_terminal_reader( string $location, string $registration_code, ?string $label = null, ?array $metadata = null ) {
 		$request = [
 			'location'          => $location,
 			'registration_code' => $registration_code,
@@ -2302,6 +2420,13 @@ class WC_Payments_API_Client {
 			);
 
 			Logger::error( "$error_message ($error_code)" );
+
+			if ( 'card_declined' === $error_code && isset( $response_body['error']['payment_intent']['charges']['data'][0]['outcome']['seller_message'] ) ) {
+				$merchant_message = $response_body['error']['payment_intent']['charges']['data'][0]['outcome']['seller_message'];
+
+				throw new API_Merchant_Exception( $message, $error_code, $response_code, $merchant_message, $error_type, $decline_code );
+			}
+
 			throw new API_Exception( $message, $error_code, $response_code, $error_type, $decline_code );
 		}
 	}

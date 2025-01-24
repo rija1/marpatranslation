@@ -1,9 +1,9 @@
 === MailPoet - Newsletters, Email Marketing, and Automation ===
 Contributors: mailpoet, woocommerce, automattic
 Tags: email marketing, post notification, woocommerce emails, email automation, newsletter
-Requires at least: 6.5
-Tested up to: 6.6
-Stable tag: 5.0.2
+Requires at least: 6.6
+Tested up to: 6.7
+Stable tag: 5.6.2
 Requires PHP: 7.4
 License: GPLv3
 License URI: https://www.gnu.org/licenses/gpl-3.0.html
@@ -18,7 +18,7 @@ Our newsletter builder integrates perfectly with WordPress so any website owner 
 
 Schedule your newsletters, send them right away, or set up new blog post notifications to send automatically, in just a few clicks.
 
-Trusted by 700,000 WordPress websites since 2011.
+Trusted by 600,000 WordPress websites since 2011.
 
 **With a free plan to get started, and scaling paid plans with enhanced functionality available, MailPoet is an email marketing solution suitable for both beginners and proficient email marketers.**
 
@@ -105,39 +105,33 @@ Please note:
 
 = Translations =
 
-**Official translations**
-
+* Albanian
 * Arabic
 * Catalan
-* Chinese
 * Czech
 * Danish
 * Dutch
-* French (FR)
+* Dutch (Formal)
+* French (Canada)
+* French (France)
 * German
+* German (Switzerland)
+* German (Formal)
 * Greek
+* Hindi
 * Italian
 * Japanese
-* Mexican
-* Persian (IR)
-* Portuguese (BR and PT)
+* Polish
+* Portuguese (Brazil)
+* Portuguese (Portugal)
+* Romanian
 * Russian
 * Serbian
-* Spanish
+* Slovak
+* Spanish (Mexico)
+* Spanish (Spain)
 * Swedish
 * Turkish
-
-**Community translations**
-
-* Albanian
-* British
-* French (CA)
-* Hebrew
-* Hungarian
-* Norwegian
-* Persian
-* Polish
-* Romanian
 * Ukrainian
 
 We welcome experienced translators to translate directly on [our Transifex project](https://www.transifex.com/wysija/mp3/). Please note that any translations submitted via the "Translating WordPress" website will not work.
@@ -163,8 +157,6 @@ To improve user experience, MailPoet may use the following 3rd party libraries i
 * [Mixpanel](https://mixpanel.com/) - used to send data about the usage of the MailPoet plugin when you [agree with sharing usage data with us](https://kb.mailpoet.com/article/130-sharing-your-data-with-us). [TOS](https://mixpanel.com/legal/terms-of-use/) and [Privacy Policy](https://mixpanel.com/legal/privacy-policy/)
 
 * [Satismeter](https://www.satismeter.com/) - used to ask for feedback. [TOS](https://www.satismeter.com/terms/) and [Privacy Policy](https://www.satismeter.com/privacy-policy/)
-
-* [Beamer](https://www.getbeamer.com/) - used to load our latest blogposts and announcements. [TOS](https://www.getbeamer.com/terms) and [Privacy Policy](https://www.getbeamer.com/privacy)
 
 * [Crowdsignal](https://crowdsignal.com/) - used to load our deactivation poll to improve our plugin. [TOS](https://crowdsignal.com/terms/) and [Privacy Policy](https://automattic.com/privacy/)
 
@@ -230,9 +222,11 @@ Check our [Knowledge Base](https://kb.mailpoet.com) or contact us through our [s
 
 == Changelog ==
 
-= 5.0.2 - 2024-08-26 =
-* Added: Ukrainian translations;
-* Improved: error messages in automations;
-* Changed: human and machine opens are merged by default, old behavior can be restored in settings.
+= 5.6.2 - 2025-01-21 =
+* Added: CAPTCHA protection for WP registration forms.
+* Updated: list of available translations;
+* Improved: more detailed System Info report;
+* Improved: retry email automations for unconfirmed recipients.
+* Fixed: occasional PHP type error in the new email editor.
 
 [See the changelog for all versions.](https://github.com/mailpoet/mailpoet/blob/trunk/mailpoet/CHANGELOG.md)

@@ -50,7 +50,7 @@ class AutomationFlowEndpoint extends Endpoint {
   }
 
   public function handle(Request $request): Response {
-    $id = absint($request->getParam('id'));
+    $id = absint(is_numeric($request->getParam('id')) ? $request->getParam('id') : 0);
     $automation = $this->automationStorage->getAutomation($id);
     if (!$automation) {
       throw Exceptions::automationNotFound($id);
@@ -71,7 +71,7 @@ class AutomationFlowEndpoint extends Endpoint {
     $waitingData = $this->stepStatisticController->getWaitingStatistics($automation, $query);
     $failedData = $this->stepStatisticController->getFailedStatistics($automation, $query);
     try {
-      $flowData = $this->stepStatisticController->getFlowStatistics($automation, $query);
+      $completedData = $this->stepStatisticController->getCompletedStatistics($automation, $query);
     } catch (\Throwable $e) {
       return new Response([$e->getMessage()], 500);
     }
@@ -84,8 +84,8 @@ class AutomationFlowEndpoint extends Endpoint {
     if ($failedData) {
       $stepData['failed'] = $failedData;
     }
-    if ($flowData) {
-      $stepData['flow'] = $flowData;
+    if ($completedData) {
+      $stepData['completed'] = $completedData;
     }
 
     $data = [

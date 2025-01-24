@@ -27,7 +27,17 @@ class WC_Helper_Admin {
 	 * @return void
 	 */
 	public static function load() {
-		add_filter( 'woocommerce_admin_shared_settings', array( __CLASS__, 'add_marketplace_settings' ) );
+		if ( is_admin() ) {
+			$is_in_app_marketplace = (
+				isset( $_GET['page'] ) && 'wc-admin' === $_GET['page'] //phpcs:ignore WordPress.Security.NonceVerification.Recommended
+				&& isset( $_GET['path'] ) && '/extensions' === $_GET['path'] //phpcs:ignore WordPress.Security.NonceVerification.Recommended
+			);
+
+			if ( $is_in_app_marketplace ) {
+				add_filter( 'woocommerce_admin_shared_settings', array( __CLASS__, 'add_marketplace_settings' ) );
+			}
+		}
+
 		add_filter( 'rest_api_init', array( __CLASS__, 'register_rest_routes' ) );
 	}
 
@@ -39,6 +49,11 @@ class WC_Helper_Admin {
 	 * @return mixed $settings
 	 */
 	public static function add_marketplace_settings( $settings ) {
+		if ( ! WC_Helper::is_site_connected() && isset( $_GET['connect'] ) ) { // phpcs:ignore WordPress.Security.NonceVerification.Recommended
+			wp_safe_redirect( self::get_connection_url() );
+			exit;
+		}
+
 		$auth_user_data  = WC_Helper_Options::get( 'auth_user_data', array() );
 		$auth_user_email = isset( $auth_user_data['email'] ) ? $auth_user_data['email'] : '';
 
@@ -73,6 +88,7 @@ class WC_Helper_Admin {
 		if ( WC_Helper::is_site_connected() ) {
 			$settings['wccomHelper']['subscription_expired_notice']  = PluginsHelper::get_expired_subscription_notice( false );
 			$settings['wccomHelper']['subscription_expiring_notice'] = PluginsHelper::get_expiring_subscription_notice( false );
+			$settings['wccomHelper']['subscription_missing_notice']  = PluginsHelper::get_missing_subscription_notice();
 		}
 
 		return $settings;

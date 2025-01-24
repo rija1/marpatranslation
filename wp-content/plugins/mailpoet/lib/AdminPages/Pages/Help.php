@@ -18,7 +18,6 @@ use MailPoet\Newsletter\Url as NewsletterURL;
 use MailPoet\Router\Endpoints\CronDaemon;
 use MailPoet\Services\Bridge;
 use MailPoet\SystemReport\SystemReportCollector;
-use MailPoet\Util\DataInconsistency\DataInconsistencyController;
 use MailPoet\WP\DateTime;
 use MailPoet\WP\Functions as WPFunctions;
 
@@ -29,7 +28,6 @@ class Help {
   private Bridge $bridge;
   private ScheduledTasksRepository $scheduledTasksRepository;
   private SendingQueuesRepository $sendingQueuesRepository;
-  private DataInconsistencyController $dataInconsistencyController;
   private NewsletterURL $newsletterUrl;
 
   public function __construct(
@@ -39,7 +37,6 @@ class Help {
     Bridge $bridge,
     ScheduledTasksRepository $scheduledTasksRepository,
     SendingQueuesRepository $sendingQueuesRepository,
-    DataInconsistencyController $dataInconsistencyController,
     NewsletterURL $newsletterUrl
   ) {
     $this->pageRenderer = $pageRenderer;
@@ -48,7 +45,6 @@ class Help {
     $this->bridge = $bridge;
     $this->scheduledTasksRepository = $scheduledTasksRepository;
     $this->sendingQueuesRepository = $sendingQueuesRepository;
-    $this->dataInconsistencyController = $dataInconsistencyController;
     $this->newsletterUrl = $newsletterUrl;
   }
 
@@ -59,9 +55,10 @@ class Help {
      * @param array<string, string> $systemInfoData The system info data array.
      */
     $systemInfoData = WPFunctions::get()->applyFilters('mailpoet_system_info_data', $this->systemReportCollector->getData(true));
+
     try {
       $cronPingUrl = $this->cronHelper->getCronUrl(CronDaemon::ACTION_PING);
-      $cronPingResponse = $this->cronHelper->pingDaemon();
+      $cronPingResponse = $this->systemReportCollector->getCronPingResponse();
     } catch (\Exception $e) {
       $cronPingResponse = __('Can‘t generate cron URL.', 'mailpoet') . ' (' . $e->getMessage() . ')';
       $cronPingUrl = $cronPingResponse;
@@ -69,6 +66,7 @@ class Help {
 
     $mailerLog = MailerLog::getMailerLog();
     $mailerLog['sent'] = MailerLog::sentSince();
+    $bridgePingResponse = $this->systemReportCollector->getBridgePingResponse();
     $systemStatusData = [
       'cron' => [
         'url' => $cronPingUrl,
@@ -77,23 +75,24 @@ class Help {
       ],
       'mss' => [
         'enabled' => $this->bridge->isMailpoetSendingServiceEnabled(),
-        'isReachable' => $this->bridge->validateBridgePingResponse($this->bridge->pingBridge()),
+        'isReachable' => $this->bridge->validateBridgePingResponse($bridgePingResponse),
       ],
       'cronStatus' => $this->cronHelper->getDaemon(),
       'queueStatus' => $mailerLog,
     ];
+
     $systemStatusData['cronStatus']['accessible'] = $this->cronHelper->isDaemonAccessible();
     $systemStatusData['queueStatus']['tasksStatusCounts'] = $this->scheduledTasksRepository->getCountsPerStatus();
-    $systemStatusData['queueStatus']['latestTasks'] = array_map(function ($task) {
-      return $this->buildTaskData($task);
-    }, $this->scheduledTasksRepository->getLatestTasks(SendingQueue::TASK_TYPE));
+
+    $scheduledTasks = $this->scheduledTasksRepository->getLatestTasks(SendingQueue::TASK_TYPE);
+    $systemStatusData['queueStatus']['latestTasks'] = array_map(fn($task) => $this->buildTaskData($task), $scheduledTasks);
+
     $this->pageRenderer->displayPage(
       'help.html',
       [
         'systemInfoData' => $systemInfoData,
         'systemStatusData' => $systemStatusData,
         'actionSchedulerData' => $this->getActionSchedulerData(),
-        'dataInconsistencies' => $this->dataInconsistencyController->getInconsistentDataStatus(),
       ]
     );
   }
@@ -140,6 +139,7 @@ class Help {
         $subscriber = $subscribers->first() ? $subscribers->first()->getSubscriber() : null;
       }
     }
+
     return [
       'id' => $task->getId(),
       'type' => $task->getType(),

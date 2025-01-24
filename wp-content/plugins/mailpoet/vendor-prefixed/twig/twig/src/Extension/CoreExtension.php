@@ -47,6 +47,8 @@ use MailPoetVendor\Twig\Node\Expression\Unary\NegUnary;
 use MailPoetVendor\Twig\Node\Expression\Unary\NotUnary;
 use MailPoetVendor\Twig\Node\Expression\Unary\PosUnary;
 use MailPoetVendor\Twig\NodeVisitor\MacroAutoImportNodeVisitor;
+use MailPoetVendor\Twig\Sandbox\SecurityNotAllowedMethodError;
+use MailPoetVendor\Twig\Sandbox\SecurityNotAllowedPropertyError;
 use MailPoetVendor\Twig\Source;
 use MailPoetVendor\Twig\Template;
 use MailPoetVendor\Twig\TemplateWrapper;
@@ -71,6 +73,7 @@ use MailPoetVendor\Twig\TwigFunction;
 use MailPoetVendor\Twig\TwigTest;
 final class CoreExtension extends AbstractExtension
 {
+ public const ARRAY_LIKE_CLASSES = ['ArrayIterator', 'ArrayObject', 'CachingIterator', 'RecursiveArrayIterator', 'RecursiveCachingIterator', 'SplDoublyLinkedList', 'SplFixedArray', 'SplObjectStorage', 'SplQueue', 'SplStack', 'WeakMap'];
  private $dateFormats = ['F j, Y H:i', '%d days'];
  private $numberFormat = [0, '.', ','];
  private $timezone = null;
@@ -144,8 +147,10 @@ final class CoreExtension extends AbstractExtension
  new TwigFilter('filter', [self::class, 'filter'], ['needs_environment' => \true]),
  new TwigFilter('map', [self::class, 'map'], ['needs_environment' => \true]),
  new TwigFilter('reduce', [self::class, 'reduce'], ['needs_environment' => \true]),
+ new TwigFilter('find', [self::class, 'find'], ['needs_environment' => \true]),
  // string/array filters
  new TwigFilter('reverse', [self::class, 'reverse'], ['needs_charset' => \true]),
+ new TwigFilter('shuffle', [self::class, 'shuffle'], ['needs_charset' => \true]),
  new TwigFilter('length', [self::class, 'length'], ['needs_charset' => \true]),
  new TwigFilter('slice', [self::class, 'slice'], ['needs_charset' => \true]),
  new TwigFilter('first', [self::class, 'first'], ['needs_charset' => \true]),
@@ -161,7 +166,7 @@ final class CoreExtension extends AbstractExtension
  }
  public function getTests() : array
  {
- return [new TwigTest('even', null, ['node_class' => EvenTest::class]), new TwigTest('odd', null, ['node_class' => OddTest::class]), new TwigTest('defined', null, ['node_class' => DefinedTest::class]), new TwigTest('same as', null, ['node_class' => SameasTest::class, 'one_mandatory_argument' => \true]), new TwigTest('none', null, ['node_class' => NullTest::class]), new TwigTest('null', null, ['node_class' => NullTest::class]), new TwigTest('divisible by', null, ['node_class' => DivisiblebyTest::class, 'one_mandatory_argument' => \true]), new TwigTest('constant', null, ['node_class' => ConstantTest::class]), new TwigTest('empty', [self::class, 'testEmpty']), new TwigTest('iterable', 'is_iterable')];
+ return [new TwigTest('even', null, ['node_class' => EvenTest::class]), new TwigTest('odd', null, ['node_class' => OddTest::class]), new TwigTest('defined', null, ['node_class' => DefinedTest::class]), new TwigTest('same as', null, ['node_class' => SameasTest::class, 'one_mandatory_argument' => \true]), new TwigTest('none', null, ['node_class' => NullTest::class]), new TwigTest('null', null, ['node_class' => NullTest::class]), new TwigTest('divisible by', null, ['node_class' => DivisiblebyTest::class, 'one_mandatory_argument' => \true]), new TwigTest('constant', null, ['node_class' => ConstantTest::class]), new TwigTest('empty', [self::class, 'testEmpty']), new TwigTest('iterable', 'is_iterable'), new TwigTest('sequence', [self::class, 'testSequence']), new TwigTest('mapping', [self::class, 'testMapping'])];
  }
  public function getNodeVisitors() : array
  {
@@ -177,7 +182,7 @@ final class CoreExtension extends AbstractExtension
  return $values;
  }
  if (!\count($values)) {
- throw new RuntimeError('The "cycle" function does not work on empty arrays.');
+ throw new RuntimeError('The "cycle" function does not work on empty sequences/mappings.');
  }
  return $values[$position % \count($values)];
  }
@@ -221,7 +226,7 @@ final class CoreExtension extends AbstractExtension
  }
  $values = self::toArray($values);
  if (0 === \count($values)) {
- throw new RuntimeError('The random function cannot pick from an empty array.');
+ throw new RuntimeError('The random function cannot pick from an empty sequence/mapping.');
  }
  return $values[\array_rand($values, 1)];
  }
@@ -289,7 +294,7 @@ final class CoreExtension extends AbstractExtension
  public static function replace($str, $from) : string
  {
  if (!\is_iterable($from)) {
- throw new RuntimeError(\sprintf('The "replace" filter expects an array or "Traversable" as replace values, got "%s".', \is_object($from) ? \get_class($from) : \gettype($from)));
+ throw new RuntimeError(\sprintf('The "replace" filter expects a sequence/mapping or "Traversable" as replace values, got "%s".', \is_object($from) ? \get_class($from) : \gettype($from)));
  }
  return \strtr($str ?? '', self::toArray($from));
  }
@@ -330,7 +335,7 @@ final class CoreExtension extends AbstractExtension
  $result = [];
  foreach ($arrays as $argNumber => $array) {
  if (!\is_iterable($array)) {
- throw new RuntimeError(\sprintf('The merge filter only works with arrays or "Traversable", got "%s" for argument %d.', \gettype($array), $argNumber + 1));
+ throw new RuntimeError(\sprintf('The merge filter only works with sequences/mappings or "Traversable", got "%s" for argument %d.', \gettype($array), $argNumber + 1));
  }
  $result = \array_merge($result, self::toArray($array));
  }
@@ -456,12 +461,32 @@ final class CoreExtension extends AbstractExtension
  }
  return $string;
  }
+ public static function shuffle(string $charset, $item)
+ {
+ if (\is_string($item)) {
+ if ('UTF-8' !== $charset) {
+ $item = self::convertEncoding($item, 'UTF-8', $charset);
+ }
+ $item = \preg_split('/(?<!^)(?!$)/u', $item, -1);
+ \shuffle($item);
+ $item = \implode('', $item);
+ if ('UTF-8' !== $charset) {
+ $item = self::convertEncoding($item, $charset, 'UTF-8');
+ }
+ return $item;
+ }
+ if (\is_iterable($item)) {
+ $item = self::toArray($item, \false);
+ \shuffle($item);
+ }
+ return $item;
+ }
  public static function sort(Environment $env, $array, $arrow = null) : array
  {
  if ($array instanceof \Traversable) {
  $array = \iterator_to_array($array);
  } elseif (!\is_array($array)) {
- throw new RuntimeError(\sprintf('The sort filter only works with arrays or "Traversable", got "%s".', \gettype($array)));
+ throw new RuntimeError(\sprintf('The sort filter only works with sequences/mappings or "Traversable", got "%s".', \gettype($array)));
  }
  if (null !== $arrow) {
  self::checkArrowInSandbox($env, $arrow, 'sort', 'filter');
@@ -679,6 +704,26 @@ final class CoreExtension extends AbstractExtension
  }
  return '' === $value || \false === $value || null === $value || [] === $value;
  }
+ public static function testSequence($value) : bool
+ {
+ if ($value instanceof \ArrayObject) {
+ $value = $value->getArrayCopy();
+ }
+ if ($value instanceof \Traversable) {
+ $value = \iterator_to_array($value);
+ }
+ return \is_array($value) && \array_is_list($value);
+ }
+ public static function testMapping($value) : bool
+ {
+ if ($value instanceof \ArrayObject) {
+ $value = $value->getArrayCopy();
+ }
+ if ($value instanceof \Traversable) {
+ $value = \iterator_to_array($value);
+ }
+ return \is_array($value) && !\array_is_list($value) || \is_object($value);
+ }
  public static function include(Environment $env, $context, $template, $variables = [], $withContext = \true, $ignoreMissing = \false, $sandboxed = \false) : string
  {
  $alreadySandboxed = \false;
@@ -691,12 +736,6 @@ final class CoreExtension extends AbstractExtension
  if (!($alreadySandboxed = $sandbox->isSandboxed())) {
  $sandbox->enableSandbox();
  }
- foreach (\is_array($template) ? $template : [$template] as $name) {
- // if a Template instance is passed, it might have been instantiated outside of a sandbox, check security
- if ($name instanceof TemplateWrapper || $name instanceof Template) {
- $name->unwrap()->checkSecurity();
- }
- }
  }
  try {
  $loaded = null;
@@ -706,6 +745,9 @@ final class CoreExtension extends AbstractExtension
  if (!$ignoreMissing) {
  throw $e;
  }
+ }
+ if ($isSandboxed && $loaded) {
+ $loaded->unwrap()->checkSecurity();
  }
  return $loaded ? $loaded->render($variables) : '';
  } finally {
@@ -755,9 +797,9 @@ final class CoreExtension extends AbstractExtension
  public static function batch($items, $size, $fill = null, $preserveKeys = \true) : array
  {
  if (!\is_iterable($items)) {
- throw new RuntimeError(\sprintf('The "batch" filter expects an array or "Traversable", got "%s".', \is_object($items) ? \get_class($items) : \gettype($items)));
+ throw new RuntimeError(\sprintf('The "batch" filter expects a sequence/mapping or "Traversable", got "%s".', \is_object($items) ? \get_class($items) : \gettype($items)));
  }
- $size = \ceil($size);
+ $size = (int) \ceil($size);
  $result = \array_chunk(self::toArray($items, $preserveKeys), $size, $preserveKeys);
  if (null !== $fill && $result) {
  $last = \count($result) - 1;
@@ -771,9 +813,17 @@ final class CoreExtension extends AbstractExtension
  }
  public static function getAttribute(Environment $env, Source $source, $object, $item, array $arguments = [], $type = 'any', $isDefinedTest = \false, $ignoreStrictCheck = \false, $sandboxed = \false, int $lineno = -1)
  {
+ $propertyNotAllowedError = null;
  // array
  if ('method' !== $type) {
  $arrayItem = \is_bool($item) || \is_float($item) ? (int) $item : $item;
+ if ($sandboxed && $object instanceof \ArrayAccess && !\in_array(\get_class($object), self::ARRAY_LIKE_CLASSES, \true)) {
+ try {
+ $env->getExtension(SandboxExtension::class)->checkPropertyAllowed($object, $arrayItem, $lineno, $source);
+ } catch (SecurityNotAllowedPropertyError $propertyNotAllowedError) {
+ goto methodCheck;
+ }
+ }
  if ((\is_array($object) || $object instanceof \ArrayObject) && (isset($object[$arrayItem]) || \array_key_exists($arrayItem, (array) $object)) || $object instanceof \ArrayAccess && isset($object[$arrayItem])) {
  if ($isDefinedTest) {
  return \true;
@@ -793,9 +843,9 @@ final class CoreExtension extends AbstractExtension
  $message = \sprintf('Impossible to access a key "%s" on an object of class "%s" that does not implement ArrayAccess interface.', $item, \get_class($object));
  } elseif (\is_array($object)) {
  if (empty($object)) {
- $message = \sprintf('Key "%s" does not exist as the array is empty.', $arrayItem);
+ $message = \sprintf('Key "%s" does not exist as the sequence/mapping is empty.', $arrayItem);
  } else {
- $message = \sprintf('Key "%s" for array with keys "%s" does not exist.', $arrayItem, \implode(', ', \array_keys($object)));
+ $message = \sprintf('Key "%s" for sequence/mapping with keys "%s" does not exist.', $arrayItem, \implode(', ', \array_keys($object)));
  }
  } elseif ('array' === $type) {
  if (null === $object) {
@@ -821,7 +871,7 @@ final class CoreExtension extends AbstractExtension
  if (null === $object) {
  $message = \sprintf('Impossible to invoke a method ("%s") on a null variable.', $item);
  } elseif (\is_array($object)) {
- $message = \sprintf('Impossible to invoke a method ("%s") on an array.', $item);
+ $message = \sprintf('Impossible to invoke a method ("%s") on a sequence/mapping.', $item);
  } else {
  $message = \sprintf('Impossible to invoke a method ("%s") on a %s variable ("%s").', $item, \gettype($object), $object);
  }
@@ -832,16 +882,21 @@ final class CoreExtension extends AbstractExtension
  }
  // object property
  if ('method' !== $type) {
+ if ($sandboxed) {
+ try {
+ $env->getExtension(SandboxExtension::class)->checkPropertyAllowed($object, $item, $lineno, $source);
+ } catch (SecurityNotAllowedPropertyError $propertyNotAllowedError) {
+ goto methodCheck;
+ }
+ }
  if (isset($object->{$item}) || \array_key_exists((string) $item, (array) $object)) {
  if ($isDefinedTest) {
  return \true;
  }
- if ($sandboxed) {
- $env->getExtension(SandboxExtension::class)->checkPropertyAllowed($object, $item, $lineno, $source);
- }
  return $object->{$item};
  }
  }
+ methodCheck:
  static $cache = [];
  $class = \get_class($object);
  // object method
@@ -895,16 +950,29 @@ final class CoreExtension extends AbstractExtension
  if ($isDefinedTest) {
  return \false;
  }
+ if ($propertyNotAllowedError) {
+ throw $propertyNotAllowedError;
+ }
  if ($ignoreStrictCheck || !$env->isStrictVariables()) {
  return;
  }
  throw new RuntimeError(\sprintf('Neither the property "%1$s" nor one of the methods "%1$s()", "get%1$s()"/"is%1$s()"/"has%1$s()" or "__call()" exist and have public access in class "%2$s".', $item, $class), $lineno, $source);
  }
+ if ($sandboxed) {
+ try {
+ $env->getExtension(SandboxExtension::class)->checkMethodAllowed($object, $method, $lineno, $source);
+ } catch (SecurityNotAllowedMethodError $e) {
+ if ($isDefinedTest) {
+ return \false;
+ }
+ if ($propertyNotAllowedError) {
+ throw $propertyNotAllowedError;
+ }
+ throw $e;
+ }
+ }
  if ($isDefinedTest) {
  return \true;
- }
- if ($sandboxed) {
- $env->getExtension(SandboxExtension::class)->checkMethodAllowed($object, $method, $lineno, $source);
  }
  // Some objects throw exceptions when they have __call, and the method we try
  // to call is not supported. If ignoreStrictCheck is true, we should return null.
@@ -923,14 +991,14 @@ final class CoreExtension extends AbstractExtension
  if ($array instanceof \Traversable) {
  $array = \iterator_to_array($array);
  } elseif (!\is_array($array)) {
- throw new RuntimeError(\sprintf('The column filter only works with arrays or "Traversable", got "%s" as first argument.', \gettype($array)));
+ throw new RuntimeError(\sprintf('The column filter only works with sequences/mappings or "Traversable", got "%s" as first argument.', \gettype($array)));
  }
  return \array_column($array, $name, $index);
  }
  public static function filter(Environment $env, $array, $arrow)
  {
  if (!\is_iterable($array)) {
- throw new RuntimeError(\sprintf('The "filter" filter expects an array or "Traversable", got "%s".', \is_object($array) ? \get_class($array) : \gettype($array)));
+ throw new RuntimeError(\sprintf('The "filter" filter expects a sequence/mapping or "Traversable", got "%s".', \is_object($array) ? \get_class($array) : \gettype($array)));
  }
  self::checkArrowInSandbox($env, $arrow, 'filter', 'filter');
  if (\is_array($array)) {
@@ -938,6 +1006,16 @@ final class CoreExtension extends AbstractExtension
  }
  // the IteratorIterator wrapping is needed as some internal PHP classes are \Traversable but do not implement \Iterator
  return new \CallbackFilterIterator(new \IteratorIterator($array), $arrow);
+ }
+ public static function find(Environment $env, $array, $arrow)
+ {
+ self::checkArrowInSandbox($env, $arrow, 'find', 'filter');
+ foreach ($array as $k => $v) {
+ if ($arrow($v, $k)) {
+ return $v;
+ }
+ }
+ return null;
  }
  public static function map(Environment $env, $array, $arrow)
  {
@@ -952,7 +1030,7 @@ final class CoreExtension extends AbstractExtension
  {
  self::checkArrowInSandbox($env, $arrow, 'reduce', 'filter');
  if (!\is_array($array) && !$array instanceof \Traversable) {
- throw new RuntimeError(\sprintf('The "reduce" filter only works with arrays or "Traversable", got "%s" as first argument.', \gettype($array)));
+ throw new RuntimeError(\sprintf('The "reduce" filter only works with sequences/mappings or "Traversable", got "%s" as first argument.', \gettype($array)));
  }
  $accumulator = $initial;
  foreach ($array as $key => $value) {
