@@ -55,47 +55,6 @@
           transform: translateY(-1px);
 }
 
-@supports ((-webkit-font-feature-settings: normal) or (font-feature-settings: normal)) {
-  .tibetan-text,
-  [lang="bo"],
-  [lang="bo-Tibt"] {
-    font-family: "Microsoft Himalaya", "DDC Uchen", "Tibetan Machine Uni", "Noto Serif Tibetan", serif;
-    font-size: 1.7rem;
-    line-height: 1.6;
-    font-weight: 500;
-  }
-}
-
-.mts-block-table.tibetan-terms-grid .table-row > div:first-child,
-.wp-block-create-block-mts-tibetan-terms .mts-block-table .table-row > div:first-child,
-.wp-block-create-block-mts-translated-terms .mts-block-table .table-row > div:first-child {
-  font-family: "Microsoft Himalaya", "DDC Uchen", "Tibetan Machine Uni", "Noto Serif Tibetan", serif;
-  font-size: 1.7rem;
-  line-height: 1.6;
-  font-weight: 500;
-  text-rendering: optimizeLegibility;
-  -webkit-font-feature-settings: "liga" 1;
-  font-feature-settings: "liga" 1;
-}
-
-.mts-block-table.tibetan-terms-grid .table-header > div:first-child,
-.wp-block-create-block-mts-tibetan-terms .mts-block-table .table-header > div:first-child,
-.wp-block-create-block-mts-translated-terms .mts-block-table .table-header > div:first-child {
-  font-size: 1.6rem;
-  font-weight: 600;
-}
-
-*:not(script):not(style):lang(bo), *:not(script):not(style)[lang="bo"], *:not(script):not(style)[lang="bo-Tibt"] {
-  font-family: "Microsoft Himalaya", "DDC Uchen", "Tibetan Machine Uni", "Noto Serif Tibetan", serif !important;
-  font-size: 1.7rem !important;
-  line-height: 1.6 !important;
-  font-weight: 500 !important;
-}
-
-.mts-block-table .table-row > div:first-child:first-letter {
-  font-family: "Microsoft Himalaya", "DDC Uchen", "Tibetan Machine Uni", "Noto Serif Tibetan", serif;
-}
-
 .mts-block-table .table-header,
 .mts-block-table .table-row {
   -ms-grid-columns: (1fr)[3];

@@ -190,6 +190,10 @@
           transform: translateY(-1px);
 }
 
+.wp-block-create-block-mts-tibetan-terms .mts-block-table .table-row {
+  background: blue;
+}
+
 .wp-block-create-block-mts-translated-terms .mts-block-table .table-header, .wp-block-create-block-mts-translated-terms .mts-block-table .table-row {
   display: -ms-grid;
   display: grid;

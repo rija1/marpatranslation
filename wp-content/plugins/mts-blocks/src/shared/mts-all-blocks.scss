@@ -26,9 +26,17 @@
 .wp-block-create-block-mts-tibetan-terms .mts-block-table {
   .table-header, .table-row { @include mts-grid(3); }
   .view-button { @include mts-button($color-primary, $color-primary-hover); }
+  .table-row {
+    background: blue;
+  }
+//    div:first-child {
+//     background-color: red;
+//     font-size: 4rem; 
+//   }
 }
 
 .wp-block-create-block-mts-translated-terms .mts-block-table {
   .table-header, .table-row { @include mts-grid(3); }
   .view-button { @include mts-button($color-primary, $color-primary-hover); }
 }
+
