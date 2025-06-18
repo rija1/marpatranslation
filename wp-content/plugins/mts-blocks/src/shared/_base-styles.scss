@@ -1,0 +1,144 @@
+// Variables
+$color-border: #e2e8f0;
+$color-bg-header: #f8fafc;
+$color-bg-hover: #f1f5f9;
+$color-primary: #3b82f6;
+$color-primary-hover: #2563eb;
+$color-secondary: #8bb3d9;
+$color-secondary-hover: #659acc;
+
+// Base table styles (shared across all blocks)
+%mts-table-base {
+  display: grid;
+  max-width: 1200px;
+  margin: 2rem auto;
+  border: 1px solid $color-border;
+  border-radius: 8px;
+  overflow: hidden;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+
+  .table-header {
+    background: $color-bg-header;
+    padding: 1rem;
+    font-weight: 600;
+    border-bottom: 2px solid $color-border;
+    display: grid;
+    gap: 1rem;
+  }
+
+  .table-row {
+    padding: 1rem;
+    border-bottom: 1px solid $color-border;
+    align-items: center;
+    display: grid;
+    gap: 1rem;
+
+    &:hover {
+      background: $color-bg-hover;
+    }
+
+    &:last-child {
+      border-bottom: none;
+    }
+  }
+}
+
+// Button mixins
+@mixin mts-button-primary {
+  background: $color-primary;
+  &:hover { background: $color-primary-hover; }
+}
+
+@mixin mts-button-secondary {
+  background: $color-secondary;
+  &:hover { background: $color-secondary-hover; }
+}
+
+%mts-button-base {
+  color: white;
+  padding: 0.5rem 1rem;
+  border-radius: 4px;
+  text-decoration: none;
+  display: inline-block;
+  transition: all 0.2s;
+  text-align: center;
+
+  &:hover {
+    transform: translateY(-1px);
+  }
+}
+
+
+
+
+
+// Tibetan script variables
+$tibetan-font-size: 1.7rem;          // 40% larger than normal text
+$tibetan-font-size-large: 1.6rem;    // For headers
+$tibetan-line-height: 1.6;           // Better spacing for Tibetan
+$tibetan-font-family: 'Microsoft Himalaya', 'DDC Uchen', 'Tibetan Machine Uni', 'Noto Serif Tibetan', serif;
+
+// Tibetan Unicode ranges for automatic detection
+// U+0F00-U+0FFF: Tibetan
+// U+1000-U+104F: Myanmar (sometimes used for extended Tibetan)
+@supports (font-feature-settings: normal) {
+  // Modern browsers with better font support
+  .tibetan-text,
+  [lang="bo"],
+  [lang="bo-Tibt"] {
+    font-family: $tibetan-font-family;
+    font-size: $tibetan-font-size;
+    line-height: $tibetan-line-height;
+    font-weight: 500; // Slightly bolder for better readability
+  }
+}
+
+// Automatic detection using Unicode ranges
+// This targets any text containing Tibetan script
+.mts-block-table {
+  // Target first column in Tibetan term blocks (contains Tibetan script)
+  &.tibetan-terms-grid,
+  .wp-block-create-block-mts-tibetan-terms &,
+  .wp-block-create-block-mts-translated-terms & {
+    .table-row > div:first-child {
+      font-family: $tibetan-font-family;
+      font-size: $tibetan-font-size;
+      line-height: $tibetan-line-height;
+      font-weight: 500;
+      
+      // Ensure proper text rendering
+      text-rendering: optimizeLegibility;
+      -webkit-font-feature-settings: "liga" 1;
+      font-feature-settings: "liga" 1;
+    }
+    
+    .table-header > div:first-child {
+      font-size: $tibetan-font-size-large;
+      font-weight: 600;
+    }
+  }
+}
+
+// Unicode-based automatic detection for any Tibetan text
+// This will catch Tibetan script anywhere in the content
+*:not(script):not(style) {
+  // Using CSS4 selector for Tibetan Unicode range
+  &:lang(bo),
+  &[lang="bo"],
+  &[lang="bo-Tibt"] {
+    font-family: $tibetan-font-family !important;
+    font-size: $tibetan-font-size !important;
+    line-height: $tibetan-line-height !important;
+    font-weight: 500 !important;
+  }
+}
+
+// Fallback for browsers that don't support :lang() properly
+// This uses CSS regex-like approach for Tibetan characters
+.mts-block-table .table-row > div:first-child {
+  // If the first character is in Tibetan range, apply Tibetan styling
+  &:first-letter {
+    // This is a fallback approach
+    font-family: $tibetan-font-family;
+  }
+}

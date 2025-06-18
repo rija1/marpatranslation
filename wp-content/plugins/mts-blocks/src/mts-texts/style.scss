@@ -1,0 +1,15 @@
+@import '../shared/base-styles';
+
+.mts-block-table {
+  @extend %mts-table-base;
+
+  .table-header,
+  .table-row {
+    grid-template-columns: repeat(5, 1fr); // 5 columns for texts
+  }
+
+  .view-button {
+    @extend %mts-button-base;
+    @include mts-button-secondary; // Secondary color for texts
+  }
+}

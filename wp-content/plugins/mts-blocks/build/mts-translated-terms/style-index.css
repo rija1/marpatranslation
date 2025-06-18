@@ -1,1 +1,93 @@
+/*!************************************************************************************************************************************************************************************************************************************************************!*\
+  !*** css ./node_modules/css-loader/dist/cjs.js??ruleSet[1].rules[4].use[1]!./node_modules/postcss-loader/dist/cjs.js??ruleSet[1].rules[4].use[2]!./node_modules/sass-loader/dist/cjs.js??ruleSet[1].rules[4].use[3]!./src/mts-translated-terms/style.scss ***!
+  \************************************************************************************************************************************************************************************************************************************************************/
+.mts-block-table {
+  display: grid;
+  max-width: 1200px;
+  margin: 2rem auto;
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  overflow: hidden;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+.mts-block-table .table-header {
+  background: #f8fafc;
+  padding: 1rem;
+  font-weight: 600;
+  border-bottom: 2px solid #e2e8f0;
+  display: grid;
+  gap: 1rem;
+}
+.mts-block-table .table-row {
+  padding: 1rem;
+  border-bottom: 1px solid #e2e8f0;
+  align-items: center;
+  display: grid;
+  gap: 1rem;
+}
+.mts-block-table .table-row:hover {
+  background: #f1f5f9;
+}
+.mts-block-table .table-row:last-child {
+  border-bottom: none;
+}
 
+.mts-block-table .view-button {
+  color: white;
+  padding: 0.5rem 1rem;
+  border-radius: 4px;
+  text-decoration: none;
+  display: inline-block;
+  transition: all 0.2s;
+  text-align: center;
+}
+.mts-block-table .view-button:hover {
+  transform: translateY(-1px);
+}
+
+@supports (font-feature-settings: normal) {
+  .tibetan-text,
+  [lang=bo],
+  [lang=bo-Tibt] {
+    font-family: "Microsoft Himalaya", "DDC Uchen", "Tibetan Machine Uni", "Noto Serif Tibetan", serif;
+    font-size: 1.7rem;
+    line-height: 1.6;
+    font-weight: 500;
+  }
+}
+.mts-block-table.tibetan-terms-grid .table-row > div:first-child, .wp-block-create-block-mts-tibetan-terms .mts-block-table .table-row > div:first-child, .wp-block-create-block-mts-translated-terms .mts-block-table .table-row > div:first-child {
+  font-family: "Microsoft Himalaya", "DDC Uchen", "Tibetan Machine Uni", "Noto Serif Tibetan", serif;
+  font-size: 1.7rem;
+  line-height: 1.6;
+  font-weight: 500;
+  text-rendering: optimizeLegibility;
+  font-feature-settings: "liga" 1;
+}
+.mts-block-table.tibetan-terms-grid .table-header > div:first-child, .wp-block-create-block-mts-tibetan-terms .mts-block-table .table-header > div:first-child, .wp-block-create-block-mts-translated-terms .mts-block-table .table-header > div:first-child {
+  font-size: 1.6rem;
+  font-weight: 600;
+}
+
+*:not(script):not(style):lang(bo), *:not(script):not(style)[lang=bo], *:not(script):not(style)[lang=bo-Tibt] {
+  font-family: "Microsoft Himalaya", "DDC Uchen", "Tibetan Machine Uni", "Noto Serif Tibetan", serif !important;
+  font-size: 1.7rem !important;
+  line-height: 1.6 !important;
+  font-weight: 500 !important;
+}
+
+.mts-block-table .table-row > div:first-child:first-letter {
+  font-family: "Microsoft Himalaya", "DDC Uchen", "Tibetan Machine Uni", "Noto Serif Tibetan", serif;
+}
+
+.mts-block-table .table-header,
+.mts-block-table .table-row {
+  grid-template-columns: repeat(3, 1fr);
+}
+.mts-block-table .view-button {
+  background: #3b82f6;
+}
+.mts-block-table .view-button:hover {
+  background: #2563eb;
+}
+
+/*# sourceMappingURL=style-index.css.map*/
