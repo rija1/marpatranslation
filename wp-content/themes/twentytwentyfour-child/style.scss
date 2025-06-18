@@ -1,48 +1,264 @@
-/*
-Theme Name:   Twenty Twenty Four Child Theme
-Description:  A Twenty Twenty-Four child theme
-Author:       Rija
-Template:     twentytwentyfour
-Version:      1.0.1
-Text Domain:  twentytwentyfour
-*/
+/* 
+ * MTS Knowledge Hub Left Menu - Redesigned to match grid styling
+ * Matches the professional aesthetic of the authors/translators/translations grids
+ */
 
-// Site colors
-// fffef3
-// old darkblue 066aab
-// new test #2e3a75
+// Your existing color variables
 $colour_darkblue: #194b57;
-
 $colour_blue: #6c97b4;
 $colour_red: #d8613c;
 $colour_gold: #b5933f;
 $colour_yellow: #f8bd3b;
 $colour_lightyellow: #fff5dc;
 
+// Grid-matching colors (consistent with the grids we've designed)
+$grid_blue: #3498db;
+$grid_blue_dark: #2980b9;
+$grid_text_dark: #2c3e50;
+$grid_text_light: #666;
+$grid_border: #dee2e6;
+$grid_bg_light: #f8f9fa;
+
 .mts_kh_left_menu {
+    // Enhanced container styling to match grid containers
+    background: white !important;
+    border-radius: 12px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    border: 1px solid $grid_border;
+    overflow: hidden;
+    
+    // Header styling to match grid headers
+    .wp-block-heading {
+        background: $grid_bg_light;
+        margin: 0 !important;
+        padding: 1rem 1.5rem;
+        font-weight: 600;
+        font-size: 1rem;
+        color: $grid_text_dark;
+        border-bottom: 2px solid $grid_border;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+    
+    // List container
     & ul {
         list-style-type: none;
         margin: 0;
-        padding: 20px 0 0 0;
+        padding: 1rem 0;
+        
         & li {
-            margin-bottom: 0.5rem;
-        }
-
-        & a {
-            display: block;
-            padding: 0.75rem 1.5rem;
-            color: $colour_darkblue;
-            text-decoration: none;
-            border-radius: 0 2rem 2rem 0;
-            background-color: #add4dd;
-            transition: background 0.2s, color 0.2s;
-            font-weight: 500;
-
-            &:hover,
-            &:focus {
-            background: $colour_lightyellow;
-            color: $colour_red;
+            margin-bottom: 0;
+            border-bottom: 1px solid rgba($grid_border, 0.5);
+            
+            &:last-child {
+                border-bottom: none;
+            }
+            
+            // Current page highlighting (matches grid row hover)
+            &.current-menu-item {
+                background: linear-gradient(90deg, rgba($grid_blue, 0.1) 0%, transparent 100%);
+                border-left: 4px solid $grid_blue;
+                
+                a {
+                    color: $grid_blue;
+                    font-weight: 600;
+                    background: rgba($grid_blue, 0.05);
+                }
             }
         }
+        
+        & a {
+            display: block;
+            padding: 1rem 1.5rem;
+            color: $grid_text_dark;
+            text-decoration: none;
+            font-weight: 500;
+            font-size: 0.95rem;
+            transition: all 0.2s ease;
+            border-radius: 0;
+            background: transparent;
+            position: relative;
+            
+            // Icon-like element before each link
+            &:before {
+                content: '📄';
+                margin-right: 0.75rem;
+                opacity: 0.6;
+                transition: all 0.2s ease;
+            }
+            
+            // Specific icons for different pages
+            &[href*="authors"]:before { content: '👤'; }
+            &[href*="translators"]:before { content: '🌟'; }
+            &[href*="translations"]:before { content: '🔄'; }
+            &[href*="texts"]:before { content: '📖'; }
+            &[href*="tibetan-terms"]:before { content: '🏔️'; }
+            &[href*="translated-terms"]:before { content: '🔤'; }
+            
+            &:hover,
+            &:focus {
+                background: rgba($grid_blue, 0.08);
+                color: $grid_blue_dark;
+                transform: translateX(4px);
+                
+                &:before {
+                    opacity: 1;
+                    transform: scale(1.1);
+                }
+                
+                // Subtle left border on hover
+                border-left: 3px solid $grid_blue;
+                padding-left: calc(1.5rem - 3px);
+            }
+            
+            &:active {
+                transform: translateX(2px);
+            }
+        }
+    }
+    
+    // Enhanced mobile responsiveness
+    @media (max-width: 768px) {
+        border-radius: 8px;
+        margin-bottom: 2rem;
+        
+        .wp-block-heading {
+            padding: 0.75rem 1rem;
+            font-size: 0.9rem;
+        }
+        
+        ul a {
+            padding: 0.75rem 1rem;
+            font-size: 0.9rem;
+            
+            &:before {
+                margin-right: 0.5rem;
+            }
+        }
+    }
+    
+    // Subtle animation on load
+    animation: fadeInUp 0.3s ease-out;
+}
+
+// Additional enhancements to match grid quality
+.mts_kh_left_menu {
+    // Sticky positioning option (if desired)
+    &.sticky-menu {
+        position: sticky;
+        top: 2rem;
+    }
+    
+    // Loading state (matches grid loading states)
+    &.loading {
+        opacity: 0.6;
+        pointer-events: none;
+    }
+    
+    // Focus and accessibility improvements
+    ul a:focus {
+        outline: 2px solid $grid_blue;
+        outline-offset: -2px;
+        border-radius: 4px;
+    }
+}
+
+// Animation keyframes
+@keyframes fadeInUp {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+// Alternative: More colorful version using your brand colors
+.mts_kh_left_menu.brand-colors {
+    .wp-block-heading {
+        background: linear-gradient(135deg, $colour_darkblue 0%, $colour_blue 100%);
+        color: white;
+    }
+    
+    ul li.current-menu-item {
+        background: linear-gradient(90deg, rgba($colour_red, 0.1) 0%, transparent 100%);
+        border-left-color: $colour_red;
+        
+        a {
+            color: $colour_red;
+        }
+    }
+    
+    ul a:hover,
+    ul a:focus {
+        background: rgba($colour_yellow, 0.2);
+        color: $colour_darkblue;
+        border-left-color: $colour_gold;
+    }
+}
+
+// Print-friendly styles
+@media print {
+    .mts_kh_left_menu {
+        box-shadow: none;
+        border: 1px solid #ccc;
+        
+        ul a:before {
+            display: none;
+        }
+    }
+}
+
+/* Force MTS Knowledge Hub elements to stay light in dark mode */
+@media(prefers-color-scheme:dark) {
+    /* Override table styling */
+    .mts-block-table {
+        background: #fff !important;
+        border-color: #dee2e6 !important;
+        color: #2c3e50 !important;
+    }
+    
+    .mts-block-table .table-header {
+        background: #f8f9fa !important;
+        border-color: #dee2e6 !important;
+        color: #2c3e50 !important;
+    }
+    
+    .mts-block-table .table-row:hover {
+        background: rgba(52,152,219,.05) !important;
+    }
+    
+    /* Override filter input styling */
+    #termFilter, .term-filter {
+        background: #fff !important;
+        border-color: #dee2e6 !important;
+        color: #2c3e50 !important;
+    }
+    
+    #termFilter::placeholder, .term-filter::placeholder {
+        color: #666 !important;
+        opacity: 0.7;
+    }
+    
+    #termFilter::-moz-placeholder, .term-filter::-moz-placeholder {
+        color: #666 !important;
+        opacity: 0.7;
+    }
+    
+    #termFilter:focus, .term-filter:focus {
+        background-color: #fafbfc !important;
+        border-color: #3498db !important;
+    }
+    
+    /* Override filter container */
+    .filter-container {
+        background: #fff !important;
+        border-color: #dee2e6 !important;
+    }
+    
+    .filter-container .filter-label {
+        color: #2c3e50 !important;
     }
 }

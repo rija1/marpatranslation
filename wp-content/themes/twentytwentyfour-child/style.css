@@ -1,35 +1,271 @@
-/*
-Theme Name:   Twenty Twenty Four Child Theme
-Description:  A Twenty Twenty-Four child theme
-Author:       Rija
-Template:     twentytwentyfour
-Version:      1.0.1
-Text Domain:  twentytwentyfour
-*/
+@charset "UTF-8";
+/* 
+ * MTS Knowledge Hub Left Menu - Redesigned to match grid styling
+ * Matches the professional aesthetic of the authors/translators/translations grids
+ */
+.mts_kh_left_menu {
+  background: white !important;
+  border-radius: 12px;
+  -webkit-box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+          box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  border: 1px solid #dee2e6;
+  overflow: hidden;
+  -webkit-animation: fadeInUp 0.3s ease-out;
+          animation: fadeInUp 0.3s ease-out;
+}
+
+.mts_kh_left_menu .wp-block-heading {
+  background: #f8f9fa;
+  margin: 0 !important;
+  padding: 1rem 1.5rem;
+  font-weight: 600;
+  font-size: 1rem;
+  color: #2c3e50;
+  border-bottom: 2px solid #dee2e6;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
 .mts_kh_left_menu ul {
   list-style-type: none;
   margin: 0;
-  padding: 20px 0 0 0;
+  padding: 1rem 0;
 }
 
 .mts_kh_left_menu ul li {
-  margin-bottom: 0.5rem;
+  margin-bottom: 0;
+  border-bottom: 1px solid rgba(222, 226, 230, 0.5);
+}
+
+.mts_kh_left_menu ul li:last-child {
+  border-bottom: none;
+}
+
+.mts_kh_left_menu ul li.current-menu-item {
+  background: -webkit-gradient(linear, left top, right top, from(rgba(52, 152, 219, 0.1)), to(transparent));
+  background: linear-gradient(90deg, rgba(52, 152, 219, 0.1) 0%, transparent 100%);
+  border-left: 4px solid #3498db;
+}
+
+.mts_kh_left_menu ul li.current-menu-item a {
+  color: #3498db;
+  font-weight: 600;
+  background: rgba(52, 152, 219, 0.05);
 }
 
 .mts_kh_left_menu ul a {
   display: block;
-  padding: 0.75rem 1.5rem;
-  color: #194b57;
+  padding: 1rem 1.5rem;
+  color: #2c3e50;
   text-decoration: none;
-  border-radius: 0 2rem 2rem 0;
-  background-color: #add4dd;
-  -webkit-transition: background 0.2s, color 0.2s;
-  transition: background 0.2s, color 0.2s;
   font-weight: 500;
+  font-size: 0.95rem;
+  -webkit-transition: all 0.2s ease;
+  transition: all 0.2s ease;
+  border-radius: 0;
+  background: transparent;
+  position: relative;
+}
+
+.mts_kh_left_menu ul a:before {
+  content: '📄';
+  margin-right: 0.75rem;
+  opacity: 0.6;
+  -webkit-transition: all 0.2s ease;
+  transition: all 0.2s ease;
+}
+
+.mts_kh_left_menu ul a[href*="authors"]:before {
+  content: '👤';
+}
+
+.mts_kh_left_menu ul a[href*="translators"]:before {
+  content: '🌟';
+}
+
+.mts_kh_left_menu ul a[href*="translations"]:before {
+  content: '🔄';
+}
+
+.mts_kh_left_menu ul a[href*="texts"]:before {
+  content: '📖';
+}
+
+.mts_kh_left_menu ul a[href*="tibetan-terms"]:before {
+  content: '🏔️';
+}
+
+.mts_kh_left_menu ul a[href*="translated-terms"]:before {
+  content: '🔤';
 }
 
 .mts_kh_left_menu ul a:hover, .mts_kh_left_menu ul a:focus {
-  background: #fff5dc;
+  background: rgba(52, 152, 219, 0.08);
+  color: #2980b9;
+  -webkit-transform: translateX(4px);
+          transform: translateX(4px);
+  border-left: 3px solid #3498db;
+  padding-left: calc(1.5rem - 3px);
+}
+
+.mts_kh_left_menu ul a:hover:before, .mts_kh_left_menu ul a:focus:before {
+  opacity: 1;
+  -webkit-transform: scale(1.1);
+          transform: scale(1.1);
+}
+
+.mts_kh_left_menu ul a:active {
+  -webkit-transform: translateX(2px);
+          transform: translateX(2px);
+}
+
+@media (max-width: 768px) {
+  .mts_kh_left_menu {
+    border-radius: 8px;
+    margin-bottom: 2rem;
+  }
+  .mts_kh_left_menu .wp-block-heading {
+    padding: 0.75rem 1rem;
+    font-size: 0.9rem;
+  }
+  .mts_kh_left_menu ul a {
+    padding: 0.75rem 1rem;
+    font-size: 0.9rem;
+  }
+  .mts_kh_left_menu ul a:before {
+    margin-right: 0.5rem;
+  }
+}
+
+.mts_kh_left_menu.sticky-menu {
+  position: -webkit-sticky;
+  position: sticky;
+  top: 2rem;
+}
+
+.mts_kh_left_menu.loading {
+  opacity: 0.6;
+  pointer-events: none;
+}
+
+.mts_kh_left_menu ul a:focus {
+  outline: 2px solid #3498db;
+  outline-offset: -2px;
+  border-radius: 4px;
+}
+
+@-webkit-keyframes fadeInUp {
+  from {
+    opacity: 0;
+    -webkit-transform: translateY(20px);
+            transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    -webkit-transform: translateY(0);
+            transform: translateY(0);
+  }
+}
+
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    -webkit-transform: translateY(20px);
+            transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    -webkit-transform: translateY(0);
+            transform: translateY(0);
+  }
+}
+
+.mts_kh_left_menu.brand-colors .wp-block-heading {
+  background: linear-gradient(135deg, #194b57 0%, #6c97b4 100%);
+  color: white;
+}
+
+.mts_kh_left_menu.brand-colors ul li.current-menu-item {
+  background: -webkit-gradient(linear, left top, right top, from(rgba(216, 97, 60, 0.1)), to(transparent));
+  background: linear-gradient(90deg, rgba(216, 97, 60, 0.1) 0%, transparent 100%);
+  border-left-color: #d8613c;
+}
+
+.mts_kh_left_menu.brand-colors ul li.current-menu-item a {
   color: #d8613c;
+}
+
+.mts_kh_left_menu.brand-colors ul a:hover,
+.mts_kh_left_menu.brand-colors ul a:focus {
+  background: rgba(248, 189, 59, 0.2);
+  color: #194b57;
+  border-left-color: #b5933f;
+}
+
+@media print {
+  .mts_kh_left_menu {
+    -webkit-box-shadow: none;
+            box-shadow: none;
+    border: 1px solid #ccc;
+  }
+  .mts_kh_left_menu ul a:before {
+    display: none;
+  }
+}
+
+/* Force MTS Knowledge Hub elements to stay light in dark mode */
+@media (prefers-color-scheme: dark) {
+  /* Override table styling */
+  .mts-block-table {
+    background: #fff !important;
+    border-color: #dee2e6 !important;
+    color: #2c3e50 !important;
+  }
+  .mts-block-table .table-header {
+    background: #f8f9fa !important;
+    border-color: #dee2e6 !important;
+    color: #2c3e50 !important;
+  }
+  .mts-block-table .table-row:hover {
+    background: rgba(52, 152, 219, 0.05) !important;
+  }
+  /* Override filter input styling */
+  #termFilter, .term-filter {
+    background: #fff !important;
+    border-color: #dee2e6 !important;
+    color: #2c3e50 !important;
+  }
+  #termFilter::-webkit-input-placeholder, .term-filter::-webkit-input-placeholder {
+    color: #666 !important;
+    opacity: 0.7;
+  }
+  #termFilter:-ms-input-placeholder, .term-filter:-ms-input-placeholder {
+    color: #666 !important;
+    opacity: 0.7;
+  }
+  #termFilter::-ms-input-placeholder, .term-filter::-ms-input-placeholder {
+    color: #666 !important;
+    opacity: 0.7;
+  }
+  #termFilter::placeholder, .term-filter::placeholder {
+    color: #666 !important;
+    opacity: 0.7;
+  }
+  #termFilter::-moz-placeholder, .term-filter::-moz-placeholder {
+    color: #666 !important;
+    opacity: 0.7;
+  }
+  #termFilter:focus, .term-filter:focus {
+    background-color: #fafbfc !important;
+    border-color: #3498db !important;
+  }
+  /* Override filter container */
+  .filter-container {
+    background: #fff !important;
+    border-color: #dee2e6 !important;
+  }
+  .filter-container .filter-label {
+    color: #2c3e50 !important;
+  }
 }
 /*# sourceMappingURL=style.css.map */
