@@ -1,0 +1,22 @@
+
+// ========================================
+// 4. CREATE: src/shared/_block-variants.scss
+// ========================================
+
+// Generate block-specific styles
+@each $block-name, $config in $grid-configs {
+  $columns: map-get($config, 'columns');
+  $button-color: map-get($config, 'button-color');
+  $button-hover: map-get($config, 'button-hover');
+
+  .mts-#{$block-name} {
+    .table-header,
+    .table-row {
+      @include mts-grid($columns);
+    }
+
+    .view-button {
+      @include mts-button($button-color, $button-hover);
+    }
+  }
+}

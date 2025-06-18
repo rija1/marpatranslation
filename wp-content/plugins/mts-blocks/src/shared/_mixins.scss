@@ -1,0 +1,39 @@
+
+// ========================================
+// 2. CREATE: src/shared/_mixins.scss
+// ========================================
+
+// Mixin for creating grid layouts
+@mixin mts-grid($columns: 3) {
+  display: grid;
+  grid-template-columns: repeat($columns, 1fr);
+  gap: 1rem;
+}
+
+// Mixin for button styles
+@mixin mts-button($bg-color: $color-primary, $hover-color: $color-primary-hover) {
+  background: $bg-color;
+  color: $color-text-white;
+  padding: $button-padding;
+  border-radius: $button-border-radius;
+  text-decoration: none;
+  display: inline-block;
+  transition: all 0.2s;
+  text-align: center;
+
+  &:hover {
+    background: $hover-color;
+    transform: translateY(-1px);
+  }
+}
+
+// Responsive mixin
+@mixin mts-responsive {
+  @media (max-width: 768px) {
+    .table-header,
+    .table-row {
+      grid-template-columns: 1fr;
+      text-align: center;
+    }
+  }
+}

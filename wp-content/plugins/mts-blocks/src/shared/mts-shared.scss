@@ -1,0 +1,13 @@
+// ========================================
+// 5. CREATE: src/shared/mts-shared.scss (Main shared file)
+// ========================================
+
+/**
+ * MTS Blocks Shared Styles
+ * Consolidated styles for all MTS Knowledge Hub blocks
+ */
+
+@import 'variables';
+@import 'mixins';
+@import 'base-table';
+@import 'block-variants';

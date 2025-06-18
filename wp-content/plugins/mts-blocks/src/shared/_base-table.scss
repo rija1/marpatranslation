@@ -1,0 +1,42 @@
+
+// ========================================
+// 3. CREATE: src/shared/_base-table.scss
+// ========================================
+
+.mts-block-table {
+  display: grid;
+  max-width: $table-max-width;
+  margin: $table-margin;
+  border: 1px solid $color-border;
+  border-radius: $table-border-radius;
+  overflow: hidden;
+  box-shadow: $table-shadow;
+
+  .table-header {
+    background: $color-bg-header;
+    padding: $table-padding;
+    font-weight: 600;
+    border-bottom: 2px solid $color-border-header;
+  }
+
+  .table-row {
+    padding: $table-padding;
+    border-bottom: 1px solid $color-border;
+    align-items: center;
+
+    &:hover {
+      background: $color-bg-hover;
+    }
+
+    &:last-child {
+      border-bottom: none;
+    }
+  }
+
+  .view-button {
+    @include mts-button();
+  }
+
+  // Include responsive behavior
+  @include mts-responsive;
+}

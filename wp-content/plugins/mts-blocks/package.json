@@ -1,20 +1,24 @@
 {
-	"name": "mts-tibetan-terms",
-	"version": "0.1.0",
-	"description": "Example block scaffolded with Create Block tool.",
-	"author": "The WordPress Contributors",
-	"license": "GPL-2.0-or-later",
-	"main": "build/index.js",
-	"scripts": {
-		"build": "wp-scripts build --webpack-copy-php",
-		"format": "wp-scripts format",
-		"lint:css": "wp-scripts lint-style",
-		"lint:js": "wp-scripts lint-js",
-		"packages-update": "wp-scripts packages-update",
-		"plugin-zip": "wp-scripts plugin-zip",
-		"start": "wp-scripts start --webpack-copy-php"
-	},
-	"devDependencies": {
-		"@wordpress/scripts": "^30.9.0"
-	}
+    "name": "mts-tibetan-terms",
+    "version": "0.1.0",
+    "description": "Example block scaffolded with Create Block tool.",
+    "author": "The WordPress Contributors",
+    "license": "GPL-2.0-or-later",
+    "main": "build/index.js",
+    "scripts": {
+        "build": "wp-scripts build",
+        "build:dev": "wp-scripts build --mode=development",
+        "start": "wp-scripts start",
+        "format": "wp-scripts format",
+        "lint:css": "wp-scripts lint-style",
+        "lint:js": "wp-scripts lint-js",
+        "packages-update": "wp-scripts packages-update",
+        "plugin-zip": "wp-scripts plugin-zip",
+        "build:scss": "node-sass src/shared/mts-shared.scss build/shared/mts-shared.css --output-style compressed",
+        "watch:scss": "node-sass src/shared/mts-shared.scss build/shared/mts-shared.css --watch --output-style compressed"
+    },
+    "devDependencies": {
+        "@wordpress/scripts": "^26.19.0",
+        "node-sass": "^9.0.0"
+    }
 }

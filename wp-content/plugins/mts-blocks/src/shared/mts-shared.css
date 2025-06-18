@@ -1,0 +1,228 @@
+/**
+ * MTS Blocks Shared Styles
+ * Consolidated styles for all MTS Knowledge Hub blocks
+ */
+.mts-block-table {
+  display: -ms-grid;
+  display: grid;
+  max-width: 1200px;
+  margin: 2rem auto;
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  overflow: hidden;
+  -webkit-box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+          box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+.mts-block-table .table-header {
+  background: #f8fafc;
+  padding: 1rem;
+  font-weight: 600;
+  border-bottom: 2px solid #e2e8f0;
+}
+
+.mts-block-table .table-row {
+  padding: 1rem;
+  border-bottom: 1px solid #e2e8f0;
+  -webkit-box-align: center;
+      -ms-flex-align: center;
+          align-items: center;
+}
+
+.mts-block-table .table-row:hover {
+  background: #f1f5f9;
+}
+
+.mts-block-table .table-row:last-child {
+  border-bottom: none;
+}
+
+.mts-block-table .view-button {
+  background: #3b82f6;
+  color: #ffffff;
+  padding: 0.5rem 1rem;
+  border-radius: 4px;
+  text-decoration: none;
+  display: inline-block;
+  -webkit-transition: all 0.2s;
+  transition: all 0.2s;
+  text-align: center;
+}
+
+.mts-block-table .view-button:hover {
+  background: #2563eb;
+  -webkit-transform: translateY(-1px);
+          transform: translateY(-1px);
+}
+
+@media (max-width: 768px) {
+  .mts-block-table .table-header,
+  .mts-block-table .table-row {
+    -ms-grid-columns: 1fr;
+        grid-template-columns: 1fr;
+    text-align: center;
+  }
+}
+
+.mts-authors .table-header,
+.mts-authors .table-row {
+  display: -ms-grid;
+  display: grid;
+  -ms-grid-columns: (1fr)[4];
+      grid-template-columns: repeat(4, 1fr);
+  gap: 1rem;
+}
+
+.mts-authors .view-button {
+  background: #8bb3d9;
+  color: #ffffff;
+  padding: 0.5rem 1rem;
+  border-radius: 4px;
+  text-decoration: none;
+  display: inline-block;
+  -webkit-transition: all 0.2s;
+  transition: all 0.2s;
+  text-align: center;
+}
+
+.mts-authors .view-button:hover {
+  background: #659acc;
+  -webkit-transform: translateY(-1px);
+          transform: translateY(-1px);
+}
+
+.mts-texts .table-header,
+.mts-texts .table-row {
+  display: -ms-grid;
+  display: grid;
+  -ms-grid-columns: (1fr)[5];
+      grid-template-columns: repeat(5, 1fr);
+  gap: 1rem;
+}
+
+.mts-texts .view-button {
+  background: #3b82f6;
+  color: #ffffff;
+  padding: 0.5rem 1rem;
+  border-radius: 4px;
+  text-decoration: none;
+  display: inline-block;
+  -webkit-transition: all 0.2s;
+  transition: all 0.2s;
+  text-align: center;
+}
+
+.mts-texts .view-button:hover {
+  background: #2563eb;
+  -webkit-transform: translateY(-1px);
+          transform: translateY(-1px);
+}
+
+.mts-translations .table-header,
+.mts-translations .table-row {
+  display: -ms-grid;
+  display: grid;
+  -ms-grid-columns: (1fr)[3];
+      grid-template-columns: repeat(3, 1fr);
+  gap: 1rem;
+}
+
+.mts-translations .view-button {
+  background: #8bb3d9;
+  color: #ffffff;
+  padding: 0.5rem 1rem;
+  border-radius: 4px;
+  text-decoration: none;
+  display: inline-block;
+  -webkit-transition: all 0.2s;
+  transition: all 0.2s;
+  text-align: center;
+}
+
+.mts-translations .view-button:hover {
+  background: #659acc;
+  -webkit-transform: translateY(-1px);
+          transform: translateY(-1px);
+}
+
+.mts-translators .table-header,
+.mts-translators .table-row {
+  display: -ms-grid;
+  display: grid;
+  -ms-grid-columns: (1fr)[5];
+      grid-template-columns: repeat(5, 1fr);
+  gap: 1rem;
+}
+
+.mts-translators .view-button {
+  background: #8bb3d9;
+  color: #ffffff;
+  padding: 0.5rem 1rem;
+  border-radius: 4px;
+  text-decoration: none;
+  display: inline-block;
+  -webkit-transition: all 0.2s;
+  transition: all 0.2s;
+  text-align: center;
+}
+
+.mts-translators .view-button:hover {
+  background: #659acc;
+  -webkit-transform: translateY(-1px);
+          transform: translateY(-1px);
+}
+
+.mts-tibetan-terms .table-header,
+.mts-tibetan-terms .table-row {
+  display: -ms-grid;
+  display: grid;
+  -ms-grid-columns: (1fr)[3];
+      grid-template-columns: repeat(3, 1fr);
+  gap: 1rem;
+}
+
+.mts-tibetan-terms .view-button {
+  background: #3b82f6;
+  color: #ffffff;
+  padding: 0.5rem 1rem;
+  border-radius: 4px;
+  text-decoration: none;
+  display: inline-block;
+  -webkit-transition: all 0.2s;
+  transition: all 0.2s;
+  text-align: center;
+}
+
+.mts-tibetan-terms .view-button:hover {
+  background: #2563eb;
+  -webkit-transform: translateY(-1px);
+          transform: translateY(-1px);
+}
+
+.mts-translated-terms .table-header,
+.mts-translated-terms .table-row {
+  display: -ms-grid;
+  display: grid;
+  -ms-grid-columns: (1fr)[3];
+      grid-template-columns: repeat(3, 1fr);
+  gap: 1rem;
+}
+
+.mts-translated-terms .view-button {
+  background: #3b82f6;
+  color: #ffffff;
+  padding: 0.5rem 1rem;
+  border-radius: 4px;
+  text-decoration: none;
+  display: inline-block;
+  -webkit-transition: all 0.2s;
+  transition: all 0.2s;
+  text-align: center;
+}
+
+.mts-translated-terms .view-button:hover {
+  background: #2563eb;
+  -webkit-transform: translateY(-1px);
+          transform: translateY(-1px);
+}
+/*# sourceMappingURL=mts-shared.css.map */

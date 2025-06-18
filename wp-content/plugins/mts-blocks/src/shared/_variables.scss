@@ -1,0 +1,59 @@
+// ========================================
+// 1. CREATE: src/shared/_variables.scss
+// ========================================
+
+// Colors
+$color-border: #e2e8f0;
+$color-border-header: #e2e8f0;
+$color-bg-header: #f8fafc;
+$color-bg-hover: #f1f5f9;
+$color-primary: #3b82f6;
+$color-primary-hover: #2563eb;
+$color-secondary: #8bb3d9;
+$color-secondary-hover: #659acc;
+$color-text-white: #ffffff;
+
+// Sizing
+$table-max-width: 1200px;
+$table-margin: 2rem auto;
+$table-border-radius: 8px;
+$table-padding: 1rem;
+$button-padding: 0.5rem 1rem;
+$button-border-radius: 4px;
+
+// Shadows
+$table-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+
+// Grid configurations for different blocks
+$grid-configs: (
+  'authors': (
+    'columns': 4,
+    'button-color': $color-secondary,
+    'button-hover': $color-secondary-hover
+  ),
+  'texts': (
+    'columns': 5,
+    'button-color': $color-primary,
+    'button-hover': $color-primary-hover
+  ),
+  'translations': (
+    'columns': 3,
+    'button-color': $color-secondary,
+    'button-hover': $color-secondary-hover
+  ),
+  'translators': (
+    'columns': 5,
+    'button-color': $color-secondary,
+    'button-hover': $color-secondary-hover
+  ),
+  'tibetan-terms': (
+    'columns': 3,
+    'button-color': $color-primary,
+    'button-hover': $color-primary-hover
+  ),
+  'translated-terms': (
+    'columns': 3,
+    'button-color': $color-primary,
+    'button-hover': $color-primary-hover
+  )
+);
