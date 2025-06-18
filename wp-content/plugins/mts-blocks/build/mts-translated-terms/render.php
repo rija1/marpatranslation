@@ -7,7 +7,7 @@
     <div <?php echo get_block_wrapper_attributes(); ?>>
     <?php
 $args = array(
-    'post_type' => 'tibetan_term',
+    'post_type' => 'translated_term',
     'posts_per_page' => -1,
     'post_status' => 'publish',
     'orderby' => 'title',
