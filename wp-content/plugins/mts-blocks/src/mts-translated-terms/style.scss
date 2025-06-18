@@ -1,0 +1,113 @@
+/**
+ * The following styles get applied both on the front of your site
+ * and in the editor.
+ *
+ * Replace them with your own styles or remove the file completely.
+ */
+
+.wp-block-create-block-mts-tibetan-terms {
+	// background-color: #21759b;
+	// color: #fff;
+	// padding: 2px;
+}
+
+.mts-block-table {
+    $border-color: #e2e8f0;
+    $header-bg: #f8fafc;
+    $hover-bg: #f1f5f9;
+    $primary: #3b82f6;
+    
+    display: grid;
+    max-width: 1200px;
+    margin: 2rem auto;
+    border: 1px solid $border-color;
+    border-radius: 8px;
+    overflow: hidden;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+   
+    .table-header {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 1rem;
+      background: $header-bg;
+      padding: 1rem;
+      font-weight: 600;
+      border-bottom: 2px solid $border-color;
+    }
+   
+    .table-row {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 1rem;
+      padding: 1rem;
+      border-bottom: 1px solid $border-color;
+      align-items: center;
+   
+      &:hover {
+        background: $hover-bg;
+      }
+   
+      &:last-child {
+        border-bottom: none;
+      }
+    }
+   
+    .view-button {
+      background: $primary;
+      color: white;
+      padding: 0.5rem 1rem;
+      border-radius: 4px;
+      text-decoration: none;
+      display: inline-block;
+      transition: all 0.2s;
+      text-align: center;
+      
+      &:hover {
+        background: darken($primary, 10%);
+        transform: translateY(-1px);
+      }
+    }
+   }
+
+// .mts-block-table {
+//   @apply max-w-5xl mx-auto my-8;
+
+//   table {
+//     @apply w-full border-collapse bg-white shadow-sm;
+    
+//     th, td {
+//       @apply p-4 border-b border-gray-200 text-left;
+//     }
+
+//     th {
+//       @apply bg-gray-100 font-bold;
+      
+//       &:first-child {
+//         @apply rounded-tl-lg;
+//       }
+      
+//       &:last-child {
+//         @apply rounded-tr-lg;
+//       }
+//     }
+
+//     tr {
+//       @apply hover:bg-gray-50 transition-colors;
+//     }
+
+//     td {
+//       @apply align-middle;
+//     }
+//   }
+
+//   .view-button {
+//     @apply bg-blue-500 text-white px-4 py-2 rounded;
+//     @apply hover:bg-blue-600 transition-colors;
+//     @apply inline-flex items-center justify-center;
+//     @apply text-sm font-medium;
+    
+//     &:focus {
+//       @apply outline-none ring-2 ring-blue-500 ring-offset-2;
+//     }
+//   }
+// }

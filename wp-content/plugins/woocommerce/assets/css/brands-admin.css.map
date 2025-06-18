@@ -1,0 +1,9 @@
+{
+    "version": 3,
+    "mappings": "AAAA,AAAA,KAAK,AAAA,cAAc,CAAC,8BAA8B,CAAC;EAClD,KAAK,EAAE,GAAG;CACV",
+    "sources": [
+        "brands-admin.scss"
+    ],
+    "names": [],
+    "file": "brands-admin.css"
+}

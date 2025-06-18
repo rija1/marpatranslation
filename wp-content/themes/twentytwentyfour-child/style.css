@@ -6,4 +6,30 @@ Template:     twentytwentyfour
 Version:      1.0.1
 Text Domain:  twentytwentyfour
 */
+.mts_kh_left_menu ul {
+  list-style-type: none;
+  margin: 0;
+  padding: 20px 0 0 0;
+}
+
+.mts_kh_left_menu ul li {
+  margin-bottom: 0.5rem;
+}
+
+.mts_kh_left_menu ul a {
+  display: block;
+  padding: 0.75rem 1.5rem;
+  color: #194b57;
+  text-decoration: none;
+  border-radius: 0 2rem 2rem 0;
+  background-color: #add4dd;
+  -webkit-transition: background 0.2s, color 0.2s;
+  transition: background 0.2s, color 0.2s;
+  font-weight: 500;
+}
+
+.mts_kh_left_menu ul a:hover, .mts_kh_left_menu ul a:focus {
+  background: #fff5dc;
+  color: #d8613c;
+}
 /*# sourceMappingURL=style.css.map */

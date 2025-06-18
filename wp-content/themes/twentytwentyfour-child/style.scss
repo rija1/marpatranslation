@@ -11,9 +11,38 @@ Text Domain:  twentytwentyfour
 // fffef3
 // old darkblue 066aab
 // new test #2e3a75
-$colour_darkblue: #137088;
+$colour_darkblue: #194b57;
+
 $colour_blue: #6c97b4;
 $colour_red: #d8613c;
 $colour_gold: #b5933f;
 $colour_yellow: #f8bd3b;
 $colour_lightyellow: #fff5dc;
+
+.mts_kh_left_menu {
+    & ul {
+        list-style-type: none;
+        margin: 0;
+        padding: 20px 0 0 0;
+        & li {
+            margin-bottom: 0.5rem;
+        }
+
+        & a {
+            display: block;
+            padding: 0.75rem 1.5rem;
+            color: $colour_darkblue;
+            text-decoration: none;
+            border-radius: 0 2rem 2rem 0;
+            background-color: #add4dd;
+            transition: background 0.2s, color 0.2s;
+            font-weight: 500;
+
+            &:hover,
+            &:focus {
+            background: $colour_lightyellow;
+            color: $colour_red;
+            }
+        }
+    }
+}

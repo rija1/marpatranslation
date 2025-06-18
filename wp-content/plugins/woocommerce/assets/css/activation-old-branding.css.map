@@ -1,0 +1,9 @@
+{
+    "version": 3,
+    "mappings": "AAAA;;;GAGG;AAEH;;GAEG;AACH,AACC,GADE,AAAA,oBAAoB,AACrB,QAAQ,CAAC;EACT,iBAAiB,EAAE,oCAAoC,CAAC,UAAU;CAClE",
+    "sources": [
+        "activation-old-branding.scss"
+    ],
+    "names": [],
+    "file": "activation-old-branding.css"
+}
