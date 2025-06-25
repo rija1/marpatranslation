@@ -60,12 +60,4 @@
   -ms-grid-columns: (1fr)[3];
       grid-template-columns: repeat(3, 1fr);
 }
-
-.mts-block-table .view-button {
-  background: #8bb3d9;
-}
-
-.mts-block-table .view-button:hover {
-  background: #659acc;
-}
 /*# sourceMappingURL=style.css.map */

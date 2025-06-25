@@ -1,3 +1,18 @@
+/*
+Theme Name:   Twenty Twenty Four Child Theme
+Description:  A Twenty Twenty-Four child theme
+Author:       Rija
+Template:     twentytwentyfour
+Version:      1.0.1
+Text Domain:  twentytwentyfour
+*/
+
+// Site colors
+// fffef3
+// old darkblue 066aab
+// new test #2e3a75
+$colour_darkblue: #194b57;
+
 /* 
  * MTS Knowledge Hub Left Menu - Redesigned to match grid styling
  * Matches the professional aesthetic of the authors/translators/translations grids
@@ -107,8 +122,8 @@ $grid_bg_light: #f8f9fa;
                 }
                 
                 // Subtle left border on hover
-                border-left: 3px solid $grid_blue;
-                padding-left: calc(1.5rem - 3px);
+                // border-left: 3px solid $grid_blue;
+                // padding-left: calc(1.5rem - 3px);
             }
             
             &:active {
@@ -262,3 +277,16 @@ $grid_bg_light: #f8f9fa;
         color: #2c3e50 !important;
     }
 }
+
+
+
+
+
+
+.wp-block-pages-list__item__link {
+  width: auto; /* Or remove the width property entirely */
+}
+
+.wp-block-pages-list__item__link {
+  padding-left: 0;
+} 
