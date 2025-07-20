@@ -6,7 +6,8 @@
 <!-- Enhanced Filter Container (wraps your existing filter) -->
 <div class="filter-container">
     <label for="termFilter" class="filter-label">
-        Search <?php echo esc_attr(ucfirst($this->pod_type)); ?>s
+        
+        Search <?php echo esc_attr($this->columns["title"]); ?>s
     </label>
     
     <!-- Your existing filter input (enhanced with CSS) -->
