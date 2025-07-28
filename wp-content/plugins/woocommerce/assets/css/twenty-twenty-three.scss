@@ -6,6 +6,10 @@
 @import "mixins";
 @import "animation";
 
+/**
+ * Forms
+ */
+ @import "forms";
 
 /*
 	Layout fix.
@@ -130,6 +134,10 @@
 		margin-top: 0;
 	}
 
+	.woocommerce-ordering > label {
+		margin-right: 0.25rem;
+	}
+
 	// The 'order by' dropdown on the Shop page is rather tiny unless the font size is increased.
 	select.orderby {
 		font-size: var(--wp--preset--font-size--medium);
@@ -247,6 +255,12 @@
 				margin: 0;
 			}
 
+		}
+
+		.woocommerce-product-gallery__image a {
+			display: block;
+			line-height: 0;
+			outline-offset: -1px;
 		}
 
 		div.summary {
@@ -435,8 +449,8 @@
 
 		a {
 			position: relative;
-			height: 1em;
-			width: 1em;
+			height: 1.2em;
+			width: 1.2em;
 			text-indent: -999em;
 			display: inline-block;
 			text-decoration: none;
@@ -452,6 +466,7 @@
 				height: 1em;
 				line-height: 1;
 				font-family: WooCommerce;
+				font-size: 24px;
 				content: "\e021";
 				text-indent: 0;
 			}
@@ -1034,26 +1049,6 @@ ul.wc-tabs {
 	}
 
 }
-
-// TODO: This could look nicer.
-.select2-container {
-
-	.select2-selection,
-	.select2-dropdown {
-		border: 1px solid var(--wp--preset--color--black);
-		border-radius: 0;
-	}
-
-	.select2-dropdown {
-		border-top: 0;
-
-		.select2-search__field {
-			border: 1px solid var(--wp--preset--color--black);
-			border-radius: 0;
-		}
-	}
-}
-
 
 // Store-wide notice
 .theme-twentytwentythree .woocommerce-store-notice {

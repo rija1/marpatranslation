@@ -69,7 +69,7 @@ class FormBuilder extends FormBuilderAbstract {
 		wp_enqueue_script(
 			'wpforms-constant-contact-v3-builder',
 			WPFORMS_PLUGIN_URL . "assets/js/integrations/constant-contact-v3/builder{$min}.js",
-			[ 'wpforms-admin-builder-providers', 'wpforms-constant-contact-v3-auth' ],
+			[ 'underscore', 'wpforms-admin-builder-providers', 'wpforms-constant-contact-v3-auth' ],
 			WPFORMS_VERSION,
 			true
 		);
@@ -269,7 +269,6 @@ class FormBuilder extends FormBuilderAbstract {
 						'parent'     => 'providers',
 						'panel'      => $this->core->slug,
 						'subsection' => $connection['id'],
-						'reference'  => esc_html__( 'Marketing provider connection', 'wpforms-lite' ),
 					],
 					false
 				)

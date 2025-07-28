@@ -84,16 +84,24 @@ class Enqueues {
 		$min = wpforms_get_min_suffix();
 
 		wp_enqueue_script(
-			'wpforms-ai-modal',
-			WPFORMS_PLUGIN_URL . "assets/js/integrations/ai/wpforms-ai-modal{$min}.js",
+			'wpforms-ai-dock',
+			WPFORMS_PLUGIN_URL . "assets/js/integrations/ai/chat-element/wpforms-ai-dock{$min}.js",
 			[],
 			WPFORMS_VERSION,
 			false
 		);
 
 		wp_enqueue_script(
+			'wpforms-ai-modal',
+			WPFORMS_PLUGIN_URL . "assets/js/integrations/ai/choices/wpforms-ai-modal{$min}.js",
+			[ 'wpforms-ai-dock' ],
+			WPFORMS_VERSION,
+			false
+		);
+
+		wp_enqueue_script(
 			'wpforms-ai-chat-element',
-			WPFORMS_PLUGIN_URL . "assets/js/integrations/ai/wpforms-ai-chat-element{$min}.js",
+			WPFORMS_PLUGIN_URL . "assets/js/integrations/ai/chat-element/wpforms-ai-chat-element{$min}.js",
 			[],
 			WPFORMS_VERSION,
 			false
@@ -114,6 +122,8 @@ class Enqueues {
 	 * @return array
 	 */
 	private function get_localize_chat_data(): array {
+
+		$min = wpforms_get_min_suffix();
 
 		$strings = [
 			'ajaxurl'   => admin_url( 'admin-ajax.php' ),
@@ -141,6 +151,34 @@ class Enqueues {
 				'prohibited_code' => esc_html__( 'Only basic styling tags are permitted. All other code deemed unsafe has been removed.', 'wpforms-lite' ),
 			],
 			'choices'   => $this->get_choices_chat_data(),
+			'actions'   => [], // Additional actions for js/integrations/ai/modules/api.js.
+			'pinChat'   => is_rtl() ? esc_html__( 'Dock to the Left', 'wpforms-lite' ) : esc_html__( 'Dock to the Right', 'wpforms-lite' ),
+			'unpinChat' => esc_html__( 'Open in Popup', 'wpforms-lite' ),
+			'close'     => esc_html__( 'Close', 'wpforms-lite' ),
+		];
+
+		/**
+		 * Allows loading additional modules from other addons.
+		 * See wpforms-calculations/src/Admin/Builder.php as example.
+		 * Used in js/integrations/ai/wpforms-ai-chat-element.js.
+		 */
+		$strings['modules'] = [
+			[
+				'name' => 'api',
+				'path' => "./modules/api{$min}.js",
+			],
+			[
+				'name' => 'text',
+				'path' => "./modules/helpers-text{$min}.js",
+			],
+			[
+				'name' => 'choices',
+				'path' => "./modules/helpers-choices{$min}.js",
+			],
+			[
+				'name' => 'forms',
+				'path' => "./modules/helpers-forms{$min}.js",
+			],
 		];
 
 		/**
@@ -174,7 +212,7 @@ class Enqueues {
 					'strong' => [],
 				]
 			),
-			'learnMore'     => esc_html__( 'Learn more about WPForms AI', 'wpforms-lite' ),
+			'learnMore'     => esc_html__( 'Learn More About WPForms AI', 'wpforms-lite' ),
 			'warning'       => esc_html__( 'It looks like you have some existing choices in this field. If you generate new choices, your existing choices will be overwritten. You can simply close this window if you’d like to keep your existing choices.', 'wpforms-lite' ),
 			'placeholder'   => esc_html__( 'What would you like to create?', 'wpforms-lite' ),
 			'waiting'       => esc_html__( 'Just a minute...', 'wpforms-lite' ),

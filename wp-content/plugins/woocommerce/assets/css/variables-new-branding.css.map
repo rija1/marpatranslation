@@ -1,9 +1,0 @@
-{
-    "version": 3,
-    "mappings": "AAAA;;GAEG;AAcH,AAAA,KAAK,CAAC;EACL,aAAa,CAAA,QAAC;EACd,YAAY,CAAA,QAAC;EACb,iBAAiB,CAAA,QAAC;EAClB,cAAc,CAAA,QAAC;EACf,mBAAmB,CAAA,QAAC;EACpB,cAAc,CAAA,QAAC;EACf,kBAAkB,CAAA,MAAC;CACnB",
-    "sources": [
-        "variables-new-branding.scss"
-    ],
-    "names": [],
-    "file": "variables-new-branding.css"
-}

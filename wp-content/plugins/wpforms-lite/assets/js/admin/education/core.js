@@ -13,6 +13,9 @@
  * @param wpforms_education.activating
  * @param wpforms_education.addon_activated
  * @param wpforms_education.addon_error
+ * @param wpforms_education.addon_incompatible.title
+ * @param wpforms_education.addon_incompatible.button_text
+ * @param wpforms_education.addon_incompatible.button_url
  * @param wpforms_education.ajax_url
  * @param wpforms_education.can_activate_addons
  * @param wpforms_education.can_install_addons
@@ -83,6 +86,7 @@ WPFormsEducation.core = window.WPFormsEducation.core || ( function( document, wi
 			app.openModalButtonClick();
 			app.setDykColspan();
 			app.gotoAdvancedTabClick();
+			app.proFieldDelete();
 		},
 
 		/**
@@ -93,20 +97,47 @@ WPFormsEducation.core = window.WPFormsEducation.core || ( function( document, wi
 		openModalButtonClick() {
 			$( document )
 				.on( 'click', '.education-modal:not(.wpforms-add-fields-button)', app.openModalButtonHandler )
-				.on( 'mousedown', '.education-modal.wpforms-add-fields-button', app.openModalButtonHandler );
+				.on( 'mousedown', '.education-modal.wpforms-add-fields-button', app.openModalButtonHandler )
+				.on( 'click', '.education-action-button', app.actionButtonHandler );
+		},
+
+		/**
+		 * Action button click handler.
+		 *
+		 * @since 1.9.5
+		 *
+		 * @param {Event} event Event.
+		 */
+		actionButtonHandler( event ) {
+			event.preventDefault();
+
+			const $this = $( this );
+			const action = $this.data( 'action' );
+
+			// Currently, only the upgrade action is supported.
+			if ( action !== 'upgrade' ) {
+				return;
+			}
+
+			const utmContent = $this.data( 'utm-content' );
+			const type = $this.data( 'license' );
+
+			window.open( WPFormsEducation.core.getUpgradeURL( utmContent, type ), '_blank' );
 		},
 
 		/**
 		 * Open education modal handler.
 		 *
 		 * @since 1.8.0
+		 * @since 1.9.6.1 Added `$element` parameter.
 		 *
-		 * @param {Event} event Event.
+		 * @param {Event}  event    Event.
+		 * @param {jQuery} $element jQuery element.
 		 */
-		openModalButtonHandler( event ) {
+		openModalButtonHandler( event, $element = null ) {
 			event.preventDefault();
 
-			const $this = $( this );
+			const $this = $element || $( this );
 
 			switch ( $this.data( 'action' ) ) {
 				case 'activate':
@@ -115,7 +146,26 @@ WPFormsEducation.core = window.WPFormsEducation.core || ( function( document, wi
 				case 'install':
 					app.installModal( $this );
 					break;
+				case 'incompatible':
+					app.incompatibleModal( $this );
+					break;
 			}
+		},
+
+		/**
+		 * Hide Pro fields notice when all disabled fields deleted.
+		 *
+		 * @since 1.9.4
+		 */
+		proFieldDelete() {
+			$( '#wpforms-builder' ).on(
+				'wpformsFieldDelete',
+				function() {
+					if ( ! $( '.wpforms-field-wrap .wpforms-field-is-pro' ).length ) {
+						$( '.wpforms-preview .wpforms-pro-fields-notice' ).addClass( 'wpforms-hidden' );
+					}
+				}
+			);
 		},
 
 		/**
@@ -351,6 +401,17 @@ WPFormsEducation.core = window.WPFormsEducation.core || ( function( document, wi
 					},
 					cancel: {
 						text: wpforms_education.cancel,
+						action() {
+							/**
+							 * Trigger event when modal is closed.
+							 * This event is used to handle any custom logic when the modal is closed.
+							 *
+							 * @since 1.9.6.1
+							 *
+							 * @param {jQuery} $button jQuery button element.
+							 */
+							$( document ).trigger( 'wpformsEducationModalClose', $button );
+						},
 					},
 				},
 			} );
@@ -464,6 +525,14 @@ WPFormsEducation.core = window.WPFormsEducation.core || ( function( document, wi
 					},
 					cancel: {
 						text: wpforms_education.close,
+						action() {
+							/**
+							 * Triggers an event to notify that the education save modal has been closed.
+							 *
+							 * @since 1.9.6.1
+							 */
+							$( document ).trigger( 'wpformsEducationSaveModalClose' );
+						},
 					},
 				},
 			} );
@@ -529,6 +598,73 @@ WPFormsEducation.core = window.WPFormsEducation.core || ( function( document, wi
 					},
 					cancel: {
 						text: wpforms_education.cancel,
+						action() {
+							$( document ).trigger( 'wpformsEducationModalClose', $button );
+						},
+					},
+				},
+			} );
+		},
+
+		/**
+		 * Inform customer about incompatible addon modal.
+		 *
+		 * @since 1.9.4
+		 *
+		 * @param {jQuery} $button jQuery button element.
+		 */
+		incompatibleModal( $button ) {
+			const title = wpforms_education.addon_incompatible.title;
+			const content = $button.data( 'message' ) || wpforms_education.addon_error;
+
+			$.alert( {
+				title,
+				content,
+				icon: 'fa fa-exclamation-circle',
+				type: 'orange',
+				buttons: {
+					confirm: {
+						text: wpforms_education.addon_incompatible.button_text,
+						btnClass: 'btn-confirm',
+						keys: [ 'enter' ],
+						action() {
+							if ( typeof WPFormsBuilder === 'undefined' ) {
+								app.redirect( wpforms_education.addon_incompatible.button_url );
+
+								return false;
+							}
+
+							this.$$confirm
+								.prop( 'disabled', true )
+								.html( spinner + this.$$confirm.text() );
+
+							this.$$cancel
+								.prop( 'disabled', true );
+
+							if ( WPFormsBuilder.formIsSaved() ) {
+								app.redirect( wpforms_education.addon_incompatible.button_url );
+
+								return false;
+							}
+
+							const saveForm = WPFormsBuilder.formSave( false );
+
+							if ( ! saveForm ) {
+								return false;
+							}
+
+							saveForm.done( function() {
+								app.redirect( wpforms_education.addon_incompatible.button_url );
+							} );
+
+							return false;
+						},
+					},
+					cancel: {
+						text: wpforms_education.cancel,
+						action() {
+							$( document ).trigger( 'wpformsEducationModalClose', $button );
+						},
 					},
 				},
 			} );

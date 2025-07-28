@@ -45,7 +45,6 @@ class WC_Payments_Payment_Method_Messaging_Element {
 	 * @return string|void The HTML markup for the payment method message container.
 	 */
 	public function init() {
-
 		$is_cart_block = WC_Payments_Utils::is_cart_block();
 
 		if ( ! is_product() && ! is_cart() && ! $is_cart_block ) {
@@ -111,6 +110,25 @@ class WC_Payments_Payment_Method_Messaging_Element {
 		// Filter non BNPL out of the list of payment methods.
 		$bnpl_payment_methods = array_intersect( $enabled_upe_payment_methods, Payment_Method::BNPL_PAYMENT_METHODS );
 
+		// Filter out inactive payment methods to ensure only active BNPL methods are provided to the front-end.
+		$payment_method_statuses = $this->gateway->get_upe_enabled_payment_method_statuses();
+		$capability_key_map      = $this->gateway->get_payment_method_capability_key_map();
+		$bnpl_payment_methods    = array_filter(
+			$bnpl_payment_methods,
+			function ( $payment_method_id ) use ( $payment_method_statuses, $capability_key_map ) {
+				$capability_key = $capability_key_map[ $payment_method_id ] ?? null;
+				if ( ! $capability_key ) {
+					return false;
+				}
+
+				if ( ! array_key_exists( $capability_key, $payment_method_statuses ) ) {
+					return false;
+				}
+
+				return 'active' === $payment_method_statuses[ $capability_key ]['status'];
+			}
+		);
+
 		// register the script.
 		WC_Payments::register_script_with_dependencies( 'WCPAY_PRODUCT_DETAILS', 'dist/product-details', [ 'stripe' ] );
 		wp_enqueue_script( 'WCPAY_PRODUCT_DETAILS' );
@@ -126,29 +144,30 @@ class WC_Payments_Payment_Method_Messaging_Element {
 		$country = empty( $billing_country ) ? $store_country : $billing_country;
 
 		$script_data = [
-			'productId'         => 'base_product',
-			'productVariations' => $product_variations,
-			'country'           => $country,
-			'locale'            => WC_Payments_Utils::convert_to_stripe_locale( get_locale() ),
-			'accountId'         => $this->account->get_stripe_account_id(),
-			'publishableKey'    => $this->account->get_publishable_key( WC_Payments::mode()->is_test() ),
-			'paymentMethods'    => array_values( $bnpl_payment_methods ),
-			'currencyCode'      => $currency_code,
-			'isCart'            => is_cart(),
-			'isCartBlock'       => $is_cart_block,
-			'cartTotal'         => WC_Payments_Utils::prepare_amount( $cart_total, $currency_code ),
-			'nonce'             => [
+			'productId'            => 'base_product',
+			'productVariations'    => $product_variations,
+			'country'              => $country,
+			'locale'               => WC_Payments_Utils::convert_to_stripe_locale( get_locale() ),
+			'accountId'            => $this->account->get_stripe_account_id(),
+			'publishableKey'       => $this->account->get_publishable_key( WC_Payments::mode()->is_test() ),
+			'paymentMethods'       => array_values( $bnpl_payment_methods ),
+			'currencyCode'         => $currency_code,
+			'isCart'               => is_cart(),
+			'isCartBlock'          => $is_cart_block,
+			'cartTotal'            => WC_Payments_Utils::prepare_amount( $cart_total, $currency_code ),
+			'nonce'                => [
 				'get_cart_total'    => wp_create_nonce( 'wcpay-get-cart-total' ),
 				'is_bnpl_available' => wp_create_nonce( 'wcpay-is-bnpl-available' ),
 			],
-			'wcAjaxUrl'         => WC_AJAX::get_endpoint( '%%endpoint%%' ),
+			'wcAjaxUrl'            => WC_AJAX::get_endpoint( '%%endpoint%%' ),
+			'shouldInitializePMME' => WC_Payments_Utils::is_any_bnpl_supporting_country( array_values( $bnpl_payment_methods ), $country, $currency_code ),
 		];
 
 		if ( $product ) {
-			$script_data['isBnplAvailable'] = WC_Payments_Utils::is_any_bnpl_method_available( array_values( $bnpl_payment_methods ), $country, $currency_code, $product_price );
+			$script_data['shouldShowPMME'] = WC_Payments_Utils::is_any_bnpl_method_available( array_values( $bnpl_payment_methods ), $country, $currency_code, $product_price );
 		}
 
-		// Create script tag with config.
+		// Create a script tag with config.
 		wp_localize_script(
 			'WCPAY_PRODUCT_DETAILS',
 			'wcpayStripeSiteMessaging',

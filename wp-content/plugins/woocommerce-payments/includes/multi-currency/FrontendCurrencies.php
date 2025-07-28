@@ -138,6 +138,22 @@ class FrontendCurrencies {
 	}
 
 	/**
+	 * Removes 'min_price' and 'max_price' from the URL query parameters.
+	 *
+	 * Clears existing price filters when the currency is changed to prevent inconsistencies.
+	 *
+	 * @return void
+	 */
+	public function clear_url_price_params() {
+		if ( isset( $_GET['min_price'] ) || isset( $_GET['max_price'] ) ) { // phpcs:ignore WordPress.Security.NonceVerification
+			$url = remove_query_arg( [ 'min_price', 'max_price' ] );
+
+			wp_safe_redirect( $url );
+			exit;
+		}
+	}
+
+	/**
 	 * Gets the store currency.
 	 *
 	 * @return  Currency  The store currency wrapped as a Currency object
@@ -192,7 +208,6 @@ class FrontendCurrencies {
 		$store_currency_code = $this->get_store_currency()->get_code();
 
 		if ( $currency_code === $store_currency_code ) {
-			$currency_code                                    = $store_currency_code;
 			$this->price_decimal_separators[ $currency_code ] = $separator;
 		}
 

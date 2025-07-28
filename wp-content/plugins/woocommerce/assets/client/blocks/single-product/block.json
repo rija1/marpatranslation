@@ -1,18 +1,13 @@
 {
 	"name": "woocommerce/single-product",
-	"version": "1.0.0",
 	"icon": "info",
 	"title": "Single Product",
 	"description": "Display a single product.",
 	"category": "woocommerce",
-	"keywords": [
-		"WooCommerce"
-	],
+	"keywords": [ "WooCommerce" ],
 	"supports": {
-		"align": [
-			"wide",
-			"full"
-		]
+		"interactivity": true,
+		"align": [ "wide", "full" ]
 	},
 	"attributes": {
 		"isPreview": {
@@ -25,7 +20,7 @@
 	},
 	"example": {
 		"attributes": {
-  			"isPreview": true
+			"isPreview": true
 		}
 	},
 	"usesContext": [ "postId", "postType", "queryId" ],

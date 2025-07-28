@@ -142,7 +142,8 @@ class Templates {
 		add_filter( 'wpforms_form_templates_core', [ $this, 'add_templates_to_setup_panel' ], 20 );
 		add_filter( 'wpforms_create_form_args', [ $this, 'apply_to_new_form' ], 10, 2 );
 		add_filter( 'wpforms_save_form_args', [ $this, 'apply_to_existing_form' ], 10, 3 );
-		add_action( 'admin_print_scripts', [ $this, 'upgrade_banner_template' ] );
+        add_action( 'admin_print_scripts', [ $this, 'upgrade_banner_template' ] );
+        add_action( 'admin_print_scripts', [ $this, 'upgrade_lite_banner_template' ] );
 		add_action( 'admin_enqueue_scripts', [ $this, 'enqueues' ] );
 		add_action( 'wp_ajax_wpforms_templates_favorite', [ $this, 'ajax_save_favorites' ] );
 		add_filter( 'wpforms_form_templates', [ $this, 'add_addons_templates' ] );
@@ -168,7 +169,7 @@ class Templates {
 		wp_enqueue_script(
 			'wpforms-form-templates',
 			WPFORMS_PLUGIN_URL . "assets/js/admin/builder/form-templates{$min}.js",
-			[ 'listjs' ],
+			[ 'underscore', 'wp-util', 'listjs' ],
 			WPFORMS_VERSION,
 			true
 		);
@@ -391,21 +392,18 @@ class Templates {
 	 *
 	 * @since 1.7.7
 	 */
-	public function ajax_save_favorites() {
+	public function ajax_save_favorites(): void {
 
-		if ( ! check_ajax_referer( 'wpforms-form-templates', 'nonce', false ) ) {
+		if ( ! $this->is_valid_ajax_request() ) {
 			wp_send_json_error();
 		}
 
-		if ( ! isset( $_POST['slug'], $_POST['favorite'] ) ) {
-			wp_send_json_error();
-		}
+		[ $template_slug, $favorite ] = $this->get_ajax_input();
 
-		$favorites     = $this->get_favorites_list( true );
-		$user_id       = get_current_user_id();
-		$template_slug = sanitize_text_field( wp_unslash( $_POST['slug'] ) );
-		$is_favorite   = sanitize_key( $_POST['favorite'] ) === 'true';
-		$is_exists     = isset( $favorites[ $user_id ][ $template_slug ] );
+		$favorites   = $this->get_favorites_list( true );
+		$user_id     = get_current_user_id();
+		$is_favorite = $favorite === 'true';
+		$is_exists   = isset( $favorites[ $user_id ][ $template_slug ] );
 
 		if ( $is_favorite && $is_exists ) {
 			wp_send_json_success();
@@ -420,9 +418,45 @@ class Templates {
 		update_option( self::FAVORITE_TEMPLATES_OPTION, $favorites );
 
 		// Update and save the template content cache.
-		wpforms()->obj( 'builder_templates_cache' )->wipe_content_cache();
+		$templates_cache_obj = wpforms()->obj( 'builder_templates_cache' );
+
+		if ( $templates_cache_obj ) {
+			$templates_cache_obj->wipe_content_cache();
+		}
 
 		wp_send_json_success();
+	}
+
+	/**
+	 * Get AJAX input.
+	 *
+	 * @since 1.9.6
+	 *
+	 * @return array
+	 */
+	protected function get_ajax_input(): array {
+
+		// Nonce is checked in the is_valid_ajax_request() method.
+		// phpcs:disable WordPress.Security.NonceVerification.Missing
+		$template_slug = isset( $_POST['slug'] ) ? sanitize_text_field( wp_unslash( $_POST['slug'] ) ) : '';
+		$favorite      = isset( $_POST['favorite'] ) ? sanitize_key( wp_unslash( $_POST['favorite'] ) ) : '';
+
+		return [ $template_slug, $favorite ];
+		// phpcs:enable WordPress.Security.NonceVerification.Missing
+	}
+
+	/**
+	 * Determine if the AJAX request is valid.
+	 *
+	 * @since 1.9.5
+	 *
+	 * @return bool
+	 */
+	private function is_valid_ajax_request(): bool {
+
+		return check_ajax_referer( 'wpforms-form-templates', 'nonce', false ) &&
+			wpforms_current_user_can( 'create_forms' ) &&
+			isset( $_POST['slug'], $_POST['favorite'] );
 	}
 
 	/**
@@ -970,38 +1004,82 @@ class Templates {
 	}
 
 	/**
-	 * Template for upgrade banner.
+	 * Render the upgrade banner template.
 	 *
-	 * @since 1.7.7
+	 * This method generates the HTML template for the upgrade banner, which includes
+	 * a title, description, and a button that links to the upgrade page.
+	 *
+	 * @param string $title       The title to be displayed in the banner.
+	 * @param string $description The description to be displayed in the banner.
+	 *
+	 * @since 1.9.4
 	 */
-	public function upgrade_banner_template() {
-
-		if ( in_array( wpforms_get_license_type(), [ 'pro', 'elite', 'agency', 'ultimate' ], true ) ) {
-			return;
-		}
+	private function render_upgrade_banner_template( string $title, string $description ): void {
 
 		$medium = wpforms_is_admin_page( 'templates' ) ? 'Form Templates Subpage' : 'Builder Templates';
+
 		?>
 		<script type="text/html" id="tmpl-wpforms-templates-upgrade-banner">
 			<div class="wpforms-template-upgrade-banner">
 				<div class="wpforms-template-content">
 					<h3>
-						<?php
-						/* translators: %d - templates count. */
-						printf( esc_html__( 'Get Access to Our Library of %d Pre-Made Form Templates', 'wpforms-lite' ), count( $this->get_templates() ) );
-						?>
+						<?php echo esc_html( $title ); ?>
 					</h3>
 
 					<p>
-						<?php esc_html_e( 'Never start from scratch again! While WPForms Lite allows you to create any type of form, you can save even more time with WPForms Pro. Upgrade to access hundreds more form templates and advanced form fields.', 'wpforms-lite' ); ?>
+						<?php echo esc_html( $description ); ?>
 					</p>
 				</div>
 				<div class="wpforms-template-upgrade-button">
-					<a href="<?php echo esc_url( wpforms_admin_upgrade_link( $medium, 'Upgrade to Pro' ) ); ?>" class="wpforms-btn wpforms-btn-orange wpforms-btn-md" target="_blank" rel="noopener noreferrer"><?php esc_html_e( 'Upgrade to PRO', 'wpforms-lite' ); ?></a>
+					<a href="<?php echo esc_url( wpforms_admin_upgrade_link( $medium, 'Upgrade to Pro' ) ); ?>" class="wpforms-btn wpforms-btn-orange wpforms-btn-md" target="_blank" rel="noopener noreferrer">
+						<?php esc_html_e( 'Upgrade to Pro', 'wpforms-lite' ); ?>
+					</a>
 				</div>
 			</div>
 		</script>
 		<?php
+	}
+
+	/**
+	 * Render upgrade banner for basic and plus versions.
+	 *
+	 * @since 1.7.7
+	 */
+	public function upgrade_banner_template(): void {
+
+		if ( in_array( wpforms_get_license_type(), [ 'pro', 'elite', 'agency', 'ultimate' ], true ) || ! wpforms()->is_pro() ) {
+			return;
+		}
+
+		$title = sprintf(
+			/* translators: %d - templates count. */
+			esc_html__( 'Get Access to Our Complete Library of %d+ Form Templates', 'wpforms-lite' ),
+			esc_html( floor( count( $this->get_templates() ) / 1000 ) * 1000 )
+		);
+		$description = esc_html__( 'Save time and reduce effort with our pre-built form templates covering popular use-cases in business operations, customer service, feedback, marketing, registrations, event planning, non-profit, healthcare, and education.', 'wpforms-lite' );
+
+		$this->render_upgrade_banner_template( $title, $description );
+	}
+
+	/**
+	 * Render upgrade banner for lite version.
+	 *
+	 * @since 1.9.4
+	 */
+	public function upgrade_lite_banner_template(): void {
+
+		if ( wpforms()->is_pro() ) {
+			return;
+		}
+
+		$title = sprintf(
+			/* translators: %d - templates count. */
+			esc_html__( 'Get Access to Our Library of %d+ Pre-Made Form Templates', 'wpforms-lite' ),
+			esc_html( floor( count( $this->get_templates() ) / 1000 ) * 1000 )
+		);
+		$description = esc_html__( 'Never start from scratch again! While WPForms Lite allows you to create any type of form, you can save even more time with WPForms Pro. Upgrade to access hundreds more form templates and advanced form fields.', 'wpforms-lite' );
+
+		$this->render_upgrade_banner_template( $title, $description );
 	}
 
 	/**

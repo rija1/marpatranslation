@@ -1174,6 +1174,9 @@ class Pods implements Iterator {
 							$last_options        = $current_field;
 							$last_object_options = $current_field;
 
+							// Don't fetch extra unnecessary data.
+							$ids = array_unique( $ids );
+
 							// Temporary hack until there's some better handling here.
 							$last_limit *= count( $ids );
 
@@ -4243,6 +4246,17 @@ class Pods implements Iterator {
 		$pre = apply_filters( 'pods_pre_do_magic_tags', null, $code, $this );
 		if ( null !== $pre ) {
 			return $pre;
+		}
+
+		if ( ! is_string( $code ) ) {
+			_doing_it_wrong( __FUNCTION__, 'Pods::do_magic_tags() must be given a string, a non-string was provided.', '3.3.2' );
+			pods_debug_log( 'Pods::do_magic_tags() called with non-string: ' . var_export( $code, true ) );
+
+			return '';
+		}
+
+		if ( '' === trim( $code ) ) {
+			return '';
 		}
 
 		return preg_replace_callback( '/({@(.*?)})/m', array( $this, 'process_magic_tags' ), $code );

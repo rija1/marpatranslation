@@ -249,7 +249,7 @@ class Related_Item_List extends Base {
 			],
 		];
 
-		if ( ! pods_can_use_dynamic_feature_sql_clauses() ) {
+		if ( ! pods_can_use_dynamic_feature_sql_clauses( 'simple' ) ) {
 			unset( $fields['orderby'] );
 			unset( $fields['where'] );
 		}
@@ -348,7 +348,11 @@ class Related_Item_List extends Base {
 			$attributes['not_found'] = wpautop( $attributes['not_found'], $attributes );
 		}
 
+		pods_set_render_is_in_block( true );
+
 		$content = pods_shortcode( $attributes, $attributes['template_custom'] );
+
+		pods_set_render_is_in_block( false );
 
 		if ( '' !== $content ) {
 			if ( ! empty( $attributes['content_before'] ) ) {

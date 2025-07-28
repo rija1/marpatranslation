@@ -39,7 +39,7 @@ class Divi implements IntegrationInterface {
 	 *
 	 * @since 1.6.3
 	 */
-	public function hooks() {
+	public function hooks(): void {
 
 		add_action( 'et_builder_ready', [ $this, 'register_module' ] );
 		add_action( 'wp_enqueue_scripts', [ $this, 'frontend_styles' ], 12 );
@@ -67,14 +67,14 @@ class Divi implements IntegrationInterface {
 	 *
 	 * @return bool
 	 */
-	private function is_divi_builder() {
+	private function is_divi_builder(): bool {
 
 		return ! empty( $_GET['et_fb'] ); // phpcs:ignore WordPress.Security.NonceVerification.Recommended
 	}
 
 
 	/**
-	 * Get current style name.
+	 * Get the current style name.
 	 *
 	 * Overwrite styles for the Divi Builder.
 	 *
@@ -82,7 +82,7 @@ class Divi implements IntegrationInterface {
 	 *
 	 * @return string
 	 */
-	public function get_current_styles_name() {
+	public function get_current_styles_name(): string {
 
 		$disable_css = absint( wpforms_setting( 'disable-css', 1 ) );
 
@@ -103,7 +103,7 @@ class Divi implements IntegrationInterface {
 	 *
 	 * @return bool
 	 */
-	protected function is_divi_plugin_loaded() {
+	protected function is_divi_plugin_loaded(): bool {
 
 		return self::is_divi_loaded();
 	}
@@ -194,7 +194,7 @@ class Divi implements IntegrationInterface {
 	 *
 	 * @since 1.6.3
 	 */
-	public function builder_scripts() {
+	public function builder_scripts(): void {
 
 		$min = wpforms_get_min_suffix();
 
@@ -233,8 +233,10 @@ class Divi implements IntegrationInterface {
 	 * Register module.
 	 *
 	 * @since 1.6.3
+	 *
+	 * @noinspection PhpExpressionResultUnusedInspection
 	 */
-	public function register_module() {
+	public function register_module(): void {
 
 		if ( ! class_exists( 'ET_Builder_Module' ) ) {
 			return;
@@ -248,9 +250,28 @@ class Divi implements IntegrationInterface {
 	 *
 	 * @since 1.6.3
 	 */
-	public function preview() { // phpcs:ignore WPForms.PHP.HooksMethod.InvalidPlaceForAddingHooks
+	public function preview(): void { // phpcs:ignore WPForms.PHP.HooksMethod.InvalidPlaceForAddingHooks
 
 		check_ajax_referer( 'wpforms_divi_builder', 'nonce' );
+
+		$form_id = absint( filter_input( INPUT_POST, 'form_id', FILTER_SANITIZE_NUMBER_INT ) );
+
+		if ( $form_id ) {
+			$form_obj = wpforms()->obj( 'form' );
+			$form     = $form_obj ? $form_obj->get( $form_id ) : null;
+			$author   = $form ? (int) $form->post_author : 0;
+			$cap      = $author === get_current_user_id() ? 'wpforms_view_own_forms' : 'wpforms_view_others_forms';
+
+			$has_permission = wpforms_current_user_can( $cap, $form_id );
+		} else {
+			$has_permission = wpforms_current_user_can( [ 'wpforms_view_own_forms', 'wpforms_view_others_forms' ] );
+		}
+
+		if ( ! $has_permission ) {
+			wp_send_json_error(
+				esc_html__( 'You do not have permission to preview form.', 'wpforms-lite' )
+			);
+		}
 
 		// Disable Anti Spam v3 honeypot.
 		add_filter( 'wpforms_forms_anti_spam_v3_is_honeypot_enabled', '__return_false' );
@@ -283,16 +304,16 @@ class Divi implements IntegrationInterface {
 
 				// This empty image is needed to execute JS code that triggers the custom event.
 				// Unfortunately, <script> tag doesn't work in the Divi Builder.
-				echo "<img src='data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg=='
-					height='0'
-					width='0'
-					onLoad=\"jQuery( document ).trigger( 'wpformsDiviModuleDisplay' );\"
-				/>";
+				echo '<img
+					src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg=="
+					alt="Empty"
+					height="0"
+					width="0"
+					onLoad="jQuery( document ).trigger( \'wpformsDiviModuleDisplay\' );"
+				/>';
 			},
 			30
 		);
-
-		$form_id = absint( filter_input( INPUT_POST, 'form_id', FILTER_SANITIZE_NUMBER_INT ) );
 
 		/**
 		 * Allows to show/hide form title and description.

@@ -195,13 +195,28 @@ function pods_message( $message, $type = null, $return = false, $is_dismissible 
 		$div_attr_id = '';
 
 		wp_enqueue_style( 'pods-form' );
+
+		$div_id = '';
 	} else {
 		$div_attr_id = 'id="' . esc_attr( $div_id ) . '"';
 	}
 
 	$div_classes = implode( ' ', $div_classes );
 
-	$html = '<div ' . $div_attr_id . ' class="pods-ui-notice ' . esc_attr( $div_classes ) . '">' . $message . '</div>';
+	if ( pods_render_is_in_block() ) {
+		$attrs = ' ' . get_block_wrapper_attributes(
+			array_filter(
+				[
+					'id'    => $div_id,
+					'class' => 'pods-ui-notice ' . esc_attr( $div_classes ),
+				]
+			)
+		);
+	} else {
+		$attrs = $div_attr_id . ' class="pods-ui-notice ' . esc_attr( $div_classes ) . '"';
+	}
+
+	$html = '<div ' . $attrs . '>' . $message . '</div>';
 
 	if ( $return ) {
 		return $html;
@@ -256,7 +271,7 @@ function pods_error( $error, $obj = null ) {
 		$error_mode = $display_errors;
 	}
 
-	if ( is_object( $error ) && 'Exception' === get_class( $error ) ) {
+	if ( is_object( $error ) && $error instanceof Exception ) {
 		$error_mode = 'exception';
 
 		if ( 'final_exception' === $display_errors ) {
@@ -2729,7 +2744,7 @@ function pods_function_or_file( $function_or_file, $function_name = null, $file_
  *
  * @param string|null $location The path to redirect to.
  * @param int         $status   Status code to use.
- * @param boolean     $die      If true, PHP code exection will stop.
+ * @param boolean     $die      If true, PHP code execution will stop.
  */
 function pods_redirect( $location = null, $status = 302, $die = true ) {
 	if ( empty( $location ) ) {
@@ -3311,7 +3326,7 @@ function pods_static_cache_set( $key, $value, $group = '' ) {
  * @param string $group    (optional) Key for the group.
  * @param string $callback (optional) Callback function to run to set the value if not cached.
  *
- * @return bool
+ * @return bool|mixed|null|void
  *
  * @since 2.8.18
  */
@@ -3413,6 +3428,11 @@ function pods_register_type( $type, $name, $object = null ) {
 		$debug_info = debug_backtrace( DEBUG_BACKTRACE_IGNORE_ARGS, 3 );
 
 		foreach ( $debug_info as $debug ) {
+			// Skip if info is not there.
+			if ( ! isset( $debug['file'], $debug['line'] ) ) {
+				continue;
+			}
+
 			// Skip Pods-related and WP-related hook registrations.
 			if ( 0 === strpos( $debug['file'], PODS_DIR ) || 0 === strpos( $debug['file'], WPINC ) ) {
 				continue;
@@ -4850,12 +4870,16 @@ function pods_config_for_pod( $pod ) {
  *
  * @since 2.9.8
  *
- * @param Field|array|string    $field The Field configuration object, Pods() object, old-style array, or name.
+ * @param Field|Value_Field|array|string    $field The Field configuration object, Pods() object, old-style array, or name.
  * @param Pod|Pods|array|string $pod   The Pod configuration object, Pods() object, old-style array, or name.
  *
  * @return false|Field The Field object or false if invalid.
  */
 function pods_config_for_field( $field, $pod = null ) {
+	if ( $field instanceof Value_Field ) {
+		return $field->get_field_object();
+	}
+
 	if ( $field instanceof Field ) {
 		return $field;
 	}
@@ -5139,4 +5163,55 @@ function pods_is_debug_logging_enabled(): bool {
 	 * @param bool $is_debug_logging_enabled Whether debug logging is enabled.
 	 */
 	return (bool) apply_filters( 'pods_is_debug_logging_enabled', pods_is_debug_display() );
+}
+
+/**
+ * Set whether the render is in a block.
+ *
+ * @since 3.3.0
+ *
+ * @param bool $render_is_in_block Whether the render is in a block.
+ */
+function pods_set_render_is_in_block( bool $render_is_in_block ): void {
+	if ( ! $render_is_in_block ) {
+		remove_filter( 'pods_render_is_in_block', '__return_true' );
+	} elseif ( ! has_filter( 'pods_render_is_in_block', '__return_true' ) ) {
+		add_filter( 'pods_render_is_in_block', '__return_true' );
+	}
+}
+
+/**
+ * Determine whether the render is in a block.
+ *
+ * @since 3.3.0
+ *
+ * @return bool Whether the render is in a block.
+ */
+function pods_render_is_in_block(): bool {
+	/**
+	 * Allow filtering whether the render is in a block.
+	 *
+	 * @since 3.3.0
+	 *
+	 * @param bool $render_is_in_block Whether the render is in a block.
+	 */
+	return (bool) apply_filters( 'pods_render_is_in_block', false );
+}
+
+/**
+ * Determine whether to show errors when detecting PHP code in eval context.
+ *
+ * @since 3.3.0
+ *
+ * @return bool Whether to show errors when detecting PHP code in eval context.
+ */
+function pods_eval_show_errors(): bool {
+	/**
+	 * Allow filtering whether to show errors when detecting PHP code in eval context.
+	 *
+	 * @since 3.3.0
+	 *
+	 * @param bool $eval_show_errors Whether to show errors when detecting PHP code in eval context.
+	 */
+	return (bool) apply_filters( 'pods_eval_show_errors', true );
 }

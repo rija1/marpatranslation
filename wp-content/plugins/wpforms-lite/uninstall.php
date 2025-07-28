@@ -78,17 +78,27 @@ $wpdb->query( 'DROP TABLE IF EXISTS ' . TasksMeta::get_table_name() );
 // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared
 $wpdb->query( 'DROP TABLE IF EXISTS ' . Repository::get_table_name() );
 
+// Delete file restrictions table.
+// phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared
+$wpdb->query( 'DROP TABLE IF EXISTS ' . $wpdb->prefix . 'wpforms_file_restrictions' );
+
+// Delete protected files table.
+// phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared
+$wpdb->query( 'DROP TABLE IF EXISTS ' . $wpdb->prefix . 'wpforms_protected_files' );
+
 /**
  * Delete tables that might be created by "Add-ons".
  *
  * 1. Form Locker.
  * 2. User Journey.
  * 3. Coupons.
+ * 4. Entry Automation.
  */
 $wpdb->query( 'DROP TABLE IF EXISTS ' . $wpdb->prefix . 'wpforms_form_locker_email_verification' );
 $wpdb->query( 'DROP TABLE IF EXISTS ' . $wpdb->prefix . 'wpforms_user_journey' );
 $wpdb->query( 'DROP TABLE IF EXISTS ' . $wpdb->prefix . 'wpforms_coupons' );
 $wpdb->query( 'DROP TABLE IF EXISTS ' . $wpdb->prefix . 'wpforms_coupons_forms' );
+$wpdb->query( 'DROP TABLE IF EXISTS ' . $wpdb->prefix . 'wpforms_entry_automation_tasks' );
 
 // Delete Preview page.
 $preview_page = get_option( 'wpforms_preview_page', false );

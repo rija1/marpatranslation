@@ -2,6 +2,8 @@
 namespace Automattic\WooCommerce\Blocks\BlockTypes;
 
 use Automattic\WooCommerce\Blocks\Utils\StyleAttributesUtils;
+use Automattic\WooCommerce\Blocks\Utils\ProductAvailabilityUtils;
+use Automattic\WooCommerce\Enums\ProductType;
 
 /**
  * ProductStockIndicator class.
@@ -44,11 +46,27 @@ class ProductStockIndicator extends AbstractBlock {
 	 * @return array
 	 */
 	protected function get_product_types_without_stock_indicator() {
-		return array( 'external', 'grouped', 'variable' );
+		return array( ProductType::EXTERNAL, ProductType::GROUPED );
 	}
 
 	/**
-	 * Include and render the block.
+	 * Extra data passed through from server to client for block.
+	 *
+	 * @param array $attributes  Any attributes that currently are available from the block.
+	 *                           Note, this will be empty in the editor context when the block is
+	 *                           not in the post content on editor load.
+	 */
+	protected function enqueue_data( array $attributes = [] ) {
+		parent::enqueue_data( $attributes );
+
+		$this->asset_data_registry->add( 'productTypesWithoutStockIndicator', $this->get_product_types_without_stock_indicator() );
+	}
+
+	/**
+	 * Renders the stock indicator block.
+	 *
+	 * This method handles both direct product context and global product context,
+	 * ensuring the stock indicator displays correctly in various template scenarios.
 	 *
 	 * @param array    $attributes Block attributes. Default empty array.
 	 * @param string   $content    Block content. Default empty string.
@@ -56,33 +74,38 @@ class ProductStockIndicator extends AbstractBlock {
 	 * @return string Rendered block type output.
 	 */
 	protected function render( $attributes, $content, $block ) {
+		global $product;
+
 		if ( ! empty( $content ) ) {
 			parent::register_block_type_assets();
 			$this->register_chunk_translations( [ $this->block_name ] );
 			return $content;
 		}
-		$post_id = isset( $block->context['postId'] ) ? $block->context['postId'] : '';
-		$product = wc_get_product( $post_id );
+		$post_id           = isset( $block->context['postId'] ) ? $block->context['postId'] : '';
+		$product_to_render = wc_get_product( $post_id );
 
-		if ( ! $product || in_array( $product->get_type(), $this->get_product_types_without_stock_indicator(), true ) ) {
+		// Use the global product if the product to render can't be retrieved from the context.
+		if ( ! $product_to_render instanceof WC_Product ) {
+			$product_to_render = $product;
+		}
+
+		if ( ! $product_to_render || in_array( $product_to_render->get_type(), $this->get_product_types_without_stock_indicator(), true ) ) {
 			return '';
 		}
 
-		$availability = $product->get_availability();
+		$availability = ProductAvailabilityUtils::get_product_availability( $product_to_render );
 
 		if ( empty( $availability['availability'] ) ) {
 			return '';
 		}
 
-		$low_stock_amount   = $product->get_low_stock_amount();
-		$total_stock        = $product->get_stock_quantity();
-		$is_low_stock       = $low_stock_amount && $total_stock <= $low_stock_amount;
+		$total_stock        = $product_to_render->get_stock_quantity();
 		$classes_and_styles = StyleAttributesUtils::get_classes_and_styles_by_attributes( $attributes );
 
 		$classnames  = isset( $classes_and_styles['classes'] ) ? ' ' . $classes_and_styles['classes'] . ' ' : '';
 		$classnames .= sprintf( ' wc-block-components-product-stock-indicator--%s', $availability['class'] );
 
-		$is_backorder_notification_visible = $product->is_in_stock() && $product->backorders_require_notification();
+		$is_backorder_notification_visible = $product_to_render->is_in_stock() && $product_to_render->backorders_require_notification();
 
 		if ( empty( $content ) && $is_backorder_notification_visible && $total_stock > 0 ) {
 			$low_stock_text = sprintf(
