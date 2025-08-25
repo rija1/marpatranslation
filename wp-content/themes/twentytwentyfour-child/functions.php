@@ -1,20 +1,37 @@
 <?php
 
-function pa($truc,$die,$vdump) {
+/**
+ * =============================================================================
+ * MTS KNOWLEDGE HUB - FUNCTIONS.PHP
+ * Organized and cleaned functions for Marpa Translation Society website
+ * =============================================================================
+ */
+
+/**
+ * SECTION 1: BASIC THEME SETUP
+ * =============================================================================
+ */
+
+/**
+ * Debug helper function
+ */
+function pa($truc, $die = false, $vdump = false) {
     echo '<pre>';
-    if($vdump) {
+    if ($vdump) {
         var_dump($truc);
     } else {
         print_r($truc);
     }
     echo '</pre>';
-    if($die) {
+    if ($die) {
         die();
     }
 }
 
-function my_theme_enqueue_styles()
-{
+/**
+ * Enqueue theme styles
+ */
+function my_theme_enqueue_styles() {
     $parent_style = 'twentytwentyfour-style';
     wp_enqueue_style($parent_style, get_template_directory_uri() . '/style.css');
     wp_enqueue_style(
@@ -26,49 +43,64 @@ function my_theme_enqueue_styles()
 }
 add_action('wp_enqueue_scripts', 'my_theme_enqueue_styles');
 
-function my_theme_scripts()
-{
+/**
+ * Enqueue theme scripts
+ */
+function my_theme_scripts() {
     wp_enqueue_script('bsf', get_stylesheet_directory_uri() . '/js/bsf.js');
     wp_enqueue_script('chartjs', get_stylesheet_directory_uri() . '/js/chart.js');
 }
 add_action('wp_enqueue_scripts', 'my_theme_scripts');
 
-add_filter( 'woocommerce_is_purchasable', 'mts_is_purchasable' );
-function mts_is_purchasable( $is_purchasable ) {
+/**
+ * SECTION 2: WOOCOMMERCE CUSTOMIZATIONS
+ * =============================================================================
+ */
 
-return false;    
-	global $product;
-
-    // Check if a book an approved book request allows purchasing the product
-    if($is_purchasable) {
+/**
+ * Make products not purchasable by default
+ */
+add_filter('woocommerce_is_purchasable', 'mts_is_purchasable');
+function mts_is_purchasable($is_purchasable) {
+    return false; // Always return false to disable purchasing
+    
+    // Note: Original logic commented out but preserved
+    /*
+    global $product;
+    if ($is_purchasable) {
         if (approved_book_request()) {
             $is_purchasable = true;
         } else {
-            // Display "Request This Book" button
-            add_action( 'woocommerce_before_add_to_cart_form', 'mts_add_book_request_button' ); 
+            add_action('woocommerce_before_add_to_cart_form', 'mts_add_book_request_button'); 
             $is_purchasable = false;
         }
     }
-	
-	return $is_purchasable;
-	
+    return $is_purchasable;
+    */
 }
 
+/**
+ * Check for approved book request
+ */
 function approved_book_request() {
-    // Check if a book an approved book request allows purchasing the product
-    return false;
+    return false; // Placeholder for future functionality
 }
 
-// add a piece of html at the woocommerce_before_add_to_cart_form hook
-
+/**
+ * Add book request button
+ */
 function mts_add_book_request_button() {
     echo '<button type="submit" name="book-request" class="single_add_to_cart_button button alt wp-element-button">Request This Book</button>';
-    // A modal popup is displayed
-    
-
 }
 
+/**
+ * SECTION 3: AJAX SEARCH FUNCTIONALITY
+ * =============================================================================
+ */
 
+/**
+ * AJAX search for Tibetan terms
+ */
 add_action('wp_ajax_search_terms', 'search_tibetan_terms');
 add_action('wp_ajax_nopriv_search_terms', 'search_tibetan_terms');
 
@@ -83,7 +115,7 @@ function search_tibetan_terms() {
     $pods->find($params);
     $results = array();
     
-    while($pods->fetch()) {
+    while ($pods->fetch()) {
         $results[] = array(
             'label' => $pods->display('post_title'),
             'value' => $pods->display('ID')
@@ -93,8 +125,14 @@ function search_tibetan_terms() {
     wp_send_json($results);
 }
 
-// Reedz debug
-// Custom error handler to show stack trace
+/**
+ * SECTION 4: DEBUG AND ERROR HANDLING
+ * =============================================================================
+ */
+
+/**
+ * Custom error handler for debugging array to string conversions
+ */
 function custom_error_handler($errno, $errstr, $errfile, $errline) {
     if (strpos($errstr, 'Array to string conversion') !== false) {
         echo "<pre>";
@@ -108,55 +146,51 @@ function custom_error_handler($errno, $errstr, $errfile, $errline) {
     return false; // Let PHP handle the error normally too
 }
 set_error_handler('custom_error_handler');
-//
+
+/**
+ * SECTION 5: DYNAMIC TERM USAGE TITLES
+ * =============================================================================
+ */
 
 /**
  * Enhanced dynamic title generation for term_usage posts
- * This version works both in frontend display AND in Pods relationship fields
  * Format: [TRANSLATED_TERM] used by [TRANSLATOR(S)] in [TRANSLATION]
  */
 
-// 1. Update the actual post_title in database when post is saved
+// Update post_title in database when post is saved
 add_action('save_post', 'update_term_usage_post_title', 20, 3);
 add_action('pods_api_post_save_pod_item_translation', 'update_related_term_usage_titles', 20, 3);
 add_action('pods_api_post_save_pod_item_translator', 'update_related_term_usage_titles_via_translator', 20, 3);
 
-// 2. Keep existing filters for frontend display as backup
+// Keep existing filters for frontend display as backup
 add_filter('the_title', 'generate_term_usage_title_display', 10, 2);
 add_filter('get_the_title', 'generate_term_usage_title_display', 10, 2);
 
-// 3. Hook into Pods relationship field display
+// Hook into Pods relationship field display
 add_filter('pods_field_pick_data', 'fix_term_usage_titles_in_relationship_fields', 10, 6);
 
 /**
  * Update the actual post_title in the database when a term_usage post is saved
  */
 function update_term_usage_post_title($post_id, $post, $update) {
-    // Only process term_usage posts
     if ($post->post_type !== 'term_usage') {
         return;
     }
     
-    // Avoid infinite loops
     if (wp_is_post_revision($post_id) || wp_is_post_autosave($post_id)) {
         return;
     }
     
-    // Generate the custom title
     $custom_title = generate_term_usage_title_content($post_id);
     
-    // Only update if the title is different and not empty
     if (!empty($custom_title) && $custom_title !== $post->post_title) {
-        // Remove this hook temporarily to avoid infinite loop
         remove_action('save_post', 'update_term_usage_post_title', 20);
         
-        // Update the post title in the database
         wp_update_post(array(
             'ID' => $post_id,
             'post_title' => $custom_title
         ));
         
-        // Re-add the hook
         add_action('save_post', 'update_term_usage_post_title', 20, 3);
     }
 }
@@ -165,7 +199,6 @@ function update_term_usage_post_title($post_id, $post, $update) {
  * Update term_usage titles when related translation is saved
  */
 function update_related_term_usage_titles($pieces, $is_new_item, $id) {
-    // Find all term_usage posts that reference this translation
     $term_usage_posts = get_posts(array(
         'post_type' => 'term_usage',
         'meta_query' => array(
@@ -187,10 +220,6 @@ function update_related_term_usage_titles($pieces, $is_new_item, $id) {
  * Update term_usage titles when related translator is saved
  */
 function update_related_term_usage_titles_via_translator($pieces, $is_new_item, $id) {
-    // This is more complex - we need to find translations that use this translator,
-    // then find term_usage posts that use those translations
-    
-    // Find translations that use this translator
     $translations_with_translator = get_posts(array(
         'post_type' => 'translation',
         'meta_query' => array(
@@ -212,12 +241,10 @@ function update_related_term_usage_titles_via_translator($pieces, $is_new_item, 
  * Generate the custom title content (core logic)
  */
 function generate_term_usage_title_content($post_id) {
-    // Get field values
     $translated_term = get_field_title('translated_term', $post_id);
     $translator = get_translator_from_translation($post_id);
     $translation = get_field_title('translations', $post_id);
     
-    // Build title (handles multiple translators automatically)
     $title_parts = array();
     if (!empty($translated_term)) $title_parts[] = $translated_term;
     if (!empty($translator)) $title_parts[] = 'used by ' . $translator;
@@ -230,15 +257,12 @@ function generate_term_usage_title_content($post_id) {
  * Display filter (backup for frontend display)
  */
 function generate_term_usage_title_display($title, $post_id = null) {
-    // Get the post object
     $post = get_post($post_id);
     
-    // Only process term_usage posts
     if (!$post || $post->post_type !== 'term_usage') {
         return $title;
     }
     
-    // Avoid infinite loops - don't generate custom titles in admin edit screens
     if (is_admin() && !wp_doing_ajax()) {
         global $pagenow;
         if (in_array($pagenow, ['post.php', 'post-new.php'])) {
@@ -246,12 +270,10 @@ function generate_term_usage_title_display($title, $post_id = null) {
         }
     }
     
-    // If the title looks like it's already been generated, use it
     if (!empty($title) && $title !== 'Auto Draft' && !preg_match('/^term_usage_\d+$/', $title)) {
         return $title;
     }
     
-    // Generate custom title
     return generate_term_usage_title_content($post_id);
 }
 
@@ -259,7 +281,6 @@ function generate_term_usage_title_display($title, $post_id = null) {
  * Fix term_usage titles in Pods relationship fields
  */
 function fix_term_usage_titles_in_relationship_fields($data, $name, $options, $pod, $id, $obj) {
-    // Only apply to relationship fields that might contain term_usage posts
     if (!isset($options['pick_object']) || $options['pick_object'] !== 'post-type') {
         return $data;
     }
@@ -268,11 +289,9 @@ function fix_term_usage_titles_in_relationship_fields($data, $name, $options, $p
         return $data;
     }
     
-    // Process each item in the data array
     if (is_array($data)) {
         foreach ($data as $key => $item) {
             if (is_array($item) && isset($item['post_title']) && isset($item['ID'])) {
-                // Check if this looks like a default title that needs to be replaced
                 if (in_array($item['post_title'], ['Auto Draft', '']) || preg_match('/^term_usage_\d+$/', $item['post_title'])) {
                     $custom_title = generate_term_usage_title_content($item['ID']);
                     if (!empty($custom_title)) {
@@ -288,7 +307,6 @@ function fix_term_usage_titles_in_relationship_fields($data, $name, $options, $p
 
 /**
  * Get translator name(s) from the linked translation
- * (Keep your existing function)
  */
 function get_translator_from_translation($post_id) {
     $translations_data = pods_field('translations', $post_id);
@@ -297,7 +315,6 @@ function get_translator_from_translation($post_id) {
         return '';
     }
     
-    // Get the translation ID
     $translation_id = null;
     if (is_array($translations_data)) {
         if (isset($translations_data['ID'])) {
@@ -313,7 +330,6 @@ function get_translator_from_translation($post_id) {
         return '';
     }
     
-    // Use Pods object method (the working one!)
     $pods_obj = pods('translation', $translation_id);
     if (!$pods_obj) {
         return '';
@@ -327,7 +343,6 @@ function get_translator_from_translation($post_id) {
     
     $translator_names = array();
     
-    // Handle the array format we know works
     if (is_array($translators_data)) {
         foreach ($translators_data as $translator) {
             if (is_array($translator) && isset($translator['post_title'])) {
@@ -349,7 +364,6 @@ function get_translator_from_translation($post_id) {
         }
     }
     
-    // Return properly formatted list of translators
     if (empty($translator_names)) {
         return '';
     } else if (count($translator_names) == 1) {
@@ -357,98 +371,18 @@ function get_translator_from_translation($post_id) {
     } else if (count($translator_names) == 2) {
         return $translator_names[0] . ' and ' . $translator_names[1];
     } else {
-        // 3 or more translators: "John, Mary, and Jane"
         $last_translator = array_pop($translator_names);
         return implode(', ', $translator_names) . ', and ' . $last_translator;
     }
 }
 
 /**
- * Helper function to get field title - add this if it doesn't exist
+ * SECTION 6: HELPER FUNCTIONS
+ * =============================================================================
  */
-if (!function_exists('get_field_title')) {
-    function get_field_title($field_name, $post_id) {
-        $field_data = get_field($field_name, $post_id);
-        
-        if (empty($field_data)) {
-            return '';
-        }
-        
-        // Handle different field formats
-        if (is_array($field_data)) {
-            if (isset($field_data['post_title'])) {
-                return $field_data['post_title'];
-            } else if (isset($field_data[0]) && is_array($field_data[0]) && isset($field_data[0]['post_title'])) {
-                return $field_data[0]['post_title'];
-            }
-        } else if (is_object($field_data) && isset($field_data->post_title)) {
-            return $field_data->post_title;
-        }
-        
-        return '';
-    }
-}
 
 /**
- * Helper function to check if title is clean - add this if it doesn't exist
- */
-if (!function_exists('is_clean_title')) {
-    function is_clean_title($title) {
-        return !empty($title) && $title !== 'Auto Draft' && !preg_match('/^(term_usage|translation|translator)_\d+$/', $title);
-    }
-}
-
-/**
- * Helper function to get translator name - add this if it doesn't exist
- */
-if (!function_exists('get_translator_name')) {
-    function get_translator_name($translator_id) {
-        $translator_post = get_post($translator_id);
-        if ($translator_post && is_clean_title($translator_post->post_title)) {
-            return $translator_post->post_title;
-        }
-        return '';
-    }
-}
-
-/**
- * Optional: Bulk update existing term_usage posts
- * Run this once to fix existing posts
- */
-function bulk_update_term_usage_titles() {
-    $term_usage_posts = get_posts(array(
-        'post_type' => 'term_usage',
-        'posts_per_page' => -1,
-        'post_status' => 'any'
-    ));
-    
-    foreach ($term_usage_posts as $post) {
-        update_term_usage_post_title($post->ID, $post, true);
-    }
-    
-    wp_die('Bulk update completed for ' . count($term_usage_posts) . ' term_usage posts.');
-}
-
-// Uncomment the line below and visit /wp-admin/admin.php?page=bulk-update-term-usage to run bulk update
-// add_action('admin_menu', function() { add_submenu_page('tools.php', 'Bulk Update Term Usage', 'Bulk Update Term Usage', 'manage_options', 'bulk-update-term-usage', 'bulk_update_term_usage_titles'); });
-
-/**
- * Get translator name (tries translator_name field first, then post_title)
- */
-function get_translator_name($translator_id) {
-    // Try translator_name field first
-    $translator_name = pods_field('translator_name', $translator_id);
-    if (!empty($translator_name) && !is_array($translator_name) && is_clean_title($translator_name)) {
-        return $translator_name;
-    }
-    
-    // Fallback to post title
-    $title = get_the_title($translator_id);
-    return is_clean_title($title) ? $title : '';
-}
-
-/**
- * Helper function to extract clean titles from Pods fields
+ * Helper function to get field title
  */
 function get_field_title($field_name, $post_id) {
     $field_data = pods_field($field_name, $post_id);
@@ -457,26 +391,21 @@ function get_field_title($field_name, $post_id) {
         return '';
     }
     
-    // Handle arrays (most common case)
     if (is_array($field_data)) {
-        // Single post as array
         if (isset($field_data['post_title'])) {
             return is_clean_title($field_data['post_title']) ? $field_data['post_title'] : '';
         }
         
-        // Try getting title by ID
         if (isset($field_data['ID'])) {
             $title = get_the_title($field_data['ID']);
             return is_clean_title($title) ? $title : '';
         }
         
-        // Multiple posts - take first one
         if (isset($field_data[0]) && is_array($field_data[0]) && isset($field_data[0]['post_title'])) {
             return is_clean_title($field_data[0]['post_title']) ? $field_data[0]['post_title'] : '';
         }
     }
     
-    // Handle objects
     if (is_object($field_data) && isset($field_data->post_title)) {
         return is_clean_title($field_data->post_title) ? $field_data->post_title : '';
     }
@@ -485,7 +414,7 @@ function get_field_title($field_name, $post_id) {
 }
 
 /**
- * Helper function to check if a title is valid
+ * Helper function to check if title is clean
  */
 function is_clean_title($title) {
     if (empty($title) || !is_string($title)) return false;
@@ -496,13 +425,27 @@ function is_clean_title($title) {
 }
 
 /**
- * Add this to your functions.php file
- * Custom shortcode to get translator information for templates
+ * Get translator name (tries translator_name field first, then post_title)
+ */
+function get_translator_name($translator_id) {
+    $translator_name = pods_field('translator_name', $translator_id);
+    if (!empty($translator_name) && !is_array($translator_name) && is_clean_title($translator_name)) {
+        return $translator_name;
+    }
+    
+    $title = get_the_title($translator_id);
+    return is_clean_title($title) ? $title : '';
+}
+
+/**
+ * SECTION 7: SHORTCODES
+ * =============================================================================
  */
 
-// Shortcode to get translators from a translation ID
+/**
+ * Shortcode to show translators
+ */
 add_shortcode('show_translators', 'show_translators_shortcode');
-
 function show_translators_shortcode($atts) {
     $atts = shortcode_atts(array(
         'id' => '',
@@ -513,7 +456,6 @@ function show_translators_shortcode($atts) {
         return '';
     }
     
-    // Use the working Pods object method (same as our dynamic title system)
     $pods_obj = pods('translation', $translation_id);
     if (!$pods_obj) {
         return '';
@@ -551,7 +493,6 @@ function show_translators_shortcode($atts) {
         return '';
     }
     
-    // Format with proper grammar
     if (count($translator_names) == 1) {
         return $translator_names[0];
     } else if (count($translator_names) == 2) {
@@ -562,15 +503,10 @@ function show_translators_shortcode($atts) {
     }
 }
 
-
 /**
- * Add this to your functions.php file
- * Custom shortcode to get translator information for templates
+ * Shortcode to get translators with formatting options
  */
-
-// Shortcode to get translators from a translation ID
 add_shortcode('get_translators', 'get_translators_shortcode');
-
 function get_translators_shortcode($atts) {
     $atts = shortcode_atts(array(
         'translation_id' => '',
@@ -582,7 +518,6 @@ function get_translators_shortcode($atts) {
         return '';
     }
     
-    // Use the working Pods object method
     $pods_obj = pods('translation', $translation_id);
     if (!$pods_obj) {
         return '';
@@ -602,7 +537,6 @@ function get_translators_shortcode($atts) {
                 $name = '';
                 $link = '';
                 
-                // Get translator name
                 if (isset($translator['post_title'])) {
                     $name = $translator['post_title'];
                 } else if (isset($translator['ID'])) {
@@ -614,7 +548,6 @@ function get_translators_shortcode($atts) {
                     }
                 }
                 
-                // Get translator link
                 if (isset($translator['ID'])) {
                     $link = get_permalink($translator['ID']);
                 }
@@ -635,7 +568,6 @@ function get_translators_shortcode($atts) {
         return '';
     }
     
-    // Format output based on request
     switch ($atts['format']) {
         case 'links':
             return implode(', ', $translator_links);
@@ -647,9 +579,10 @@ function get_translators_shortcode($atts) {
     }
 }
 
-// Shortcode to get translation language
+/**
+ * Shortcode to get translation language
+ */
 add_shortcode('get_translation_language', 'get_translation_language_shortcode');
-
 function get_translation_language_shortcode($atts) {
     $atts = shortcode_atts(array(
         'translation_id' => '',
@@ -674,34 +607,242 @@ function get_translation_language_shortcode($atts) {
     return '';
 }
 
-
 /**
- * Customize Term Usage admin columns
- * Add this to your functions.php file
+ * SECTION 8: ADMIN CUSTOMIZATIONS
+ * =============================================================================
  */
 
-// Define custom columns for term_usage admin
-add_filter('manage_term_usage_posts_columns', 'custom_term_usage_columns');
+/**
+ * Reorder admin menu to put MailPoet after Vehicles
+ */
+function reorder_admin_menu() {
+    global $menu;
+    
+    $mailpoet_key = null;
+    $mailpoet_item = null;
+    
+    foreach ($menu as $key => $item) {
+        if (isset($item[2]) && $item[2] === 'mailpoet-homepage') {
+            $mailpoet_key = $key;
+            $mailpoet_item = $item;
+            break;
+        }
+    }
+    
+    $vehicles_key = null;
+    foreach ($menu as $key => $item) {
+        if (isset($item[2]) && $item[2] === 'edit.php?post_type=vehicle') {
+            $vehicles_key = $key;
+            break;
+        }
+    }
+    
+    if ($mailpoet_key !== null && $vehicles_key !== null && $mailpoet_item !== null) {
+        unset($menu[$mailpoet_key]);
+        $new_position = $vehicles_key + 0.1;
+        $menu[$new_position] = $mailpoet_item;
+        ksort($menu);
+    }
+}
+add_action('admin_menu', 'reorder_admin_menu', 999);
 
-function custom_term_usage_columns($columns) {
-    // Remove default title column
-    unset($columns['title']);
-    
-    // Add our custom columns
-    $new_columns = array();
-    $new_columns['cb'] = $columns['cb']; // Keep checkbox
-    $new_columns['translated_term'] = 'Translated Term';
-    $new_columns['translation'] = 'Translation';
-    $new_columns['translators'] = 'Translator(s)';
-    $new_columns['date'] = $columns['date']; // Keep date
-    
-    return $new_columns;
+/**
+ * SECTION 9: ADMIN COLUMNS CUSTOMIZATION
+ * =============================================================================
+ */
+
+/**
+ * Customize admin columns for Text, Translation, and Term Usage post types
+ */
+
+// Text post type columns
+add_filter('manage_text_posts_columns', 'mts_add_text_admin_columns');
+add_action('manage_text_posts_custom_column', 'mts_display_text_admin_columns', 10, 2);
+add_filter('manage_edit-text_sortable_columns', 'mts_make_text_columns_sortable');
+
+// Translation post type columns
+add_filter('manage_translation_posts_columns', 'mts_add_translation_admin_columns');
+add_action('manage_translation_posts_custom_column', 'mts_display_translation_admin_columns', 10, 2);
+
+// Term Usage post type columns
+add_filter('manage_term_usage_posts_columns', 'mts_add_term_usage_admin_columns');
+add_action('manage_term_usage_posts_custom_column', 'mts_display_term_usage_admin_columns', 10, 2);
+add_filter('manage_edit-term_usage_sortable_columns', 'mts_make_term_usage_columns_sortable');
+
+// Translated Term post type columns
+add_filter('manage_translated_term_posts_columns', 'mts_add_translated_term_admin_columns');
+add_action('manage_translated_term_posts_custom_column', 'mts_display_translated_term_admin_columns', 10, 2);
+
+// Filters and sorting
+add_action('restrict_manage_posts', 'mts_add_admin_filters');
+add_filter('parse_query', 'mts_admin_filter_query');
+add_action('pre_get_posts', 'mts_admin_columns_orderby');
+
+// Column styling
+add_action('admin_head', 'mts_admin_column_styles');
+
+/**
+ * Text post type admin columns
+ */
+function mts_add_text_admin_columns($columns) {
+    // Define exactly which columns we want and in what order
+    return [
+        'cb' => '<input type="checkbox" />',
+        'title' => 'Title',
+        'text_type' => 'Type',
+        'text_author' => 'Author',
+        'date' => 'Date'
+    ];
 }
 
-// Populate the custom columns with data
-add_action('manage_term_usage_posts_custom_column', 'custom_term_usage_column_content', 10, 2);
+function mts_display_text_admin_columns($column, $post_id) {
+    if ($column === 'text_type') {
+        $text_type = pods_field('text_type', $post_id);
+        if ($text_type) {
+            echo esc_html($text_type);
+            
+            if ($text_type === 'Individual chapter') {
+                $chapter_number = pods_field('chapter_number', $post_id);
+                $chapter_of = pods_field('chapter_of', $post_id);
+                
+                if ($chapter_number || $chapter_of) {
+                    echo '<br><small style="color: #666;">';
+                    if ($chapter_number) {
+                        echo "Ch. {$chapter_number}";
+                    }
+                    if ($chapter_of) {
+                        $parent_title = is_array($chapter_of) ? $chapter_of['post_title'] : get_the_title($chapter_of);
+                        if ($parent_title) {
+                            echo ($chapter_number ? ' of ' : '') . esc_html($parent_title);
+                        }
+                    }
+                    echo '</small>';
+                }
+            }
+        } else {
+            echo '<span style="color: #999;">—</span>';
+        }
+    }
+    
+    if ($column === 'text_author') {
+        $author = pods_field('text_textauthor', $post_id);
+        if ($author) {
+            $author_title = is_array($author) ? $author['post_title'] : get_the_title($author);
+            $author_id = is_array($author) ? $author['ID'] : $author;
+            
+            if ($author_title && $author_id) {
+                $edit_link = get_edit_post_link($author_id);
+                if ($edit_link) {
+                    echo '<a href="' . esc_url($edit_link) . '">' . esc_html($author_title) . '</a>';
+                } else {
+                    echo esc_html($author_title);
+                }
+            }
+        } else {
+            echo '<span style="color: #999;">—</span>';
+        }
+    }
+}
 
-function custom_term_usage_column_content($column, $post_id) {
+function mts_make_text_columns_sortable($columns) {
+    $columns['text_type'] = 'text_type';
+    $columns['text_author'] = 'text_author';
+    return $columns;
+}
+
+/**
+ * Translation post type admin columns
+ */
+function mts_add_translation_admin_columns($columns) {
+    // Define exactly which columns we want and in what order
+    return [
+        'cb' => '<input type="checkbox" />',
+        'title' => 'Title',
+        'translators' => 'Translators',
+        'date' => 'Date'
+    ];
+}
+
+function mts_display_translation_admin_columns($column, $post_id) {
+    if ($column === 'translators') {
+        $translators = pods_field('translation_translators', $post_id);
+        
+        if (empty($translators)) {
+            echo '<span style="color: #999;">—</span>';
+            return;
+        }
+        
+        $translator_names = [];
+        
+        // Ensure we have an array to work with
+        if (!is_array($translators)) {
+            echo '<span style="color: #999;">—</span>';
+            return;
+        }
+        
+        foreach ($translators as $translator) {
+            $name = '';
+            $translator_id = null;
+            
+            // Get the translator ID first
+            if (is_array($translator) && isset($translator['ID'])) {
+                $translator_id = $translator['ID'];
+            } else if (is_numeric($translator)) {
+                $translator_id = $translator;
+            } else if (is_object($translator) && isset($translator->ID)) {
+                $translator_id = $translator->ID;
+            }
+            
+            // Now get ONLY the translator name using the ID
+            if ($translator_id) {
+                // Try the translator_name field first (your custom field)
+                $translator_name_field = pods_field('translator_name', $translator_id);
+                if (!empty($translator_name_field) && is_string($translator_name_field)) {
+                    $name = trim($translator_name_field);
+                } else {
+                    // Fallback to the post title of the translator post
+                    $translator_post = get_post($translator_id);
+                    if ($translator_post && $translator_post->post_type === 'translator') {
+                        $name = trim($translator_post->post_title);
+                    }
+                }
+            }
+            
+            // Validate the name and add it
+            if (!empty($name) && 
+                $name !== 'Hello world!' && 
+                $name !== 'Auto Draft' && 
+                !preg_match('/^translator_\d+$/', $name)) {
+                $translator_names[] = esc_html($name);
+            }
+        }
+        
+        // Remove duplicates and display
+        $translator_names = array_unique($translator_names);
+        
+        if (!empty($translator_names)) {
+            echo implode(', ', $translator_names);
+        } else {
+            echo '<span style="color: #999;">—</span>';
+        }
+    }
+}
+
+/**
+ * Term Usage post type admin columns
+ */
+function mts_add_term_usage_admin_columns($columns) {
+    // Define exactly which columns we want and in what order
+    return [
+        'cb' => '<input type="checkbox" />',
+        'translated_term' => 'Translated Term',
+        'translation' => 'Translation',
+        'translators' => 'Translator(s)',
+        'date' => 'Date'
+    ];
+}
+
+function mts_display_term_usage_admin_columns($column, $post_id) {
     switch ($column) {
         case 'translated_term':
             $translated_term = pods_field('translated_term', $post_id);
@@ -724,14 +865,11 @@ function custom_term_usage_column_content($column, $post_id) {
             $translations = pods_field('translations', $post_id);
             if (!empty($translations)) {
                 if (is_array($translations)) {
-                    // Handle single translation as array
                     if (isset($translations['post_title'])) {
                         $title = $translations['post_title'];
                         $link = isset($translations['permalink']) ? $translations['permalink'] : get_permalink($translations['ID']);
                         echo '<a href="' . esc_url($link) . '">' . esc_html($title) . '</a>';
-                    } 
-                    // Handle multiple translations
-                    else if (isset($translations[0])) {
+                    } else if (isset($translations[0])) {
                         $translation_links = array();
                         foreach ($translations as $translation) {
                             if (is_array($translation) && isset($translation['post_title'])) {
@@ -753,14 +891,12 @@ function custom_term_usage_column_content($column, $post_id) {
             break;
             
         case 'translators':
-            // Get translators from the linked translation(s)
             $translations = pods_field('translations', $post_id);
             $translator_names = array();
             
             if (!empty($translations)) {
                 $translation_ids = array();
                 
-                // Extract translation IDs
                 if (is_array($translations)) {
                     if (isset($translations['ID'])) {
                         $translation_ids[] = $translations['ID'];
@@ -775,7 +911,6 @@ function custom_term_usage_column_content($column, $post_id) {
                     $translation_ids[] = $translations->ID;
                 }
                 
-                // Get translators for each translation
                 foreach ($translation_ids as $translation_id) {
                     $pods_obj = pods('translation', $translation_id);
                     if ($pods_obj) {
@@ -804,29 +939,221 @@ function custom_term_usage_column_content($column, $post_id) {
     }
 }
 
-// Make columns sortable (optional)
-add_filter('manage_edit-term_usage_sortable_columns', 'term_usage_sortable_columns');
-
-function term_usage_sortable_columns($columns) {
+function mts_make_term_usage_columns_sortable($columns) {
     $columns['translated_term'] = 'translated_term';
     $columns['translation'] = 'translation';
     return $columns;
 }
 
-// Handle sorting for custom columns (optional)
-add_action('pre_get_posts', 'term_usage_column_orderby');
+/**
+ * Translated Term post type admin columns
+ */
+function mts_add_translated_term_admin_columns($columns) {
+    // Define exactly which columns we want and in what order
+    return [
+        'cb' => '<input type="checkbox" />',
+        'title' => 'Title',
+        'tibetan_term' => 'Tibetan Term',
+        'used_in' => 'Used in',
+        'date' => 'Date'
+    ];
+}
 
-function term_usage_column_orderby($query) {
-    if (!is_admin() || !$query->is_main_query()) {
+function mts_display_translated_term_admin_columns($column, $post_id) {
+    switch ($column) {
+        case 'tibetan_term':
+            $tibetan_term = pods_field('tibetan_term', $post_id);
+            if (!empty($tibetan_term)) {
+                if (is_array($tibetan_term) && isset($tibetan_term['post_title'])) {
+                    $title = $tibetan_term['post_title'];
+                    $link = isset($tibetan_term['permalink']) ? $tibetan_term['permalink'] : get_permalink($tibetan_term['ID']);
+                    echo '<a href="' . esc_url($link) . '">' . esc_html($title) . '</a>';
+                } else if (is_object($tibetan_term) && isset($tibetan_term->post_title)) {
+                    echo '<a href="' . esc_url($tibetan_term->permalink) . '">' . esc_html($tibetan_term->post_title) . '</a>';
+                }
+            } else {
+                echo '<span style="color: #999;">—</span>';
+            }
+            break;
+            
+        case 'used_in':
+            // Get term usages for this translated term
+            $term_usages = pods_field('term_usages', $post_id);
+            $translation_titles = array();
+            
+            if (!empty($term_usages) && is_array($term_usages)) {
+                foreach ($term_usages as $term_usage) {
+                    $term_usage_id = null;
+                    
+                    // Get the term usage ID
+                    if (is_array($term_usage) && isset($term_usage['ID'])) {
+                        $term_usage_id = $term_usage['ID'];
+                    } else if (is_numeric($term_usage)) {
+                        $term_usage_id = $term_usage;
+                    } else if (is_object($term_usage) && isset($term_usage->ID)) {
+                        $term_usage_id = $term_usage->ID;
+                    }
+                    
+                    if ($term_usage_id) {
+                        // Get translations from this term usage using Pods object
+                        $term_usage_pod = pods('term_usage', $term_usage_id);
+                        if ($term_usage_pod) {
+                            $translations = $term_usage_pod->field('translations');
+                            
+                            if (!empty($translations)) {
+                                // Handle single translation
+                                if (is_array($translations) && isset($translations['post_title'])) {
+                                    $title = $translations['post_title'];
+                                    $link = isset($translations['permalink']) ? $translations['permalink'] : get_permalink($translations['ID']);
+                                    if (!empty($title) && $title !== 'Auto Draft') {
+                                        $translation_titles[] = '<a href="' . esc_url($link) . '">' . esc_html($title) . '</a>';
+                                    }
+                                }
+                                // Handle array of translations
+                                else if (is_array($translations)) {
+                                    foreach ($translations as $translation) {
+                                        if (is_array($translation) && isset($translation['post_title'])) {
+                                            $title = $translation['post_title'];
+                                            $link = isset($translation['permalink']) ? $translation['permalink'] : get_permalink($translation['ID']);
+                                            if (!empty($title) && $title !== 'Auto Draft') {
+                                                $translation_titles[] = '<a href="' . esc_url($link) . '">' . esc_html($title) . '</a>';
+                                            }
+                                        }
+                                    }
+                                }
+                                // Handle object format
+                                else if (is_object($translations) && isset($translations->post_title)) {
+                                    $title = $translations->post_title;
+                                    if (!empty($title) && $title !== 'Auto Draft') {
+                                        $translation_titles[] = '<a href="' . esc_url($translations->permalink) . '">' . esc_html($title) . '</a>';
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+            
+            // Remove duplicates and display
+            $translation_titles = array_unique($translation_titles);
+            
+            if (!empty($translation_titles)) {
+                echo implode(', ', $translation_titles);
+            } else {
+                echo '<span style="color: #999;">Not used</span>';
+            }
+            break;
+    }
+}
+
+/**
+ * Admin filters
+ */
+function mts_add_admin_filters() {
+    global $typenow;
+    
+    if ($typenow === 'text') {
+        // Text Type Filter
+        echo '<select name="filter_text_type" id="filter_text_type">';
+        echo '<option value="">All Types</option>';
+        
+        $text_types = [
+            'Treatise root text',
+            'Treatise commentary', 
+            'Practice manual',
+            'Liturgy',
+            'Individual chapter'
+        ];
+        
+        $selected_type = isset($_GET['filter_text_type']) ? $_GET['filter_text_type'] : '';
+        
+        foreach ($text_types as $type) {
+            $selected = selected($selected_type, $type, false);
+            echo '<option value="' . esc_attr($type) . '" ' . $selected . '>' . esc_html($type) . '</option>';
+        }
+        echo '</select>';
+        
+        // Author Filter
+        $authors = get_posts([
+            'post_type' => 'text_author',
+            'posts_per_page' => -1,
+            'orderby' => 'title',
+            'order' => 'ASC',
+            'post_status' => 'publish'
+        ]);
+        
+        if (!empty($authors)) {
+            echo '<select name="filter_text_author" id="filter_text_author">';
+            echo '<option value="">All Authors</option>';
+            
+            $selected_author = isset($_GET['filter_text_author']) ? $_GET['filter_text_author'] : '';
+            
+            foreach ($authors as $author) {
+                $selected = selected($selected_author, $author->ID, false);
+                echo '<option value="' . esc_attr($author->ID) . '" ' . $selected . '>' . esc_html($author->post_title) . '</option>';
+            }
+            echo '</select>';
+        }
+    }
+}
+
+/**
+ * Handle admin filtering
+ */
+function mts_admin_filter_query($query) {
+    global $pagenow, $typenow;
+    
+    if ($pagenow !== 'edit.php') {
         return;
     }
     
-    if ('term_usage' !== $query->get('post_type')) {
+    $meta_query = [];
+    
+    if ($typenow === 'text') {
+        if (!empty($_GET['filter_text_type'])) {
+            $meta_query[] = [
+                'key' => 'text_type',
+                'value' => sanitize_text_field($_GET['filter_text_type']),
+                'compare' => '='
+            ];
+        }
+        
+        if (!empty($_GET['filter_text_author'])) {
+            $meta_query[] = [
+                'key' => 'text_textauthor',
+                'value' => intval($_GET['filter_text_author']),
+                'compare' => '='
+            ];
+        }
+    }
+    
+    if (!empty($meta_query)) {
+        $query->set('meta_query', $meta_query);
+    }
+}
+
+/**
+ * Handle admin column sorting
+ */
+function mts_admin_columns_orderby($query) {
+    if (!is_admin() || !$query->is_main_query()) {
         return;
     }
     
     $orderby = $query->get('orderby');
     
+    // Text post type sorting
+    if ('text_type' === $orderby) {
+        $query->set('meta_key', 'text_type');
+        $query->set('orderby', 'meta_value');
+    }
+    
+    if ('text_author' === $orderby) {
+        $query->set('meta_key', 'text_textauthor');
+        $query->set('orderby', 'meta_value');
+    }
+    
+    // Term Usage post type sorting
     if ('translated_term' === $orderby) {
         $query->set('meta_key', 'translated_term');
         $query->set('orderby', 'meta_value');
@@ -838,84 +1165,78 @@ function term_usage_column_orderby($query) {
     }
 }
 
-// Optional: Add quick edit support for the term_usage fields
-add_action('quick_edit_custom_box', 'term_usage_quick_edit_fields', 10, 2);
-
-function term_usage_quick_edit_fields($column_name, $post_type) {
-    if ($post_type !== 'term_usage') {
+/**
+ * Admin column styles
+ */
+function mts_admin_column_styles() {
+    global $pagenow, $typenow;
+    
+    if ($pagenow !== 'edit.php' || !in_array($typenow, ['text', 'translation', 'term_usage', 'translated_term'])) {
         return;
     }
     
-    switch ($column_name) {
-        case 'translated_term':
-            echo '<fieldset class="inline-edit-col-left">';
-            echo '<div class="inline-edit-col">';
-            echo '<label><span class="title">Translated Term</span>';
-            echo '<em>Edit in full editor for relationship fields</em>';
-            echo '</label>';
-            echo '</div>';
-            echo '</fieldset>';
-            break;
-    }
-}
-
-// Optional: Customize column widths
-add_action('admin_head', 'term_usage_admin_css');
-
-function term_usage_admin_css() {
-    global $post_type;
-    if ($post_type === 'term_usage') {
-        echo '<style>
-        .wp-list-table .column-translated_term { width: 25%; }
-        .wp-list-table .column-translation { width: 35%; }
-        .wp-list-table .column-translators { width: 25%; }
-        .wp-list-table .column-date { width: 15%; }
+    echo '<style>';
+    
+    if ($typenow === 'text') {
+        echo '
         .wp-list-table .column-cb { width: 2.2em; }
-        </style>';
+        .wp-list-table .column-title { width: 40%; }
+        .wp-list-table .column-text_type { width: 20%; }
+        .wp-list-table .column-text_author { width: 25%; }
+        .wp-list-table .column-date { width: 12%; }';
     }
+    
+    if ($typenow === 'translation') {
+        echo '
+        .wp-list-table .column-cb { width: 2.2em; }
+        .wp-list-table .column-title { width: 50%; }
+        .wp-list-table .column-translators { width: 30%; }
+        .wp-list-table .column-date { width: 15%; }';
+    }
+    
+    if ($typenow === 'term_usage') {
+        echo '
+        .wp-list-table .column-cb { width: 2.2em; }
+        .wp-list-table .column-translated_term { width: 25%; }
+        .wp-list-table .column-translation { width: 30%; }
+        .wp-list-table .column-translators { width: 25%; }
+        .wp-list-table .column-date { width: 15%; }';
+    }
+    
+    if ($typenow === 'translated_term') {
+        echo '
+        .wp-list-table .column-cb { width: 2.2em; }
+        .wp-list-table .column-title { width: 25%; }
+        .wp-list-table .column-tibetan_term { width: 25%; }
+        .wp-list-table .column-used_in { width: 35%; }
+        .wp-list-table .column-date { width: 12%; }';
+    }
+    
+    echo '</style>';
 }
 
+/**
+ * SECTION 10: BULK OPERATIONS (OPTIONAL)
+ * =============================================================================
+ */
 
-
-
-
-function reorder_admin_menu() {
-    global $menu;
+/**
+ * Bulk update existing term_usage posts
+ * Uncomment the add_action line below and visit /wp-admin/admin.php?page=bulk-update-term-usage
+ */
+function bulk_update_term_usage_titles() {
+    $term_usage_posts = get_posts(array(
+        'post_type' => 'term_usage',
+        'posts_per_page' => -1,
+        'post_status' => 'any'
+    ));
     
-    // Find the MailPoet menu item
-    $mailpoet_key = null;
-    $mailpoet_item = null;
-    
-    foreach ($menu as $key => $item) {
-        if (isset($item[2]) && $item[2] === 'mailpoet-homepage') {
-            $mailpoet_key = $key;
-            $mailpoet_item = $item;
-            break;
-        }
+    foreach ($term_usage_posts as $post) {
+        update_term_usage_post_title($post->ID, $post, true);
     }
     
-    // Find the Vehicles menu item
-    $vehicles_key = null;
-    foreach ($menu as $key => $item) {
-        if (isset($item[2]) && $item[2] === 'edit.php?post_type=vehicle') {
-            $vehicles_key = $key;
-            break;
-        }
-    }
-    
-    // If both items are found, reorder them
-    if ($mailpoet_key !== null && $vehicles_key !== null && $mailpoet_item !== null) {
-        // Remove MailPoet from its current position
-        unset($menu[$mailpoet_key]);
-        
-        // Find a position after Vehicles (add small increment to ensure it comes after)
-        $new_position = $vehicles_key + 0.1;
-        
-        // Insert MailPoet at the new position
-        $menu[$new_position] = $mailpoet_item;
-        
-        // Re-sort the menu by keys
-        ksort($menu);
-    }
+    wp_die('Bulk update completed for ' . count($term_usage_posts) . ' term_usage posts.');
 }
-add_action('admin_menu', 'reorder_admin_menu', 999);
+
+// Uncomment to add bulk update tool
+// add_action('admin_menu', function() { add_submenu_page('tools.php', 'Bulk Update Term Usage', 'Bulk Update Term Usage', 'manage_options', 'bulk-update-term-usage', 'bulk_update_term_usage_titles'); });
