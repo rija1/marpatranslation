@@ -21,7 +21,7 @@ if ($custom_query->have_posts()) : ?>
         <div class="table-header">
             <div>Translated Term</div>
             <div>Original Tibetan</div>
-            <div>Context & Usage</div>
+            <div>Used in</div>
             <div>Language</div>
             <div>View</div>
         </div>
@@ -43,70 +43,136 @@ if ($custom_query->have_posts()) : ?>
                 }
             }
             
-            // Get term content/excerpt for context
-            $content_excerpt = '';
-            $post_content = get_the_content();
-            $post_excerpt = get_the_excerpt();
+            // Get term usages directly from the translated_term (correct relationship)
+            $term_usages = $pod ? $pod->field('term_usages') : null;
+            $used_in_translations = array();
+            $detected_language = '';
             
-            if (!empty($post_excerpt)) {
-                $content_excerpt = wp_trim_words($post_excerpt, 15, '...');
-            } elseif (!empty($post_content)) {
-                $content_excerpt = wp_trim_words(strip_tags($post_content), 15, '...');
+            if (!empty($term_usages)) {
+                // If it's not an array, make it one
+                if (!is_array($term_usages)) {
+                    $term_usages = array($term_usages);
+                }
+                
+                foreach ($term_usages as $usage) {
+                    // Get the translations for this usage
+                    $usage_pod = null;
+                    if (is_object($usage)) {
+                        $usage_pod = pods('term_usage', $usage->ID);
+                    } elseif (is_array($usage) && isset($usage['ID'])) {
+                        $usage_pod = pods('term_usage', $usage['ID']);
+                    }
+                    
+                    if ($usage_pod) {
+                        $translations = $usage_pod->field('translations');
+                        if (!empty($translations)) {
+                            if (!is_array($translations)) {
+                                $translations = array($translations);
+                            }
+                            
+                            foreach ($translations as $translation) {
+                                if (is_object($translation)) {
+                                    $used_in_translations[] = $translation->post_title;
+                                    
+                                    // Try to get language from the translation if not set yet
+                                    if (empty($detected_language)) {
+                                        $trans_pod = pods('translation', $translation->ID);
+                                        $trans_language = $trans_pod ? $trans_pod->field('translation_language') : null;
+                                        if (!empty($trans_language)) {
+                                            if (is_array($trans_language)) {
+                                                $detected_language = isset($trans_language['post_title']) ? $trans_language['post_title'] : '';
+                                            } else {
+                                                $detected_language = $trans_language->post_title ?? '';
+                                            }
+                                        }
+                                    }
+                                } elseif (is_array($translation) && isset($translation['post_title'])) {
+                                    $used_in_translations[] = $translation['post_title'];
+                                    
+                                    // Try to get language from the translation if not set yet
+                                    if (empty($detected_language) && isset($translation['ID'])) {
+                                        $trans_pod = pods('translation', $translation['ID']);
+                                        $trans_language = $trans_pod ? $trans_pod->field('translation_language') : null;
+                                        if (!empty($trans_language)) {
+                                            if (is_array($trans_language)) {
+                                                $detected_language = isset($trans_language['post_title']) ? $trans_language['post_title'] : '';
+                                            } else {
+                                                $detected_language = $trans_language->post_title ?? '';
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
             }
             
-            // Detect or infer language from content
-            $detected_language = '';
-            $term_title = get_the_title();
+            // Remove duplicates and format the translations list
+            $used_in_translations = array_unique($used_in_translations);
+            $used_in_text = !empty($used_in_translations) ? implode(', ', $used_in_translations) : '';
             
-            // Simple language detection based on character sets
-            if (preg_match('/[\p{Tibetan}]/u', $term_title)) {
-                $detected_language = 'Tibetan';
-            } elseif (preg_match('/[\p{Han}]/u', $term_title)) {
-                $detected_language = 'Chinese';
-            } elseif (preg_match('/[\p{Hiragana}\p{Katakana}]/u', $term_title)) {
-                $detected_language = 'Japanese';
-            } elseif (preg_match('/[\p{Devanagari}]/u', $term_title)) {
-                $detected_language = 'Sanskrit/Hindi';
-            } else {
-                $detected_language = 'English';
+            // Fallback language detection if not found via translations
+            if (empty($detected_language)) {
+                $term_title = get_the_title();
+                // Check if there's a language field directly on translated_term
+                $term_language = $pod ? $pod->field('language') : null;
+                if (!empty($term_language)) {
+                    if (is_array($term_language)) {
+                        $detected_language = isset($term_language['post_title']) ? $term_language['post_title'] : '';
+                    } else {
+                        $detected_language = $term_language->post_title ?? '';
+                    }
+                }
+                
+                // Final fallback to character-based detection
+                if (empty($detected_language)) {
+                    if (preg_match('/[\p{Tibetan}]/u', $term_title)) {
+                        $detected_language = 'Tibetan';
+                    } elseif (preg_match('/[\p{Han}]/u', $term_title)) {
+                        $detected_language = 'Chinese';
+                    } elseif (preg_match('/[\p{Hiragana}\p{Katakana}]/u', $term_title)) {
+                        $detected_language = 'Japanese';
+                    } elseif (preg_match('/[\p{Devanagari}]/u', $term_title)) {
+                        $detected_language = 'Sanskrit/Hindi';
+                    } elseif (preg_match('/[àâäéèêëïîôöùûüÿç]/i', $term_title)) {
+                        $detected_language = 'French';
+                    } elseif (preg_match('/[äöüß]/i', $term_title)) {
+                        $detected_language = 'German';
+                    } elseif (preg_match('/[ñáéíóú]/i', $term_title)) {
+                        $detected_language = 'Spanish';
+                    } elseif (preg_match('/[àèìòù]/i', $term_title)) {
+                        $detected_language = 'Italian';
+                    } else {
+                        $detected_language = 'English';
+                    }
+                }
             }
         ?>
             <div class="table-row">
                 <div class="term-info">
-                    <div class="term-icon-container">
-                        <div class="term-icon">
-                            <span class="term-symbol">🔤</span>
-                        </div>
-                    </div>
                     <div class="term-details">
                         <div class="term-title"><?php echo esc_html(get_the_title()); ?></div>
-                        <?php if (!empty($detected_language)) : ?>
-                            <div class="term-language-hint">
-                                <span class="language-indicator"><?php echo esc_html($detected_language); ?></span>
-                            </div>
-                        <?php endif; ?>
                     </div>
                 </div>
                 <div class="tibetan-source">
                     <?php if (!empty($tibetan_title) && !empty($tibetan_url)) : ?>
                         <a href="<?php echo esc_url($tibetan_url); ?>" class="tibetan-term-link">
-                            <span class="tibetan-icon">🏔️</span>
                             <?php echo esc_html($tibetan_title); ?>
                         </a>
                     <?php elseif (!empty($tibetan_title)) : ?>
                         <span class="tibetan-term-static">
-                            <span class="tibetan-icon">🏔️</span>
                             <?php echo esc_html($tibetan_title); ?>
                         </span>
                     <?php else : ?>
                         <span class="no-tibetan">No Tibetan term linked</span>
                     <?php endif; ?>
                 </div>
-                <div class="context-usage">
-                    <?php if (!empty($content_excerpt)) : ?>
-                        <div class="context-text"><?php echo esc_html($content_excerpt); ?></div>
+                <div class="used-in">
+                    <?php if (!empty($used_in_text)) : ?>
+                        <div class="used-in-text"><?php echo esc_html($used_in_text); ?></div>
                     <?php else : ?>
-                        <span class="no-context">Click to see usage context</span>
+                        <span class="no-usage">Not used in any translations yet</span>
                     <?php endif; ?>
                 </div>
                 <div class="language-cell">
@@ -167,28 +233,7 @@ if ($custom_query->have_posts()) : ?>
     gap: 16px;
 }
 
-.term-icon-container {
-    flex-shrink: 0;
-}
-
-/* Term icon styling - simpler than image avatars but consistent */
-.term-icon {
-    width: 60px;
-    height: 60px;
-    border-radius: 12px;
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    border: 3px solid #ddd;
-    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
-    flex-shrink: 0;
-}
-
-.term-symbol {
-    font-size: 24px;
-    filter: brightness(0) invert(1); /* Makes emoji white */
-}
+/* Removed term icon container and styling - no more purple icon */
 
 .term-details {
     flex: 1;
@@ -204,51 +249,31 @@ if ($custom_query->have_posts()) : ?>
     margin-bottom: 4px;
 }
 
-.term-language-hint {
-    margin-top: 2px;
-}
+/* Removed language hint styling since it's no longer used in first column */
 
-.language-indicator {
-    background: #e9ecef;
-    color: #495057;
-    padding: 0.15rem 0.4rem;
-    border-radius: 8px;
-    font-size: 0.7rem;
-    font-weight: 500;
-    text-transform: uppercase;
-}
-
-/* Tibetan source styling with clickable link */
+/* Enhanced Tibetan source styling - larger and no mountain icon */
 .tibetan-source {
-    font-size: 0.95rem;
+    font-size: 1.3rem; /* Increased further */
     line-height: 1.4;
 }
 
 .tibetan-term-link {
-    color: #8e44ad;
+    color: #2c3e50; /* Changed from purple to neutral dark */
     text-decoration: none;
-    font-weight: 500;
+    font-weight: 600; /* Increased weight */
+    font-size: 1.3rem; /* Increased size */
     transition: color 0.2s ease;
-    display: flex;
-    align-items: center;
-    gap: 6px;
 }
 
 .tibetan-term-link:hover {
-    color: #732d91;
+    color: #34495e; /* Darker neutral on hover */
     text-decoration: underline;
 }
 
 .tibetan-term-static {
-    color: #6c757d;
-    display: flex;
-    align-items: center;
-    gap: 6px;
-    font-weight: 500;
-}
-
-.tibetan-icon {
-    font-size: 0.9rem;
+    color: #2c3e50; /* Changed from gray to match link color */
+    font-weight: 600; /* Increased weight */
+    font-size: 1.3rem; /* Increased size */
 }
 
 .no-tibetan {
@@ -257,28 +282,24 @@ if ($custom_query->have_posts()) : ?>
     font-size: 0.85rem;
 }
 
-/* Context and usage styling */
-.context-usage {
+/* Used in styling - simple plain text */
+.used-in {
     font-size: 0.9rem;
     line-height: 1.4;
 }
 
-.context-text {
+.used-in-text {
     color: #555;
-    background: #f8f9fa;
-    padding: 0.5rem;
-    border-radius: 6px;
-    border-left: 3px solid #3498db;
-    font-style: italic;
+    font-weight: 500;
 }
 
-.no-context {
+.no-usage {
     color: #999;
     font-style: italic;
     font-size: 0.85rem;
 }
 
-/* Language badge styling with different colors */
+/* Language badge styling with additional language colors */
 .language-cell {
     text-align: center;
 }
@@ -295,12 +316,16 @@ if ($custom_query->have_posts()) : ?>
     text-transform: capitalize;
 }
 
-/* Language-specific colors */
+/* Language-specific colors - expanded */
 .language-badge.english { background: #3498db; }
 .language-badge.tibetan { background: #e74c3c; }
 .language-badge.chinese { background: #f39c12; }
 .language-badge.japanese { background: #9b59b6; }
 .language-badge.sanskrit_hindi { background: #e67e22; }
+.language-badge.french { background: #2ecc71; }
+.language-badge.german { background: #34495e; }
+.language-badge.spanish { background: #e74c3c; }
+.language-badge.italian { background: #27ae60; }
 .language-badge.default { background: #95a5a6; }
 
 /* Enhanced button styling */
@@ -365,24 +390,14 @@ if ($custom_query->have_posts()) : ?>
     }
     
     .term-info {
-        flex-direction: column;
-        text-align: center;
+        flex-direction: row;
+        text-align: left;
         gap: 12px;
-    }
-    
-    .term-icon {
-        width: 80px;
-        height: 80px;
-        align-self: center;
-    }
-    
-    .term-symbol {
-        font-size: 32px;
     }
     
     .term-title {
         font-size: 1.2rem;
-        text-align: center;
+        text-align: left;
     }
     
     .translated-terms-grid .table-row > div:not(:first-child) {
@@ -404,7 +419,7 @@ if ($custom_query->have_posts()) : ?>
     }
     
     .tibetan-source:before { content: "Original Tibetan: "; }
-    .context-usage:before { content: "Context & Usage: "; }
+    .used-in:before { content: "Used in: "; }
     .language-cell:before { content: "Language: "; }
     
     .view-button {
@@ -430,15 +445,6 @@ if ($custom_query->have_posts()) : ?>
         padding: 14px 18px;
     }
     
-    .term-icon {
-        width: 50px;
-        height: 50px;
-    }
-    
-    .term-symbol {
-        font-size: 20px;
-    }
-    
     .term-title {
         font-size: 1rem;
     }
@@ -457,11 +463,6 @@ if ($custom_query->have_posts()) : ?>
     
     .translated-terms-grid .table-row {
         break-inside: avoid;
-    }
-    
-    .term-icon {
-        background: #f0f0f0 !important;
-        color: #333 !important;
     }
 }
 
@@ -490,12 +491,7 @@ if ($custom_query->have_posts()) : ?>
 }
 
 /* Extra visual enhancements */
-.translated-terms-grid .table-row:hover .term-icon {
-    transform: scale(1.05);
-    transition: transform 0.2s ease;
-}
-
 .translated-terms-grid .table-row:hover .tibetan-term-link {
-    color: #5e2d79;
+    color: #1a252f; /* Darker neutral on row hover */
 }
 </style>

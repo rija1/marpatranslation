@@ -29,13 +29,6 @@ if ($custom_query->have_posts()) : ?>
         <?php while ($custom_query->have_posts()) : $custom_query->the_post(); 
             $pod = pods('translation', get_the_ID());
             
-            // Get translation image
-            $image = $pod ? $pod->field('image') : null;
-            $image_url = '';
-            if (!empty($image) && isset($image['guid'])) {
-                $image_url = $image['guid'];
-            }
-            
             // Get source text with link
             $source_text = $pod ? $pod->field('translation_source_text') : null;
             $source_title = '';
@@ -63,7 +56,7 @@ if ($custom_query->have_posts()) : ?>
             }
             $translators_display = !empty($translator_links) ? implode(', ', $translator_links) : 'No translators assigned';
             
-            // Get language
+            // Get language with better detection
             $language = $pod ? $pod->field('translation_language') : null;
             $language_name = '';
             if (!empty($language)) {
@@ -84,22 +77,13 @@ if ($custom_query->have_posts()) : ?>
         ?>
             <div class="table-row">
                 <div class="translation-info">
-                    <div class="translation-image-container">
-                        <?php if (!empty($image_url)) : ?>
-                            <img src="<?php echo esc_url($image_url); ?>" 
-                                 alt="<?php echo esc_attr(get_the_title()); ?>" 
-                                 class="translation-avatar">
-                        <?php else : ?>
-                            <div class="translation-avatar-placeholder">
-                                <span><?php echo esc_html(substr(get_the_title(), 0, 1)); ?></span>
-                            </div>
-                        <?php endif; ?>
-                    </div>
                     <div class="translation-details">
                         <div class="translation-title"><?php echo esc_html(get_the_title()); ?></div>
                         <?php if (!empty($language_name)) : ?>
                             <div class="translation-language-small">
-                                <span class="language-badge"><?php echo esc_html($language_name); ?></span>
+                                <span class="language-badge <?php echo strtolower(str_replace(['/', ' '], ['_', '_'], $language_name)); ?>">
+                                    <?php echo esc_html($language_name); ?>
+                                </span>
                             </div>
                         <?php endif; ?>
                     </div>
@@ -110,7 +94,9 @@ if ($custom_query->have_posts()) : ?>
                             <?php echo esc_html($source_title); ?>
                         </a>
                     <?php elseif (!empty($source_title)) : ?>
-                        <?php echo esc_html($source_title); ?>
+                        <span class="source-text-static">
+                            <?php echo esc_html($source_title); ?>
+                        </span>
                     <?php else : ?>
                         <span class="no-source">No source text</span>
                     <?php endif; ?>
@@ -158,7 +144,12 @@ if ($custom_query->have_posts()) : ?>
 
 .translations-grid .table-row {
     border-bottom: 1px solid #dee2e6;
-    min-height: 120px; /* Ensure enough height for larger images */
+    min-height: 80px; /* Reduced from 120px since no image */
+    transition: background 0.2s ease;
+}
+
+.translations-grid .table-row:hover {
+    background: #f8f9fa;
 }
 
 .translation-info {
@@ -167,36 +158,7 @@ if ($custom_query->have_posts()) : ?>
     gap: 16px;
 }
 
-.translation-image-container {
-    flex-shrink: 0;
-}
-
-/* Translation image styling - matches authors/translators */
-.translation-avatar {
-    width: 90px;
-    height: 90px;
-    border-radius: 12px; /* Rounded corners like authors */
-    object-fit: cover;
-    border: 3px solid #ddd;
-    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
-    flex-shrink: 0;
-}
-
-.translation-avatar-placeholder {
-    width: 90px;
-    height: 90px;
-    border-radius: 12px;
-    background: linear-gradient(135deg, #e1e5e9, #c8d3dd); /* Gradient like authors */
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-weight: bold;
-    color: #666;
-    font-size: 32px;
-    border: 3px solid #ddd;
-    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
-    flex-shrink: 0;
-}
+/* Removed all image styling - no more translation-image-container, translation-avatar, etc. */
 
 .translation-details {
     flex: 1;
@@ -209,37 +171,58 @@ if ($custom_query->have_posts()) : ?>
     font-size: 1.1rem;
     line-height: 1.3;
     word-wrap: break-word;
+    margin-bottom: 4px;
 }
 
 .translation-language-small {
     margin-top: 4px;
 }
 
+/* Updated language badge with consistent colors from previous grid */
 .language-badge {
-    background: #6c757d;
-    color: white;
     padding: 0.2rem 0.5rem;
     border-radius: 10px;
     font-size: 0.75rem;
     font-weight: 500;
+    color: white;
+    text-transform: capitalize;
 }
 
-/* Source text styling with clickable link */
+/* Language-specific colors - consistent with translated terms grid */
+.language-badge.english { background: #3498db; }
+.language-badge.tibetan { background: #e74c3c; }
+.language-badge.chinese { background: #f39c12; }
+.language-badge.japanese { background: #9b59b6; }
+.language-badge.sanskrit_hindi { background: #e67e22; }
+.language-badge.french { background: #2ecc71; }
+.language-badge.german { background: #34495e; }
+.language-badge.spanish { background: #e74c3c; }
+.language-badge.italian { background: #27ae60; }
+.language-badge { background: #6c757d; } /* Default gray for unmatched languages */
+
+/* Source text styling - matching Tibetan text from previous grid */
 .source-text {
-    font-size: 0.9rem;
+    font-size: 1.3rem; /* Increased to match Tibetan size */
     line-height: 1.4;
 }
 
 .source-text-link {
-    color: #3498db;
+    color: #2c3e50; /* Neutral dark color like Tibetan text */
     text-decoration: none;
-    font-weight: 500;
+    font-weight: 600; /* Bold like Tibetan text */
+    font-size: 1.3rem;
     transition: color 0.2s ease;
 }
 
 .source-text-link:hover {
-    color: #2980b9;
+    color: #34495e; /* Darker neutral on hover */
     text-decoration: underline;
+}
+
+.source-text-static {
+    color: #2c3e50; /* Same color as links */
+    font-weight: 600;
+    font-size: 1.3rem;
 }
 
 .no-source {
@@ -326,22 +309,14 @@ if ($custom_query->have_posts()) : ?>
     }
     
     .translation-info {
-        flex-direction: column;
-        text-align: center;
+        flex-direction: row; /* Keep horizontal since no image */
+        text-align: left;
         gap: 12px;
-    }
-    
-    .translation-avatar,
-    .translation-avatar-placeholder {
-        width: 100px;
-        height: 100px;
-        font-size: 36px;
-        align-self: center;
     }
     
     .translation-title {
         font-size: 1.2rem;
-        text-align: center;
+        text-align: left;
     }
     
     .translations-grid .table-row > div:not(:first-child) {
@@ -350,7 +325,7 @@ if ($custom_query->have_posts()) : ?>
         margin-top: 8px;
     }
     
-    .translations-grid .table-row > div:before {
+    .translations-grid .table-row > div:not(:first-child):before {
         content: attr(data-label);
         font-weight: 600;
         display: block;
@@ -380,13 +355,6 @@ if ($custom_query->have_posts()) : ?>
         padding: 14px 18px;
     }
     
-    .translation-avatar,
-    .translation-avatar-placeholder {
-        width: 70px;
-        height: 70px;
-        font-size: 24px;
-    }
-    
     .translation-title {
         font-size: 1rem;
     }
@@ -397,22 +365,13 @@ if ($custom_query->have_posts()) : ?>
     }
 }
 
-/* Extra large images option */
-.translations-grid.xl-images .translation-avatar,
-.translations-grid.xl-images .translation-avatar-placeholder {
-    width: 120px;
-    height: 120px;
-    font-size: 40px;
-}
-
-.translations-grid.xl-images .table-row {
-    min-height: 140px;
-}
-
-/* Hover effects for entire row */
-.translations-grid .table-row:hover {
-    background: #f8f9fa;
-    transition: background 0.2s ease;
+/* Focus and accessibility */
+.source-text-link:focus,
+.translator-link:focus,
+.view-button:focus {
+    outline: 2px solid #3498db;
+    outline-offset: 2px;
+    border-radius: 4px;
 }
 
 /* Loading state support */
@@ -430,5 +389,10 @@ if ($custom_query->have_posts()) : ?>
     .translations-grid .table-row {
         break-inside: avoid;
     }
+}
+
+/* Extra visual enhancements */
+.translations-grid .table-row:hover .source-text-link {
+    color: #1a252f; /* Darker neutral on row hover */
 }
 </style>
