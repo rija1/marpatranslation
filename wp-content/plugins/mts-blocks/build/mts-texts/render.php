@@ -20,7 +20,6 @@ if ($custom_query->have_posts()) : ?>
     <div class="mts-block-table texts-grid">
         <div class="table-header">
             <div>Text</div>
-            <div>Full Title</div>
             <div>Author</div>
             <div>Translations</div>
             <div>View</div>
@@ -28,9 +27,6 @@ if ($custom_query->have_posts()) : ?>
         
         <?php while ($custom_query->have_posts()) : $custom_query->the_post(); 
             $pod = pods('text', get_the_ID());
-            
-            // Get full title
-            $full_title = $pod ? $pod->field('text_full_title') : '';
             
             // Get author
             $author = $pod ? $pod->field('text_textauthor') : null;
@@ -46,30 +42,61 @@ if ($custom_query->have_posts()) : ?>
                 }
             }
             
-            // Get translations - for now just count them
-            $translations = $pod ? $pod->field('text_translations') : array();
-            $translation_count = 0;
+            // Get translations with links - more robust handling
+            $translations = $pod ? $pod->field('translations') : null;
+            $translation_links = array();
+            
             if (!empty($translations)) {
-                $translation_count = is_array($translations) ? count($translations) : 1;
+                // Handle single translation (not array)
+                if (!is_array($translations)) {
+                    $translations = array($translations);
+                }
+                
+                foreach ($translations as $translation) {
+                    $translation_title = '';
+                    $translation_url = '';
+                    
+                    // Handle array format
+                    if (is_array($translation)) {
+                        $translation_title = isset($translation['post_title']) ? $translation['post_title'] : '';
+                        $translation_id = isset($translation['ID']) ? $translation['ID'] : '';
+                        $translation_url = !empty($translation_id) ? get_permalink($translation_id) : '';
+                    } 
+                    // Handle object format
+                    elseif (is_object($translation)) {
+                        $translation_title = isset($translation->post_title) ? $translation->post_title : '';
+                        $translation_url = isset($translation->ID) ? get_permalink($translation->ID) : '';
+                    }
+                    // Handle simple ID
+                    elseif (is_numeric($translation)) {
+                        $translation_post = get_post($translation);
+                        if ($translation_post) {
+                            $translation_title = $translation_post->post_title;
+                            $translation_url = get_permalink($translation);
+                        }
+                    }
+                    // Handle string ID
+                    elseif (is_string($translation) && is_numeric($translation)) {
+                        $translation_id = intval($translation);
+                        $translation_post = get_post($translation_id);
+                        if ($translation_post) {
+                            $translation_title = $translation_post->post_title;
+                            $translation_url = get_permalink($translation_id);
+                        }
+                    }
+                    
+                    // Add link if we have both title and URL
+                    if (!empty($translation_title) && !empty($translation_url)) {
+                        $translation_links[] = '<a href="' . esc_url($translation_url) . '" class="translation-link">' . esc_html($translation_title) . '</a>';
+                    }
+                }
             }
         ?>
             <div class="table-row">
                 <div class="text-info">
                     <div class="text-details">
                         <div class="text-title"><?php echo esc_html(get_the_title()); ?></div>
-                        <div class="text-meta">
-                            <span class="text-type-badge">Original Text</span>
-                        </div>
                     </div>
-                </div>
-                <div class="full-title">
-                    <?php if (!empty($full_title) && $full_title !== get_the_title()) : ?>
-                        <span class="full-title-text">
-                            <?php echo esc_html($full_title); ?>
-                        </span>
-                    <?php else : ?>
-                        <span class="no-full-title">Same as title</span>
-                    <?php endif; ?>
                 </div>
                 <div class="author-cell">
                     <?php if (!empty($author_name) && !empty($author_url)) : ?>
@@ -85,10 +112,9 @@ if ($custom_query->have_posts()) : ?>
                     <?php endif; ?>
                 </div>
                 <div class="translations-cell">
-                    <?php if ($translation_count > 0) : ?>
-                        <div class="translation-count">
-                            <span class="count-badge"><?php echo $translation_count; ?></span>
-                            <span class="count-label"><?php echo $translation_count === 1 ? 'translation' : 'translations'; ?></span>
+                    <?php if (!empty($translation_links)) : ?>
+                        <div class="translation-links">
+                            <?php echo implode('', $translation_links); ?>
                         </div>
                     <?php else : ?>
                         <span class="no-translations">No translations yet</span>
@@ -101,6 +127,7 @@ if ($custom_query->have_posts()) : ?>
         <?php endwhile; 
         wp_reset_postdata(); ?>
     </div>
+
 <?php else : ?>
     <div class="no-texts-message">
         <div class="no-texts-icon">📜</div>
@@ -118,7 +145,7 @@ if ($custom_query->have_posts()) : ?>
 .texts-grid .table-header,
 .texts-grid .table-row {
     display: grid;
-    grid-template-columns: 1.5fr 1.2fr 1fr 0.8fr 0.6fr; /* 5 columns optimized for content */
+    grid-template-columns: 1.5fr 1fr 1.2fr 0.6fr; /* 4 columns - removed full title */
     gap: 20px;
     align-items: center;
     padding: 16px 20px;
@@ -153,41 +180,39 @@ if ($custom_query->have_posts()) : ?>
 }
 
 .text-title {
-    font-weight: 600;
-    color: #2c3e50;
-    font-size: 1.1rem;
+    font-weight: 600; /* Bold like Tibetan text */
+    color: #2c3e50; /* Neutral dark color like Tibetan text */
+    font-size: 1.3rem; /* Same size as Tibetan text */
     line-height: 1.3;
     word-wrap: break-word;
-    margin-bottom: 4px;
 }
 
-.text-meta {
-    margin-top: 4px;
+/* Translations styling - stacked links */
+.translations-cell {
+    font-size: 0.9rem;
+    line-height: 1.4;
 }
 
-.text-type-badge {
-    background: #e74c3c;
-    color: white;
-    padding: 0.2rem 0.5rem;
-    border-radius: 10px;
-    font-size: 0.75rem;
+.translation-links {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+.translation-link {
+    color: #8e44ad;
+    text-decoration: none;
     font-weight: 500;
+    transition: color 0.2s ease;
+    display: block;
 }
 
-/* Full title styling - matching Tibetan text from previous grids */
-.full-title {
-    font-size: 1.3rem; /* Same size as Tibetan text */
-    line-height: 1.4;
+.translation-link:hover {
+    color: #732d91;
+    text-decoration: underline;
 }
 
-.full-title-text {
-    color: #2c3e50; /* Neutral dark color like Tibetan text */
-    font-weight: 600; /* Bold like Tibetan text */
-    font-size: 1.3rem;
-    line-height: 1.4;
-}
-
-.no-full-title {
+.no-translations {
     color: #999;
     font-style: italic;
     font-size: 0.85rem;
@@ -350,7 +375,6 @@ if ($custom_query->have_posts()) : ?>
     }
     
     /* Add labels for mobile */
-    .full-title:before { content: "Full Title: "; }
     .author-cell:before { content: "Author: "; }
     .translations-cell:before { content: "Translations: "; }
     
@@ -372,7 +396,7 @@ if ($custom_query->have_posts()) : ?>
 @media (max-width: 1024px) and (min-width: 769px) {
     .texts-grid .table-header,
     .texts-grid .table-row {
-        grid-template-columns: 1.3fr 1fr 0.8fr 0.7fr 0.6fr;
+        grid-template-columns: 1.3fr 0.8fr 1fr 0.6fr; /* 4 columns for tablet */
         gap: 15px;
         padding: 14px 18px;
     }
@@ -389,6 +413,7 @@ if ($custom_query->have_posts()) : ?>
 
 /* Focus and accessibility */
 .author-link:focus,
+.translation-link:focus,
 .view-button:focus {
     outline: 2px solid #3498db;
     outline-offset: 2px;
@@ -413,7 +438,8 @@ if ($custom_query->have_posts()) : ?>
 }
 
 /* Extra visual enhancements */
-.texts-grid .table-row:hover .author-link {
+.texts-grid .table-row:hover .author-link,
+.texts-grid .table-row:hover .translation-link {
     color: #5e2d79;
 }
 </style>
