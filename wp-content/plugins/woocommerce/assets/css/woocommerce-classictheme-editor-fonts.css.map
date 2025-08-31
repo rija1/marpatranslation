@@ -1,0 +1,10 @@
+{
+    "version": 3,
+    "mappings": "AAAA;;;GAGG;AAEH;;GAEG;ACPH;;;GAGG;AACH,UAAU;EACT,WAAW,EAAE,MAAM;EACnB,GAAG,EAAE,iCAAiC,CAAC,eAAe,EACjD,gCAAgC,CAAC,cAAc,EAC/C,+BAA+B,CAAC,kBAAkB;EACvD,WAAW,EAAE,MAAM;EACnB,UAAU,EAAE,MAAM;;;AAGnB,UAAU;EACT,WAAW,EAAE,aAAa;EAC1B,GAAG,EAAE,iCAAiC,CAAC,eAAe,EACjD,gCAAgC,CAAC,cAAc,EAC/C,+BAA+B,CAAC,kBAAkB;EACvD,WAAW,EAAE,MAAM;EACnB,UAAU,EAAE,MAAM;;;ADTnB;;;GAGG;AAEH,2DAA2D;AAC3D,AAAA,SAAS,CAAC;EACT,OAAO,EAAE,EAAE;EAAE,4CAA4C;CACzD",
+    "sources": [
+        "woocommerce-classictheme-editor-fonts.scss",
+        "_fonts.scss"
+    ],
+    "names": [],
+    "file": "woocommerce-classictheme-editor-fonts.css"
+}

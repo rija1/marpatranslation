@@ -1,14 +1,55 @@
-@import '../shared/base-styles';
+@import '../shared/mts-grids-shared';
 
-.mts-block-table {
-  @extend %mts-table-base;
-
-  .table-header,
-  .table-row {
-    grid-template-columns: repeat(5, 1fr); // 5 columns for texts
+.texts-grid {
+  // 4 columns: Text (wide), Author, Translations, View
+  @include grid-columns('1.5fr 1fr 1.2fr 0.6fr');
+  
+  // Text info container
+  .text-info {
+    @include info-container;
   }
-
-  .view-button {
-    @extend %mts-button-base;
+  
+  // Large Tibetan text for Text title (1st column)
+  .text-title {
+    @include large-tibetan-text;
+  }
+  
+  // Author and translation links
+  .author-link,
+  .translation-link {
+    @extend .relationship-link;
+  }
+  
+  // Translation links container
+  .translation-links {
+    @extend .links-container;
+  }
+  
+  // Static author text (when no link)
+  .author-static {
+    color: #6c757d;
+    font-weight: 500;
+  }
+  
+  // Mobile specific adjustments
+  @media (max-width: 768px) {
+    .text-info {
+      flex-direction: row;
+      text-align: left;
+    }
+    
+    .text-title {
+      font-size: 1.2rem;
+      text-align: left;
+    }
+  }
+  
+  // Tablet adjustments
+  @media (max-width: 1024px) and (min-width: 769px) {
+    @include grid-columns('1.3fr 0.8fr 1fr 0.6fr');
+    
+    .text-title {
+      font-size: 1rem;
+    }
   }
 }

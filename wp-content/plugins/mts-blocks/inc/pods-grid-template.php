@@ -167,6 +167,7 @@ jQuery(document).ready(function($) {
     position: relative;
 }
 
+
 .no-results {
     text-align: center;
     padding: 3rem 2rem;

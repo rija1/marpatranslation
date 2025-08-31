@@ -1,0 +1,732 @@
+/**
+ * Bulk Term Entry - CSS Styling
+ * Professional WordPress admin interface styling
+ */
+
+.bulk-term-entry {
+    max-width: none;
+}
+
+/* =============================================================================
+   TEXT SELECTION SECTION
+   ============================================================================= */
+
+.text-selection-section {
+    background: #fff;
+    border: 1px solid #c3c4c7;
+    border-radius: 6px;
+    padding: 20px;
+    margin-bottom: 20px;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.04);
+}
+
+.text-selection-section h2 {
+    margin-top: 0;
+    color: #1d2327;
+    font-size: 1.3em;
+}
+
+.current-text-info {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    padding: 12px;
+    background: #f0f6fc;
+    border: 1px solid #0073aa;
+    border-radius: 4px;
+}
+
+.current-text-info .text-title {
+    font-weight: 600;
+    color: #0073aa;
+}
+
+.text-search-container {
+    margin-top: 15px;
+}
+
+.text-search-container label {
+    display: block;
+    margin-bottom: 8px;
+    font-weight: 600;
+}
+
+#text-search {
+    width: 400px;
+    max-width: 100%;
+}
+
+/* Field instructions */
+.field-instructions {
+    margin-bottom: 20px;
+    padding: 12px;
+    background: #f6f7f7;
+    border: 1px solid #c3c4c7;
+    border-radius: 4px;
+}
+
+.field-instructions p {
+    margin: 0;
+    color: #646970;
+    font-style: italic;
+}
+
+/* =============================================================================
+   BULK ENTRY SECTION
+   ============================================================================= */
+
+.bulk-entry-section {
+    background: #fff;
+    border: 1px solid #c3c4c7;
+    border-radius: 6px;
+    padding: 20px;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.04);
+}
+
+.section-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+    flex-wrap: wrap;
+}
+
+.section-header h2 {
+    margin: 0;
+    color: #1d2327;
+    font-size: 1.3em;
+}
+
+.header-controls {
+    display: flex;
+    gap: 10px;
+    align-items: center;
+    flex-wrap: wrap;
+}
+
+.header-controls .button {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.header-controls .dashicons {
+    font-size: 16px;
+    width: 16px;
+    height: 16px;
+}
+
+/* =============================================================================
+   ENTRY CARDS
+   ============================================================================= */
+
+.entry-cards-container {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+    margin-bottom: 20px;
+}
+
+.entry-card {
+    background: #fff;
+    border: 1px solid #c3c4c7;
+    border-radius: 6px;
+    padding: 0;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.04);
+    transition: box-shadow 0.2s ease;
+}
+
+.entry-card:hover {
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+}
+
+.card-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 15px 20px;
+    background: #f6f7f7;
+    border-bottom: 1px solid #c3c4c7;
+    border-radius: 6px 6px 0 0;
+}
+
+.card-number {
+    font-weight: 600;
+    color: #1d2327;
+    font-size: 1.1em;
+}
+
+.card-content {
+    padding: 20px;
+}
+
+.field-row {
+    display: flex;
+    gap: 20px;
+    margin-bottom: 20px;
+}
+
+.field-row:last-child {
+    margin-bottom: 0;
+}
+
+.field-group {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+}
+
+.field-group.full-width {
+    flex: 1 1 100%;
+}
+
+.field-label {
+    display: block;
+    margin-bottom: 6px;
+    font-weight: 600;
+    color: #1d2327;
+    font-size: 13px;
+}
+
+.field-label.required:after {
+    content: ' *';
+    color: #d63638;
+}
+
+
+/* Quote fields styling */
+.entry-table .quote-tib-cell,
+.entry-table .quote-target-cell,
+.entry-table .quote-ref-cell,
+.entry-table .translator-note-cell {
+    background: #f9f9f9;
+}
+
+.entry-table th.quote-tib,
+.entry-table th.quote-target,
+.entry-table th.quote-ref,
+.entry-table th.translator-note {
+    background: #f0f6fc;
+    border-left: 2px solid #2271b1;
+}
+
+/* Ensure all columns are always visible */
+.entry-table .row-number,
+.entry-table .tibetan-term,
+.entry-table .translated-term,
+.entry-table .translations,
+.entry-table .quote-tib,
+.entry-table .quote-target,
+.entry-table .quote-ref,
+.entry-table .translator-note,
+.entry-table .actions {
+    display: table-cell !important;
+}
+
+/* Form inputs in cards */
+.entry-card input[type="text"],
+.entry-card textarea,
+.entry-card select {
+    width: 100%;
+    padding: 10px;
+    border: 1px solid #8c8f94;
+    border-radius: 4px;
+    font-size: 14px;
+    transition: border-color 0.2s, box-shadow 0.2s;
+}
+
+.entry-card textarea {
+    resize: vertical;
+    min-height: 80px;
+    font-family: inherit;
+}
+
+.entry-card input:focus,
+.entry-card textarea:focus,
+.entry-card select:focus {
+    border-color: #2271b1;
+    box-shadow: 0 0 0 2px rgba(34, 113, 177, 0.1);
+    outline: none;
+}
+
+/* =============================================================================
+   AUTOCOMPLETE FIELDS
+   ============================================================================= */
+
+.autocomplete-container {
+    position: relative;
+    width: 100%;
+}
+
+.pick-field-autocomplete-input {
+    width: 100%;
+    padding: 8px;
+    border: 1px solid #8c8f94;
+    border-radius: 3px;
+    font-size: 13px;
+}
+
+.pick-field-autocomplete-input:focus {
+    border-color: #2271b1;
+    box-shadow: 0 0 0 1px #2271b1;
+    outline: none;
+}
+
+.autocomplete-suggestions {
+    position: absolute;
+    top: 100%;
+    left: 0;
+    right: 0;
+    background: #fff;
+    border: 1px solid #8c8f94;
+    border-top: none;
+    border-radius: 0 0 3px 3px;
+    max-height: 200px;
+    overflow-y: auto;
+    z-index: 1000;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    min-width: 200px;
+}
+
+.autocomplete-suggestion {
+    padding: 10px 12px;
+    cursor: pointer;
+    border-bottom: 1px solid #f1f1f1;
+    transition: background-color 0.2s;
+}
+
+.autocomplete-suggestion:hover {
+    background: #f6f7f7;
+}
+
+.autocomplete-suggestion:last-child {
+    border-bottom: none;
+}
+
+/* Hide the hidden input */
+.translations-hidden-input {
+    display: none !important;
+}
+
+/* Term-specific suggestions */
+.term-suggestions {
+    position: absolute;
+    top: 100%;
+    left: 0;
+    right: 0;
+    background: #fff;
+    border: 1px solid #8c8f94;
+    border-top: none;
+    border-radius: 0 0 3px 3px;
+    max-height: 200px;
+    overflow-y: auto;
+    z-index: 1000;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    min-width: 250px;
+    width: auto;
+}
+
+.term-suggestion {
+    padding: 10px 12px;
+    cursor: pointer;
+    border-bottom: 1px solid #f1f1f1;
+    transition: background-color 0.2s;
+}
+
+.term-suggestion:hover {
+    background: #f6f7f7;
+}
+
+.term-suggestion:last-child {
+    border-bottom: none;
+}
+
+/* =============================================================================
+   STATUS INDICATORS
+   ============================================================================= */
+
+.status-indicators {
+    display: flex;
+    gap: 4px;
+    justify-content: center;
+}
+
+.status-indicators span {
+    display: inline-block;
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    text-align: center;
+    font-size: 12px;
+    font-weight: bold;
+    line-height: 20px;
+    cursor: help;
+}
+
+.status-unknown {
+    background: #ddd;
+    color: #666;
+}
+
+.status-loading {
+    background: #ffb900;
+    color: #fff;
+    animation: pulse 1.5s infinite;
+}
+
+.status-exists {
+    background: #00a32a;
+    color: #fff;
+}
+
+.status-create {
+    background: #0073aa;
+    color: #fff;
+}
+
+.status-error {
+    background: #d63638;
+    color: #fff;
+}
+
+@keyframes pulse {
+    0% { opacity: 1; }
+    50% { opacity: 0.5; }
+    100% { opacity: 1; }
+}
+
+/* =============================================================================
+   ACTION BUTTONS
+   ============================================================================= */
+
+.remove-row-btn {
+    background: #d63638;
+    color: #fff;
+    border: none;
+    border-radius: 3px;
+    padding: 4px 8px;
+    cursor: pointer;
+    transition: background 0.2s;
+}
+
+.remove-row-btn:hover {
+    background: #b32d2e;
+    color: #fff;
+}
+
+.remove-row-btn .dashicons {
+    font-size: 14px;
+    width: 14px;
+    height: 14px;
+}
+
+/* =============================================================================
+   PROGRESS SECTION
+   ============================================================================= */
+
+.progress-section {
+    margin: 20px 0;
+    padding: 20px;
+    background: #f0f6fc;
+    border: 1px solid #0073aa;
+    border-radius: 4px;
+}
+
+.progress-bar {
+    width: 100%;
+    height: 20px;
+    background: #ddd;
+    border-radius: 10px;
+    overflow: hidden;
+    margin-bottom: 10px;
+}
+
+.progress-fill {
+    height: 100%;
+    background: linear-gradient(90deg, #0073aa, #005a87);
+    width: 0%;
+    transition: width 0.3s ease;
+}
+
+.progress-text {
+    text-align: center;
+    font-weight: 600;
+    color: #0073aa;
+}
+
+/* =============================================================================
+   RESULTS SECTION
+   ============================================================================= */
+
+.results-section {
+    margin: 20px 0;
+}
+
+.results-summary {
+    padding: 20px;
+    border-radius: 4px;
+    border-left: 4px solid;
+}
+
+.results-summary.success {
+    background: #f0f6fc;
+    border-left-color: #00a32a;
+}
+
+.results-summary h4 {
+    margin-top: 0;
+    color: #1d2327;
+}
+
+.results-summary ul {
+    margin: 10px 0;
+}
+
+.results-summary li {
+    margin: 5px 0;
+}
+
+/* =============================================================================
+   CSV IMPORT MODAL
+   ============================================================================= */
+
+.csv-import-modal {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0,0,0,0.6);
+    z-index: 100000;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.modal-content {
+    background: #fff;
+    border-radius: 6px;
+    box-shadow: 0 5px 25px rgba(0,0,0,0.3);
+    max-width: 800px;
+    width: 90%;
+    max-height: 80%;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+}
+
+.modal-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 20px;
+    border-bottom: 1px solid #ddd;
+    background: #f6f7f7;
+}
+
+.modal-header h3 {
+    margin: 0;
+    color: #1d2327;
+}
+
+.close-modal {
+    background: none;
+    border: none;
+    font-size: 24px;
+    cursor: pointer;
+    color: #666;
+    padding: 0;
+    width: 30px;
+    height: 30px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.close-modal:hover {
+    color: #d63638;
+}
+
+.modal-body {
+    padding: 20px;
+    flex: 1;
+    overflow-y: auto;
+}
+
+.modal-footer {
+    padding: 20px;
+    border-top: 1px solid #ddd;
+    background: #f6f7f7;
+    display: flex;
+    justify-content: flex-end;
+    gap: 10px;
+}
+
+.csv-preview {
+    margin-top: 20px;
+}
+
+.csv-preview h4 {
+    margin-bottom: 10px;
+    color: #1d2327;
+}
+
+.csv-preview table {
+    border: 1px solid #ddd;
+    border-radius: 3px;
+}
+
+.csv-preview th,
+.csv-preview td {
+    padding: 8px 12px;
+    text-align: left;
+    border-bottom: 1px solid #ddd;
+}
+
+.csv-preview th {
+    background: #f6f7f7;
+    font-weight: 600;
+}
+
+/* =============================================================================
+   RESPONSIVE DESIGN
+   ============================================================================= */
+
+@media (max-width: 782px) {
+    .section-header {
+        flex-direction: column;
+        align-items: stretch;
+        gap: 15px;
+    }
+    
+    .header-controls {
+        justify-content: center;
+    }
+    
+    .card-content {
+        padding: 15px;
+    }
+    
+    .field-row {
+        flex-direction: column;
+        gap: 15px;
+    }
+    
+    .modal-content {
+        width: 95%;
+        margin: 20px;
+    }
+}
+
+@media (max-width: 600px) {
+    .bulk-term-entry {
+        margin: 10px;
+    }
+    
+    .text-selection-section,
+    .bulk-entry-section {
+        padding: 15px;
+        margin: 10px 0;
+    }
+    
+    .current-text-info {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 10px;
+    }
+    
+    .header-controls {
+        flex-direction: column;
+        align-items: stretch;
+    }
+    
+    .header-controls .button {
+        justify-content: center;
+    }
+    
+    .card-header {
+        padding: 12px 15px;
+    }
+    
+    .card-content {
+        padding: 15px;
+    }
+    
+    .entry-cards-container {
+        gap: 15px;
+    }
+}
+
+/* =============================================================================
+   WORDPRESS ADMIN INTEGRATION
+   ============================================================================= */
+
+.bulk-term-entry .wp-list-table {
+    border: 1px solid #c3c4c7;
+}
+
+.bulk-term-entry .button-primary {
+    background: #2271b1;
+    border-color: #2271b1;
+}
+
+.bulk-term-entry .button-primary:hover {
+    background: #135e96;
+    border-color: #135e96;
+}
+
+/* Loading states */
+.processing .entry-table {
+    pointer-events: none;
+    opacity: 0.6;
+}
+
+.processing .save-all-btn {
+    position: relative;
+}
+
+.processing .save-all-btn:after {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 20px;
+    height: 20px;
+    margin: -10px 0 0 -10px;
+    border: 2px solid transparent;
+    border-top-color: #fff;
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+/* Accessibility improvements */
+.entry-table input:focus,
+.entry-table textarea:focus {
+    outline: 2px solid #2271b1;
+    outline-offset: 1px;
+}
+
+.status-indicators span:focus {
+    outline: 2px solid #2271b1;
+    outline-offset: 2px;
+}
+
+/* Print styles */
+@media print {
+    .csv-import-modal,
+    .header-controls,
+    .actions-cell {
+        display: none;
+    }
+    
+    .entry-table input,
+    .entry-table textarea {
+        border: none;
+        background: transparent;
+    }
+}

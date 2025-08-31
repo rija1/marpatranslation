@@ -1,15 +1,28 @@
-@import '../shared/base-styles';
+@import '../shared/mts-grids-shared';
 
-.mts-block-table {
-  @extend %mts-table-base;
-
-  .table-header,
-  .table-row {
-    grid-template-columns: repeat(3, 1fr);
+.translated-terms-grid {
+  // 5 columns: Translated Term, Original Tibetan (large), Used in, Language, View
+  @include grid-columns('1.5fr 1.2fr 1.3fr 0.8fr 0.6fr');
+  
+  // Large Tibetan text for second column (Original Tibetan)
+  .tibetan-source {
+    .tibetan-term-link,
+    .tibetan-term-static {
+      @include large-tibetan-text;
+    }
   }
-
-  .view-button {
-    @extend %mts-button-base;
-    @include mts-button-primary; // Primary color for translated terms
+  
+  // Standard term title styling
+  .term-title {
+    font-weight: 600;
+    color: #2c3e50;
+    font-size: 1.1rem;
+    line-height: 1.3;
+    word-wrap: break-word;
+  }
+  
+  // Relationship links
+  .tibetan-term-link {
+    @extend .relationship-link;
   }
 }

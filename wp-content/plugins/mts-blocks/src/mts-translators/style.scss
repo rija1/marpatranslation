@@ -1,15 +1,11 @@
-@import '../shared/base-styles';
+@import '../shared/mts-grids-shared';
 
-.mts-block-table {
-  @extend %mts-table-base;
-
-  .table-header,
+.translators-grid {
+  // 4 columns: Translator (wide), Texts, Translations, View
+  @include grid-columns('1.5fr 1.2fr 1.2fr 0.5fr');
+  
+  // Standard height rows for avatars
   .table-row {
-    grid-template-columns: repeat(5, 1fr); // 5 columns for translators
-  }
-
-  .view-button {
-    @extend %mts-button-base;
-
+    min-height: 90px;
   }
 }

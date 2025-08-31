@@ -53,6 +53,55 @@ function my_theme_scripts() {
 add_action('wp_enqueue_scripts', 'my_theme_scripts');
 
 /**
+ * Add MTS color palette support for Gutenberg
+ */
+function mts_setup_theme_colors() {
+    add_theme_support('editor-color-palette', array(
+        array(
+            'name'  => 'MTS Primary',
+            'slug'  => 'primary',
+            'color' => '#14375d',
+        ),
+        array(
+            'name'  => 'MTS Burgundy', 
+            'slug'  => 'burgundy',
+            'color' => '#8b1538',
+        ),
+        array(
+            'name'  => 'MTS Gold',
+            'slug'  => 'gold', 
+            'color' => '#d4af37',
+        ),
+        array(
+            'name'  => 'MTS Parchment',
+            'slug'  => 'parchment',
+            'color' => '#f7f4f0',
+        ),
+        array(
+            'name'  => 'MTS Text',
+            'slug'  => 'text',
+            'color' => '#2d3748',
+        ),
+        array(
+            'name'  => 'MTS Light Text', 
+            'slug'  => 'light-text',
+            'color' => '#4a5568',
+        ),
+        array(
+            'name'  => 'White 95%',
+            'slug'  => 'white-95',
+            'color' => 'rgba(255,255,255,0.95)',
+        ),
+        array(
+            'name'  => 'White 10%',
+            'slug'  => 'white-10',
+            'color' => 'rgba(255,255,255,0.1)',
+        ),
+    ));
+}
+add_action('after_setup_theme', 'mts_setup_theme_colors');
+
+/**
  * SECTION 2: WOOCOMMERCE CUSTOMIZATIONS
  * =============================================================================
  */

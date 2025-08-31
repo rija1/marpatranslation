@@ -67,13 +67,21 @@ class MTS_Blocks_Manager {
             $this->register_single_block($block);
         }
         
-        // Initialize Pods Grid for Tibetan Terms
-        Pods_Grid::get_instance('tibetan_term', [
-            'title' => 'Tibetan Term',
-            'translated_terms' => 'Translations',
-            'view' => 'View'
-        ]);
+        // Tibetan Terms now uses custom render.php like other grids
+        
+        // Initialize Bulk Term Entry admin page
+        // $this->init_bulk_term_entry(); // Temporarily disabled - incomplete feature
     }
+    
+    /**
+     * Initialize Bulk Term Entry system
+     * Temporarily disabled - incomplete feature
+     */
+    /*
+    private function init_bulk_term_entry() {
+        require_once plugin_dir_path(__FILE__) . 'admin/bulk-term-entry.php';
+    }
+    */
     
     /**
      * Register individual block

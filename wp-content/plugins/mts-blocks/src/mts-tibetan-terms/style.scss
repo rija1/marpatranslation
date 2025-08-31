@@ -1,15 +1,2 @@
-@import '../shared/base-styles';
-
-.mts-block-table {
-  @extend %mts-table-base;
-
-  .table-header,
-  .table-row {
-    grid-template-columns: repeat(3, 1fr); // 3 columns for terms
-  }
-
-  .view-button {
-    @extend %mts-button-base;
-    @include mts-button-primary; // Primary color for terms
-  }
-}
+// Tibetan Terms grid now uses custom render.php with inline styles
+// No additional SCSS needed - all styling is handled in render.php

@@ -1,0 +1,382 @@
+// =============================================================================
+// MTS GRIDS SHARED STYLES
+// Comprehensive shared styling for all MTS block grids
+// =============================================================================
+
+// Color Variables
+$grid-border: #e2e8f0;
+$grid-bg-header: #f8f9fa;
+$grid-bg-hover: #f8f9fa;
+$grid-text-dark: #2c3e50;
+$grid-text-light: #6c757d;
+$grid-text-muted: #999;
+$grid-blue: #3498db;
+$grid-blue-hover: #2980b9;
+$grid-purple: #8e44ad;
+$grid-purple-hover: #732d91;
+$grid-shadow: rgba(0, 0, 0, 0.1);
+
+// =============================================================================
+// BASE CONTAINER STYLES
+// =============================================================================
+
+.mts-block-table {
+    width: 100%;
+    max-width: 1200px;
+    margin: 2rem auto;
+    border: 1px solid $grid-border;
+    border-radius: 8px;
+    overflow: hidden;
+    box-shadow: 0 1px 3px $grid-shadow;
+}
+
+// =============================================================================
+// BASE GRID STRUCTURE
+// =============================================================================
+
+.mts-block-table {
+    .table-header,
+    .table-row {
+        display: grid;
+        gap: 20px;
+        align-items: center;
+        padding: 16px 20px;
+    }
+    
+    .table-header {
+        background: $grid-bg-header;
+        font-weight: 600;
+        border-bottom: 2px solid $grid-border;
+        font-size: 1rem;
+    }
+    
+    .table-row {
+        border-bottom: 1px solid $grid-border;
+        min-height: 80px;
+        transition: background 0.2s ease;
+        
+        &:hover {
+            background: $grid-bg-hover;
+        }
+        
+        &:last-child {
+            border-bottom: none;
+        }
+    }
+}
+
+// =============================================================================
+// MIXINS FOR GRID LAYOUTS
+// =============================================================================
+
+@mixin grid-columns($columns) {
+    .table-header,
+    .table-row {
+        grid-template-columns: #{$columns};
+    }
+}
+
+// Mixin for large Tibetan text styling
+@mixin large-tibetan-text {
+    font-weight: 600;
+    color: $grid-text-dark;
+    font-size: 1.3rem;
+    line-height: 1.3;
+    word-wrap: break-word;
+}
+
+// Mixin for info containers (with images/icons)
+@mixin info-container {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    
+    .details {
+        flex: 1;
+        min-width: 0;
+    }
+}
+
+// =============================================================================
+// SHARED COMPONENT STYLES
+// =============================================================================
+
+// View Button Styling
+.view-button {
+    background: $grid-blue;
+    color: white;
+    padding: 8px 16px;
+    border-radius: 6px;
+    text-decoration: none;
+    font-size: 0.85rem;
+    font-weight: 500;
+    transition: all 0.2s ease;
+    display: inline-block;
+    text-align: center;
+    
+    &:hover {
+        background: $grid-blue-hover;
+        color: white;
+        transform: translateY(-1px);
+        box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+    }
+    
+    &:focus {
+        outline: 2px solid $grid-blue;
+        outline-offset: 2px;
+        border-radius: 4px;
+    }
+}
+
+// Link Styling (for relationships)
+.relationship-link {
+    color: $grid-purple;
+    text-decoration: none;
+    font-weight: 500;
+    transition: color 0.2s ease;
+    
+    &:hover {
+        color: $grid-purple-hover;
+        text-decoration: underline;
+    }
+    
+    &:focus {
+        outline: 2px solid $grid-blue;
+        outline-offset: 2px;
+        border-radius: 4px;
+    }
+}
+
+// Translation/Author/Term Links (stacked)
+.links-container {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    font-size: 0.9rem;
+    line-height: 1.4;
+    
+    .relationship-link {
+        display: block;
+    }
+}
+
+// No Content Messages
+.no-content {
+    color: $grid-text-muted;
+    font-style: italic;
+    font-size: 0.85rem;
+}
+
+// Empty State Messages
+.empty-state {
+    text-align: center;
+    padding: 4rem 2rem;
+    background: $grid-bg-header;
+    border-radius: 12px;
+    border: 2px dashed $grid-border;
+    
+    .icon {
+        font-size: 4rem;
+        margin-bottom: 1rem;
+        opacity: 0.6;
+    }
+    
+    p {
+        color: $grid-text-light;
+        font-size: 1.1rem;
+        margin: 0.5rem 0;
+    }
+    
+    .subtitle {
+        font-size: 0.9rem !important;
+        opacity: 0.8;
+    }
+}
+
+// Avatar/Image Styling
+.avatar {
+    width: 60px;
+    height: 60px;
+    border-radius: 8px;
+    object-fit: cover;
+    border: 2px solid #ddd;
+    box-shadow: 0 2px 4px $grid-shadow;
+}
+
+.avatar-placeholder {
+    width: 60px;
+    height: 60px;
+    border-radius: 8px;
+    background: linear-gradient(135deg, #e1e5e9, #c8d3dd);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: bold;
+    color: #666;
+    font-size: 24px;
+    border: 2px solid #ddd;
+    box-shadow: 0 2px 4px $grid-shadow;
+}
+
+// Language Badges
+.language-badge {
+    padding: 0.3rem 0.7rem;
+    border-radius: 15px;
+    font-size: 0.8rem;
+    font-weight: 600;
+    color: white;
+    display: inline-block;
+    min-width: 60px;
+    text-align: center;
+    text-transform: capitalize;
+    
+    // Language-specific colors
+    &.english { background: #3498db; }
+    &.tibetan { background: #e74c3c; }
+    &.chinese { background: #f39c12; }
+    &.japanese { background: #9b59b6; }
+    &.sanskrit_hindi { background: #e67e22; }
+    &.french { background: #2ecc71; }
+    &.german { background: #34495e; }
+    &.spanish { background: #e74c3c; }
+    &.italian { background: #27ae60; }
+    &.default { background: #95a5a6; }
+}
+
+// Status Badges (for translations)
+.status-badge {
+    padding: 0.4rem 0.8rem;
+    border-radius: 20px;
+    font-size: 0.8rem;
+    font-weight: 600;
+    color: white;
+    display: inline-block;
+    min-width: 80px;
+    text-align: center;
+    
+    // Status colors
+    &.status-0 { background: #95a5a6; } // Not Started - Gray
+    &.status-1 { background: #f39c12; } // In Progress - Orange
+    &.status-2 { background: #e67e22; } // Editing - Dark Orange
+    &.status-3 { background: #9b59b6; } // Reviewing - Purple
+    &.status-4 { background: #3498db; } // Waiting for Publication - Blue
+    &.status-5 { background: #27ae60; } // Published - Green
+}
+
+// =============================================================================
+// RESPONSIVE DESIGN
+// =============================================================================
+
+// Tablet responsiveness
+@media (max-width: 1024px) and (min-width: 769px) {
+    .mts-block-table {
+        .table-header,
+        .table-row {
+            gap: 15px;
+            padding: 14px 18px;
+        }
+        
+        .view-button {
+            padding: 6px 12px;
+            font-size: 0.8rem;
+        }
+    }
+}
+
+// Mobile responsiveness
+@media (max-width: 768px) {
+    .mts-block-table {
+        border-radius: 8px;
+        margin: 1rem auto;
+        
+        .table-header,
+        .table-row {
+            grid-template-columns: 1fr !important; // Stack everything vertically
+            gap: 12px;
+        }
+        
+        .table-row {
+            min-height: auto;
+            padding: 20px;
+            text-align: left;
+            
+            > div:not(:first-child) {
+                padding: 8px 0;
+                border-top: 1px solid #eee;
+                margin-top: 8px;
+                
+                &:before {
+                    content: attr(data-label);
+                    font-weight: 600;
+                    display: block;
+                    margin-bottom: 4px;
+                    color: #666;
+                    font-size: 0.8rem;
+                    text-transform: uppercase;
+                }
+            }
+        }
+        
+        .view-button {
+            width: 100%;
+            margin-top: 8px;
+        }
+        
+        // Mobile avatars
+        .avatar,
+        .avatar-placeholder {
+            width: 70px;
+            height: 70px;
+            font-size: 28px;
+        }
+        
+        // Mobile empty state
+        .empty-state {
+            padding: 2rem 1rem;
+            
+            .icon {
+                font-size: 3rem;
+            }
+        }
+    }
+    
+    // Large text responsive sizing
+    @include large-tibetan-text {
+        font-size: 1.1rem !important;
+    }
+}
+
+// =============================================================================
+// LOADING AND PRINT STATES
+// =============================================================================
+
+// Loading state
+.mts-block-table.loading {
+    opacity: 0.6;
+    pointer-events: none;
+}
+
+// Print styles
+@media print {
+    .mts-block-table {
+        box-shadow: none;
+        border: 1px solid #ccc;
+        
+        .view-button {
+            display: none;
+        }
+        
+        .table-row {
+            break-inside: avoid;
+        }
+    }
+}
+
+// =============================================================================
+// UTILITY CLASSES
+// =============================================================================
+
+.text-center { text-align: center; }
+.text-left { text-align: left; }
+.font-bold { font-weight: 600; }
+.text-muted { color: $grid-text-muted; }
