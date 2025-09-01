@@ -107,6 +107,46 @@
 					"slug": "white"
 				},
 				{
+					"color": "#14375d",
+					"name": "Primary",
+					"slug": "primary"
+				},
+				{
+					"color": "#8b1538",
+					"name": "Burgundy",
+					"slug": "burgundy"
+				},
+				{
+					"color": "#d4af37",
+					"name": "Gold",
+					"slug": "gold"
+				},
+				{
+					"color": "#faf8f5",
+					"name": "Cream",
+					"slug": "cream"
+				},
+				{
+					"color": "#f7f4f0",
+					"name": "Parchment",
+					"slug": "parchment"
+				},
+				{
+					"color": "#2d3748",
+					"name": "Text",
+					"slug": "text"
+				},
+				{
+					"color": "#4a5568",
+					"name": "Light Text",
+					"slug": "light-text"
+				},
+				{
+					"color": "#d4c5a9",
+					"name": "Border",
+					"slug": "border"
+				},
+				{
 					"color": "#194b57",
 					"name": "BSF Dark Blue",
 					"slug": "bsf_darkblue"
