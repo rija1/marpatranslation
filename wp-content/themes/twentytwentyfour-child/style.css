@@ -114,21 +114,21 @@ Text Domain:  twentytwentyfour
   }
 }
 .mts_kh_left_menu.brand-colors .wp-block-heading {
-  background: linear-gradient(135deg, #194b57 0%, #6c97b4 100%);
+  background: linear-gradient(135deg, #14375d 0%, rgb(38.0530973451, 104.6460176991, 176.9469026549) 100%);
   color: white;
 }
 .mts_kh_left_menu.brand-colors ul li.current-menu-item {
-  background: linear-gradient(90deg, rgba(216, 97, 60, 0.1) 0%, transparent 100%);
-  border-left-color: #d8613c;
+  background: linear-gradient(90deg, rgba(139, 21, 56, 0.1) 0%, transparent 100%);
+  border-left-color: #8b1538;
 }
 .mts_kh_left_menu.brand-colors ul li.current-menu-item a {
-  color: #d8613c;
+  color: #8b1538;
 }
 .mts_kh_left_menu.brand-colors ul a:hover,
 .mts_kh_left_menu.brand-colors ul a:focus {
-  background: rgba(248, 189, 59, 0.2);
-  color: #194b57;
-  border-left-color: #b5933f;
+  background: rgba(212, 175, 55, 0.2);
+  color: #14375d;
+  border-left-color: #d4af37;
 }
 
 @media print {
@@ -418,9 +418,7 @@ nav {
   margin-bottom: 1.5rem;
   position: relative;
 }
-
-.mts-knowledge-hub-section .mts-section-title,
-.mts-contact-section .mts-section-title {
+.mts-knowledge-hub-section .mts-section-title:not([class*=has-][class*=-color]), .mts-contact-section .mts-section-title:not([class*=has-][class*=-color]) {
   color: var(--white);
 }
 
@@ -443,9 +441,7 @@ nav {
   line-height: 1.6;
   font-style: italic;
 }
-
-.mts-knowledge-hub-section .mts-section-subtitle,
-.mts-contact-section .mts-section-subtitle {
+.mts-knowledge-hub-section .mts-section-subtitle:not([class*=has-][class*=-color]), .mts-contact-section .mts-section-subtitle:not([class*=has-][class*=-color]) {
   color: rgba(255, 255, 255, 0.85);
 }
 
@@ -691,6 +687,100 @@ nav {
   padding: 2rem 3rem;
   color: var(--primary);
   line-height: 1.6;
+}
+
+/* Ensure Gutenberg color classes always take precedence */
+/* Use more specific selectors and direct color values to avoid CSS variable issues */
+.has-primary-color.has-text-color {
+  color: #14375d !important;
+}
+
+.has-burgundy-color.has-text-color {
+  color: #8b1538 !important;
+}
+
+.has-gold-color.has-text-color {
+  color: #d4af37 !important;
+}
+
+.has-cream-color.has-text-color {
+  color: #faf8f5 !important;
+}
+
+.has-parchment-color.has-text-color {
+  color: #f7f4f0 !important;
+}
+
+.has-text-color.has-text-color {
+  color: #2d3748 !important;
+}
+
+.has-light-text-color.has-text-color {
+  color: #4a5568 !important;
+}
+
+.has-border-color.has-text-color {
+  color: #d4c5a9 !important;
+}
+
+.has-white-color.has-text-color {
+  color: #ffffff !important;
+}
+
+.has-black-color.has-text-color {
+  color: #000000 !important;
+}
+
+/* Extra specific rule for the problematic elements */
+.mts-knowledge-hub-section .mts-section-title.has-white-color.has-text-color,
+.mts-contact-section .mts-section-title.has-white-color.has-text-color {
+  color: #ffffff !important;
+}
+
+/* General fallback for any Gutenberg color class */
+[class*=has-][class*=-color].has-text-color {
+  color: inherit !important;
+}
+
+/* Background colors too */
+.has-primary-background-color.has-background {
+  background-color: #14375d !important;
+}
+
+.has-burgundy-background-color.has-background {
+  background-color: #8b1538 !important;
+}
+
+.has-gold-background-color.has-background {
+  background-color: #d4af37 !important;
+}
+
+.has-cream-background-color.has-background {
+  background-color: #faf8f5 !important;
+}
+
+.has-parchment-background-color.has-background {
+  background-color: #f7f4f0 !important;
+}
+
+.has-text-background-color.has-background {
+  background-color: #2d3748 !important;
+}
+
+.has-light-text-background-color.has-background {
+  background-color: #4a5568 !important;
+}
+
+.has-border-background-color.has-background {
+  background-color: #d4c5a9 !important;
+}
+
+.has-white-background-color.has-background {
+  background-color: #ffffff !important;
+}
+
+.has-black-background-color.has-background {
+  background-color: #000000 !important;
 }
 
 /*# sourceMappingURL=style.css.map */

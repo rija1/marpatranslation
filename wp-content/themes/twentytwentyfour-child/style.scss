@@ -18,13 +18,12 @@ $colour_darkblue: #194b57;
  * Matches the professional aesthetic of the authors/translators/translations grids
  */
 
-// Your existing color variables
-$colour_darkblue: #194b57;
-$colour_blue: #6c97b4;
-$colour_red: #d8613c;
-$colour_gold: #b5933f;
-$colour_yellow: #f8bd3b;
-$colour_lightyellow: #fff5dc;
+// MTS Brand colors (also available as CSS custom properties in :root)
+$mts_primary: #14375d;
+$mts_burgundy: #8b1538;
+$mts_gold: #d4af37;
+$mts_cream: #faf8f5;
+$mts_parchment: #f7f4f0;
 
 // Grid-matching colors (consistent with the grids we've designed)
 $grid_blue: #3498db;
@@ -166,27 +165,27 @@ $grid_bg_light: #f8f9fa;
     }
 }
 
-// Alternative: More colorful version using your brand colors
+// Alternative: More colorful version using MTS brand colors
 .mts_kh_left_menu.brand-colors {
     .wp-block-heading {
-        background: linear-gradient(135deg, $colour_darkblue 0%, $colour_blue 100%);
+        background: linear-gradient(135deg, $mts_primary 0%, lighten($mts_primary, 20%) 100%);
         color: white;
     }
     
     ul li.current-menu-item {
-        background: linear-gradient(90deg, rgba($colour_red, 0.1) 0%, transparent 100%);
-        border-left-color: $colour_red;
+        background: linear-gradient(90deg, rgba($mts_burgundy, 0.1) 0%, transparent 100%);
+        border-left-color: $mts_burgundy;
         
         a {
-            color: $colour_red;
+            color: $mts_burgundy;
         }
     }
     
     ul a:hover,
     ul a:focus {
-        background: rgba($colour_yellow, 0.2);
-        color: $colour_darkblue;
-        border-left-color: $colour_gold;
+        background: rgba($mts_gold, 0.2);
+        color: $mts_primary;
+        border-left-color: $mts_gold;
     }
 }
 
@@ -494,11 +493,14 @@ nav {
     color: var(--primary);
     margin-bottom: 1.5rem;
     position: relative;
-}
-
-.mts-knowledge-hub-section .mts-section-title,
-.mts-contact-section .mts-section-title {
-    color: var(--white);
+    
+    // Respect Gutenberg color classes but provide fallback
+    &:not([class*="has-"][class*="-color"]) {
+        .mts-knowledge-hub-section &,
+        .mts-contact-section & {
+            color: var(--white);
+        }
+    }
 }
 
 .mts-section-title::after {
@@ -519,11 +521,14 @@ nav {
     margin: 0 auto;
     line-height: 1.6;
     font-style: italic;
-}
-
-.mts-knowledge-hub-section .mts-section-subtitle,
-.mts-contact-section .mts-section-subtitle {
-    color: rgba(255,255,255,0.85);
+    
+    // Respect Gutenberg color classes but provide fallback
+    &:not([class*="has-"][class*="-color"]) {
+        .mts-knowledge-hub-section &,
+        .mts-contact-section & {
+            color: rgba(255,255,255,0.85);
+        }
+    }
 }
 
 /* Founder Quote */
@@ -769,3 +774,40 @@ nav {
     color: var(--primary);
     line-height: 1.6;
 }
+
+/* Ensure Gutenberg color classes always take precedence */
+/* Use more specific selectors and direct color values to avoid CSS variable issues */
+
+.has-primary-color.has-text-color { color: #14375d !important; }
+.has-burgundy-color.has-text-color { color: #8b1538 !important; }
+.has-gold-color.has-text-color { color: #d4af37 !important; }
+.has-cream-color.has-text-color { color: #faf8f5 !important; }
+.has-parchment-color.has-text-color { color: #f7f4f0 !important; }
+.has-text-color.has-text-color { color: #2d3748 !important; }
+.has-light-text-color.has-text-color { color: #4a5568 !important; }
+.has-border-color.has-text-color { color: #d4c5a9 !important; }
+.has-white-color.has-text-color { color: #ffffff !important; }
+.has-black-color.has-text-color { color: #000000 !important; }
+
+/* Extra specific rule for the problematic elements */
+.mts-knowledge-hub-section .mts-section-title.has-white-color.has-text-color,
+.mts-contact-section .mts-section-title.has-white-color.has-text-color {
+    color: #ffffff !important;
+}
+
+/* General fallback for any Gutenberg color class */
+[class*="has-"][class*="-color"].has-text-color {
+    color: inherit !important;
+}
+
+/* Background colors too */
+.has-primary-background-color.has-background { background-color: #14375d !important; }
+.has-burgundy-background-color.has-background { background-color: #8b1538 !important; }
+.has-gold-background-color.has-background { background-color: #d4af37 !important; }
+.has-cream-background-color.has-background { background-color: #faf8f5 !important; }
+.has-parchment-background-color.has-background { background-color: #f7f4f0 !important; }
+.has-text-background-color.has-background { background-color: #2d3748 !important; }
+.has-light-text-background-color.has-background { background-color: #4a5568 !important; }
+.has-border-background-color.has-background { background-color: #d4c5a9 !important; }
+.has-white-background-color.has-background { background-color: #ffffff !important; }
+.has-black-background-color.has-background { background-color: #000000 !important; }

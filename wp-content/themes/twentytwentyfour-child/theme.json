@@ -145,36 +145,6 @@
 					"color": "#d4c5a9",
 					"name": "Border",
 					"slug": "border"
-				},
-				{
-					"color": "#194b57",
-					"name": "BSF Dark Blue",
-					"slug": "bsf_darkblue"
-				},
-				{
-					"color": "#6c97b4",
-					"name": "BSF Blue",
-					"slug": "bsf_blue"
-				},
-				{
-					"color": "#d8613c",
-					"name": "BSF Orange",
-					"slug": "bsf_orange"
-				},
-				{
-					"color": "#b5933f",
-					"name": "BSF Gold",
-					"slug": "bsf_gold"
-				},
-				{
-					"color": "#f8bd3b",
-					"name": "BSF Yellow",
-					"slug": "bsf_yellow"
-				},
-				{
-					"color": "#fff5dc",
-					"name": "BSF Light Yellow",
-					"slug": "bsf_lightyellow"
 				}
 			]
 		},
