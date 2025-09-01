@@ -543,14 +543,16 @@ nav {
 }
 
 .mts-founder-section::before {
-    content: '"';
+    content: '';
     position: absolute;
-    top: -10px;
+    top: 20px;
     left: 30px;
-    font-size: 4rem;
-    color: var(--gold);
-    line-height: 1;
+    width: 60px;
+    height: 60px;
+    background: url('./img/quote.svg') no-repeat;
+    background-size: contain;
 }
+
 
 .mts-founder-quote p {
     font-size: 1.2rem;
