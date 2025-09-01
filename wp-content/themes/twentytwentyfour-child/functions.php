@@ -107,25 +107,20 @@ add_action('after_setup_theme', 'mts_setup_theme_colors');
  */
 
 /**
- * Make products not purchasable by default
+ * Make products purchasable only if user has approved request
  */
-add_filter('woocommerce_is_purchasable', 'mts_is_purchasable');
-function mts_is_purchasable($is_purchasable) {
-    return false; // Always return false to disable purchasing
-    
-    // Note: Original logic commented out but preserved
-    /*
-    global $product;
-    if ($is_purchasable) {
-        if (approved_book_request()) {
-            $is_purchasable = true;
-        } else {
-            add_action('woocommerce_before_add_to_cart_form', 'mts_add_book_request_button'); 
-            $is_purchasable = false;
-        }
+add_filter('woocommerce_is_purchasable', 'mts_is_purchasable', 10, 2);
+function mts_is_purchasable($is_purchasable, $product) {
+    // If user is not logged in, not purchasable
+    if (!is_user_logged_in()) {
+        return false;
     }
-    return $is_purchasable;
-    */
+    
+    // Check if current user has approved request for this product
+    $current_user_id = get_current_user_id();
+    $product_id = $product->get_id();
+    
+    return customer_has_approved_request($current_user_id, $product_id);
 }
 
 /**
@@ -143,7 +138,884 @@ function mts_add_book_request_button() {
 }
 
 /**
- * SECTION 3: AJAX SEARCH FUNCTIONALITY
+ * WooCommerce Cart and Quantity Restrictions
+ */
+
+// Prevent quantity changes in cart
+add_filter('woocommerce_is_sold_individually', 'mts_force_individual_sale', 10, 2);
+function mts_force_individual_sale($return, $product) {
+    return true; // Force all products to be sold individually (quantity = 1)
+}
+
+// Remove quantity selectors from cart
+add_filter('woocommerce_cart_item_quantity', 'mts_remove_cart_quantity_selector', 10, 3);
+function mts_remove_cart_quantity_selector($product_quantity, $cart_item_key, $cart_item) {
+    return '<span class="quantity">1</span>';
+}
+
+// Validate cart items against approved requests
+add_action('woocommerce_check_cart_items', 'mts_validate_cart_items');
+function mts_validate_cart_items() {
+    if (!is_user_logged_in()) {
+        return;
+    }
+    
+    $current_user_id = get_current_user_id();
+    
+    foreach (WC()->cart->get_cart() as $cart_item_key => $cart_item) {
+        $product_id = $cart_item['product_id'];
+        
+        // Check if user has approved request for this product
+        if (!customer_has_approved_request($current_user_id, $product_id)) {
+            WC()->cart->remove_cart_item($cart_item_key);
+            wc_add_notice('A book was removed from your cart because your request is no longer approved. Please request the book again if needed.', 'error');
+        }
+        
+        // Ensure quantity is always 1
+        if ($cart_item['quantity'] > 1) {
+            WC()->cart->set_quantity($cart_item_key, 1);
+            wc_add_notice('Book quantities have been limited to 1 per approved request.', 'notice');
+        }
+    }
+}
+
+// Prevent adding to cart without approved request
+add_filter('woocommerce_add_to_cart_validation', 'mts_validate_add_to_cart', 10, 3);
+function mts_validate_add_to_cart($passed, $product_id, $quantity) {
+    if (!is_user_logged_in()) {
+        wc_add_notice('You must be logged in to add books to your cart.', 'error');
+        return false;
+    }
+    
+    $current_user_id = get_current_user_id();
+    
+    if (!customer_has_approved_request($current_user_id, $product_id)) {
+        wc_add_notice('You can only add books to your cart that have been approved through a book request.', 'error');
+        return false;
+    }
+    
+    // Force quantity to 1
+    if ($quantity > 1) {
+        wc_add_notice('You can only order 1 copy of each book.', 'notice');
+    }
+    
+    return $passed;
+}
+
+// Auto-add approved products to cart (improved version)
+function mts_auto_add_approved_book_to_cart($customer_id, $product_id) {
+    // Switch to the customer's session
+    if (get_current_user_id() !== intval($customer_id)) {
+        // We can't directly manipulate another user's cart in WordPress
+        // Instead, we'll store a flag that the product should be added
+        // when the customer next visits the site
+        update_user_meta($customer_id, 'pending_approved_book_' . $product_id, time());
+        return true;
+    }
+    
+    // Add to current user's cart
+    $added = WC()->cart->add_to_cart($product_id, 1);
+    
+    if ($added) {
+        wc_add_notice('Your approved book has been added to your cart. You can now proceed to checkout.', 'success');
+        return true;
+    }
+    
+    return false;
+}
+
+// Check for pending approved books when user logs in or visits site
+add_action('wp_login', 'mts_check_pending_approved_books', 10, 2);
+add_action('template_redirect', 'mts_check_pending_approved_books_on_visit');
+
+function mts_check_pending_approved_books($user_login, $user) {
+    mts_process_pending_approved_books($user->ID);
+}
+
+function mts_check_pending_approved_books_on_visit() {
+    if (is_user_logged_in() && !wp_doing_ajax() && !is_admin()) {
+        $user_id = get_current_user_id();
+        
+        // Check only once per session
+        if (!WC()->session->get('checked_pending_books')) {
+            mts_process_pending_approved_books($user_id);
+            WC()->session->set('checked_pending_books', true);
+        }
+    }
+}
+
+function mts_process_pending_approved_books($user_id) {
+    $user_meta = get_user_meta($user_id);
+    $pending_books = array();
+    
+    foreach ($user_meta as $key => $value) {
+        if (strpos($key, 'pending_approved_book_') === 0) {
+            $product_id = str_replace('pending_approved_book_', '', $key);
+            $pending_books[$product_id] = $value[0];
+        }
+    }
+    
+    foreach ($pending_books as $product_id => $timestamp) {
+        // Check if the approval is still valid
+        if (customer_has_approved_request($user_id, $product_id)) {
+            // Add to cart
+            $added = WC()->cart->add_to_cart($product_id, 1);
+            
+            if ($added) {
+                // Remove the pending flag
+                delete_user_meta($user_id, 'pending_approved_book_' . $product_id);
+                
+                // Show success message
+                $product = wc_get_product($product_id);
+                if ($product) {
+                    wc_add_notice(sprintf('Great! "%s" has been added to your cart as your request was approved.', $product->get_name()), 'success');
+                }
+            }
+        } else {
+            // Remove expired pending flag
+            delete_user_meta($user_id, 'pending_approved_book_' . $product_id);
+        }
+    }
+}
+
+/**
+ * SECTION 3: BOOK REQUEST SYSTEM
+ * =============================================================================
+ */
+
+/**
+ * Register book_request custom post type
+ */
+function register_book_request_post_type() {
+    $labels = array(
+        'name'                  => 'Book Requests',
+        'singular_name'         => 'Book Request',
+        'menu_name'             => 'Book Requests',
+        'name_admin_bar'        => 'Book Request',
+        'archives'              => 'Book Request Archives',
+        'attributes'            => 'Book Request Attributes',
+        'parent_item_colon'     => 'Parent Book Request:',
+        'all_items'             => 'All Book Requests',
+        'add_new_item'          => 'Add New Book Request',
+        'add_new'               => 'Add New',
+        'new_item'              => 'New Book Request',
+        'edit_item'             => 'Edit Book Request',
+        'update_item'           => 'Update Book Request',
+        'view_item'             => 'View Book Request',
+        'view_items'            => 'View Book Requests',
+        'search_items'          => 'Search Book Requests',
+        'not_found'             => 'Not found',
+        'not_found_in_trash'    => 'Not found in Trash',
+        'featured_image'        => 'Featured Image',
+        'set_featured_image'    => 'Set featured image',
+        'remove_featured_image' => 'Remove featured image',
+        'use_featured_image'    => 'Use as featured image',
+        'insert_into_item'      => 'Insert into book request',
+        'uploaded_to_this_item' => 'Uploaded to this book request',
+        'items_list'            => 'Book requests list',
+        'items_list_navigation' => 'Book requests list navigation',
+        'filter_items_list'     => 'Filter book requests list',
+    );
+
+    $args = array(
+        'label'                 => 'Book Request',
+        'description'           => 'Book requests from customers',
+        'labels'                => $labels,
+        'supports'              => array('title', 'editor'),
+        'taxonomies'            => array(),
+        'hierarchical'          => false,
+        'public'                => false,
+        'show_ui'               => true,
+        'show_in_menu'          => true,
+        'menu_position'         => 58,
+        'menu_icon'             => 'dashicons-book-alt',
+        'show_in_admin_bar'     => true,
+        'show_in_nav_menus'     => false,
+        'can_export'            => true,
+        'has_archive'           => false,
+        'exclude_from_search'   => true,
+        'publicly_queryable'    => false,
+        'capability_type'       => 'post',
+        'capabilities'          => array(
+            'create_posts' => false, // Remove "Add New" button from admin
+        ),
+        'map_meta_cap'          => true,
+    );
+
+    register_post_type('book_request', $args);
+}
+add_action('init', 'register_book_request_post_type', 0);
+
+/**
+ * Register custom fields for book_request post type using Pods
+ */
+function setup_book_request_pods_fields() {
+    // Check if Pods is active
+    if (!function_exists('pods_api')) {
+        return;
+    }
+
+    $pods_api = pods_api();
+
+    // Check if book_request pod already exists
+    $pod = $pods_api->load_pod(array('name' => 'book_request'));
+    
+    if (!$pod) {
+        // Create the Pod
+        $pod_params = array(
+            'name' => 'book_request',
+            'label' => 'Book Request',
+            'type' => 'post_type',
+            'storage' => 'meta',
+            'object' => 'book_request',
+        );
+        
+        $pod_id = $pods_api->save_pod($pod_params);
+    } else {
+        $pod_id = $pod['id'];
+    }
+
+    // Define fields
+    $fields = array(
+        array(
+            'name' => 'customer_id',
+            'label' => 'Customer',
+            'type' => 'pick',
+            'pick_object' => 'user',
+            'pick_format_type' => 'single',
+            'pick_format_single' => 'autocomplete',
+            'required' => '1',
+        ),
+        array(
+            'name' => 'product_id',
+            'label' => 'Product',
+            'type' => 'pick',
+            'pick_object' => 'post_type',
+            'pick_val' => 'product',
+            'pick_format_type' => 'single',
+            'pick_format_single' => 'autocomplete',
+            'required' => '1',
+        ),
+        array(
+            'name' => 'request_reason',
+            'label' => 'Reason for Request',
+            'type' => 'wysiwyg',
+            'required' => '1',
+            'wysiwyg_allowed_html_tags' => 'strong,em,p,br,ul,ol,li',
+        ),
+        array(
+            'name' => 'request_status',
+            'label' => 'Status',
+            'type' => 'pick',
+            'pick_object' => 'custom-simple',
+            'pick_custom' => "new|New Request\napproved|Approved\nrejected|Rejected",
+            'default_value' => 'new',
+            'required' => '1',
+        ),
+        array(
+            'name' => 'admin_notes',
+            'label' => 'Admin Notes',
+            'type' => 'wysiwyg',
+            'wysiwyg_allowed_html_tags' => 'strong,em,p,br,ul,ol,li',
+        ),
+        array(
+            'name' => 'request_date',
+            'label' => 'Request Date',
+            'type' => 'datetime',
+            'datetime_format' => 'mdy',
+            'datetime_time_type' => '12',
+        ),
+        array(
+            'name' => 'response_date',
+            'label' => 'Response Date',
+            'type' => 'datetime',
+            'datetime_format' => 'mdy',
+            'datetime_time_type' => '12',
+        ),
+    );
+
+    // Add each field
+    foreach ($fields as $field_data) {
+        $field_data['pod_id'] = $pod_id;
+        
+        // Check if field already exists
+        $existing_field = $pods_api->load_field(array('name' => $field_data['name'], 'pod' => 'book_request'));
+        
+        if (!$existing_field) {
+            $pods_api->save_field($field_data);
+        }
+    }
+}
+add_action('init', 'setup_book_request_pods_fields', 20);
+
+/**
+ * AJAX handler for book request submissions
+ */
+add_action('wp_ajax_submit_book_request', 'handle_book_request_submission');
+function handle_book_request_submission() {
+    // Verify nonce
+    if (!wp_verify_nonce($_POST['nonce'], 'book_request_nonce')) {
+        wp_send_json_error('Security check failed');
+    }
+
+    // Check if user is logged in
+    if (!is_user_logged_in()) {
+        wp_send_json_error('You must be logged in to submit a book request');
+    }
+
+    // Validate required fields
+    $product_id = intval($_POST['product_id']);
+    $reason = sanitize_textarea_field($_POST['reason']);
+
+    if (!$product_id || empty($reason)) {
+        wp_send_json_error('All fields are required');
+    }
+
+    // Check if product exists and is a WooCommerce product
+    $product = wc_get_product($product_id);
+    if (!$product) {
+        wp_send_json_error('Invalid product');
+    }
+
+    $current_user_id = get_current_user_id();
+
+    // Check if user already has a pending request for this product
+    $existing_request = get_posts(array(
+        'post_type' => 'book_request',
+        'meta_query' => array(
+            'relation' => 'AND',
+            array(
+                'key' => 'customer_id',
+                'value' => $current_user_id,
+                'compare' => '='
+            ),
+            array(
+                'key' => 'product_id',
+                'value' => $product_id,
+                'compare' => '='
+            ),
+            array(
+                'key' => 'request_status',
+                'value' => array('new', 'approved'),
+                'compare' => 'IN'
+            )
+        ),
+        'posts_per_page' => 1,
+        'post_status' => 'publish'
+    ));
+
+    if (!empty($existing_request)) {
+        wp_send_json_error('You already have a pending or approved request for this book');
+    }
+
+    // Create the book request post
+    $post_data = array(
+        'post_title' => sprintf('Book Request: %s - %s', 
+            $product->get_name(), 
+            get_userdata($current_user_id)->display_name
+        ),
+        'post_type' => 'book_request',
+        'post_status' => 'publish',
+        'meta_input' => array(
+            'customer_id' => $current_user_id,
+            'product_id' => $product_id,
+            'request_reason' => $reason,
+            'request_status' => 'new',
+            'request_date' => current_time('mysql'),
+        )
+    );
+
+    $post_id = wp_insert_post($post_data);
+
+    if ($post_id) {
+        // Send email notification to admin
+        $admin_email = get_option('admin_email');
+        $subject = 'New Book Request Submitted';
+        $message = sprintf(
+            "A new book request has been submitted:\n\n" .
+            "Product: %s\n" .
+            "Customer: %s (%s)\n" .
+            "Reason: %s\n\n" .
+            "Review and respond: %s",
+            $product->get_name(),
+            get_userdata($current_user_id)->display_name,
+            get_userdata($current_user_id)->user_email,
+            $reason,
+            admin_url('post.php?post=' . $post_id . '&action=edit')
+        );
+        
+        wp_mail($admin_email, $subject, $message);
+        
+        wp_send_json_success('Your book request has been submitted successfully. You will be notified when it is reviewed.');
+    } else {
+        wp_send_json_error('Failed to submit request. Please try again.');
+    }
+}
+
+/**
+ * Handle book request approval
+ */
+function approve_book_request($post_id) {
+    $customer_id = get_post_meta($post_id, 'customer_id', true);
+    $product_id = get_post_meta($post_id, 'product_id', true);
+    
+    if (!$customer_id || !$product_id) {
+        return false;
+    }
+
+    // Update request_status
+    update_post_meta($post_id, 'request_status', 'approved');
+    update_post_meta($post_id, 'response_date', current_time('mysql'));
+    
+    // Add product to customer's cart
+    $customer = new WC_Customer($customer_id);
+    
+    // We need to temporarily make the product purchasable to add it to cart
+    add_filter('woocommerce_is_purchasable', function($is_purchasable, $product) use ($product_id) {
+        if ($product->get_id() == $product_id) {
+            return true;
+        }
+        return $is_purchasable;
+    }, 10, 2);
+    
+    // Add to cart for this specific customer
+    WC()->cart->empty_cart();
+    $cart_item_key = WC()->cart->add_to_cart($product_id, 1);
+    
+    if ($cart_item_key) {
+        // Store the approved request ID with the cart item for later validation
+        WC()->cart->cart_contents[$cart_item_key]['book_request_id'] = $post_id;
+        WC()->cart->set_session();
+        
+        // Send email notification to customer
+        $customer_email = get_userdata($customer_id)->user_email;
+        $product = wc_get_product($product_id);
+        
+        $subject = 'Book Request Approved';
+        $message = sprintf(
+            "Great news! Your book request has been approved.\n\n" .
+            "Book: %s\n\n" .
+            "The book has been added to your cart. You can now proceed to checkout to arrange delivery.\n\n" .
+            "Visit your cart: %s",
+            $product->get_name(),
+            wc_get_cart_url()
+        );
+        
+        wp_mail($customer_email, $subject, $message);
+        
+        return true;
+    }
+    
+    return false;
+}
+
+/**
+ * Check if customer has approved request for product
+ */
+function customer_has_approved_request($customer_id, $product_id) {
+    $approved_request = get_posts(array(
+        'post_type' => 'book_request',
+        'meta_query' => array(
+            'relation' => 'AND',
+            array(
+                'key' => 'customer_id',
+                'value' => $customer_id,
+                'compare' => '='
+            ),
+            array(
+                'key' => 'product_id',
+                'value' => $product_id,
+                'compare' => '='
+            ),
+            array(
+                'key' => 'request_status',
+                'value' => 'approved',
+                'compare' => '='
+            )
+        ),
+        'posts_per_page' => 1,
+        'post_status' => 'publish'
+    ));
+
+    return !empty($approved_request);
+}
+
+/**
+ * Admin interface customizations for book_request post type
+ */
+
+// Add custom admin columns for book_request
+add_filter('manage_book_request_posts_columns', 'mts_add_book_request_admin_columns');
+add_action('manage_book_request_posts_custom_column', 'mts_display_book_request_admin_columns', 10, 2);
+add_filter('manage_edit-book_request_sortable_columns', 'mts_make_book_request_columns_sortable');
+
+function mts_add_book_request_admin_columns($columns) {
+    return array(
+        'cb' => '<input type="checkbox" />',
+        'customer' => 'Customer',
+        'product' => 'Book',
+        'reason' => 'Reason',
+        'request_status' => 'Status',
+        'request_date' => 'Request Date',
+        'actions' => 'Actions'
+    );
+}
+
+function mts_display_book_request_admin_columns($column, $post_id) {
+    switch ($column) {
+        case 'customer':
+            $customer_id = get_post_meta($post_id, 'customer_id', true);
+            if ($customer_id) {
+                $user = get_userdata($customer_id);
+                if ($user) {
+                    echo '<strong>' . esc_html($user->display_name) . '</strong><br>';
+                    echo '<a href="mailto:' . esc_attr($user->user_email) . '">' . esc_html($user->user_email) . '</a>';
+                }
+            } else {
+                echo '<span style="color: #999;">Unknown Customer</span>';
+            }
+            break;
+
+        case 'product':
+            $product_id = get_post_meta($post_id, 'product_id', true);
+            if ($product_id) {
+                $product = wc_get_product($product_id);
+                if ($product) {
+                    $edit_link = get_edit_post_link($product_id);
+                    if ($edit_link) {
+                        echo '<a href="' . esc_url($edit_link) . '" target="_blank"><strong>' . esc_html($product->get_name()) . '</strong></a>';
+                    } else {
+                        echo '<strong>' . esc_html($product->get_name()) . '</strong>';
+                    }
+                }
+            } else {
+                echo '<span style="color: #999;">Unknown Product</span>';
+            }
+            break;
+
+        case 'reason':
+            $reason = get_post_meta($post_id, 'request_reason', true);
+            if ($reason) {
+                $truncated = wp_trim_words(strip_tags($reason), 15, '...');
+                echo '<span title="' . esc_attr(strip_tags($reason)) . '">' . esc_html($truncated) . '</span>';
+            } else {
+                echo '<span style="color: #999;">No reason provided</span>';
+            }
+            break;
+
+        case 'request_status':
+            $request_status = get_post_meta($post_id, 'request_status', true);
+            $status_colors = array(
+                'new' => '#e74c3c',
+                'approved' => '#27ae60',
+                'rejected' => '#e67e22'
+            );
+            $status_labels = array(
+                'new' => 'New Request',
+                'approved' => 'Approved',
+                'rejected' => 'Rejected'
+            );
+            
+            $color = isset($status_colors[$request_status]) ? $status_colors[$request_status] : '#999';
+            $label = isset($status_labels[$request_status]) ? $status_labels[$request_status] : ucfirst($request_status);
+            
+            echo '<span style="background: ' . esc_attr($color) . '; color: white; padding: 4px 8px; border-radius: 4px; font-size: 12px; font-weight: bold;">';
+            echo esc_html($label);
+            echo '</span>';
+            break;
+
+        case 'request_date':
+            $date = get_post_meta($post_id, 'request_date', true);
+            if ($date) {
+                $formatted_date = date('M j, Y', strtotime($date));
+                $time = date('g:i A', strtotime($date));
+                echo '<strong>' . esc_html($formatted_date) . '</strong><br>';
+                echo '<small style="color: #666;">' . esc_html($time) . '</small>';
+            } else {
+                echo esc_html(get_the_date('M j, Y', $post_id));
+            }
+            break;
+
+        case 'actions':
+            $request_status = get_post_meta($post_id, 'request_status', true);
+            $nonce = wp_create_nonce('book_request_action_' . $post_id);
+            
+            echo '<div class="book-request-actions">';
+            
+            if ($request_status === 'new') {
+                echo '<a href="#" class="button button-small button-approve" data-request-id="' . esc_attr($post_id) . '" data-nonce="' . esc_attr($nonce) . '" style="background: #27ae60; color: white; margin-right: 5px;">Approve</a>';
+                echo '<a href="#" class="button button-small button-reject" data-request-id="' . esc_attr($post_id) . '" data-nonce="' . esc_attr($nonce) . '" style="background: #e74c3c; color: white;">Reject</a>';
+            } else if ($request_status === 'approved') {
+                echo '<span style="color: #27ae60; font-weight: bold;">✓ Approved</span>';
+            } else if ($request_status === 'rejected') {
+                echo '<span style="color: #e74c3c; font-weight: bold;">✗ Rejected</span>';
+            }
+            
+            echo '</div>';
+            break;
+    }
+}
+
+function mts_make_book_request_columns_sortable($columns) {
+    $columns['request_status'] = 'request_status';
+    $columns['request_date'] = 'request_date';
+    return $columns;
+}
+
+// Add admin filters for book requests
+add_action('restrict_manage_posts', 'mts_add_book_request_admin_filters');
+function mts_add_book_request_admin_filters() {
+    global $typenow;
+    
+    if ($typenow === 'book_request') {
+        // Status filter
+        echo '<select name="filter_book_request_status" id="filter_book_request_status">';
+        echo '<option value="">All Statuses</option>';
+        
+        $statuses = array(
+            'new' => 'New Requests',
+            'approved' => 'Approved',
+            'rejected' => 'Rejected'
+        );
+        
+        $selected_status = isset($_GET['filter_book_request_status']) ? $_GET['filter_book_request_status'] : '';
+        
+        foreach ($statuses as $value => $label) {
+            $selected = selected($selected_status, $value, false);
+            echo '<option value="' . esc_attr($value) . '" ' . $selected . '>' . esc_html($label) . '</option>';
+        }
+        echo '</select>';
+    }
+}
+
+// Handle admin filter queries
+add_filter('parse_query', 'mts_book_request_admin_filter_query');
+function mts_book_request_admin_filter_query($query) {
+    global $pagenow, $typenow;
+    
+    if ($pagenow !== 'edit.php' || $typenow !== 'book_request') {
+        return;
+    }
+    
+    if (!empty($_GET['filter_book_request_status'])) {
+        $query->set('meta_key', 'request_status');
+        $query->set('meta_value', sanitize_text_field($_GET['filter_book_request_status']));
+    }
+}
+
+// Handle admin column sorting
+add_action('pre_get_posts', 'mts_book_request_admin_columns_orderby');
+function mts_book_request_admin_columns_orderby($query) {
+    if (!is_admin() || !$query->is_main_query()) {
+        return;
+    }
+    
+    $orderby = $query->get('orderby');
+    
+    if ('request_status' === $orderby) {
+        $query->set('meta_key', 'request_status');
+        $query->set('orderby', 'meta_value');
+    }
+    
+    if ('request_date' === $orderby) {
+        $query->set('meta_key', 'request_date');
+        $query->set('orderby', 'meta_value');
+    }
+}
+
+// AJAX handlers for approve/reject actions
+add_action('wp_ajax_approve_book_request', 'handle_approve_book_request');
+add_action('wp_ajax_reject_book_request', 'handle_reject_book_request');
+
+function handle_approve_book_request() {
+    $post_id = intval($_POST['post_id']);
+    $nonce = sanitize_text_field($_POST['nonce']);
+    
+    if (!wp_verify_nonce($nonce, 'book_request_action_' . $post_id)) {
+        wp_send_json_error('Security check failed');
+    }
+    
+    if (!current_user_can('edit_posts')) {
+        wp_send_json_error('Insufficient permissions');
+    }
+    
+    // Update request_status and response date
+    update_post_meta($post_id, 'request_status', 'approved');
+    update_post_meta($post_id, 'response_date', current_time('mysql'));
+    
+    // Get request details
+    $customer_id = get_post_meta($post_id, 'customer_id', true);
+    $product_id = get_post_meta($post_id, 'product_id', true);
+    
+    if ($customer_id && $product_id) {
+        $customer = get_userdata($customer_id);
+        $product = wc_get_product($product_id);
+        
+        // Auto-add book to customer's cart (when they next visit)
+        mts_auto_add_approved_book_to_cart($customer_id, $product_id);
+        
+        // Send approval email
+        if ($customer && $product) {
+            $subject = 'Book Request Approved - ' . $product->get_name();
+            $message = sprintf(
+                "Dear %s,\n\n" .
+                "Great news! Your book request has been approved.\n\n" .
+                "Book: %s\n\n" .
+                "The next time you visit our website, this book will automatically be added to your cart. " .
+                "You can then proceed with checkout to arrange delivery. " .
+                "Please note that while the book is provided free of charge, delivery fees will apply.\n\n" .
+                "Visit the book page: %s\n" .
+                "Or go directly to your cart: %s\n\n" .
+                "Thank you for your interest in Buddhist teachings.\n\n" .
+                "Best regards,\n" .
+                "Marpa Translation Society",
+                $customer->display_name,
+                $product->get_name(),
+                $product->get_permalink(),
+                wc_get_cart_url()
+            );
+            
+            wp_mail($customer->user_email, $subject, $message);
+        }
+    }
+    
+    wp_send_json_success('Book request approved successfully');
+}
+
+function handle_reject_book_request() {
+    $post_id = intval($_POST['post_id']);
+    $nonce = sanitize_text_field($_POST['nonce']);
+    $reason = sanitize_textarea_field($_POST['reason'] ?? '');
+    
+    if (!wp_verify_nonce($nonce, 'book_request_action_' . $post_id)) {
+        wp_send_json_error('Security check failed');
+    }
+    
+    if (!current_user_can('edit_posts')) {
+        wp_send_json_error('Insufficient permissions');
+    }
+    
+    // Update request_status and response date
+    update_post_meta($post_id, 'request_status', 'rejected');
+    update_post_meta($post_id, 'response_date', current_time('mysql'));
+    
+    if ($reason) {
+        $current_notes = get_post_meta($post_id, 'admin_notes', true);
+        $new_notes = $current_notes ? $current_notes . "\n\nRejection reason: " . $reason : "Rejection reason: " . $reason;
+        update_post_meta($post_id, 'admin_notes', $new_notes);
+    }
+    
+    // Get request details for email
+    $customer_id = get_post_meta($post_id, 'customer_id', true);
+    $product_id = get_post_meta($post_id, 'product_id', true);
+    
+    if ($customer_id && $product_id) {
+        $customer = get_userdata($customer_id);
+        $product = wc_get_product($product_id);
+        
+        // Send rejection email
+        if ($customer && $product) {
+            $subject = 'Book Request Update - ' . $product->get_name();
+            $message = sprintf(
+                "Dear %s,\n\n" .
+                "Thank you for your interest in: %s\n\n" .
+                "After reviewing your request, we are unable to approve it at this time.\n\n" .
+                "%s\n\n" .
+                "If you have any questions, please feel free to contact us.\n\n" .
+                "Best regards,\n" .
+                "Marpa Translation Society",
+                $customer->display_name,
+                $product->get_name(),
+                $reason ? "Reason: " . $reason : "Please feel free to contact us if you have questions about this decision."
+            );
+            
+            wp_mail($customer->user_email, $subject, $message);
+        }
+    }
+    
+    wp_send_json_success('Book request rejected');
+}
+
+// Add admin styles and scripts for book requests
+add_action('admin_head', 'mts_book_request_admin_styles');
+function mts_book_request_admin_styles() {
+    global $pagenow, $typenow;
+    
+    if ($pagenow === 'edit.php' && $typenow === 'book_request') {
+        echo '<style>
+        .wp-list-table .column-cb { width: 2.2em; }
+        .wp-list-table .column-customer { width: 20%; }
+        .wp-list-table .column-product { width: 25%; }
+        .wp-list-table .column-reason { width: 30%; }
+        .wp-list-table .column-request_status { width: 10%; }
+        .wp-list-table .column-request_date { width: 12%; }
+        .wp-list-table .column-actions { width: 15%; }
+        
+        .book-request-actions .button {
+            font-size: 11px;
+            padding: 4px 8px;
+            line-height: 1.2;
+        }
+        </style>';
+        
+        echo '<script>
+        jQuery(document).ready(function($) {
+            $(".button-approve").on("click", function(e) {
+                e.preventDefault();
+                var requestId = $(this).data("request-id");
+                var nonce = $(this).data("nonce");
+                var button = $(this);
+                
+                if (confirm("Are you sure you want to approve this book request?")) {
+                    button.text("Approving...").prop("disabled", true);
+                    
+                    $.post(ajaxurl, {
+                        action: "approve_book_request",
+                        post_id: requestId,
+                        nonce: nonce
+                    }, function(response) {
+                        if (response.success) {
+                            location.reload();
+                        } else {
+                            alert("Error: " + response.data);
+                            button.text("Approve").prop("disabled", false);
+                        }
+                    });
+                }
+            });
+            
+            $(".button-reject").on("click", function(e) {
+                e.preventDefault();
+                var requestId = $(this).data("request-id");
+                var nonce = $(this).data("nonce");
+                var button = $(this);
+                
+                var reason = prompt("Please provide a reason for rejection (optional):");
+                if (reason !== null) {
+                    button.text("Rejecting...").prop("disabled", true);
+                    
+                    $.post(ajaxurl, {
+                        action: "reject_book_request",
+                        post_id: requestId,
+                        nonce: nonce,
+                        reason: reason
+                    }, function(response) {
+                        if (response.success) {
+                            location.reload();
+                        } else {
+                            alert("Error: " + response.data);
+                            button.text("Reject").prop("disabled", false);
+                        }
+                    });
+                }
+            });
+        });
+        </script>';
+    }
+}
+
+/**
+ * SECTION 4: AJAX SEARCH FUNCTIONALITY
  * =============================================================================
  */
 
