@@ -358,7 +358,7 @@ nav {
 }
 
 /* Hero Section */
-.hero {
+.mts-hero-section {
     background: 
         linear-gradient(45deg, rgba(20, 55, 93, 0.85), rgba(139, 21, 56, 0.75)),
         url('https://i.ibb.co/8nhLCH04/0X5A7830.jpg');
@@ -371,7 +371,7 @@ nav {
     position: relative;
 }
 
-.hero::before {
+.mts-hero-section::before {
     content: '';
     position: absolute;
     top: 0;
@@ -381,14 +381,14 @@ nav {
     background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><defs><pattern id="academic-pattern" width="20" height="20" patternUnits="userSpaceOnUse"><circle cx="10" cy="10" r="1" fill="rgba(212,175,55,0.1)"/></pattern></defs><rect width="100" height="100" fill="url(%23academic-pattern)"/></svg>');
 }
 
-.hero-content {
+.mts-hero-content {
     max-width: 900px;
     margin: 0 auto;
     position: relative;
     z-index: 2;
 }
 
-.hero-subtitle {
+.mts-hero-subtitle {
     font-size: 1.125rem;
     margin-bottom: 1rem;
     color: var(--gold);
@@ -397,7 +397,7 @@ nav {
     text-transform: uppercase;
 }
 
-.hero h1 {
+.mts-hero-title {
     font-size: 3.75rem;
     font-weight: 700;
     margin-bottom: 1.5rem;
@@ -405,14 +405,14 @@ nav {
     text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
 }
 
-.hero p {
+.mts-hero-description {
     font-size: 1.35rem;
     margin-bottom: 2.5rem;
     line-height: 1.6;
     opacity: 0.95;
 }
 
-.hero-buttons {
+.mts-hero-buttons {
     display: flex;
     gap: 1.5rem;
     justify-content: center;
@@ -454,31 +454,31 @@ nav {
 }
 
 /* Sections */
-.section {
+.mts-mission-section, .mts-projects-section, .mts-knowledge-hub-section, .mts-contact-section {
     padding: 80px 2rem;
 }
 
-.section.dark {
+.mts-knowledge-hub-section, .mts-contact-section {
     background: var(--primary);
     color: var(--white);
 }
 
-.section.parchment {
+.mts-mission-section {
     background: var(--parchment);
 }
 
-.container {
+.mts-container {
     max-width: 1200px;
     margin: 0 auto;
 }
 
-.section-header {
+.mts-section-header {
     text-align: center;
     margin-bottom: 4rem;
     position: relative;
 }
 
-.section-header::before {
+.mts-section-header::before {
     content: '❋';
     position: absolute;
     top: -2rem;
@@ -488,7 +488,7 @@ nav {
     color: var(--gold);
 }
 
-.section-title {
+.mts-section-title {
     font-size: 2.75rem;
     font-weight: 700;
     color: var(--primary);
@@ -496,11 +496,12 @@ nav {
     position: relative;
 }
 
-.section.dark .section-title {
+.mts-knowledge-hub-section .mts-section-title,
+.mts-contact-section .mts-section-title {
     color: var(--white);
 }
 
-.section-title::after {
+.mts-section-title::after {
     content: '';
     position: absolute;
     bottom: -0.5rem;
@@ -511,7 +512,7 @@ nav {
     background: var(--gold);
 }
 
-.section-subtitle {
+.mts-section-subtitle {
     font-size: 1.25rem;
     color: var(--light-text);
     max-width: 700px;
@@ -520,12 +521,13 @@ nav {
     font-style: italic;
 }
 
-.section.dark .section-subtitle {
+.mts-knowledge-hub-section .mts-section-subtitle,
+.mts-contact-section .mts-section-subtitle {
     color: rgba(255,255,255,0.85);
 }
 
 /* Founder Quote */
-.founder-section {
+.mts-founder-section {
     background: var(--white);
     border: 1px solid var(--border);
     border-radius: 0;
@@ -535,7 +537,7 @@ nav {
     box-shadow: 0 4px 6px rgba(0,0,0,0.1);
 }
 
-.founder-section::before {
+.mts-founder-section::before {
     content: '"';
     position: absolute;
     top: -10px;
@@ -545,7 +547,7 @@ nav {
     line-height: 1;
 }
 
-.founder-quote p {
+.mts-founder-quote p {
     font-size: 1.2rem;
     line-height: 1.8;
     color: var(--text);
@@ -554,7 +556,7 @@ nav {
     text-indent: 2rem;
 }
 
-.founder-attribution {
+.mts-founder-attribution {
     text-align: right;
     font-weight: 600;
     color: var(--burgundy);
@@ -566,14 +568,14 @@ nav {
 }
 
 /* Academic Cards */
-.academic-grid {
+.mts-academic-grid {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
     gap: 2.5rem;
     margin-top: 3rem;
 }
 
-.academic-card {
+.mts-academic-card {
     background: var(--white);
     border: 1px solid var(--border);
     padding: 2.5rem;
@@ -582,7 +584,7 @@ nav {
     transition: transform 0.3s ease;
 }
 
-.academic-card::before {
+.mts-academic-card::before {
     content: '';
     position: absolute;
     top: 0;
@@ -592,11 +594,11 @@ nav {
     background: linear-gradient(90deg, var(--gold), var(--burgundy));
 }
 
-.academic-card:hover {
+.mts-academic-card:hover {
     transform: translateY(-5px);
 }
 
-.card-icon {
+.mts-card-icon {
     width: 60px;
     height: 60px;
     background: var(--primary);
@@ -610,7 +612,7 @@ nav {
     border: 3px solid var(--gold);
 }
 
-.card-title {
+.mts-card-title {
     font-size: 1.4rem;
     font-weight: 700;
     color: var(--primary);
@@ -619,18 +621,18 @@ nav {
     letter-spacing: 0.5px;
 }
 
-.card-text {
+.mts-card-text {
     color: var(--text);
     line-height: 1.7;
     font-size: 1.05rem;
 }
 
 /* Project List */
-.project-list {
+.mts-project-list {
     margin-top: 3rem;
 }
 
-.project-item {
+.mts-project-item {
     background: var(--white);
     border-left: 5px solid var(--burgundy);
     padding: 2rem;
@@ -638,16 +640,132 @@ nav {
     box-shadow: 0 2px 4px rgba(0,0,0,0.1);
 }
 
-.project-header {
+.mts-project-header {
     display: flex;
     justify-content: space-between;
     align-items: flex-start;
     margin-bottom: 1rem;
 }
 
-.project-title {
+.mts-project-title {
     font-size: 1.2rem;
     font-weight: 600;
     color: var(--primary);
     margin-bottom: 0.5rem;
+}
+
+/* Additional MTS-specific classes from the HTML */
+.mts-btn-primary, .mts-btn-secondary {
+    display: inline-block;
+    padding: 12px 30px;
+    text-decoration: none;
+    font-weight: 600;
+    font-size: 1.05rem;
+    border-radius: 0;
+    transition: all 0.3s ease;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.mts-language-tags {
+    display: inline-block;
+    padding: 0.25rem 0.75rem;
+    font-size: 0.75rem;
+    font-weight: 600;
+    letter-spacing: 0.5px;
+    text-transform: uppercase;
+    border-radius: 0;
+}
+
+/* Hub Grid */
+.mts-hub-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 2rem;
+    margin-top: 3rem;
+}
+
+.mts-hub-item {
+    background: var(--white);
+    border: 1px solid var(--border);
+    padding: 2.5rem 2rem;
+    text-align: center;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    transition: transform 0.3s ease;
+}
+
+.mts-hub-item:hover {
+    transform: translateY(-3px);
+}
+
+.mts-hub-icon {
+    font-size: 3rem;
+    margin-bottom: 1.5rem;
+    display: block;
+}
+
+.mts-hub-title {
+    font-size: 1.3rem;
+    font-weight: 600;
+    color: var(--primary);
+    margin-bottom: 1rem;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.mts-hub-description {
+    color: var(--text);
+    line-height: 1.6;
+}
+
+/* Contact Section */
+.mts-contact-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 4rem;
+    margin-top: 3rem;
+}
+
+.mts-contact-info {
+    color: var(--white);
+}
+
+.mts-contact-title {
+    font-size: 2rem;
+    font-weight: 700;
+    color: var(--gold);
+    margin-bottom: 2rem;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+
+.mts-contact-detail {
+    background: rgba(255,255,255,0.1);
+    border-left: 4px solid var(--gold);
+    padding: 1.5rem;
+    margin-bottom: 2rem;
+}
+
+.mts-contact-form {
+    background: rgba(255,255,255,0.95);
+    padding: 2rem;
+    border-radius: 0;
+}
+
+.mts-form-title {
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: var(--primary);
+    margin-bottom: 1.5rem;
+    text-align: center;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.mts-contact-form-note {
+    background: rgba(255,255,255,0.95);
+    border: 2px solid var(--gold);
+    padding: 2rem 3rem;
+    color: var(--primary);
+    line-height: 1.6;
 }
