@@ -50,3 +50,5 @@ wp-config.php
 #/wp-content/themes
 *.wpress
 /wp-content/updraft/*.zip
+
+node_modules/

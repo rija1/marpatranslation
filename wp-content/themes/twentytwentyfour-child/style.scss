@@ -776,3 +776,149 @@ nav {
     color: var(--primary);
     line-height: 1.6;
 }
+
+// Catalog
+
+:root {
+  /* Enhanced Color Palette */
+  --marpa-primary: #2c4f63;
+  --marpa-secondary: #d4926b;
+  --marpa-accent: #8b6914;
+  --marpa-light: #f8f6f1;
+  --marpa-cream: #f6f5ed;
+  --marpa-text: #2d3748;
+  --marpa-text-light: #4a5568;
+  --marpa-border: #e2e8f0;
+  --marpa-shadow-light: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06);
+  --marpa-shadow-medium: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+  --marpa-shadow-large: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+  --marpa-transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+
+/* Product template container */
+.wc-block-product-template {
+  gap: 2rem !important;
+  margin: 2rem 0;
+}
+
+/* Individual product cards */
+.wc-block-product {
+  background: white;
+  border-radius: 12px;
+  box-shadow: var(--marpa-shadow-light);
+  transition: var(--marpa-transition);
+  overflow: hidden;
+  border: 1px solid var(--marpa-border);
+  padding: 1.5rem;
+  position: relative;
+}
+
+.wc-block-product:hover {
+  box-shadow: var(--marpa-shadow-large);
+  transform: translateY(-4px);
+  border-color: rgba(212, 146, 107, 0.3);
+}
+
+/* Product image improvements */
+.wc-block-components-product-image {
+  border-radius: 8px;
+  overflow: hidden;
+  margin-bottom: 1.5rem;
+  position: relative;
+}
+
+.wc-block-components-product-image img {
+  transition: var(--marpa-transition);
+  border-radius: 8px;
+}
+
+.wc-block-product:hover .wc-block-components-product-image img {
+  transform: scale(1.05);
+}
+
+/* Product image overlay effect */
+.wc-block-components-product-image::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: linear-gradient(135deg, transparent 0%, rgba(44, 79, 99, 0.1) 100%);
+  opacity: 0;
+  transition: var(--marpa-transition);
+  border-radius: 8px;
+}
+
+.wc-block-product:hover .wc-block-components-product-image::after {
+  opacity: 1;
+}
+
+/* Product title improvements */
+.wp-block-post-title {
+  margin: 0 0 1rem 0 !important;
+  line-height: 1.3 !important;
+}
+
+.wp-block-post-title a {
+  color: var(--marpa-primary);
+  text-decoration: none;
+  font-weight: 600;
+  transition: var(--marpa-transition);
+  font-family: 'Cardo', serif;
+}
+
+.wp-block-post-title a:hover {
+  color: var(--marpa-secondary);
+}
+
+/* Price styling */
+.wc-block-components-product-price {
+  margin-bottom: 1.5rem !important;
+}
+
+.woocommerce-Price-amount {
+  font-size: 1.125rem;
+  font-weight: 700;
+  color: var(--marpa-accent);
+  background: linear-gradient(135deg, var(--marpa-accent), var(--marpa-secondary));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+/* Button improvements */
+.wc-block-components-product-button .wp-block-button__link {
+  background: linear-gradient(135deg, var(--marpa-primary) 0%, var(--marpa-secondary) 100%);
+  border: none;
+  border-radius: 8px;
+  padding: 0.75rem 1.5rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  transition: var(--marpa-transition);
+  position: relative;
+  overflow: hidden;
+  box-shadow: var(--marpa-shadow-medium);
+}
+
+.wc-block-components-product-button .wp-block-button__link:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--marpa-shadow-large);
+}
+
+.wc-block-components-product-button .wp-block-button__link::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+  transition: left 0.5s;
+}
+
+.wc-block-components-product-button .wp-block-button__link:hover::before {
+  left: 100%;
+}
