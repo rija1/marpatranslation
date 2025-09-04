@@ -1,0 +1,1133 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MTS Knowledge Hub - Marpa Translation Society</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Crimson Text', 'Georgia', serif;
+            line-height: 1.7;
+            color: #2d3748;
+            background: #faf8f5;
+        }
+
+        :root {
+            --primary: #14375d;
+            --burgundy: #8b1538;
+            --gold: #d4af37;
+            --cream: #faf8f5;
+            --parchment: #f7f4f0;
+            --text: #2d3748;
+            --light-text: #4a5568;
+            --border: #d4c5a9;
+            --white: #ffffff;
+        }
+
+        /* Header */
+        header {
+            background: var(--white);
+            border-bottom: 3px solid var(--gold);
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+        }
+
+        .header-top {
+            background: var(--primary);
+            color: var(--white);
+            padding: 0.5rem 0;
+            text-align: center;
+            font-size: 0.875rem;
+        }
+
+        nav {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 1.5rem 2rem;
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: var(--primary);
+        }
+
+        .logo img {
+            height: 60px;
+            width: auto;
+            margin-right: 20px;
+            border: 2px solid var(--gold);
+            border-radius: 50%;
+            padding: 8px;
+            background: var(--white);
+        }
+
+        .nav-links {
+            display: flex;
+            list-style: none;
+            gap: 2.5rem;
+        }
+
+        .nav-links a {
+            color: var(--text);
+            text-decoration: none;
+            font-weight: 600;
+            font-size: 1.05rem;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            transition: color 0.3s ease;
+            border-bottom: 2px solid transparent;
+            padding-bottom: 0.25rem;
+        }
+
+        .nav-links a:hover,
+        .nav-links a.active {
+            color: var(--burgundy);
+            border-bottom-color: var(--gold);
+        }
+
+        /* Page Header */
+        .page-header {
+            background: 
+                linear-gradient(45deg, rgba(20, 55, 93, 0.85), rgba(139, 21, 56, 0.75)),
+                url('https://i.ibb.co/8nhLCH04/0X5A7830.jpg');
+            background-size: cover;
+            background-position: center;
+            background-attachment: fixed;
+            color: var(--white);
+            padding: 120px 2rem 80px;
+            text-align: center;
+            position: relative;
+        }
+
+        .page-header::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><defs><pattern id="header-pattern" width="20" height="20" patternUnits="userSpaceOnUse"><circle cx="10" cy="10" r="1" fill="rgba(212,175,55,0.1)"/></pattern></defs><rect width="100" height="100" fill="url(%23header-pattern)"/></svg>');
+        }
+
+        .page-header-content {
+            max-width: 1200px;
+            margin: 0 auto;
+            position: relative;
+            z-index: 2;
+        }
+
+        .page-subtitle {
+            font-size: 1.125rem;
+            margin-bottom: 1rem;
+            color: var(--gold);
+            font-weight: 500;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+        }
+
+        .page-header h1 {
+            font-size: 3.5rem;
+            font-weight: 700;
+            margin-bottom: 1.5rem;
+            line-height: 1.2;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+
+        .page-header p {
+            font-size: 1.25rem;
+            line-height: 1.6;
+            opacity: 0.95;
+            font-style: italic;
+            max-width: 800px;
+            margin: 0 auto;
+        }
+
+        /* Search Section */
+        .search-section {
+            background: var(--white);
+            padding: 3rem 2rem;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .search-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            text-align: center;
+        }
+
+        .search-title {
+            font-size: 2rem;
+            font-weight: 700;
+            color: var(--primary);
+            margin-bottom: 1rem;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .search-subtitle {
+            font-size: 1.1rem;
+            color: var(--light-text);
+            margin-bottom: 2rem;
+            font-style: italic;
+        }
+
+        .search-box {
+            position: relative;
+            max-width: 600px;
+            margin: 0 auto;
+        }
+
+        .search-input {
+            width: 100%;
+            padding: 1.5rem 4rem 1.5rem 2rem;
+            border: 3px solid var(--border);
+            background: var(--white);
+            color: var(--text);
+            font-size: 1.1rem;
+            font-family: inherit;
+            transition: all 0.3s ease;
+            border-radius: 0;
+        }
+
+        .search-input:focus {
+            outline: none;
+            border-color: var(--gold);
+            box-shadow: 0 0 0 3px rgba(212, 175, 55, 0.1);
+        }
+
+        .search-button {
+            position: absolute;
+            right: 0;
+            top: 0;
+            height: 100%;
+            background: var(--burgundy);
+            color: var(--white);
+            border: none;
+            padding: 0 2rem;
+            font-size: 1.5rem;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+        }
+
+        .search-button:hover {
+            background: var(--primary);
+        }
+
+        /* Stats Bar */
+        .stats-bar {
+            background: var(--primary);
+            color: var(--white);
+            padding: 2rem 2rem;
+        }
+
+        .stats-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 2rem;
+            text-align: center;
+        }
+
+        .stat-item {
+            padding: 1rem;
+            border-left: 3px solid var(--gold);
+            background: rgba(255,255,255,0.05);
+        }
+
+        .stat-number {
+            font-size: 2.5rem;
+            font-weight: 700;
+            color: var(--gold);
+            display: block;
+            margin-bottom: 0.5rem;
+        }
+
+        .stat-label {
+            font-size: 1rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        /* Main Content */
+        .main-content {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 4rem 2rem;
+        }
+
+        .section-header {
+            text-align: center;
+            margin-bottom: 4rem;
+            position: relative;
+        }
+
+        .section-header::before {
+            content: '❋';
+            position: absolute;
+            top: -2rem;
+            left: 50%;
+            transform: translateX(-50%);
+            font-size: 2rem;
+            color: var(--gold);
+        }
+
+        .section-title {
+            font-size: 2.75rem;
+            font-weight: 700;
+            color: var(--primary);
+            margin-bottom: 1.5rem;
+            position: relative;
+        }
+
+        .section-title::after {
+            content: '';
+            position: absolute;
+            bottom: -0.5rem;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 80px;
+            height: 3px;
+            background: var(--gold);
+        }
+
+        .section-subtitle {
+            font-size: 1.25rem;
+            color: var(--light-text);
+            max-width: 700px;
+            margin: 0 auto;
+            line-height: 1.6;
+            font-style: italic;
+        }
+
+        /* Knowledge Categories Grid */
+        .categories-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+            gap: 2.5rem;
+            margin-top: 3rem;
+        }
+
+        .category-card {
+            background: var(--white);
+            border: 2px solid var(--border);
+            padding: 2.5rem;
+            position: relative;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+
+        .category-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 4px;
+            background: linear-gradient(90deg, var(--gold), var(--burgundy));
+            transform: scaleX(0);
+            transition: transform 0.3s ease;
+        }
+
+        .category-card:hover::before {
+            transform: scaleX(1);
+        }
+
+        .category-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 12px 24px rgba(0,0,0,0.15);
+        }
+
+        .category-icon {
+            width: 80px;
+            height: 80px;
+            background: var(--primary);
+            color: var(--white);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 2rem;
+            margin: 0 auto 1.5rem;
+            border: 4px solid var(--gold);
+            transition: all 0.3s ease;
+        }
+
+        .category-card:hover .category-icon {
+            background: var(--burgundy);
+            transform: scale(1.1);
+        }
+
+        .category-title {
+            font-size: 1.4rem;
+            font-weight: 700;
+            color: var(--primary);
+            margin-bottom: 1rem;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            text-align: center;
+        }
+
+        .category-description {
+            color: var(--text);
+            line-height: 1.7;
+            font-size: 1.05rem;
+            margin-bottom: 1.5rem;
+            text-align: center;
+        }
+
+        .category-stats {
+            display: flex;
+            justify-content: space-around;
+            margin-bottom: 2rem;
+            padding: 1rem;
+            background: var(--parchment);
+            border-left: 4px solid var(--gold);
+        }
+
+        .category-stat {
+            text-align: center;
+        }
+
+        .category-stat-number {
+            font-size: 1.8rem;
+            font-weight: 700;
+            color: var(--burgundy);
+            display: block;
+        }
+
+        .category-stat-label {
+            font-size: 0.9rem;
+            color: var(--light-text);
+            text-transform: uppercase;
+            letter-spacing: 0.3px;
+        }
+
+        .category-button {
+            background: var(--burgundy);
+            color: var(--white);
+            border: 2px solid var(--burgundy);
+            padding: 1rem 2rem;
+            font-size: 1rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-family: inherit;
+            width: 100%;
+            text-decoration: none;
+            display: inline-block;
+            text-align: center;
+        }
+
+        .category-button:hover {
+            background: transparent;
+            color: var(--burgundy);
+            transform: translateY(-2px);
+        }
+
+        /* Featured Content Section */
+        .featured-section {
+            background: var(--parchment);
+            margin: 4rem -2rem 0;
+            padding: 4rem 2rem;
+        }
+
+        .featured-container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .featured-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 2rem;
+            margin-top: 3rem;
+        }
+
+        .featured-item {
+            background: var(--white);
+            border: 1px solid var(--border);
+            padding: 2rem;
+            border-left: 4px solid var(--burgundy);
+            transition: all 0.3s ease;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+
+        .featured-item:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 15px rgba(0,0,0,0.15);
+        }
+
+        .featured-type {
+            background: var(--gold);
+            color: var(--white);
+            padding: 0.25rem 0.75rem;
+            font-size: 0.8rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            display: inline-block;
+            margin-bottom: 1rem;
+        }
+
+        .featured-title {
+            font-size: 1.2rem;
+            font-weight: 700;
+            color: var(--primary);
+            margin-bottom: 0.5rem;
+            line-height: 1.4;
+        }
+
+        .featured-meta {
+            color: var(--light-text);
+            font-size: 0.9rem;
+            margin-bottom: 1rem;
+            font-style: italic;
+        }
+
+        .featured-description {
+            color: var(--text);
+            line-height: 1.6;
+            font-size: 0.95rem;
+        }
+
+        /* Quick Access Section */
+        .quick-access {
+            background: var(--primary);
+            color: var(--white);
+            margin: 4rem -2rem 0;
+            padding: 4rem 2rem;
+        }
+
+        .quick-access-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            text-align: center;
+        }
+
+        .quick-access-title {
+            font-size: 2.5rem;
+            font-weight: 700;
+            margin-bottom: 1rem;
+            color: var(--white);
+        }
+
+        .quick-access-title::after {
+            background: var(--gold);
+        }
+
+        .quick-access-subtitle {
+            font-size: 1.2rem;
+            margin-bottom: 3rem;
+            color: rgba(255,255,255,0.9);
+            font-style: italic;
+        }
+
+        .quick-links {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 2rem;
+        }
+
+        .quick-link {
+            background: rgba(255,255,255,0.1);
+            border: 2px solid rgba(212,175,55,0.3);
+            padding: 2rem;
+            text-decoration: none;
+            color: var(--white);
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .quick-link::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.1), transparent);
+            transition: left 0.5s ease;
+        }
+
+        .quick-link:hover::before {
+            left: 100%;
+        }
+
+        .quick-link:hover {
+            background: rgba(212,175,55,0.2);
+            border-color: var(--gold);
+            transform: translateY(-3px);
+        }
+
+        .quick-link-icon {
+            font-size: 2.5rem;
+            margin-bottom: 1rem;
+            display: block;
+            color: var(--gold);
+        }
+
+        .quick-link-title {
+            font-size: 1.1rem;
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .quick-link-count {
+            font-size: 0.9rem;
+            opacity: 0.8;
+        }
+
+        /* Footer */
+        footer {
+            background: var(--primary);
+            color: var(--white);
+            padding: 3rem 2rem 2rem;
+            border-top: 3px solid var(--gold);
+            margin-top: 4rem;
+        }
+
+        .footer-content {
+            max-width: 1200px;
+            margin: 0 auto;
+            text-align: center;
+        }
+
+        .footer-motto {
+            font-size: 1.25rem;
+            font-style: italic;
+            margin-bottom: 2rem;
+            color: var(--gold);
+        }
+
+        .footer-links {
+            display: flex;
+            justify-content: center;
+            gap: 3rem;
+            margin-bottom: 2rem;
+            flex-wrap: wrap;
+        }
+
+        .footer-links a {
+            color: var(--white);
+            text-decoration: none;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            transition: color 0.3s ease;
+            border-bottom: 2px solid transparent;
+            padding-bottom: 0.25rem;
+        }
+
+        .footer-links a:hover {
+            color: var(--gold);
+            border-bottom-color: var(--gold);
+        }
+
+        .footer-text {
+            font-size: 0.95rem;
+            opacity: 0.85;
+            line-height: 1.6;
+        }
+
+        /* Loading Animation */
+        .loading {
+            opacity: 0;
+            transform: translateY(30px);
+            animation: fadeInUp 0.6s ease-out forwards;
+        }
+
+        @keyframes fadeInUp {
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .nav-links {
+                display: none;
+            }
+
+            .page-header h1 {
+                font-size: 2.5rem;
+            }
+
+            .categories-grid {
+                grid-template-columns: 1fr;
+                gap: 2rem;
+            }
+
+            .category-card {
+                padding: 2rem;
+            }
+
+            .featured-section,
+            .quick-access {
+                margin-left: -1rem;
+                margin-right: -1rem;
+                padding: 3rem 1rem;
+            }
+
+            .stats-container {
+                grid-template-columns: repeat(2, 1fr);
+                gap: 1rem;
+            }
+
+            .main-content {
+                padding: 3rem 1rem;
+            }
+
+            .search-input {
+                padding: 1.25rem 3.5rem 1.25rem 1.5rem;
+                font-size: 1rem;
+            }
+
+            .search-button {
+                padding: 0 1.5rem;
+                font-size: 1.25rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Header -->
+    <header>
+        <div class="header-top">
+            Founded 2015 by Drupon Khen Rinpoche • Thrangu Sekhar Retreat Center, Nepal
+        </div>
+        <nav>
+            <div class="logo">
+                <img src="https://i.ibb.co/HDg6gHn8/mts-logo-259x300.png" alt="MTS Logo">
+                <span>Marpa Translation Society</span>
+            </div>
+            <ul class="nav-links">
+                <li><a href="translation_society_website.html">Home</a></li>
+                <li><a href="mts_about_page.html">About</a></li>
+                <li><a href="mts_catalog_page.html">Catalog</a></li>
+                <li><a href="mts_knowledge_hub.html" class="active">Knowledge Hub</a></li>
+                <li><a href="#contact">Contact</a></li>
+            </ul>
+        </nav>
+    </header>
+
+    <!-- Page Header -->
+    <section class="page-header">
+        <div class="page-header-content">
+            <div class="page-subtitle">Comprehensive Digital Library</div>
+            <h1>MTS Knowledge Hub</h1>
+            <p>Explore our vast collection of Buddhist terms, translations, texts, and scholarly resources. A comprehensive digital repository preserving authentic dharma wisdom for practitioners and scholars worldwide.</p>
+        </div>
+    </section>
+
+    <!-- Search Section -->
+    <section class="search-section">
+        <div class="search-container">
+            <h2 class="search-title">Search Our Collection</h2>
+            <p class="search-subtitle">Find Buddhist terms, translations, texts, and scholarly resources across our entire knowledge base</p>
+            <div class="search-box">
+                <input type="text" class="search-input" placeholder="Search terms, texts, authors, or translations...">
+                <button class="search-button">🔍</button>
+            </div>
+        </div>
+    </section>
+
+    <!-- Stats Bar -->
+    <section class="stats-bar">
+        <div class="stats-container">
+            <div class="stat-item">
+                <span class="stat-number">2,847</span>
+                <span class="stat-label">Buddhist Terms</span>
+            </div>
+            <div class="stat-item">
+                <span class="stat-number">156</span>
+                <span class="stat-label">Classical Texts</span>
+            </div>
+            <div class="stat-item">
+                <span class="stat-number">23</span>
+                <span class="stat-label">Master Translators</span>
+            </div>
+            <div class="stat-item">
+                <span class="stat-number">7</span>
+                <span class="stat-label">Languages</span>
+            </div>
+            <div class="stat-item">
+                <span class="stat-number">89</span>
+                <span class="stat-label">Completed Translations</span>
+            </div>
+        </div>
+    </section>
+
+    <!-- Main Content -->
+    <main class="main-content">
+        <div class="section-header">
+            <h2 class="section-title">Knowledge Categories</h2>
+            <p class="section-subtitle">Explore our comprehensive digital library organized by category, each containing carefully curated and translated Buddhist wisdom</p>
+        </div>
+
+        <!-- Categories Grid -->
+        <div class="categories-grid">
+            <div class="category-card loading">
+                <div class="category-icon">📖</div>
+                <h3 class="category-title">Tibetan Terms</h3>
+                <p class="category-description">Original Tibetan terminology with detailed explanations, pronunciation guides, and contextual usage across different Buddhist traditions.</p>
+                <div class="category-stats">
+                    <div class="category-stat">
+                        <span class="category-stat-number">1,247</span>
+                        <span class="category-stat-label">Terms</span>
+                    </div>
+                    <div class="category-stat">
+                        <span class="category-stat-number">45</span>
+                        <span class="category-stat-label">Categories</span>
+                    </div>
+                </div>
+                <a href="#" class="category-button">Explore Terms</a>
+            </div>
+
+            <div class="category-card loading">
+                <div class="category-icon">🌐</div>
+                <h3 class="category-title">Translated Terms</h3>
+                <p class="category-description">Comprehensive collection of Buddhist terms translated into multiple languages with consistent terminology across all our translation projects.</p>
+                <div class="category-stats">
+                    <div class="category-stat">
+                        <span class="category-stat-number">892</span>
+                        <span class="category-stat-label">Translations</span>
+                    </div>
+                    <div class="category-stat">
+                        <span class="category-stat-number">7</span>
+                        <span class="category-stat-label">Languages</span>
+                    </div>
+                </div>
+                <a href="#" class="category-button">View Translations</a>
+            </div>
+
+            <div class="category-card loading">
+                <div class="category-icon">👥</div>
+                <h3 class="category-title">Buddhist Authors</h3>
+                <p class="category-description">Detailed profiles of the great Buddhist masters whose works we translate, including historical context, major teachings, and bibliographies.</p>
+                <div class="category-stats">
+                    <div class="category-stat">
+                        <span class="category-stat-number">67</span>
+                        <span class="category-stat-label">Masters</span>
+                    </div>
+                    <div class="category-stat">
+                        <span class="category-stat-number">12</span>
+                        <span class="category-stat-label">Traditions</span>
+                    </div>
+                </div>
+                <a href="#" class="category-button">Meet Authors</a>
+            </div>
+
+            <div class="category-card loading">
+                <div class="category-icon">✍️</div>
+                <h3 class="category-title">Our Translators</h3>
+                <p class="category-description">Scholar-practitioners dedicated to authentic dharma transmission, working under Rinpoche's guidance to preserve Buddhist wisdom.</p>
+                <div class="category-stats">
+                    <div class="category-stat">
+                        <span class="category-stat-number">23</span>
+                        <span class="category-stat-label">Translators</span>
+                    </div>
+                    <div class="category-stat">
+                        <span class="category-stat-number">156</span>
+                        <span class="category-stat-label">Works</span>
+                    </div>
+                </div>
+                <a href="#" class="category-button">Meet Team</a>
+            </div>
+
+            <div class="category-card loading">
+                <div class="category-icon">📚</div>
+                <h3 class="category-title">Sacred Texts</h3>
+                <p class="category-description">Classical Buddhist texts we're translating, from foundational treatises to advanced tantric instructions, each with detailed commentary.</p>
+                <div class="category-stats">
+                    <div class="category-stat">
+                        <span class="category-stat-number">156</span>
+                        <span class="category-stat-label">Texts</span>
+                    </div>
+                    <div class="category-stat">
+                        <span class="category-stat-number">8</span>
+                        <span class="category-stat-label">Genres</span>
+                    </div>
+                </div>
+                <a href="#" class="category-button">Browse Texts</a>
+            </div>
+
+            <div class="category-card loading">
+                <div class="category-icon">🔄</div>
+                <h3 class="category-title">Translation Projects</h3>
+                <p class="category-description">Active and completed translation projects, showing progress, methodology, and collaborative efforts across our global team.</p>
+                <div class="category-stats">
+                    <div class="category-stat">
+                        <span class="category-stat-number">89</span>
+                        <span class="category-stat-label">Projects</span>
+                    </div>
+                    <div class="category-stat">
+                        <span class="category-stat-number">34</span>
+                        <span class="category-stat-label">Active</span>
+                    </div>
+                </div>
+                <a href="#" class="category-button">View Projects</a>
+            </div>
+        </div>
+    </main>
+
+    <!-- Featured Content -->
+    <section class="featured-section">
+        <div class="featured-container">
+            <div class="section-header">
+                <h2 class="section-title">Recently Added</h2>
+                <p class="section-subtitle">Latest additions to our knowledge base, including newly translated terms, completed texts, and scholarly insights</p>
+            </div>
+
+            <div class="featured-grid">
+                <div class="featured-item">
+                    <span class="featured-type">Translated Term</span>
+                    <h3 class="featured-title">The leisures and opportunities</h3>
+                    <p class="featured-meta">དལ་འབྱོར། • Used in: The Torch for the Definitive Meaning</p>
+                    <p class="featured-description">The precious human birth with its eighteen freedoms and advantages that provide optimal conditions for dharma practice and spiritual development.</p>
+                </div>
+
+                <div class="featured-item">
+                    <span class="featured-type">New Text</span>
+                    <h3 class="featured-title">Distilling the Concomitant Quintessence</h3>
+                    <p class="featured-meta">Translated by Chökyi & Lochu • Recent completion</p>
+                    <p class="featured-description">A profound exploration of advanced meditation techniques and the subtle aspects of consciousness, now available in English translation.</p>
+                </div>
+
+                <div class="featured-item">
+                    <span class="featured-type">Author Profile</span>
+                    <h3 class="featured-title">Karmapa Mikyo Dorje</h3>
+                    <p class="featured-meta">8th Karmapa • Major commentaries on Abhidharma, Vinaya, Middle Way</p>
+                    <p class="featured-description">Renowned for his scholarly depth and practical wisdom, his works form cornerstone texts for understanding Buddhist philosophy and practice.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Quick Access -->
+    <section class="quick-access">
+        <div class="quick-access-container">
+            <h2 class="quick-access-title">Quick Access</h2>
+            <p class="quick-access-subtitle">Direct links to frequently accessed resources and popular collections</p>
+
+            <div class="quick-links">
+                <a href="#" class="quick-link">
+                    <span class="quick-link-icon">📖</span>
+                    <div class="quick-link-title">Mahamudra Terms</div>
+                    <div class="quick-link-count">127 specialized terms</div>
+                </a>
+
+                <a href="#" class="quick-link">
+                    <span class="quick-link-icon">🧘</span>
+                    <div class="quick-link-title">Meditation Instructions</div>
+                    <div class="quick-link-count">34 practice texts</div>
+                </a>
+
+                <a href="#" class="quick-link">
+                    <span class="quick-link-icon">🌅</span>
+                    <div class="quick-link-title">Liturgical Texts</div>
+                    <div class="quick-link-count">23 ceremony guides</div>
+                </a>
+
+                <a href="#" class="quick-link">
+                    <span class="quick-link-icon">📜</span>
+                    <div class="quick-link-title">Classical Treatises</div>
+                    <div class="quick-link-count">45 philosophical works</div>
+                </a>
+
+                <a href="#" class="quick-link">
+                    <span class="quick-link-icon">🔤</span>
+                    <div class="quick-link-title">Tibetan Pronunciation</div>
+                    <div class="quick-link-count">Audio guides available</div>
+                </a>
+
+                <a href="#" class="quick-link">
+                    <span class="quick-link-icon">🎯</span>
+                    <div class="quick-link-title">Beginner Resources</div>
+                    <div class="quick-link-count">Essential teachings</div>
+                </a>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer>
+        <div class="footer-content">
+            <div class="footer-motto">"Someone who conveys the Dharma in their own language to their fellow countrymen, is doing something wonderful and very important."</div>
+            <div class="footer-links">
+                <a href="index.html">Home</a>
+                <a href="about.html">About</a>
+                <a href="catalog.html">Catalog</a>
+                <a href="knowledge-hub.html">Knowledge Hub</a>
+                <a href="#contact">Contact</a>
+                <a href="#">Available Texts</a>
+            </div>
+            <p class="footer-text">&copy; 2025 Marpa Translation Society. Founded in 2015 by Drupon Khen Rinpoche Karma Lhabu.<br>
+            Making authentic Buddhist wisdom accessible through scholarly translation.</p>
+        </div>
+    </footer>
+
+    <script>
+        // Search functionality
+        const searchInput = document.querySelector('.search-input');
+        const searchButton = document.querySelector('.search-button');
+
+        function performSearch() {
+            const query = searchInput.value.trim();
+            if (query) {
+                // Mock search - in real implementation, this would search across all categories
+                alert(`Searching for: "${query}"\n\nThis would search across:\n• Tibetan Terms\n• Translated Terms\n• Authors\n• Texts\n• Translations\n• Translators`);
+                console.log('Search query:', query);
+            }
+        }
+
+        searchButton.addEventListener('click', performSearch);
+        searchInput.addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                performSearch();
+            }
+        });
+
+        // Category card interactions
+        document.querySelectorAll('.category-button').forEach(button => {
+            button.addEventListener('click', function(e) {
+                e.preventDefault();
+                const categoryTitle = this.closest('.category-card').querySelector('.category-title').textContent;
+                
+                // Mock navigation - in real implementation, these would go to actual category pages
+                console.log(`Navigating to: ${categoryTitle}`);
+                
+                // Could redirect to specific category pages here
+                switch(categoryTitle.toLowerCase()) {
+                    case 'tibetan terms':
+                        // window.location.href = 'tibetan-terms.html';
+                        break;
+                    case 'translated terms':
+                        // window.location.href = 'translated-terms.html';
+                        break;
+                    case 'buddhist authors':
+                        // window.location.href = 'authors.html';
+                        break;
+                    case 'our translators':
+                        // window.location.href = 'translators.html';
+                        break;
+                    case 'sacred texts':
+                        // window.location.href = 'texts.html';
+                        break;
+                    case 'translation projects':
+                        // window.location.href = 'translations.html';
+                        break;
+                }
+            });
+        });
+
+        // Quick links interactions
+        document.querySelectorAll('.quick-link').forEach(link => {
+            link.addEventListener('click', function(e) {
+                e.preventDefault();
+                const linkTitle = this.querySelector('.quick-link-title').textContent;
+                console.log(`Quick access to: ${linkTitle}`);
+                
+                // Mock navigation to filtered views
+                alert(`Taking you to: ${linkTitle}`);
+            });
+        });
+
+        // Loading animation trigger
+        function animateOnScroll() {
+            const observer = new IntersectionObserver((entries) => {
+                entries.forEach(entry => {
+                    if (entry.isIntersecting) {
+                        entry.target.style.animationDelay = `${Array.from(entry.target.parentNode.children).indexOf(entry.target) * 0.1}s`;
+                        entry.target.classList.add('loading');
+                    }
+                });
+            }, { threshold: 0.1 });
+
+            document.querySelectorAll('.category-card').forEach(card => {
+                observer.observe(card);
+            });
+        }
+
+        // Initialize animations
+        document.addEventListener('DOMContentLoaded', () => {
+            // Remove loading class initially
+            document.querySelectorAll('.category-card').forEach(card => {
+                card.classList.remove('loading');
+            });
+            
+            // Setup scroll animations
+            animateOnScroll();
+        });
+
+        // Smooth scrolling for anchor links
+        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+            anchor.addEventListener('click', function (e) {
+                e.preventDefault();
+                const target = document.querySelector(this.getAttribute('href'));
+                if (target) {
+                    target.scrollIntoView({
+                        behavior: 'smooth',
+                        block: 'start'
+                    });
+                }
+            });
+        });
+
+        // Update stats with animation (mock dynamic data)
+        function animateStats() {
+            const statNumbers = document.querySelectorAll('.stat-number');
+            const observer = new IntersectionObserver((entries) => {
+                entries.forEach(entry => {
+                    if (entry.isIntersecting) {
+                        const finalNumber = parseInt(entry.target.textContent.replace(/,/g, ''));
+                        animateNumber(entry.target, 0, finalNumber, 2000);
+                        observer.unobserve(entry.target);
+                    }
+                });
+            });
+
+            statNumbers.forEach(stat => observer.observe(stat));
+        }
+
+        function animateNumber(element, start, end, duration) {
+            const range = end - start;
+            const increment = range / (duration / 16);
+            let current = start;
+
+            const timer = setInterval(() => {
+                current += increment;
+                if (current >= end) {
+                    current = end;
+                    clearInterval(timer);
+                }
+                element.textContent = Math.floor(current).toLocaleString();
+            }, 16);
+        }
+
+        // Initialize stats animation
+        setTimeout(animateStats, 500);
+    </script>
+</body>
+</html>

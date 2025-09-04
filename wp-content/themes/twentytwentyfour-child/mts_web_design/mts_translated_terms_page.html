@@ -1,0 +1,1304 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Translated Terms - MTS Knowledge Hub</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Crimson Text', 'Georgia', serif;
+            line-height: 1.7;
+            color: #2d3748;
+            background: #faf8f5;
+        }
+
+        :root {
+            --primary: #14375d;
+            --burgundy: #8b1538;
+            --gold: #d4af37;
+            --cream: #faf8f5;
+            --parchment: #f7f4f0;
+            --text: #2d3748;
+            --light-text: #4a5568;
+            --border: #d4c5a9;
+            --white: #ffffff;
+        }
+
+        /* Header */
+        header {
+            background: var(--white);
+            border-bottom: 3px solid var(--gold);
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+        }
+
+        .header-top {
+            background: var(--primary);
+            color: var(--white);
+            padding: 0.5rem 0;
+            text-align: center;
+            font-size: 0.875rem;
+        }
+
+        nav {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 1.5rem 2rem;
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: var(--primary);
+        }
+
+        .logo img {
+            height: 60px;
+            width: auto;
+            margin-right: 20px;
+            border: 2px solid var(--gold);
+            border-radius: 50%;
+            padding: 8px;
+            background: var(--white);
+        }
+
+        .nav-links {
+            display: flex;
+            list-style: none;
+            gap: 2.5rem;
+        }
+
+        .nav-links a {
+            color: var(--text);
+            text-decoration: none;
+            font-weight: 600;
+            font-size: 1.05rem;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            transition: color 0.3s ease;
+            border-bottom: 2px solid transparent;
+            padding-bottom: 0.25rem;
+        }
+
+        .nav-links a:hover,
+        .nav-links a.active {
+            color: var(--burgundy);
+            border-bottom-color: var(--gold);
+        }
+
+        /* Breadcrumb */
+        .breadcrumb {
+            background: var(--parchment);
+            padding: 1rem 2rem;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .breadcrumb-content {
+            max-width: 1400px;
+            margin: 0 auto;
+            font-size: 0.95rem;
+            color: var(--light-text);
+        }
+
+        .breadcrumb a {
+            color: var(--primary);
+            text-decoration: none;
+            font-weight: 600;
+        }
+
+        .breadcrumb a:hover {
+            color: var(--burgundy);
+        }
+
+        /* Page Header */
+        .page-header {
+            background: var(--primary);
+            color: var(--white);
+            padding: 3rem 2rem;
+            text-align: center;
+        }
+
+        .page-header-content {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        .page-header h1 {
+            font-size: 3rem;
+            font-weight: 700;
+            margin-bottom: 1rem;
+        }
+
+        .page-header p {
+            font-size: 1.2rem;
+            opacity: 0.9;
+            max-width: 600px;
+            margin: 0 auto;
+        }
+
+        /* Main Container */
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+
+        /* Filters Section */
+        .filters-section {
+            background: var(--white);
+            border: 2px solid var(--border);
+            margin-bottom: 2rem;
+            border-radius: 0;
+        }
+
+        .filters-header {
+            background: var(--parchment);
+            padding: 1.5rem;
+            border-bottom: 2px solid var(--border);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 1rem;
+        }
+
+        .filters-title {
+            font-size: 1.3rem;
+            font-weight: 700;
+            color: var(--primary);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .filters-actions {
+            display: flex;
+            gap: 1rem;
+            align-items: center;
+        }
+
+        .clear-filters,
+.export-data {
+            background: none;
+            border: 2px solid var(--burgundy);
+            color: var(--burgundy);
+            padding: 0.5rem 1rem;
+            cursor: pointer;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            font-family: inherit;
+            transition: all 0.3s ease;
+            font-size: 0.9rem;
+        }
+
+        .clear-filters:hover,
+        .export-data:hover {
+            background: var(--burgundy);
+            color: var(--white);
+        }
+
+        .filters-body {
+            padding: 1.5rem;
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1.5rem;
+        }
+
+        .filter-group {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .filter-label {
+            font-weight: 600;
+            color: var(--primary);
+            margin-bottom: 0.5rem;
+            text-transform: uppercase;
+            letter-spacing: 0.3px;
+            font-size: 0.9rem;
+        }
+
+        .filter-input,
+        .filter-select {
+            padding: 0.75rem;
+            border: 2px solid var(--border);
+            background: var(--white);
+            color: var(--text);
+            font-family: inherit;
+            transition: border-color 0.3s ease;
+        }
+
+        .filter-input:focus,
+        .filter-select:focus {
+            outline: none;
+            border-color: var(--gold);
+        }
+
+        .search-highlight {
+            background-color: rgba(212, 175, 55, 0.3);
+            padding: 0.1em;
+        }
+
+        /* Results Header */
+        .results-header {
+            background: var(--white);
+            border: 2px solid var(--border);
+            padding: 1.5rem;
+            margin-bottom: 1rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 1rem;
+        }
+
+        .results-info {
+            display: flex;
+            align-items: center;
+            gap: 2rem;
+        }
+
+        .results-count {
+            font-size: 1.1rem;
+            font-weight: 600;
+            color: var(--text);
+        }
+
+        .results-count .count-number {
+            color: var(--burgundy);
+            font-weight: 700;
+            font-size: 1.2rem;
+        }
+
+        .active-filters {
+            display: flex;
+            gap: 0.5rem;
+            flex-wrap: wrap;
+        }
+
+        .filter-tag {
+            background: var(--gold);
+            color: var(--white);
+            padding: 0.25rem 0.75rem;
+            font-size: 0.8rem;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .filter-tag-close {
+            cursor: pointer;
+            font-weight: bold;
+            opacity: 0.8;
+        }
+
+        .filter-tag-close:hover {
+            opacity: 1;
+        }
+
+        .sort-controls {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .sort-label {
+            font-weight: 600;
+            color: var(--text);
+            text-transform: uppercase;
+            letter-spacing: 0.3px;
+            font-size: 0.9rem;
+        }
+
+        .sort-select {
+            padding: 0.75rem;
+            border: 2px solid var(--border);
+            background: var(--white);
+            color: var(--text);
+            font-family: inherit;
+            min-width: 200px;
+        }
+
+        /* Data Table */
+        .data-table {
+            background: var(--white);
+            border: 2px solid var(--border);
+            overflow: hidden;
+            margin-bottom: 2rem;
+        }
+
+        .table-header {
+            background: var(--primary);
+            color: var(--white);
+            display: grid;
+            grid-template-columns: 2fr 1.5fr 1.5fr 0.8fr 0.6fr;
+            gap: 1rem;
+            padding: 1.5rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .sortable-header {
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            transition: opacity 0.3s ease;
+        }
+
+        .sortable-header:hover {
+            opacity: 0.8;
+        }
+
+        .sort-indicator {
+            font-size: 0.8rem;
+            opacity: 0.6;
+        }
+
+        .sort-indicator.active {
+            opacity: 1;
+            color: var(--gold);
+        }
+
+        .table-body {
+            max-height: 600px;
+            overflow-y: auto;
+        }
+
+        .table-row {
+            display: grid;
+            grid-template-columns: 2fr 1.5fr 1.5fr 0.8fr 0.6fr;
+            gap: 1rem;
+            padding: 1.5rem;
+            border-bottom: 1px solid var(--border);
+            align-items: center;
+            transition: background-color 0.2s ease;
+        }
+
+        .table-row:hover {
+            background: var(--parchment);
+        }
+
+        .table-row:last-child {
+            border-bottom: none;
+        }
+
+        .term-cell {
+            font-weight: 600;
+            color: var(--primary);
+            font-size: 1.1rem;
+        }
+
+        .tibetan-cell {
+            font-size: 1.2rem;
+            font-weight: 600;
+            color: var(--text);
+        }
+
+        .tibetan-link {
+            color: var(--text);
+            text-decoration: none;
+            transition: color 0.3s ease;
+        }
+
+        .tibetan-link:hover {
+            color: var(--burgundy);
+            text-decoration: underline;
+        }
+
+        .usage-cell {
+            color: var(--light-text);
+            font-size: 0.95rem;
+        }
+
+        .no-usage {
+            font-style: italic;
+            color: #999;
+        }
+
+        .language-badge {
+            padding: 0.4rem 0.8rem;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            font-weight: 600;
+            color: white;
+            text-align: center;
+            text-transform: capitalize;
+        }
+
+        .language-badge.english { background: #3498db; }
+        .language-badge.french { background: #2ecc71; }
+        .language-badge.german { background: #34495e; }
+        .language-badge.chinese { background: #f39c12; }
+        .language-badge.tibetan { background: #e74c3c; }
+
+        .view-button {
+            background: var(--burgundy);
+            color: var(--white);
+            padding: 0.6rem 1.2rem;
+            border: none;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-family: inherit;
+            font-size: 0.8rem;
+            text-decoration: none;
+            display: inline-block;
+            text-align: center;
+        }
+
+        .view-button:hover {
+            background: var(--primary);
+            color: var(--white);
+            transform: translateY(-1px);
+        }
+
+        /* Pagination */
+        .pagination {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 0.5rem;
+            margin: 2rem 0;
+        }
+
+        .pagination-info {
+            margin-right: 2rem;
+            font-size: 0.9rem;
+            color: var(--light-text);
+        }
+
+        .pagination-button {
+            padding: 0.75rem 1.25rem;
+            border: 2px solid var(--border);
+            background: var(--white);
+            color: var(--text);
+            cursor: pointer;
+            font-family: inherit;
+            font-weight: 600;
+            transition: all 0.3s ease;
+        }
+
+        .pagination-button:hover:not(:disabled),
+        .pagination-button.active {
+            background: var(--primary);
+            color: var(--white);
+            border-color: var(--primary);
+        }
+
+        .pagination-button:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        /* Loading State */
+        .loading {
+            text-align: center;
+            padding: 3rem;
+            color: var(--light-text);
+        }
+
+        .loading-spinner {
+            border: 3px solid var(--border);
+            border-top: 3px solid var(--gold);
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 1rem;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        /* No Results */
+        .no-results {
+            text-align: center;
+            padding: 4rem 2rem;
+            background: var(--parchment);
+            border: 2px dashed var(--border);
+            margin: 2rem 0;
+        }
+
+        .no-results-icon {
+            font-size: 4rem;
+            margin-bottom: 1rem;
+            opacity: 0.6;
+        }
+
+        .no-results h3 {
+            color: var(--primary);
+            margin-bottom: 0.5rem;
+            font-size: 1.5rem;
+        }
+
+        .no-results p {
+            color: var(--light-text);
+        }
+
+        /* Footer */
+        footer {
+            background: var(--primary);
+            color: var(--white);
+            padding: 3rem 2rem 2rem;
+            border-top: 3px solid var(--gold);
+            margin-top: 4rem;
+        }
+
+        .footer-content {
+            max-width: 1400px;
+            margin: 0 auto;
+            text-align: center;
+        }
+
+        .footer-motto {
+            font-size: 1.25rem;
+            font-style: italic;
+            margin-bottom: 2rem;
+            color: var(--gold);
+        }
+
+        .footer-links {
+            display: flex;
+            justify-content: center;
+            gap: 3rem;
+            margin-bottom: 2rem;
+            flex-wrap: wrap;
+        }
+
+        .footer-links a {
+            color: var(--white);
+            text-decoration: none;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            transition: color 0.3s ease;
+            border-bottom: 2px solid transparent;
+            padding-bottom: 0.25rem;
+        }
+
+        .footer-links a:hover {
+            color: var(--gold);
+            border-bottom-color: var(--gold);
+        }
+
+        .footer-text {
+            font-size: 0.95rem;
+            opacity: 0.85;
+            line-height: 1.6;
+        }
+
+        /* Responsive */
+        @media (max-width: 1024px) {
+            .table-header,
+            .table-row {
+                grid-template-columns: 1.5fr 1fr 1.2fr 0.8fr 0.6fr;
+                gap: 0.5rem;
+                padding: 1rem;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .nav-links {
+                display: none;
+            }
+
+            .container {
+                padding: 1rem;
+            }
+
+            .filters-header {
+                flex-direction: column;
+                align-items: stretch;
+                text-align: center;
+            }
+
+            .filters-body {
+                grid-template-columns: 1fr;
+                gap: 1rem;
+            }
+
+            .results-header {
+                flex-direction: column;
+                align-items: stretch;
+            }
+
+            .table-header {
+                display: none;
+            }
+
+            .table-body {
+                max-height: none;
+            }
+
+            .table-row {
+                display: block;
+                padding: 1.5rem;
+                border-bottom: 2px solid var(--border);
+            }
+
+            .table-row > div {
+                margin-bottom: 1rem;
+                padding: 0.5rem 0;
+                border-bottom: 1px solid var(--border);
+            }
+
+            .table-row > div:last-child {
+                border-bottom: none;
+                text-align: center;
+            }
+
+            .table-row > div:before {
+                content: attr(data-label);
+                font-weight: 600;
+                color: var(--primary);
+                display: block;
+                margin-bottom: 0.5rem;
+                text-transform: uppercase;
+                font-size: 0.8rem;
+                letter-spacing: 0.5px;
+            }
+
+            .pagination {
+                flex-wrap: wrap;
+                gap: 0.25rem;
+            }
+
+            .pagination-info {
+                margin: 0;
+                width: 100%;
+                text-align: center;
+                margin-bottom: 1rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Header -->
+    <header>
+        <div class="header-top">
+            Founded 2015 by Drupon Khen Rinpoche • Thrangu Sekhar Retreat Center, Nepal
+        </div>
+        <nav>
+            <div class="logo">
+                <img src="https://i.ibb.co/HDg6gHn8/mts-logo-259x300.png" alt="MTS Logo">
+                <span>Marpa Translation Society</span>
+            </div>
+            <ul class="nav-links">
+                <li><a href="translation_society_website.html">Home</a></li>
+                <li><a href="mts_about_page.html">About</a></li>
+                <li><a href="mts_catalog_page.html">Catalog</a></li>
+                <li><a href="mts_knowledge_hub.html" class="active">Knowledge Hub</a></li>
+                <li><a href="#contact">Contact</a></li>
+            </ul>
+        </nav>
+    </header>
+
+    <!-- Breadcrumb -->
+    <div class="breadcrumb">
+        <div class="breadcrumb-content">
+            <a href="index.html">Home</a> / <a href="knowledge-hub.html">Knowledge Hub</a> / <span>Translated Terms</span>
+        </div>
+    </div>
+
+    <!-- Page Header -->
+    <section class="page-header">
+        <div class="page-header-content">
+            <h1>Translated Terms</h1>
+            <p>Comprehensive collection of Buddhist terms translated into multiple languages with consistent terminology across all our translation projects</p>
+        </div>
+    </section>
+
+    <!-- Main Container -->
+    <div class="container">
+        <!-- Filters Section -->
+        <div class="filters-section">
+            <div class="filters-header">
+                <h2 class="filters-title">Search & Filter Terms</h2>
+                <div class="filters-actions">
+                    <button class="clear-filters" onclick="clearAllFilters()">Clear All</button>
+                    <button class="export-data" onclick="exportData()">Export CSV</button>
+                </div>
+            </div>
+            <div class="filters-body">
+                <div class="filter-group">
+                    <label class="filter-label">Search Terms</label>
+                    <input type="text" class="filter-input" id="searchInput" placeholder="Search translations or Tibetan terms...">
+                </div>
+                <div class="filter-group">
+                    <label class="filter-label">Language</label>
+                    <select class="filter-select" id="languageFilter">
+                        <option value="">All Languages</option>
+                        <option value="english">English</option>
+                        <option value="french">French</option>
+                        <option value="german">German</option>
+                        <option value="chinese">Chinese</option>
+                        <option value="tibetan">Tibetan</option>
+                    </select>
+                </div>
+                <div class="filter-group">
+                    <label class="filter-label">Used In</label>
+                    <select class="filter-select" id="usageFilter">
+                        <option value="">All Translations</option>
+                        <option value="torch">The Torch for the Definitive Meaning</option>
+                        <option value="ocean">L'Océan du Sens Définitif</option>
+                        <option value="quintessence">Distilling the Concomitant Quintessence</option>
+                        <option value="unused">Not Used Yet</option>
+                    </select>
+                </div>
+                <div class="filter-group">
+                    <label class="filter-label">Term Length</label>
+                    <select class="filter-select" id="lengthFilter">
+                        <option value="">Any Length</option>
+                        <option value="short">Short (1-2 words)</option>
+                        <option value="medium">Medium (3-4 words)</option>
+                        <option value="long">Long (5+ words)</option>
+                    </select>
+                </div>
+            </div>
+        </div>
+
+        <!-- Results Header -->
+        <div class="results-header">
+            <div class="results-info">
+                <div class="results-count">
+                    Showing <span class="count-number" id="resultCount">10</span> of <span id="totalCount">10</span> terms
+                </div>
+                <div class="active-filters" id="activeFilters">
+                    <!-- Active filters will appear here -->
+                </div>
+            </div>
+            <div class="sort-controls">
+                <label class="sort-label">Sort by:</label>
+                <select class="sort-select" id="sortSelect">
+                    <option value="term-asc">Term A-Z</option>
+                    <option value="term-desc">Term Z-A</option>
+                    <option value="tibetan-asc">Tibetan A-Z</option>
+                    <option value="tibetan-desc">Tibetan Z-A</option>
+                    <option value="language-asc">Language A-Z</option>
+                    <option value="usage-asc">Usage A-Z</option>
+                </select>
+            </div>
+        </div>
+
+        <!-- Data Table -->
+        <div class="data-table">
+            <div class="table-header">
+                <div class="sortable-header" onclick="sortBy('term')">
+                    Translated Term
+                    <span class="sort-indicator" id="sort-term">↕</span>
+                </div>
+                <div class="sortable-header" onclick="sortBy('tibetan')">
+                    Original Tibetan
+                    <span class="sort-indicator" id="sort-tibetan">↕</span>
+                </div>
+                <div class="sortable-header" onclick="sortBy('usage')">
+                    Used In
+                    <span class="sort-indicator" id="sort-usage">↕</span>
+                </div>
+                <div class="sortable-header" onclick="sortBy('language')">
+                    Language
+                    <span class="sort-indicator" id="sort-language">↕</span>
+                </div>
+                <div>Actions</div>
+            </div>
+            
+            <div class="table-body" id="tableBody">
+                <!-- Loading state -->
+                <div class="loading" id="loadingState">
+                    <div class="loading-spinner"></div>
+                    <p>Loading translated terms...</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Pagination -->
+        <div class="pagination" id="pagination">
+            <div class="pagination-info" id="paginationInfo">
+                <!-- Pagination info will appear here -->
+            </div>
+            <!-- Pagination buttons will appear here -->
+        </div>
+
+        <!-- No Results -->
+        <div class="no-results" id="noResults" style="display: none;">
+            <div class="no-results-icon">🔍</div>
+            <h3>No Terms Found</h3>
+            <p>Try adjusting your search criteria or clearing filters to see more results.</p>
+        </div>
+    </div>
+
+    <!-- Footer -->
+    <footer>
+        <div class="footer-content">
+            <div class="footer-motto">"Someone who conveys the Dharma in their own language to their fellow countrymen, is doing something wonderful and very important."</div>
+            <div class="footer-links">
+                <a href="index.html">Home</a>
+                <a href="about.html">About</a>
+                <a href="catalog.html">Catalog</a>
+                <a href="knowledge-hub.html">Knowledge Hub</a>
+                <a href="#contact">Contact</a>
+                <a href="#">Available Texts</a>
+            </div>
+            <p class="footer-text">&copy; 2025 Marpa Translation Society. Founded in 2015 by Drupon Khen Rinpoche Karma Lhabu.<br>
+            Making authentic Buddhist wisdom accessible through scholarly translation.</p>
+        </div>
+    </footer>
+
+    <script>
+        // Sample data based on your provided examples
+        const termsData = [
+            {
+                term: "adept",
+                tibetan: "གྲུབ་ཐོབ།",
+                usage: "The Torch for the Definitive Meaning",
+                language: "english",
+                url: "/translated-term/adept/"
+            },
+            {
+                term: "adverse conditions",
+                tibetan: "རྐྱེན་ངན།",
+                usage: "The Torch for the Definitive Meaning",
+                language: "english",
+                url: "/translated-term/adverse-conditions/"
+            },
+            {
+                term: "Awakening mind",
+                tibetan: "བྱང་ཆུབ་ཀྱི་སེམས།",
+                usage: "",
+                language: "english",
+                url: "/translated-term/awakening-mind/"
+            },
+            {
+                term: "Bodhicitta",
+                tibetan: "བྱང་ཆུབ་ཀྱི་སེམས།",
+                usage: "",
+                language: "english",
+                url: "/translated-term/bodhicitta/"
+            },
+            {
+                term: "Buddha",
+                tibetan: "སངས་རྒྱས།",
+                usage: "",
+                language: "english",
+                url: "/translated-term/buddha/"
+            },
+            {
+                term: "L'esprit d'éveil",
+                tibetan: "བྱང་ཆུབ་ཀྱི་སེམས།",
+                usage: "L'Océan du Sens Définitif",
+                language: "french",
+                url: "/translated-term/lesprit-deveil/"
+            },
+            {
+                term: "le sens définitif",
+                tibetan: "ངེས་དོན།",
+                usage: "L'Océan du Sens Définitif",
+                language: "french",
+                url: "/translated-term/le-sens-definitif/"
+            },
+            {
+                term: "Self-complacency",
+                tibetan: "བཟང་འདོད།",
+                usage: "The Torch for the Definitive Meaning",
+                language: "english",
+                url: "/translated-term/self-complacency/"
+            },
+            {
+                term: "siddha",
+                tibetan: "གྲུབ་ཐོབ།",
+                usage: "Distilling the Concomitant Quintessence",
+                language: "english",
+                url: "/translated-term/siddha/"
+            },
+            {
+                term: "the leisures and opportunities",
+                tibetan: "དལ་འབྱོར།",
+                usage: "The Torch for the Definitive Meaning",
+                language: "english",
+                url: "/translated-term/the-leisures-and-opportunities/"
+            }
+        ];
+
+        // Global variables
+        let filteredData = [...termsData];
+        let currentPage = 1;
+        const itemsPerPage = 10;
+        let currentSort = { field: null, direction: 'asc' };
+
+        // Initialize the page
+        document.addEventListener('DOMContentLoaded', function() {
+            setTimeout(() => {
+                displayData();
+                updatePagination();
+                setupEventListeners();
+            }, 1000); // Simulate loading time
+        });
+
+        // Setup event listeners
+        function setupEventListeners() {
+            // Search input
+            document.getElementById('searchInput').addEventListener('input', handleFilters);
+            
+            // Filter selects
+            document.getElementById('languageFilter').addEventListener('change', handleFilters);
+            document.getElementById('usageFilter').addEventListener('change', handleFilters);
+            document.getElementById('lengthFilter').addEventListener('change', handleFilters);
+            
+            // Sort select
+            document.getElementById('sortSelect').addEventListener('change', handleSort);
+        }
+
+        // Handle filtering
+        function handleFilters() {
+            const searchTerm = document.getElementById('searchInput').value.toLowerCase();
+            const languageFilter = document.getElementById('languageFilter').value;
+            const usageFilter = document.getElementById('usageFilter').value;
+            const lengthFilter = document.getElementById('lengthFilter').value;
+
+            filteredData = termsData.filter(term => {
+                // Search filter
+                const matchesSearch = !searchTerm || 
+                    term.term.toLowerCase().includes(searchTerm) ||
+                    term.tibetan.includes(searchTerm) ||
+                    term.usage.toLowerCase().includes(searchTerm);
+
+                // Language filter
+                const matchesLanguage = !languageFilter || term.language === languageFilter;
+
+                // Usage filter
+                let matchesUsage = true;
+                if (usageFilter) {
+                    switch(usageFilter) {
+                        case 'torch':
+                            matchesUsage = term.usage.includes('Torch');
+                            break;
+                        case 'ocean':
+                            matchesUsage = term.usage.includes('Océan');
+                            break;
+                        case 'quintessence':
+                            matchesUsage = term.usage.includes('Quintessence');
+                            break;
+                        case 'unused':
+                            matchesUsage = !term.usage;
+                            break;
+                    }
+                }
+
+                // Length filter
+                let matchesLength = true;
+                if (lengthFilter) {
+                    const wordCount = term.term.split(' ').length;
+                    switch(lengthFilter) {
+                        case 'short':
+                            matchesLength = wordCount <= 2;
+                            break;
+                        case 'medium':
+                            matchesLength = wordCount >= 3 && wordCount <= 4;
+                            break;
+                        case 'long':
+                            matchesLength = wordCount >= 5;
+                            break;
+                    }
+                }
+
+                return matchesSearch && matchesLanguage && matchesUsage && matchesLength;
+            });
+
+            currentPage = 1;
+            displayData();
+            updatePagination();
+            updateActiveFilters();
+            updateResultsCount();
+        }
+
+        // Handle sorting
+        function handleSort() {
+            const sortValue = document.getElementById('sortSelect').value;
+            const [field, direction] = sortValue.split('-');
+            
+            currentSort = { field, direction };
+            sortData(field, direction);
+            displayData();
+        }
+
+        // Sort by column header
+        function sortBy(field) {
+            const newDirection = currentSort.field === field && currentSort.direction === 'asc' ? 'desc' : 'asc';
+            currentSort = { field, direction: newDirection };
+            
+            // Update sort select
+            document.getElementById('sortSelect').value = `${field}-${newDirection}`;
+            
+            sortData(field, newDirection);
+            displayData();
+            updateSortIndicators();
+        }
+
+        // Sort data function
+        function sortData(field, direction) {
+            filteredData.sort((a, b) => {
+                let aVal = a[field] || '';
+                let bVal = b[field] || '';
+                
+                // Handle special cases
+                if (field === 'usage') {
+                    aVal = a.usage || 'ZZZ'; // Put empty usage at end
+                    bVal = b.usage || 'ZZZ';
+                }
+                
+                if (direction === 'asc') {
+                    return aVal.localeCompare(bVal);
+                } else {
+                    return bVal.localeCompare(aVal);
+                }
+            });
+        }
+
+        // Update sort indicators
+        function updateSortIndicators() {
+            // Reset all indicators
+            document.querySelectorAll('.sort-indicator').forEach(indicator => {
+                indicator.textContent = '↕';
+                indicator.classList.remove('active');
+            });
+
+            // Set active indicator
+            if (currentSort.field) {
+                const indicator = document.getElementById(`sort-${currentSort.field}`);
+                if (indicator) {
+                    indicator.textContent = currentSort.direction === 'asc' ? '↑' : '↓';
+                    indicator.classList.add('active');
+                }
+            }
+        }
+
+        // Display data in table
+        function displayData() {
+            const tableBody = document.getElementById('tableBody');
+            const loadingState = document.getElementById('loadingState');
+            const noResults = document.getElementById('noResults');
+
+            // Hide loading
+            loadingState.style.display = 'none';
+            
+            // Show/hide no results
+            if (filteredData.length === 0) {
+                noResults.style.display = 'block';
+                tableBody.innerHTML = '';
+                return;
+            } else {
+                noResults.style.display = 'none';
+            }
+
+            // Calculate pagination
+            const startIndex = (currentPage - 1) * itemsPerPage;
+            const endIndex = startIndex + itemsPerPage;
+            const pageData = filteredData.slice(startIndex, endIndex);
+
+            // Generate table rows
+            const searchTerm = document.getElementById('searchInput').value.toLowerCase();
+            
+            tableBody.innerHTML = pageData.map(term => `
+                <div class="table-row">
+                    <div class="term-cell" data-label="Translated Term">
+                        ${highlightSearch(term.term, searchTerm)}
+                    </div>
+                    <div class="tibetan-cell" data-label="Original Tibetan">
+                        <a href="#" class="tibetan-link">${term.tibetan}</a>
+                    </div>
+                    <div class="usage-cell" data-label="Used In">
+                        ${term.usage ? highlightSearch(term.usage, searchTerm) : '<span class="no-usage">Not used in any translations yet</span>'}
+                    </div>
+                    <div data-label="Language">
+                        <span class="language-badge ${term.language}">${capitalizeFirst(term.language)}</span>
+                    </div>
+                    <div data-label="Actions">
+                        <a href="${term.url}" class="view-button">Term Details</a>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        // Highlight search terms
+        function highlightSearch(text, searchTerm) {
+            if (!searchTerm) return text;
+            const regex = new RegExp(`(${searchTerm})`, 'gi');
+            return text.replace(regex, '<span class="search-highlight">$1</span>');
+        }
+
+        // Capitalize first letter
+        function capitalizeFirst(str) {
+            return str.charAt(0).toUpperCase() + str.slice(1);
+        }
+
+        // Update pagination
+        function updatePagination() {
+            const pagination = document.getElementById('pagination');
+            const paginationInfo = document.getElementById('paginationInfo');
+            
+            const totalPages = Math.ceil(filteredData.length / itemsPerPage);
+            const startItem = ((currentPage - 1) * itemsPerPage) + 1;
+            const endItem = Math.min(currentPage * itemsPerPage, filteredData.length);
+
+            // Update info
+            if (filteredData.length > 0) {
+                paginationInfo.textContent = `Showing ${startItem}-${endItem} of ${filteredData.length} terms`;
+            } else {
+                paginationInfo.textContent = '';
+            }
+
+            // Generate pagination buttons
+            let paginationHTML = '<div class="pagination-info" id="paginationInfo">' + paginationInfo.textContent + '</div>';
+            
+            if (totalPages > 1) {
+                // Previous button
+                paginationHTML += `<button class="pagination-button" onclick="changePage(${currentPage - 1})" ${currentPage === 1 ? 'disabled' : ''}>← Previous</button>`;
+                
+                // Page numbers
+                for (let i = 1; i <= totalPages; i++) {
+                    if (i === currentPage) {
+                        paginationHTML += `<button class="pagination-button active">${i}</button>`;
+                    } else {
+                        paginationHTML += `<button class="pagination-button" onclick="changePage(${i})">${i}</button>`;
+                    }
+                }
+                
+                // Next button
+                paginationHTML += `<button class="pagination-button" onclick="changePage(${currentPage + 1})" ${currentPage === totalPages ? 'disabled' : ''}>Next →</button>`;
+            }
+
+            pagination.innerHTML = paginationHTML;
+        }
+
+        // Change page
+        function changePage(page) {
+            const totalPages = Math.ceil(filteredData.length / itemsPerPage);
+            if (page < 1 || page > totalPages) return;
+            
+            currentPage = page;
+            displayData();
+            updatePagination();
+            
+            // Scroll to top of table
+            document.querySelector('.data-table').scrollIntoView({ behavior: 'smooth' });
+        }
+
+        // Update active filters display
+        function updateActiveFilters() {
+            const activeFilters = document.getElementById('activeFilters');
+            const filters = [];
+
+            const searchTerm = document.getElementById('searchInput').value;
+            const language = document.getElementById('languageFilter').value;
+            const usage = document.getElementById('usageFilter').value;
+            const length = document.getElementById('lengthFilter').value;
+
+            if (searchTerm) filters.push({ type: 'search', value: searchTerm, label: `Search: "${searchTerm}"` });
+            if (language) filters.push({ type: 'language', value: language, label: `Language: ${capitalizeFirst(language)}` });
+            if (usage) filters.push({ type: 'usage', value: usage, label: `Usage: ${getUsageLabel(usage)}` });
+            if (length) filters.push({ type: 'length', value: length, label: `Length: ${capitalizeFirst(length)}` });
+
+            activeFilters.innerHTML = filters.map(filter => `
+                <span class="filter-tag">
+                    ${filter.label}
+                    <span class="filter-tag-close" onclick="removeFilter('${filter.type}')">&times;</span>
+                </span>
+            `).join('');
+        }
+
+        // Get usage label
+        function getUsageLabel(value) {
+            const labels = {
+                'torch': 'Torch for Definitive Meaning',
+                'ocean': 'Océan du Sens Définitif',
+                'quintessence': 'Concomitant Quintessence',
+                'unused': 'Not Used Yet'
+            };
+            return labels[value] || value;
+        }
+
+        // Remove specific filter
+        function removeFilter(type) {
+            switch(type) {
+                case 'search':
+                    document.getElementById('searchInput').value = '';
+                    break;
+                case 'language':
+                    document.getElementById('languageFilter').value = '';
+                    break;
+                case 'usage':
+                    document.getElementById('usageFilter').value = '';
+                    break;
+                case 'length':
+                    document.getElementById('lengthFilter').value = '';
+                    break;
+            }
+            handleFilters();
+        }
+
+        // Update results count
+        function updateResultsCount() {
+            document.getElementById('resultCount').textContent = filteredData.length;
+            document.getElementById('totalCount').textContent = termsData.length;
+        }
+
+        // Clear all filters
+        function clearAllFilters() {
+            document.getElementById('searchInput').value = '';
+            document.getElementById('languageFilter').value = '';
+            document.getElementById('usageFilter').value = '';
+            document.getElementById('lengthFilter').value = '';
+            document.getElementById('sortSelect').value = 'term-asc';
+            
+            currentSort = { field: null, direction: 'asc' };
+            handleFilters();
+        }
+
+        // Export data to CSV
+        function exportData() {
+            const csvContent = [
+                ['Translated Term', 'Original Tibetan', 'Used In', 'Language'], // Headers
+                ...filteredData.map(term => [
+                    term.term,
+                    term.tibetan,
+                    term.usage || 'Not used yet',
+                    capitalizeFirst(term.language)
+                ])
+            ].map(row => row.map(cell => `"${cell}"`).join(',')).join('\n');
+
+            const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+            const link = document.createElement('a');
+            const url = URL.createObjectURL(blob);
+            link.setAttribute('href', url);
+            link.setAttribute('download', 'mts_translated_terms.csv');
+            link.style.visibility = 'hidden';
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+        }
+
+        // Initialize results count
+        updateResultsCount();
+    </script>
+</body>
+</html>

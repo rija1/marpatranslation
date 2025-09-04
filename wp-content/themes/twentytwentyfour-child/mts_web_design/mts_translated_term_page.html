@@ -1,0 +1,801 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>True Meaning - Translated Term - MTS Knowledge Hub</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Crimson Text', 'Georgia', serif;
+            line-height: 1.7;
+            color: #2d3748;
+            background: #faf8f5;
+        }
+
+        :root {
+            --primary: #14375d;
+            --burgundy: #8b1538;
+            --gold: #d4af37;
+            --cream: #faf8f5;
+            --parchment: #f7f4f0;
+            --text: #2d3748;
+            --light-text: #4a5568;
+            --border: #d4c5a9;
+            --white: #ffffff;
+        }
+
+        /* Header */
+        header {
+            background: var(--white);
+            border-bottom: 3px solid var(--gold);
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+        }
+
+        .header-top {
+            background: var(--primary);
+            color: var(--white);
+            padding: 0.5rem 0;
+            text-align: center;
+            font-size: 0.875rem;
+        }
+
+        nav {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 1.5rem 2rem;
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: var(--primary);
+        }
+
+        .logo img {
+            height: 60px;
+            width: auto;
+            margin-right: 20px;
+            border: 2px solid var(--gold);
+            border-radius: 50%;
+            padding: 8px;
+            background: var(--white);
+        }
+
+        .nav-links {
+            display: flex;
+            list-style: none;
+            gap: 2.5rem;
+        }
+
+        .nav-links a {
+            color: var(--text);
+            text-decoration: none;
+            font-weight: 600;
+            font-size: 1.05rem;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            transition: color 0.3s ease;
+            border-bottom: 2px solid transparent;
+            padding-bottom: 0.25rem;
+        }
+
+        .nav-links a:hover,
+        .nav-links a.active {
+            color: var(--burgundy);
+            border-bottom-color: var(--gold);
+        }
+
+        /* Breadcrumb */
+        .breadcrumb {
+            background: var(--parchment);
+            padding: 1rem 2rem;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .breadcrumb-content {
+            max-width: 1200px;
+            margin: 0 auto;
+            font-size: 0.95rem;
+            color: var(--light-text);
+        }
+
+        .breadcrumb a {
+            color: var(--primary);
+            text-decoration: none;
+            font-weight: 600;
+        }
+
+        .breadcrumb a:hover {
+            color: var(--burgundy);
+        }
+
+        /* Main Container */
+        .term-container {
+            max-width: 1000px;
+            margin: 0 auto;
+            padding: 3rem 2rem;
+        }
+
+        /* Term Header */
+        .term-header {
+            background: var(--white);
+            border: 3px solid var(--gold);
+            padding: 3rem;
+            margin-bottom: 3rem;
+            position: relative;
+            box-shadow: 0 8px 20px rgba(0,0,0,0.1);
+        }
+
+        .term-header::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 6px;
+            background: linear-gradient(90deg, var(--gold), var(--burgundy));
+        }
+
+        .term-title {
+            font-size: 3.5rem;
+            font-weight: 700;
+            color: var(--primary);
+            margin-bottom: 1.5rem;
+            text-align: center;
+            line-height: 1.2;
+        }
+
+        .term-meta {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 2rem;
+            margin-bottom: 2rem;
+        }
+
+        .meta-item {
+            background: var(--parchment);
+            border-left: 4px solid var(--burgundy);
+            padding: 1.5rem;
+        }
+
+        .meta-label {
+            font-size: 0.9rem;
+            font-weight: 600;
+            color: var(--light-text);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 0.5rem;
+        }
+
+        .tibetan-term {
+            font-size: 2rem;
+            font-weight: 600;
+            color: var(--primary);
+            text-decoration: none;
+            transition: color 0.3s ease;
+        }
+
+        .tibetan-term:hover {
+            color: var(--burgundy);
+        }
+
+        .language-badges {
+            display: flex;
+            gap: 0.5rem;
+            flex-wrap: wrap;
+        }
+
+        .language-badge {
+            background: var(--gold);
+            color: var(--white);
+            padding: 0.5rem 1rem;
+            font-size: 0.9rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        /* Usage Section */
+        .usage-section {
+            background: var(--white);
+            border: 2px solid var(--border);
+            margin-bottom: 3rem;
+            overflow: hidden;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+        }
+
+        .section-header {
+            background: var(--primary);
+            color: var(--white);
+            padding: 2rem;
+            text-align: center;
+            position: relative;
+        }
+
+        .section-header::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><defs><pattern id="usage-pattern" width="20" height="20" patternUnits="userSpaceOnUse"><circle cx="10" cy="10" r="1" fill="rgba(212,175,55,0.1)"/></pattern></defs><rect width="100" height="100" fill="url(%23usage-pattern)"/></svg>');
+        }
+
+        .section-header-content {
+            position: relative;
+            z-index: 2;
+        }
+
+        .section-title {
+            font-size: 2rem;
+            font-weight: 700;
+            margin-bottom: 0.5rem;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .section-subtitle {
+            font-size: 1rem;
+            opacity: 0.9;
+            font-style: italic;
+        }
+
+        /* Usage Card */
+        .usage-card {
+            border-bottom: 2px solid var(--border);
+        }
+
+        .usage-card:last-child {
+            border-bottom: none;
+        }
+
+        .usage-header {
+            background: var(--burgundy);
+            color: var(--white);
+            padding: 1.5rem 2rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            gap: 2rem;
+        }
+
+        .translation-info h3 {
+            font-size: 1.4rem;
+            font-weight: 700;
+            margin-bottom: 0.5rem;
+        }
+
+        .translation-link {
+            color: var(--white);
+            text-decoration: none;
+            border-bottom: 2px solid transparent;
+            transition: border-color 0.3s ease;
+        }
+
+        .translation-link:hover {
+            border-bottom-color: var(--gold);
+        }
+
+        .translator-info {
+            font-size: 0.95rem;
+            opacity: 0.9;
+            font-style: italic;
+        }
+
+        .translation-meta {
+            text-align: right;
+            opacity: 0.8;
+        }
+
+        .usage-content {
+            display: grid;
+            gap: 0;
+        }
+
+        .quote-section {
+            padding: 2rem;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .quote-section:last-child {
+            border-bottom: none;
+        }
+
+        .quote-section.tibetan {
+            background: rgba(20, 55, 93, 0.05);
+        }
+
+        .quote-section.english {
+            background: rgba(139, 21, 56, 0.05);
+        }
+
+        .quote-section.comment {
+            background: rgba(212, 175, 55, 0.1);
+        }
+
+        .quote-label {
+            font-size: 1rem;
+            font-weight: 700;
+            color: var(--primary);
+            margin-bottom: 1rem;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .quote-label::before {
+            content: '';
+            width: 3px;
+            height: 20px;
+            background: var(--gold);
+        }
+
+        .quote-text {
+            background: var(--white);
+            border-left: 4px solid var(--gold);
+            padding: 1.5rem;
+            font-size: 1.1rem;
+            line-height: 1.8;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+        }
+
+        .tibetan-text {
+            font-size: 1.3rem;
+            font-weight: 500;
+            color: var(--text);
+        }
+
+        .english-text {
+            font-style: italic;
+            color: var(--text);
+        }
+
+        .comment-text {
+            color: var(--text);
+            border-left-color: var(--burgundy);
+        }
+
+        /* Navigation */
+        .term-navigation {
+            background: var(--parchment);
+            border: 2px solid var(--border);
+            padding: 2rem;
+            text-align: center;
+            margin-bottom: 3rem;
+        }
+
+        .nav-title {
+            font-size: 1.2rem;
+            font-weight: 700;
+            color: var(--primary);
+            margin-bottom: 1rem;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .nav-links-container {
+            display: flex;
+            justify-content: center;
+            gap: 2rem;
+            flex-wrap: wrap;
+        }
+
+        .nav-link {
+            background: var(--primary);
+            color: var(--white);
+            padding: 1rem 2rem;
+            text-decoration: none;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            transition: all 0.3s ease;
+            border: 2px solid var(--primary);
+        }
+
+        .nav-link:hover {
+            background: transparent;
+            color: var(--primary);
+            transform: translateY(-2px);
+        }
+
+        .nav-link.secondary {
+            background: var(--burgundy);
+            border-color: var(--burgundy);
+        }
+
+        .nav-link.secondary:hover {
+            color: var(--burgundy);
+        }
+
+        /* Related Terms */
+        .related-section {
+            background: var(--white);
+            border: 2px solid var(--border);
+            padding: 2rem;
+            text-align: center;
+        }
+
+        .related-title {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: var(--primary);
+            margin-bottom: 1.5rem;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .related-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1rem;
+        }
+
+        .related-term {
+            background: var(--parchment);
+            border: 1px solid var(--border);
+            padding: 1rem;
+            text-decoration: none;
+            color: var(--text);
+            transition: all 0.3s ease;
+            border-left: 4px solid var(--gold);
+        }
+
+        .related-term:hover {
+            background: var(--white);
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+            color: var(--primary);
+        }
+
+        .related-term-title {
+            font-weight: 600;
+            margin-bottom: 0.25rem;
+        }
+
+        .related-term-tibetan {
+            font-size: 0.9rem;
+            color: var(--light-text);
+        }
+
+        /* Footer */
+        footer {
+            background: var(--primary);
+            color: var(--white);
+            padding: 3rem 2rem 2rem;
+            border-top: 3px solid var(--gold);
+            margin-top: 4rem;
+        }
+
+        .footer-content {
+            max-width: 1200px;
+            margin: 0 auto;
+            text-align: center;
+        }
+
+        .footer-motto {
+            font-size: 1.25rem;
+            font-style: italic;
+            margin-bottom: 2rem;
+            color: var(--gold);
+        }
+
+        .footer-links {
+            display: flex;
+            justify-content: center;
+            gap: 3rem;
+            margin-bottom: 2rem;
+            flex-wrap: wrap;
+        }
+
+        .footer-links a {
+            color: var(--white);
+            text-decoration: none;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            transition: color 0.3s ease;
+            border-bottom: 2px solid transparent;
+            padding-bottom: 0.25rem;
+        }
+
+        .footer-links a:hover {
+            color: var(--gold);
+            border-bottom-color: var(--gold);
+        }
+
+        .footer-text {
+            font-size: 0.95rem;
+            opacity: 0.85;
+            line-height: 1.6;
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .nav-links {
+                display: none;
+            }
+
+            .term-container {
+                padding: 2rem 1rem;
+            }
+
+            .term-header {
+                padding: 2rem;
+            }
+
+            .term-title {
+                font-size: 2.5rem;
+            }
+
+            .term-meta {
+                grid-template-columns: 1fr;
+                gap: 1rem;
+            }
+
+            .usage-header {
+                flex-direction: column;
+                gap: 1rem;
+            }
+
+            .translation-meta {
+                text-align: left;
+            }
+
+            .quote-section {
+                padding: 1.5rem;
+            }
+
+            .nav-links-container {
+                flex-direction: column;
+                align-items: center;
+            }
+
+            .related-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .term-title {
+                font-size: 2rem;
+            }
+
+            .tibetan-term {
+                font-size: 1.5rem;
+            }
+
+            .usage-header,
+            .quote-section {
+                padding: 1rem;
+            }
+
+            .quote-text {
+                padding: 1rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Header -->
+    <header>
+        <div class="header-top">
+            Founded 2015 by Drupon Khen Rinpoche • Thrangu Sekhar Retreat Center, Nepal
+        </div>
+        <nav>
+            <div class="logo">
+                <img src="https://i.ibb.co/HDg6gHn8/mts-logo-259x300.png" alt="MTS Logo">
+                <span>Marpa Translation Society</span>
+            </div>
+            <ul class="nav-links">
+                <li><a href="translation_society_website.html">Home</a></li>
+                <li><a href="mts_about_page.html">About</a></li>
+                <li><a href="mts_catalog_page.html">Catalog</a></li>
+                <li><a href="mts_knowledge_hub.html" class="active">Knowledge Hub</a></li>
+                <li><a href="#contact">Contact</a></li>
+            </ul>
+        </nav>
+    </header>
+
+    <!-- Breadcrumb -->
+    <div class="breadcrumb">
+        <div class="breadcrumb-content">
+            <a href="index.html">Home</a> / 
+            <a href="knowledge-hub.html">Knowledge Hub</a> / 
+            <a href="translated-terms.html">Translated Terms</a> / 
+            <span>true meaning</span>
+        </div>
+    </div>
+
+    <!-- Term Container -->
+    <div class="term-container">
+        <!-- Term Header -->
+        <div class="term-header">
+            <h1 class="term-title">true meaning</h1>
+            
+            <div class="term-meta">
+                <div class="meta-item">
+                    <div class="meta-label">Tibetan Source</div>
+                    <a href="/tibetan-term/nges-don/" class="tibetan-term">ངེས་དོན།</a>
+                </div>
+                
+                <div class="meta-item">
+                    <div class="meta-label">Available Languages</div>
+                    <div class="language-badges">
+                        <span class="language-badge">English</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Usage in Translations -->
+        <div class="usage-section">
+            <div class="section-header">
+                <div class="section-header-content">
+                    <h2 class="section-title">Usage in Translations</h2>
+                    <p class="section-subtitle">Contextual examples from our authentic dharma translations</p>
+                </div>
+            </div>
+
+            <div class="usage-card">
+                <div class="usage-header">
+                    <div class="translation-info">
+                        <h3>
+                            <a href="/translation/melodious-longing-plea/" class="translation-link">
+                                A Melodious Longing Plea To The Kagyu Teachers
+                            </a>
+                        </h3>
+                        <p class="translator-info">Translated by: Rija Ratinahirana</p>
+                    </div>
+                    <div class="translation-meta">
+                        <div>Liturgical Text</div>
+                        <div>English Translation</div>
+                    </div>
+                </div>
+
+                <div class="usage-content">
+                    <div class="quote-section tibetan">
+                        <div class="quote-label">Original Tibetan Context</div>
+                        <div class="quote-text">
+                            <div class="tibetan-text">
+                                །ངེས་དོན་བསྟན་པའི་བདག་པོ། །ཆོས་རྒྱལ་ཟླ་འོད་གཞོན་ནུ།<br>
+                                །སྲས་བཅས་རྒྱལ་བའི་ཕྲིན་ལས། །དཔལ་ལྡན་ཀརྨ་བཀའ་བརྒྱུད།
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="quote-section english">
+                        <div class="quote-label">English Translation</div>
+                        <div class="quote-text">
+                            <div class="english-text">
+                                Master at expounding the true meaning,<br>
+                                Dharma King, Youthful Moonlight.<br>
+                                Activity of the Victorious and heirs,<br>
+                                Glorious Karma Kagyu.
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="quote-section comment">
+                        <div class="quote-label">Translator's Commentary</div>
+                        <div class="quote-text">
+                            <div class="comment-text">
+                                Chose this over 'definitive meaning' to keep the line short. The term ངེས་དོན་ (nges don) refers to the ultimate, non-conceptual truth as opposed to provisional teachings. In this liturgical context, it emphasizes the master's ability to teach the deepest level of Buddhist understanding.
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Navigation -->
+        <div class="term-navigation">
+            <div class="nav-title">Explore Related Content</div>
+            <div class="nav-links-container">
+                <a href="/tibetan-term/nges-don/" class="nav-link">View Tibetan Term</a>
+                <a href="/translated-terms/" class="nav-link secondary">Browse All Terms</a>
+                <a href="/knowledge-hub/" class="nav-link secondary">Knowledge Hub</a>
+            </div>
+        </div>
+
+        <!-- Related Terms -->
+        <div class="related-section">
+            <h3 class="related-title">Related Terms</h3>
+            <div class="related-grid">
+                <a href="/translated-term/definitive-meaning/" class="related-term">
+                    <div class="related-term-title">definitive meaning</div>
+                    <div class="related-term-tibetan">ངེས་དོན།</div>
+                </a>
+                <a href="/translated-term/provisional-meaning/" class="related-term">
+                    <div class="related-term-title">provisional meaning</div>
+                    <div class="related-term-tibetan">དྲང་དོན།</div>
+                </a>
+                <a href="/translated-term/ultimate-truth/" class="related-term">
+                    <div class="related-term-title">ultimate truth</div>
+                    <div class="related-term-tibetan">དོན་དམ་བདེན་པ།</div>
+                </a>
+                <a href="/translated-term/conventional-truth/" class="related-term">
+                    <div class="related-term-title">conventional truth</div>
+                    <div class="related-term-tibetan">ཀུན་རྫོབ་བདེན་པ།</div>
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Footer -->
+    <footer>
+        <div class="footer-content">
+            <div class="footer-motto">"Someone who conveys the Dharma in their own language to their fellow countrymen, is doing something wonderful and very important."</div>
+            <div class="footer-links">
+                <a href="index.html">Home</a>
+                <a href="about.html">About</a>
+                <a href="catalog.html">Catalog</a>
+                <a href="knowledge-hub.html">Knowledge Hub</a>
+                <a href="#contact">Contact</a>
+                <a href="#">Available Texts</a>
+            </div>
+            <p class="footer-text">&copy; 2025 Marpa Translation Society. Founded in 2015 by Drupon Khen Rinpoche Karma Lhabu.<br>
+            Making authentic Buddhist wisdom accessible through scholarly translation.</p>
+        </div>
+    </footer>
+
+    <script>
+        // Smooth scrolling for anchor links
+        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+            anchor.addEventListener('click', function (e) {
+                e.preventDefault();
+                const target = document.querySelector(this.getAttribute('href'));
+                if (target) {
+                    target.scrollIntoView({
+                        behavior: 'smooth',
+                        block: 'start'
+                    });
+                }
+            });
+        });
+
+        // Copy Tibetan text functionality
+        document.querySelector('.tibetan-term').addEventListener('click', function(e) {
+            e.preventDefault();
+            const tibetanText = this.textContent;
+            navigator.clipboard.writeText(tibetanText).then(() => {
+                // Brief visual feedback
+                const originalColor = this.style.color;
+                this.style.color = 'var(--gold)';
+                setTimeout(() => {
+                    this.style.color = originalColor;
+                }, 300);
+            });
+        });
+
+        // Enhanced hover effects
+        document.querySelectorAll('.usage-card').forEach(card => {
+            card.addEventListener('mouseenter', function() {
+                this.style.transform = 'translateY(-2px)';
+                this.style.boxShadow = '0 12px 24px rgba(0,0,0,0.1)';
+            });
+            
+            card.addEventListener('mouseleave', function() {
+                this.style.transform = 'translateY(0)';
+                this.style.boxShadow = '0 4px 8px rgba(0,0,0,0.1)';
+            });
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,1199 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>The Torch for the Definitive Meaning - Marpa Translation Society</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Crimson Text', 'Georgia', serif;
+            line-height: 1.7;
+            color: #2d3748;
+            background: #faf8f5;
+        }
+
+        :root {
+            --primary: #14375d;
+            --burgundy: #8b1538;
+            --gold: #d4af37;
+            --cream: #faf8f5;
+            --parchment: #f7f4f0;
+            --text: #2d3748;
+            --light-text: #4a5568;
+            --border: #d4c5a9;
+            --white: #ffffff;
+        }
+
+        /* Header */
+        header {
+            background: var(--white);
+            border-bottom: 3px solid var(--gold);
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+        }
+
+        .header-top {
+            background: var(--primary);
+            color: var(--white);
+            padding: 0.5rem 0;
+            text-align: center;
+            font-size: 0.875rem;
+        }
+
+        nav {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 1.5rem 2rem;
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: var(--primary);
+        }
+
+        .logo img {
+            height: 60px;
+            width: auto;
+            margin-right: 20px;
+            border: 2px solid var(--gold);
+            border-radius: 50%;
+            padding: 8px;
+            background: var(--white);
+        }
+
+        .nav-links {
+            display: flex;
+            list-style: none;
+            gap: 2.5rem;
+        }
+
+        .nav-links a {
+            color: var(--text);
+            text-decoration: none;
+            font-weight: 600;
+            font-size: 1.05rem;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            transition: color 0.3s ease;
+            border-bottom: 2px solid transparent;
+            padding-bottom: 0.25rem;
+        }
+
+        .nav-links a:hover,
+        .nav-links a.active {
+            color: var(--burgundy);
+            border-bottom-color: var(--gold);
+        }
+
+        /* Breadcrumb */
+        .breadcrumb {
+            background: var(--parchment);
+            padding: 1rem 2rem;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .breadcrumb-content {
+            max-width: 1200px;
+            margin: 0 auto;
+            font-size: 0.95rem;
+            color: var(--light-text);
+        }
+
+        .breadcrumb a {
+            color: var(--primary);
+            text-decoration: none;
+            font-weight: 600;
+        }
+
+        .breadcrumb a:hover {
+            color: var(--burgundy);
+        }
+
+        /* Main Container */
+        .product-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 3rem 2rem;
+        }
+
+        /* Product Header */
+        .product-header {
+            display: grid;
+            grid-template-columns: 400px 1fr;
+            gap: 4rem;
+            margin-bottom: 4rem;
+        }
+
+        .product-image-section {
+            position: relative;
+        }
+
+        .main-image {
+            width: 100%;
+            height: 500px;
+            object-fit: cover;
+            border: 3px solid var(--gold);
+            box-shadow: 0 12px 24px rgba(0,0,0,0.15);
+            background: var(--parchment);
+        }
+
+        .image-badge {
+            position: absolute;
+            top: 1rem;
+            right: 1rem;
+            background: var(--burgundy);
+            color: var(--white);
+            padding: 0.5rem 1rem;
+            font-weight: 600;
+            font-size: 0.9rem;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            border-radius: 20px;
+        }
+
+        .product-info {
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+        }
+
+        .product-meta {
+            display: flex;
+            gap: 1rem;
+            margin-bottom: 1.5rem;
+            flex-wrap: wrap;
+        }
+
+        .meta-tag {
+            background: var(--parchment);
+            color: var(--primary);
+            padding: 0.5rem 1rem;
+            font-size: 0.9rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.3px;
+            border: 2px solid var(--border);
+        }
+
+        .product-title {
+            font-size: 2.5rem;
+            font-weight: 700;
+            color: var(--primary);
+            margin-bottom: 1rem;
+            line-height: 1.3;
+        }
+
+        .product-subtitle {
+            font-size: 1.3rem;
+            color: var(--burgundy);
+            font-style: italic;
+            margin-bottom: 1.5rem;
+        }
+
+        .product-author {
+            font-size: 1.4rem;
+            font-weight: 600;
+            color: var(--text);
+            margin-bottom: 2rem;
+        }
+
+        .author-link {
+            color: var(--burgundy);
+            text-decoration: none;
+            border-bottom: 2px solid transparent;
+            transition: border-color 0.3s ease;
+        }
+
+        .author-link:hover {
+            border-bottom-color: var(--gold);
+        }
+
+        .product-description {
+            font-size: 1.1rem;
+            line-height: 1.8;
+            color: var(--text);
+            margin-bottom: 2rem;
+        }
+
+        .price-section {
+            background: var(--white);
+            border: 2px solid var(--gold);
+            padding: 2rem;
+            margin-bottom: 2rem;
+        }
+
+        .price-main {
+            font-size: 2rem;
+            font-weight: 700;
+            color: var(--primary);
+            margin-bottom: 0.5rem;
+        }
+
+        .price-note {
+            color: var(--burgundy);
+            font-weight: 600;
+            font-style: italic;
+            margin-bottom: 1rem;
+        }
+
+        .cost-breakdown {
+            font-size: 0.95rem;
+            color: var(--light-text);
+            line-height: 1.6;
+        }
+
+        .request-button {
+            background: var(--burgundy);
+            color: var(--white);
+            border: 3px solid var(--burgundy);
+            padding: 1.25rem 3rem;
+            font-size: 1.2rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-family: inherit;
+            width: 100%;
+            margin-bottom: 1rem;
+        }
+
+        .request-button:hover {
+            background: transparent;
+            color: var(--burgundy);
+        }
+
+        .dharma-note {
+            background: var(--parchment);
+            border-left: 4px solid var(--gold);
+            padding: 1.5rem;
+            font-style: italic;
+            color: var(--text);
+            font-size: 0.95rem;
+        }
+
+        /* Product Details Tabs */
+        .product-tabs {
+            margin-top: 4rem;
+        }
+
+        .tab-buttons {
+            display: flex;
+            gap: 0;
+            margin-bottom: 2rem;
+            border-bottom: 3px solid var(--border);
+        }
+
+        .tab-button {
+            background: var(--parchment);
+            border: none;
+            padding: 1rem 2rem;
+            font-family: inherit;
+            font-size: 1.1rem;
+            font-weight: 600;
+            color: var(--text);
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            border-bottom: 3px solid transparent;
+        }
+
+        .tab-button.active {
+            background: var(--white);
+            color: var(--primary);
+            border-bottom-color: var(--gold);
+        }
+
+        .tab-button:hover {
+            background: var(--white);
+            color: var(--burgundy);
+        }
+
+        .tab-content {
+            background: var(--white);
+            border: 2px solid var(--border);
+            padding: 3rem;
+            min-height: 300px;
+        }
+
+        .tab-pane {
+            display: none;
+        }
+
+        .tab-pane.active {
+            display: block;
+        }
+
+        .tab-pane h3 {
+            font-size: 1.4rem;
+            font-weight: 700;
+            color: var(--primary);
+            margin-bottom: 1.5rem;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .tab-pane p {
+            font-size: 1.05rem;
+            line-height: 1.8;
+            color: var(--text);
+            margin-bottom: 1.5rem;
+        }
+
+        .specs-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 1.5rem;
+        }
+
+        .spec-item {
+            background: var(--parchment);
+            padding: 1.5rem;
+            border-left: 4px solid var(--gold);
+        }
+
+        .spec-label {
+            font-weight: 600;
+            color: var(--primary);
+            margin-bottom: 0.5rem;
+            text-transform: uppercase;
+            letter-spacing: 0.3px;
+        }
+
+        .spec-value {
+            color: var(--text);
+        }
+
+        /* Overlay */
+        .overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(20, 55, 93, 0.9);
+            z-index: 2000;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            padding: 2rem;
+        }
+
+        .overlay.active {
+            display: flex;
+        }
+
+        /* Request Modal */
+        .request-modal {
+            background: var(--white);
+            border: 3px solid var(--gold);
+            max-width: 600px;
+            width: 100%;
+            position: relative;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.3);
+            animation: modalSlideIn 0.4s ease-out;
+        }
+
+        @keyframes modalSlideIn {
+            from {
+                opacity: 0;
+                transform: translateY(-30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .modal-header {
+            background: var(--primary);
+            color: var(--white);
+            padding: 2rem;
+            text-align: center;
+            position: relative;
+        }
+
+        .modal-header::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><defs><pattern id="modal-pattern" width="20" height="20" patternUnits="userSpaceOnUse"><circle cx="10" cy="10" r="1" fill="rgba(212,175,55,0.1)"/></pattern></defs><rect width="100" height="100" fill="url(%23modal-pattern)"/></svg>');
+        }
+
+        .modal-header-content {
+            position: relative;
+            z-index: 2;
+        }
+
+        .close-button {
+            position: absolute;
+            top: 1rem;
+            right: 1rem;
+            background: none;
+            border: none;
+            color: var(--white);
+            font-size: 2rem;
+            cursor: pointer;
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: background-color 0.3s ease;
+        }
+
+        .close-button:hover {
+            background: rgba(255,255,255,0.1);
+        }
+
+        .modal-title {
+            font-size: 1.8rem;
+            font-weight: 700;
+            margin-bottom: 0.5rem;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .modal-subtitle {
+            font-size: 1rem;
+            opacity: 0.9;
+            font-style: italic;
+        }
+
+        .modal-body {
+            padding: 3rem;
+        }
+
+        .book-summary {
+            background: var(--parchment);
+            border-left: 4px solid var(--gold);
+            padding: 1.5rem;
+            margin-bottom: 2rem;
+        }
+
+        .book-title {
+            font-weight: 700;
+            color: var(--primary);
+            margin-bottom: 0.5rem;
+        }
+
+        .book-price {
+            color: var(--burgundy);
+            font-weight: 600;
+        }
+
+        .form-group {
+            margin-bottom: 2rem;
+        }
+
+        .form-label {
+            display: block;
+            font-weight: 600;
+            color: var(--primary);
+            margin-bottom: 0.75rem;
+            text-transform: uppercase;
+            letter-spacing: 0.3px;
+        }
+
+        .form-input,
+        .form-textarea {
+            width: 100%;
+            padding: 1rem;
+            border: 2px solid var(--border);
+            background: var(--white);
+            color: var(--text);
+            font-size: 1rem;
+            font-family: inherit;
+            transition: border-color 0.3s ease;
+        }
+
+        .form-input:focus,
+        .form-textarea:focus {
+            outline: none;
+            border-color: var(--gold);
+        }
+
+        .form-textarea {
+            height: 120px;
+            resize: vertical;
+        }
+
+        .form-help {
+            font-size: 0.9rem;
+            color: var(--light-text);
+            font-style: italic;
+            margin-top: 0.5rem;
+            line-height: 1.5;
+        }
+
+        .submit-button {
+            background: var(--burgundy);
+            color: var(--white);
+            border: 2px solid var(--burgundy);
+            padding: 1rem 2rem;
+            font-size: 1.1rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-family: inherit;
+            width: 100%;
+        }
+
+        .submit-button:hover {
+            background: transparent;
+            color: var(--burgundy);
+        }
+
+        .submit-button:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+
+        /* Confirmation Modal */
+        .confirmation-modal {
+            background: var(--white);
+            border: 3px solid var(--gold);
+            max-width: 500px;
+            width: 100%;
+            text-align: center;
+            animation: modalSlideIn 0.4s ease-out;
+        }
+
+        .confirmation-header {
+            background: var(--burgundy);
+            color: var(--white);
+            padding: 2rem;
+        }
+
+        .confirmation-icon {
+            font-size: 3rem;
+            margin-bottom: 1rem;
+            display: block;
+        }
+
+        .confirmation-title {
+            font-size: 1.8rem;
+            font-weight: 700;
+            margin-bottom: 0.5rem;
+        }
+
+        .confirmation-subtitle {
+            font-size: 1rem;
+            opacity: 0.9;
+        }
+
+        .confirmation-body {
+            padding: 3rem 2rem;
+        }
+
+        .confirmation-body p {
+            font-size: 1.1rem;
+            line-height: 1.7;
+            color: var(--text);
+            margin-bottom: 1.5rem;
+        }
+
+        .confirmation-note {
+            background: var(--parchment);
+            border-left: 4px solid var(--gold);
+            padding: 1.5rem;
+            font-style: italic;
+            color: var(--text);
+            margin-bottom: 2rem;
+        }
+
+        .ok-button {
+            background: var(--primary);
+            color: var(--white);
+            border: 2px solid var(--primary);
+            padding: 1rem 2rem;
+            font-size: 1.1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-family: inherit;
+        }
+
+        .ok-button:hover {
+            background: transparent;
+            color: var(--primary);
+        }
+
+        /* Related Books */
+        .related-section {
+            margin-top: 4rem;
+            padding-top: 3rem;
+            border-top: 3px solid var(--border);
+        }
+
+        .related-title {
+            font-size: 2rem;
+            font-weight: 700;
+            color: var(--primary);
+            margin-bottom: 2rem;
+            text-align: center;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .related-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 2rem;
+        }
+
+        .related-book {
+            background: var(--white);
+            border: 1px solid var(--border);
+            padding: 1.5rem;
+            text-align: center;
+            transition: transform 0.3s ease;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+
+        .related-book:hover {
+            transform: translateY(-5px);
+        }
+
+        .related-book img {
+            width: 100%;
+            height: 200px;
+            object-fit: cover;
+            margin-bottom: 1rem;
+            border: 2px solid var(--border);
+        }
+
+        .related-book h4 {
+            font-size: 1.1rem;
+            font-weight: 600;
+            color: var(--primary);
+            margin-bottom: 0.5rem;
+        }
+
+        .related-book p {
+            font-size: 0.9rem;
+            color: var(--light-text);
+        }
+
+        /* Footer */
+        footer {
+            background: var(--primary);
+            color: var(--white);
+            padding: 3rem 2rem 2rem;
+            border-top: 3px solid var(--gold);
+            margin-top: 4rem;
+        }
+
+        .footer-content {
+            max-width: 1200px;
+            margin: 0 auto;
+            text-align: center;
+        }
+
+        .footer-motto {
+            font-size: 1.25rem;
+            font-style: italic;
+            margin-bottom: 2rem;
+            color: var(--gold);
+        }
+
+        .footer-links {
+            display: flex;
+            justify-content: center;
+            gap: 3rem;
+            margin-bottom: 2rem;
+            flex-wrap: wrap;
+        }
+
+        .footer-links a {
+            color: var(--white);
+            text-decoration: none;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            transition: color 0.3s ease;
+            border-bottom: 2px solid transparent;
+            padding-bottom: 0.25rem;
+        }
+
+        .footer-links a:hover {
+            color: var(--gold);
+            border-bottom-color: var(--gold);
+        }
+
+        .footer-text {
+            font-size: 0.95rem;
+            opacity: 0.85;
+            line-height: 1.6;
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .nav-links {
+                display: none;
+            }
+
+            .product-header {
+                grid-template-columns: 1fr;
+                gap: 2rem;
+            }
+
+            .main-image {
+                height: 400px;
+            }
+
+            .product-title {
+                font-size: 2rem;
+            }
+
+            .tab-buttons {
+                overflow-x: auto;
+                white-space: nowrap;
+            }
+
+            .tab-button {
+                min-width: 150px;
+            }
+
+            .modal-body {
+                padding: 2rem;
+            }
+
+            .confirmation-body {
+                padding: 2rem 1.5rem;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .product-container {
+                padding: 2rem 1rem;
+            }
+
+            .overlay {
+                padding: 1rem;
+            }
+
+            .modal-header {
+                padding: 1.5rem;
+            }
+
+            .modal-title {
+                font-size: 1.5rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Header -->
+    <header>
+        <div class="header-top">
+            Founded 2015 by Drupon Khen Rinpoche • Thrangu Sekhar Retreat Center, Nepal
+        </div>
+        <nav>
+            <div class="logo">
+                <img src="https://i.ibb.co/HDg6gHn8/mts-logo-259x300.png" alt="MTS Logo">
+                <span>Marpa Translation Society</span>
+            </div>
+            <ul class="nav-links">
+                <li><a href="translation_society_website.html">Home</a></li>
+                <li><a href="mts_about_page.html">About</a></li>
+                <li><a href="mts_catalog_page.html" class="active">Catalog</a></li>
+                <li><a href="mts_knowledge_hub.html">Knowledge Hub</a></li>
+                <li><a href="#contact">Contact</a></li>
+            </ul>
+        </nav>
+    </header>
+
+    <!-- Breadcrumb -->
+    <div class="breadcrumb">
+        <div class="breadcrumb-content">
+            <a href="index.html">Home</a> / <a href="catalog.html">Catalog</a> / <span>The Torch for the Definitive Meaning</span>
+        </div>
+    </div>
+
+    <!-- Product Container -->
+    <div class="product-container">
+        <!-- Product Header -->
+        <div class="product-header">
+            <div class="product-image-section">
+                <img src="https://via.placeholder.com/400x500/14375d/ffffff?text=The+Torch+for+the+Definitive+Meaning" alt="Book Cover" class="main-image">
+                <div class="image-badge">Featured Text</div>
+            </div>
+
+            <div class="product-info">
+                <div class="product-meta">
+                    <span class="meta-tag">English Translation</span>
+                    <span class="meta-tag">Treatise</span>
+                    <span class="meta-tag">Mahamudra</span>
+                </div>
+
+                <h1 class="product-title">The Torch for the Definitive Meaning</h1>
+                <div class="product-subtitle">Great Seal Preliminaries (nges don sgron me)</div>
+                <div class="product-author">by <a href="#" class="author-link">Jamgon Kongtrul Rinpoche</a></div>
+
+                <p class="product-description">
+                    A profound treatise on the Great Seal preliminaries offering essential guidance for Mahamudra practitioners. This masterwork by the renowned Jamgon Kongtrul provides comprehensive instructions on the foundational practices necessary for realizing the nature of mind. Our scholarly translation preserves the depth and authenticity of this classical text while making it accessible to contemporary practitioners.
+                </p>
+
+                <div class="price-section">
+                    <div class="price-main">$24.00</div>
+                    <div class="price-note">Cost-Only Pricing</div>
+                    <div class="cost-breakdown">
+                        Includes: translation work • editing • printing • shipping<br>
+                        No profit margin added • Authentic dharma at true cost
+                    </div>
+                </div>
+
+                <button class="request-button" onclick="openRequestModal()">
+                    Request This Book
+                </button>
+
+                <div class="dharma-note">
+                    "We believe sincere practitioners should have access to authentic teachings without financial burden. Your genuine motivation for study and practice matters more than your ability to pay."
+                </div>
+            </div>
+        </div>
+
+        <!-- Product Tabs -->
+        <div class="product-tabs">
+            <div class="tab-buttons">
+                <button class="tab-button active" onclick="showTab('description')">Description</button>
+                <button class="tab-button" onclick="showTab('contents')">Contents</button>
+                <button class="tab-button" onclick="showTab('specifications')">Specifications</button>
+                <button class="tab-button" onclick="showTab('translator')">Translator</button>
+            </div>
+
+            <div class="tab-content">
+                <div class="tab-pane active" id="description">
+                    <h3>About This Translation</h3>
+                    <p>This comprehensive translation of Jamgon Kongtrul's "nges don sgron me" represents years of careful scholarly work by our translator-practitioners at Thrangu Sekhar Retreat Center. Working under the direct guidance of Drupon Khen Rinpoche, this translation captures both the intellectual precision and spiritual depth of the original Tibetan text.</p>
+                    
+                    <p>The Great Seal (Mahamudra) preliminaries are essential practices that prepare the mind for direct realization of its true nature. Kongtrul's masterful exposition provides practitioners with clear instructions on meditation techniques, philosophical understanding, and practical guidance for integrating these teachings into daily life.</p>
+                    
+                    <p>This text serves as an indispensable companion for serious Mahamudra practitioners, offering profound insights into the nature of consciousness and the path to liberation. The translation includes extensive footnotes, glossary of terms, and contextual commentary to support both beginning and advanced students.</p>
+                </div>
+
+                <div class="tab-pane" id="contents">
+                    <h3>Table of Contents</h3>
+                    <p><strong>Introduction by Drupon Khen Rinpoche</strong></p>
+                    <p><strong>Translator's Preface</strong></p>
+                    <p><strong>Part I: Foundation of Understanding</strong><br>
+                    • The Nature of Mind<br>
+                    • Establishing Correct View<br>
+                    • The Four Foundations of Mindfulness</p>
+                    <p><strong>Part II: Essential Practices</strong><br>
+                    • Calm Abiding (Shamatha)<br>
+                    • Special Insight (Vipashyana)<br>
+                    • Integrating Method and Wisdom</p>
+                    <p><strong>Part III: Advanced Instructions</strong><br>
+                    • Direct Introduction to Mind's Nature<br>
+                    • Sustaining Recognition<br>
+                    • Eliminating Obstacles</p>
+                    <p><strong>Appendices</strong><br>
+                    • Glossary of Technical Terms<br>
+                    • Pronunciation Guide<br>
+                    • Bibliography of Sources</p>
+                </div>
+
+                <div class="tab-pane" id="specifications">
+                    <h3>Book Details</h3>
+                    <div class="specs-grid">
+                        <div class="spec-item">
+                            <div class="spec-label">Format</div>
+                            <div class="spec-value">Paperback, 6" × 9"</div>
+                        </div>
+                        <div class="spec-item">
+                            <div class="spec-label">Pages</div>
+                            <div class="spec-value">384 pages</div>
+                        </div>
+                        <div class="spec-item">
+                            <div class="spec-label">Language</div>
+                            <div class="spec-value">English</div>
+                        </div>
+                        <div class="spec-item">
+                            <div class="spec-label">ISBN</div>
+                            <div class="spec-value">978-0-12345-678-9</div>
+                        </div>
+                        <div class="spec-item">
+                            <div class="spec-label">Publisher</div>
+                            <div class="spec-value">Marpa Translation Society</div>
+                        </div>
+                        <div class="spec-item">
+                            <div class="spec-label">Publication Date</div>
+                            <div class="spec-value">March 2024</div>
+                        </div>
+                        <div class="spec-item">
+                            <div class="spec-label">Weight</div>
+                            <div class="spec-value">1.2 lbs (0.54 kg)</div>
+                        </div>
+                        <div class="spec-item">
+                            <div class="spec-label">Printing</div>
+                            <div class="spec-value">High-quality offset printing</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="tab-pane" id="translator">
+                    <h3>About the Translation Team</h3>
+                    <p>This translation was completed by our senior translator-scholars working under the direct supervision of Drupon Khen Rinpoche at Thrangu Sekhar Retreat Center. Our translation methodology combines rigorous academic standards with authentic practice experience.</p>
+                    
+                    <p>The lead translator holds advanced degrees in Tibetan Buddhist Studies and has completed traditional three-year retreat training. Having studied this text extensively with both Rinpoche and Khenpo Wangchuk, they bring both scholarly precision and experiential understanding to this translation.</p>
+                    
+                    <p>Each translation undergoes multiple review stages, including validation by learned Khenpos, refinement through Rinpoche's teachings, and careful editing to ensure clarity while preserving the profound meaning of the original. Our commitment is to provide translations that serve both scholarly research and authentic spiritual practice.</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Related Books -->
+        <div class="related-section">
+            <h2 class="related-title">Related Texts</h2>
+            <div class="related-grid">
+                <div class="related-book">
+                    <img src="https://via.placeholder.com/250x200/8b1538/ffffff?text=Ocean+of+Meaning" alt="Related Book">
+                    <h4>Ocean of Definitive Meaning</h4>
+                    <p>Karmapa Wangchuk Dorje</p>
+                </div>
+                <div class="related-book">
+                    <img src="https://via.placeholder.com/250x200/d4af37/ffffff?text=Gampopa+Works" alt="Related Book">
+                    <h4>Gampopa's Collected Works</h4>
+                    <p>Gampopa</p>
+                </div>
+                <div class="related-book">
+                    <img src="https://via.placeholder.com/250x200/14375d/ffffff?text=Lion+Roar" alt="Related Book">
+                    <h4>The Indomitable Lion's Roar</h4>
+                    <p>Jamgon Kongtrul Rinpoche</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Request Modal Overlay -->
+    <div class="overlay" id="requestOverlay">
+        <div class="request-modal">
+            <div class="modal-header">
+                <button class="close-button" onclick="closeModal()">&times;</button>
+                <div class="modal-header-content">
+                    <h2 class="modal-title">Request Sacred Text</h2>
+                    <p class="modal-subtitle">Your sincere motivation guides our dharma distribution</p>
+                </div>
+            </div>
+            
+            <div class="modal-body">
+                <div class="book-summary">
+                    <div class="book-title">The Torch for the Definitive Meaning</div>
+                    <div class="book-price">Cost-only price: $24.00</div>
+                </div>
+
+                <form id="requestForm">
+                    <div class="form-group">
+                        <label for="name" class="form-label">Full Name *</label>
+                        <input type="text" id="name" name="name" class="form-input" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="email" class="form-label">Email Address *</label>
+                        <input type="email" id="email" name="email" class="form-input" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="reason" class="form-label">Why do you need this text? *</label>
+                        <textarea id="reason" name="reason" class="form-textarea" required placeholder="Please share your sincere motivation for requesting this dharma text..."></textarea>
+                        <div class="form-help">
+                            Your response helps us understand how this teaching will support your spiritual practice and study. We appreciate your honest intention and dedication to the dharma.
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="experience" class="form-label">Practice Background</label>
+                        <textarea id="experience" name="experience" class="form-textarea" placeholder="Brief description of your Buddhist study or meditation background (optional)..."></textarea>
+                        <div class="form-help">
+                            This helps us provide additional guidance or recommended preparation if helpful.
+                        </div>
+                    </div>
+
+                    <button type="submit" class="submit-button">Submit Request</button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Confirmation Modal -->
+    <div class="overlay" id="confirmationOverlay">
+        <div class="confirmation-modal">
+            <div class="confirmation-header">
+                <span class="confirmation-icon">🙏</span>
+                <h2 class="confirmation-title">Request Received</h2>
+                <p class="confirmation-subtitle">Your sincere request has been submitted</p>
+            </div>
+            
+            <div class="confirmation-body">
+                <p>Thank you for sharing your motivation with us. Your request for "The Torch for the Definitive Meaning" has been received and will be reviewed by our dharma distribution team.</p>
+                
+                <div class="confirmation-note">
+                    We typically respond within 2-3 days with instructions for completing your order. Your genuine intention to study and practice these teachings is what matters most to us.
+                </div>
+                
+                <p>May this sacred text support your journey toward awakening and benefit all sentient beings.</p>
+                
+                <button class="ok-button" onclick="closeConfirmation()">Continue Browsing</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Footer -->
+    <footer>
+        <div class="footer-content">
+            <div class="footer-motto">"Someone who conveys the Dharma in their own language to their fellow countrymen, is doing something wonderful and very important."</div>
+            <div class="footer-links">
+                <a href="index.html">Home</a>
+                <a href="about.html">About</a>
+                <a href="catalog.html">Catalog</a>
+                <a href="#hub">Knowledge Hub</a>
+                <a href="#contact">Contact</a>
+                <a href="#">Available Texts</a>
+            </div>
+            <p class="footer-text">&copy; 2025 Marpa Translation Society. Founded in 2015 by Drupon Khen Rinpoche Karma Lhabu.<br>
+            Making authentic Buddhist wisdom accessible through scholarly translation.</p>
+        </div>
+    </footer>
+
+    <script>
+        // Tab functionality
+        function showTab(tabName) {
+            // Hide all tab panes
+            document.querySelectorAll('.tab-pane').forEach(pane => {
+                pane.classList.remove('active');
+            });
+            
+            // Remove active class from all buttons
+            document.querySelectorAll('.tab-button').forEach(button => {
+                button.classList.remove('active');
+            });
+            
+            // Show selected tab
+            document.getElementById(tabName).classList.add('active');
+            event.target.classList.add('active');
+        }
+
+        // Modal functions
+        function openRequestModal() {
+            document.getElementById('requestOverlay').classList.add('active');
+            document.body.style.overflow = 'hidden';
+        }
+
+        function closeModal() {
+            document.getElementById('requestOverlay').classList.remove('active');
+            document.body.style.overflow = '';
+            
+            // Reset form
+            document.getElementById('requestForm').reset();
+        }
+
+        function closeConfirmation() {
+            document.getElementById('confirmationOverlay').classList.remove('active');
+            document.body.style.overflow = '';
+        }
+
+        // Form submission
+        document.getElementById('requestForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            // Get form data
+            const formData = new FormData(this);
+            const name = formData.get('name');
+            const email = formData.get('email');
+            const reason = formData.get('reason');
+            const experience = formData.get('experience');
+            
+            // Validate required fields
+            if (!name || !email || !reason) {
+                alert('Please fill in all required fields.');
+                return;
+            }
+            
+            // Simulate form submission
+            const submitButton = this.querySelector('.submit-button');
+            submitButton.textContent = 'Submitting...';
+            submitButton.disabled = true;
+            
+            setTimeout(() => {
+                // Close request modal
+                document.getElementById('requestOverlay').classList.remove('active');
+                
+                // Show confirmation modal
+                document.getElementById('confirmationOverlay').classList.add('active');
+                
+                // Reset button
+                submitButton.textContent = 'Submit Request';
+                submitButton.disabled = false;
+                
+                console.log('Request submitted:', {
+                    name, email, reason, experience,
+                    book: 'The Torch for the Definitive Meaning',
+                    price: '$24.00'
+                });
+            }, 1500);
+        });
+
+        // Close modal when clicking overlay
+        document.getElementById('requestOverlay').addEventListener('click', function(e) {
+            if (e.target === this) {
+                closeModal();
+            }
+        });
+
+        document.getElementById('confirmationOverlay').addEventListener('click', function(e) {
+            if (e.target === this) {
+                closeConfirmation();
+            }
+        });
+
+        // Close modal with Escape key
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'Escape') {
+                if (document.getElementById('requestOverlay').classList.contains('active')) {
+                    closeModal();
+                }
+                if (document.getElementById('confirmationOverlay').classList.contains('active')) {
+                    closeConfirmation();
+                }
+            }
+        });
+
+        // Smooth scrolling for anchor links
+        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+            anchor.addEventListener('click', function (e) {
+                e.preventDefault();
+                const target = document.querySelector(this.getAttribute('href'));
+                if (target) {
+                    target.scrollIntoView({
+                        behavior: 'smooth',
+                        block: 'start'
+                    });
+                }
+            });
+        });
+    </script>
+</body>
+</html>

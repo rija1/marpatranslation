@@ -1,0 +1,1176 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Translations Catalog - Marpa Translation Society</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Crimson Text', 'Georgia', serif;
+            line-height: 1.7;
+            color: #2d3748;
+            background: #faf8f5;
+        }
+
+        :root {
+            --primary: #14375d;
+            --burgundy: #8b1538;
+            --gold: #d4af37;
+            --cream: #faf8f5;
+            --parchment: #f7f4f0;
+            --text: #2d3748;
+            --light-text: #4a5568;
+            --border: #d4c5a9;
+            --white: #ffffff;
+        }
+
+        /* Header */
+        header {
+            background: var(--white);
+            border-bottom: 3px solid var(--gold);
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+        }
+
+        .header-top {
+            background: var(--primary);
+            color: var(--white);
+            padding: 0.5rem 0;
+            text-align: center;
+            font-size: 0.875rem;
+        }
+
+        nav {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 1.5rem 2rem;
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: var(--primary);
+        }
+
+        .logo img {
+            height: 60px;
+            width: auto;
+            margin-right: 20px;
+            border: 2px solid var(--gold);
+            border-radius: 50%;
+            padding: 8px;
+            background: var(--white);
+        }
+
+        .nav-links {
+            display: flex;
+            list-style: none;
+            gap: 2.5rem;
+        }
+
+        .nav-links a {
+            color: var(--text);
+            text-decoration: none;
+            font-weight: 600;
+            font-size: 1.05rem;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            transition: color 0.3s ease;
+            border-bottom: 2px solid transparent;
+            padding-bottom: 0.25rem;
+        }
+
+        .nav-links a:hover,
+        .nav-links a.active {
+            color: var(--burgundy);
+            border-bottom-color: var(--gold);
+        }
+
+        /* Breadcrumb */
+        .breadcrumb {
+            background: var(--parchment);
+            padding: 1rem 2rem;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .breadcrumb-content {
+            max-width: 1400px;
+            margin: 0 auto;
+            font-size: 0.95rem;
+            color: var(--light-text);
+        }
+
+        .breadcrumb a {
+            color: var(--primary);
+            text-decoration: none;
+            font-weight: 600;
+        }
+
+        .breadcrumb a:hover {
+            color: var(--burgundy);
+        }
+
+        /* Page Header */
+        .page-header {
+            background: var(--primary);
+            color: var(--white);
+            padding: 60px 2rem 40px;
+            text-align: center;
+            position: relative;
+        }
+
+        .page-header::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><defs><pattern id="header-pattern" width="20" height="20" patternUnits="userSpaceOnUse"><circle cx="10" cy="10" r="1" fill="rgba(212,175,55,0.1)"/></pattern></defs><rect width="100" height="100" fill="url(%23header-pattern)"/></svg>');
+        }
+
+        .page-header-content {
+            max-width: 1400px;
+            margin: 0 auto;
+            position: relative;
+            z-index: 2;
+        }
+
+        .page-header h1 {
+            font-size: 3rem;
+            font-weight: 700;
+            margin-bottom: 1rem;
+            line-height: 1.2;
+        }
+
+        .page-header p {
+            font-size: 1.2rem;
+            opacity: 0.9;
+            font-style: italic;
+        }
+
+        /* Main Content */
+        .catalog-container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 2rem;
+            display: grid;
+            grid-template-columns: 280px 1fr;
+            gap: 3rem;
+        }
+
+        /* Sidebar Filters */
+        .filters-sidebar {
+            background: var(--white);
+            border: 2px solid var(--border);
+            padding: 2rem;
+            height: fit-content;
+            position: sticky;
+            top: 120px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+
+        .filters-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 2rem;
+            padding-bottom: 1rem;
+            border-bottom: 2px solid var(--gold);
+        }
+
+        .filters-title {
+            font-size: 1.3rem;
+            font-weight: 700;
+            color: var(--primary);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .clear-filters {
+            background: none;
+            border: none;
+            color: var(--burgundy);
+            cursor: pointer;
+            font-size: 0.9rem;
+            font-weight: 600;
+            text-decoration: underline;
+            transition: color 0.3s ease;
+        }
+
+        .clear-filters:hover {
+            color: var(--primary);
+        }
+
+        .filter-group {
+            margin-bottom: 2rem;
+        }
+
+        .filter-group h3 {
+            font-size: 1.1rem;
+            font-weight: 600;
+            color: var(--primary);
+            margin-bottom: 1rem;
+            text-transform: uppercase;
+            letter-spacing: 0.3px;
+        }
+
+        .filter-options {
+            display: flex;
+            flex-direction: column;
+            gap: 0.75rem;
+        }
+
+        .filter-option {
+            display: flex;
+            align-items: center;
+            cursor: pointer;
+            padding: 0.5rem;
+            border-radius: 4px;
+            transition: background-color 0.3s ease;
+        }
+
+        .filter-option:hover {
+            background: var(--parchment);
+        }
+
+        .filter-option input[type="checkbox"] {
+            margin-right: 0.75rem;
+            width: 18px;
+            height: 18px;
+            cursor: pointer;
+            accent-color: var(--gold);
+        }
+
+        .filter-option label {
+            cursor: pointer;
+            flex: 1;
+            font-weight: 500;
+            color: var(--text);
+        }
+
+        .filter-count {
+            color: var(--light-text);
+            font-size: 0.9rem;
+            margin-left: auto;
+        }
+
+        /* Search Bar */
+        .search-section {
+            margin-bottom: 2rem;
+        }
+
+        .search-box {
+            position: relative;
+        }
+
+        .search-input {
+            width: 100%;
+            padding: 1rem;
+            border: 2px solid var(--border);
+            background: var(--white);
+            color: var(--text);
+            font-size: 1rem;
+            font-family: inherit;
+            transition: border-color 0.3s ease;
+        }
+
+        .search-input:focus {
+            outline: none;
+            border-color: var(--gold);
+        }
+
+        .search-icon {
+            position: absolute;
+            right: 1rem;
+            top: 50%;
+            transform: translateY(-50%);
+            color: var(--light-text);
+            font-size: 1.2rem;
+        }
+
+        /* Main Content Area */
+        .catalog-main {
+            min-height: 80vh;
+        }
+
+        /* Results Header */
+        .results-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 2rem;
+            padding: 1.5rem;
+            background: var(--white);
+            border: 1px solid var(--border);
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+        }
+
+        .results-info {
+            color: var(--text);
+            font-weight: 600;
+        }
+
+        .results-count {
+            color: var(--burgundy);
+            font-weight: 700;
+        }
+
+        .sort-dropdown {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .sort-dropdown label {
+            font-weight: 600;
+            color: var(--text);
+            text-transform: uppercase;
+            letter-spacing: 0.3px;
+        }
+
+        .sort-dropdown select {
+            padding: 0.75rem 1rem;
+            border: 2px solid var(--border);
+            background: var(--white);
+            color: var(--text);
+            font-family: inherit;
+            cursor: pointer;
+            transition: border-color 0.3s ease;
+        }
+
+        .sort-dropdown select:focus {
+            outline: none;
+            border-color: var(--gold);
+        }
+
+        /* Product Grid */
+        .products-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 2rem;
+            margin-bottom: 3rem;
+        }
+
+        .product-card {
+            background: var(--white);
+            border: 1px solid var(--border);
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+
+        .product-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 4px;
+            background: linear-gradient(90deg, var(--gold), var(--burgundy));
+            transform: scaleX(0);
+            transition: transform 0.3s ease;
+        }
+
+        .product-card:hover::before {
+            transform: scaleX(1);
+        }
+
+        .product-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 12px 24px rgba(0,0,0,0.15);
+        }
+
+        .product-image {
+            position: relative;
+            height: 320px;
+            background: var(--parchment);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+        }
+
+        .product-image img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            transition: transform 0.3s ease;
+        }
+
+        .product-card:hover .product-image img {
+            transform: scale(1.05);
+        }
+
+        .product-badges {
+            position: absolute;
+            top: 1rem;
+            right: 1rem;
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+        }
+
+        .badge {
+            padding: 0.25rem 0.75rem;
+            font-size: 0.8rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            border-radius: 20px;
+            background: var(--gold);
+            color: var(--white);
+        }
+
+        .badge.new {
+            background: var(--burgundy);
+        }
+
+        .badge.featured {
+            background: var(--primary);
+        }
+
+        .product-info {
+            padding: 2rem;
+        }
+
+        .product-meta {
+            display: flex;
+            gap: 1rem;
+            margin-bottom: 1rem;
+            flex-wrap: wrap;
+        }
+
+        .meta-tag {
+            background: var(--parchment);
+            color: var(--primary);
+            padding: 0.25rem 0.75rem;
+            font-size: 0.85rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.3px;
+            border: 1px solid var(--border);
+        }
+
+        .product-title {
+            font-size: 1.3rem;
+            font-weight: 700;
+            color: var(--primary);
+            margin-bottom: 0.75rem;
+            line-height: 1.4;
+            display: -webkit-box;
+            -webkit-line-clamp: 2;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+        }
+
+        .product-author {
+            color: var(--burgundy);
+            font-weight: 600;
+            margin-bottom: 0.75rem;
+            font-style: italic;
+        }
+
+        .product-description {
+            color: var(--text);
+            font-size: 0.95rem;
+            line-height: 1.6;
+            margin-bottom: 1.5rem;
+            display: -webkit-box;
+            -webkit-line-clamp: 3;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+        }
+
+        .product-footer {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-top: 1px solid var(--border);
+            padding-top: 1rem;
+        }
+
+        .product-price {
+            font-size: 1.2rem;
+            font-weight: 700;
+            color: var(--primary);
+        }
+
+        .price-note {
+            font-size: 0.8rem;
+            color: var(--light-text);
+            font-style: italic;
+        }
+
+        .add-to-cart-btn {
+            background: var(--burgundy);
+            color: var(--white);
+            border: 2px solid var(--burgundy);
+            padding: 0.75rem 1.5rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-family: inherit;
+        }
+
+        .add-to-cart-btn:hover {
+            background: transparent;
+            color: var(--burgundy);
+        }
+
+        /* Pagination */
+        .pagination {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 1rem;
+            margin-top: 3rem;
+            padding: 2rem;
+            background: var(--white);
+            border: 1px solid var(--border);
+        }
+
+        .pagination button {
+            padding: 0.75rem 1.25rem;
+            border: 2px solid var(--border);
+            background: var(--white);
+            color: var(--text);
+            font-family: inherit;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .pagination button:hover:not(:disabled),
+        .pagination button.active {
+            background: var(--primary);
+            color: var(--white);
+            border-color: var(--primary);
+        }
+
+        .pagination button:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        /* Mobile Toggle */
+        .mobile-filter-toggle {
+            display: none;
+            background: var(--primary);
+            color: var(--white);
+            border: none;
+            padding: 1rem;
+            width: 100%;
+            font-family: inherit;
+            font-weight: 600;
+            font-size: 1rem;
+            cursor: pointer;
+            margin-bottom: 2rem;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        /* Footer */
+        footer {
+            background: var(--primary);
+            color: var(--white);
+            padding: 3rem 2rem 2rem;
+            border-top: 3px solid var(--gold);
+            margin-top: 4rem;
+        }
+
+        .footer-content {
+            max-width: 1400px;
+            margin: 0 auto;
+            text-align: center;
+        }
+
+        .footer-motto {
+            font-size: 1.25rem;
+            font-style: italic;
+            margin-bottom: 2rem;
+            color: var(--gold);
+        }
+
+        .footer-links {
+            display: flex;
+            justify-content: center;
+            gap: 3rem;
+            margin-bottom: 2rem;
+            flex-wrap: wrap;
+        }
+
+        .footer-links a {
+            color: var(--white);
+            text-decoration: none;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            transition: color 0.3s ease;
+            border-bottom: 2px solid transparent;
+            padding-bottom: 0.25rem;
+        }
+
+        .footer-links a:hover {
+            color: var(--gold);
+            border-bottom-color: var(--gold);
+        }
+
+        .footer-text {
+            font-size: 0.95rem;
+            opacity: 0.85;
+            line-height: 1.6;
+        }
+
+        /* Responsive */
+        @media (max-width: 1024px) {
+            .catalog-container {
+                grid-template-columns: 1fr;
+                gap: 2rem;
+            }
+
+            .mobile-filter-toggle {
+                display: block;
+            }
+
+            .filters-sidebar {
+                display: none;
+                position: static;
+            }
+
+            .filters-sidebar.mobile-open {
+                display: block;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .nav-links {
+                display: none;
+            }
+
+            .page-header h1 {
+                font-size: 2.25rem;
+            }
+
+            .catalog-container {
+                padding: 1rem;
+            }
+
+            .results-header {
+                flex-direction: column;
+                gap: 1rem;
+                text-align: center;
+            }
+
+            .products-grid {
+                grid-template-columns: 1fr;
+                gap: 1.5rem;
+            }
+
+            .product-footer {
+                flex-direction: column;
+                gap: 1rem;
+                text-align: center;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .product-meta {
+                justify-content: center;
+            }
+
+            .pagination {
+                gap: 0.5rem;
+                padding: 1rem;
+            }
+
+            .pagination button {
+                padding: 0.5rem 0.75rem;
+                font-size: 0.9rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Header -->
+    <header>
+        <div class="header-top">
+            Founded 2015 by Drupon Khen Rinpoche • Thrangu Sekhar Retreat Center, Nepal
+        </div>
+        <nav>
+            <div class="logo">
+                <img src="https://i.ibb.co/HDg6gHn8/mts-logo-259x300.png" alt="MTS Logo">
+                <span>Marpa Translation Society</span>
+            </div>
+            <ul class="nav-links">
+                <li><a href="translation_society_website.html">Home</a></li>
+                <li><a href="mts_about_page.html">About</a></li>
+                <li><a href="mts_catalog_page.html" class="active">Catalog</a></li>
+                <li><a href="mts_knowledge_hub.html">Knowledge Hub</a></li>
+                <li><a href="#contact">Contact</a></li>
+            </ul>
+        </nav>
+    </header>
+
+    <!-- Breadcrumb -->
+    <div class="breadcrumb">
+        <div class="breadcrumb-content">
+            <a href="translation_society_website.html">Home</a> / <span>Translations Catalog</span>
+        </div>
+    </div>
+
+    <!-- Page Header -->
+    <section class="page-header">
+        <div class="page-header-content">
+            <h1>Sacred Texts Collection</h1>
+            <p>Authentic Buddhist wisdom at cost-only prices • Scholarly translations by practitioner-scholars</p>
+        </div>
+    </section>
+
+    <!-- Catalog Container -->
+    <div class="catalog-container">
+        <!-- Mobile Filter Toggle -->
+        <button class="mobile-filter-toggle" onclick="toggleMobileFilters()">
+            🔍 Filter Texts
+        </button>
+
+        <!-- Filters Sidebar -->
+        <aside class="filters-sidebar" id="filtersSidebar">
+            <div class="filters-header">
+                <h2 class="filters-title">Refine Search</h2>
+                <button class="clear-filters" onclick="clearAllFilters()">Clear All</button>
+            </div>
+
+            <!-- Search -->
+            <div class="search-section">
+                <div class="search-box">
+                    <input type="text" class="search-input" placeholder="Search texts, authors...">
+                    <span class="search-icon">🔍</span>
+                </div>
+            </div>
+
+            <!-- Language Filter -->
+            <div class="filter-group">
+                <h3>Language</h3>
+                <div class="filter-options">
+                    <div class="filter-option">
+                        <input type="checkbox" id="lang-english" name="language" value="english">
+                        <label for="lang-english">English</label>
+                        <span class="filter-count">32</span>
+                    </div>
+                    <div class="filter-option">
+                        <input type="checkbox" id="lang-chinese" name="language" value="chinese">
+                        <label for="lang-chinese">Chinese</label>
+                        <span class="filter-count">18</span>
+                    </div>
+                    <div class="filter-option">
+                        <input type="checkbox" id="lang-german" name="language" value="german">
+                        <label for="lang-german">German</label>
+                        <span class="filter-count">12</span>
+                    </div>
+                    <div class="filter-option">
+                        <input type="checkbox" id="lang-french" name="language" value="french">
+                        <label for="lang-french">French</label>
+                        <span class="filter-count">8</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Text Type Filter -->
+            <div class="filter-group">
+                <h3>Text Type</h3>
+                <div class="filter-options">
+                    <div class="filter-option">
+                        <input type="checkbox" id="type-treatise" name="text-type" value="treatise">
+                        <label for="type-treatise">Treatise</label>
+                        <span class="filter-count">28</span>
+                    </div>
+                    <div class="filter-option">
+                        <input type="checkbox" id="type-liturgy" name="text-type" value="liturgy">
+                        <label for="type-liturgy">Liturgy</label>
+                        <span class="filter-count">15</span>
+                    </div>
+                    <div class="filter-option">
+                        <input type="checkbox" id="type-instruction" name="text-type" value="instruction">
+                        <label for="type-instruction">Instruction Manual</label>
+                        <span class="filter-count">27</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Author Filter -->
+            <div class="filter-group">
+                <h3>Author</h3>
+                <div class="filter-options">
+                    <div class="filter-option">
+                        <input type="checkbox" id="author-gampopa" name="author" value="gampopa">
+                        <label for="author-gampopa">Gampopa</label>
+                        <span class="filter-count">12</span>
+                    </div>
+                    <div class="filter-option">
+                        <input type="checkbox" id="author-kongtrul" name="author" value="kongtrul">
+                        <label for="author-kongtrul">Jamgon Kongtrul</label>
+                        <span class="filter-count">8</span>
+                    </div>
+                    <div class="filter-option">
+                        <input type="checkbox" id="author-karmapa" name="author" value="karmapa">
+                        <label for="author-karmapa">Karmapa Mikyo Dorje</label>
+                        <span class="filter-count">15</span>
+                    </div>
+                    <div class="filter-option">
+                        <input type="checkbox" id="author-milarepa" name="author" value="milarepa">
+                        <label for="author-milarepa">Milarepa</label>
+                        <span class="filter-count">6</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Price Range -->
+            <div class="filter-group">
+                <h3>Price Range</h3>
+                <div class="filter-options">
+                    <div class="filter-option">
+                        <input type="checkbox" id="price-free" name="price" value="free">
+                        <label for="price-free">Free</label>
+                        <span class="filter-count">5</span>
+                    </div>
+                    <div class="filter-option">
+                        <input type="checkbox" id="price-low" name="price" value="low">
+                        <label for="price-low">Under $15</label>
+                        <span class="filter-count">23</span>
+                    </div>
+                    <div class="filter-option">
+                        <input type="checkbox" id="price-mid" name="price" value="mid">
+                        <label for="price-mid">$15 - $30</label>
+                        <span class="filter-count">32</span>
+                    </div>
+                    <div class="filter-option">
+                        <input type="checkbox" id="price-high" name="price" value="high">
+                        <label for="price-high">Over $30</label>
+                        <span class="filter-count">10</span>
+                    </div>
+                </div>
+            </div>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="catalog-main">
+            <!-- Results Header -->
+            <div class="results-header">
+                <div class="results-info">
+                    Showing <span class="results-count">70</span> texts
+                </div>
+                <div class="sort-dropdown">
+                    <label for="sort-select">Sort by:</label>
+                    <select id="sort-select">
+                        <option value="relevance">Relevance</option>
+                        <option value="newest">Newest First</option>
+                        <option value="oldest">Oldest First</option>
+                        <option value="price-low">Price: Low to High</option>
+                        <option value="price-high">Price: High to Low</option>
+                        <option value="author">Author A-Z</option>
+                        <option value="title">Title A-Z</option>
+                    </select>
+                </div>
+            </div>
+
+            <!-- Products Grid -->
+            <div class="products-grid">
+                <!-- Product Card 1 -->
+                <article class="product-card">
+                    <div class="product-image">
+                        <img src="https://via.placeholder.com/300x320/14375d/ffffff?text=Torch+for+the+Definitive+Meaning" alt="Book Cover">
+                        <div class="product-badges">
+                            <span class="badge featured">Featured</span>
+                        </div>
+                    </div>
+                    <div class="product-info">
+                        <div class="product-meta">
+                            <span class="meta-tag">English</span>
+                            <span class="meta-tag">Treatise</span>
+                        </div>
+                        <h3 class="product-title">The Torch for the Definitive Meaning</h3>
+                        <div class="product-author">by Jamgon Kongtrul Rinpoche</div>
+                        <p class="product-description">A profound treatise on the Great Seal preliminaries (nges don sgron me), offering essential guidance for Mahamudra practitioners. This scholarly translation captures the depth of Kongtrul's teachings.</p>
+                        <div class="product-footer">
+                            <div>
+                                <div class="product-price">$24.00</div>
+                                <div class="price-note">Cost-only pricing</div>
+                            </div>
+                            <button class="add-to-cart-btn">Add to Cart</button>
+                        </div>
+                    </div>
+                </article>
+
+                <!-- Product Card 2 -->
+                <article class="product-card">
+                    <div class="product-image">
+                        <img src="https://via.placeholder.com/300x320/8b1538/ffffff?text=Gampopa+Collected+Works" alt="Book Cover">
+                        <div class="product-badges">
+                            <span class="badge new">New</span>
+                        </div>
+                    </div>
+                    <div class="product-info">
+                        <div class="product-meta">
+                            <span class="meta-tag">English</span>
+                            <span class="meta-tag">Instruction</span>
+                        </div>
+                        <h3 class="product-title">Gampopa's Collected Works - Volume 1</h3>
+                        <div class="product-author">by Gampopa</div>
+                        <p class="product-description">The foundational teachings of the great Kagyu master, including the Jewel Ornament of Liberation. Essential reading for understanding the gradual path to enlightenment.</p>
+                        <div class="product-footer">
+                            <div>
+                                <div class="product-price">$32.00</div>
+                                <div class="price-note">Cost-only pricing</div>
+                            </div>
+                            <button class="add-to-cart-btn">Add to Cart</button>
+                        </div>
+                    </div>
+                </article>
+
+                <!-- Product Card 3 -->
+                <article class="product-card">
+                    <div class="product-image">
+                        <img src="https://via.placeholder.com/300x320/d4af37/ffffff?text=Ocean+of+Definitive+Meaning" alt="Book Cover">
+                    </div>
+                    <div class="product-info">
+                        <div class="product-meta">
+                            <span class="meta-tag">German</span>
+                            <span class="meta-tag">Treatise</span>
+                        </div>
+                        <h3 class="product-title">Ozean der Endgültigen Bedeutung</h3>
+                        <div class="product-author">by Karmapa Wangchuk Dorje</div>
+                        <p class="product-description">Eine umfassende Abhandlung über Mahamudra von einem der größten Meister der Karma Kagyu Tradition. Präzise deutsche Übersetzung eines klassischen Textes.</p>
+                        <div class="product-footer">
+                            <div>
+                                <div class="product-price">€28.00</div>
+                                <div class="price-note">Cost-only pricing</div>
+                            </div>
+                            <button class="add-to-cart-btn">Add to Cart</button>
+                        </div>
+                    </div>
+                </article>
+
+                <!-- Product Card 4 -->
+                <article class="product-card">
+                    <div class="product-image">
+                        <img src="https://via.placeholder.com/300x320/14375d/ffffff?text=Life+of+Milarepa" alt="Book Cover">
+                    </div>
+                    <div class="product-info">
+                        <div class="product-meta">
+                            <span class="meta-tag">Chinese</span>
+                            <span class="meta-tag">Biography</span>
+                        </div>
+                        <h3 class="product-title">密勒日巴尊者传 (Life of Milarepa)</h3>
+                        <div class="product-author">Traditional Biography</div>
+                        <p class="product-description">西藏最伟大的瑜伽士密勒日巴尊者的完整传记。这部经典作品展现了修行者从罪人到圣者的转化历程，为现代修行者提供了无价的指导。</p>
+                        <div class="product-footer">
+                            <div>
+                                <div class="product-price">¥165</div>
+                                <div class="price-note">Cost-only pricing</div>
+                            </div>
+                            <button class="add-to-cart-btn">Add to Cart</button>
+                        </div>
+                    </div>
+                </article>
+
+                <!-- Product Card 5 -->
+                <article class="product-card">
+                    <div class="product-image">
+                        <img src="https://via.placeholder.com/300x320/8b1538/ffffff?text=Highest+Continuum" alt="Book Cover">
+                    </div>
+                    <div class="product-info">
+                        <div class="product-meta">
+                            <span class="meta-tag">French</span>
+                            <span class="meta-tag">Commentary</span>
+                        </div>
+                        <h3 class="product-title">Le Rugissement Indomptable du Lion</h3>
+                        <div class="product-author">by Jamgon Kongtrul Rinpoche</div>
+                        <p class="product-description">Commentaire magistral sur l'Uttaratantra Shastra, explorant la nature de Bouddha inhérente en tous les êtres. Une traduction précise qui préserve la profondeur philosophique du texte original.</p>
+                        <div class="product-footer">
+                            <div>
+                                <div class="product-price">€26.00</div>
+                                <div class="price-note">Cost-only pricing</div>
+                            </div>
+                            <button class="add-to-cart-btn">Add to Cart</button>
+                        </div>
+                    </div>
+                </article>
+
+                <!-- Product Card 6 -->
+                <article class="product-card">
+                    <div class="product-image">
+                        <img src="https://via.placeholder.com/300x320/d4af37/ffffff?text=Morning+Prayers" alt="Book Cover">
+                    </div>
+                    <div class="product-info">
+                        <div class="product-meta">
+                            <span class="meta-tag">English</span>
+                            <span class="meta-tag">Liturgy</span>
+                        </div>
+                        <h3 class="product-title">Daily Practice Collection - Morning Prayers</h3>
+                        <div class="product-author">Traditional Kagyu Liturgy</div>
+                        <p class="product-description">A comprehensive collection of morning prayers and practices from the Kagyu tradition. Includes phonetic Tibetan, English translation, and practice instructions.</p>
+                        <div class="product-footer">
+                            <div>
+                                <div class="product-price">Free</div>
+                                <div class="price-note">Dharma gift</div>
+                            </div>
+                            <button class="add-to-cart-btn">Download</button>
+                        </div>
+                    </div>
+                </article>
+            </div>
+
+            <!-- Pagination -->
+            <nav class="pagination">
+                <button disabled>← Previous</button>
+                <button class="active">1</button>
+                <button>2</button>
+                <button>3</button>
+                <button>4</button>
+                <button>5</button>
+                <button>Next →</button>
+            </nav>
+        </main>
+    </div>
+
+    <!-- Footer -->
+    <footer>
+        <div class="footer-content">
+            <div class="footer-motto">"Someone who conveys the Dharma in their own language to their fellow countrymen, is doing something wonderful and very important."</div>
+            <div class="footer-links">
+                <a href="index.html">Home</a>
+                <a href="about.html">About</a>
+                <a href="catalog.html">Catalog</a>
+                <a href="#hub">Knowledge Hub</a>
+                <a href="#contact">Contact</a>
+                <a href="#">Available Texts</a>
+            </div>
+            <p class="footer-text">&copy; 2025 Marpa Translation Society. Founded in 2015 by Drupon Khen Rinpoche Karma Lhabu.<br>
+            Making authentic Buddhist wisdom accessible through scholarly translation.</p>
+        </div>
+    </footer>
+
+    <script>
+        // Mobile filter toggle
+        function toggleMobileFilters() {
+            const sidebar = document.getElementById('filtersSidebar');
+            sidebar.classList.toggle('mobile-open');
+        }
+
+        // Clear all filters
+        function clearAllFilters() {
+            const checkboxes = document.querySelectorAll('input[type="checkbox"]');
+            checkboxes.forEach(checkbox => checkbox.checked = false);
+            
+            const searchInput = document.querySelector('.search-input');
+            searchInput.value = '';
+            
+            // Update results count
+            document.querySelector('.results-count').textContent = '70';
+            
+            // Could trigger actual filter update here
+            filterProducts();
+        }
+
+        // Filter products (mockup functionality)
+        function filterProducts() {
+            const languageFilters = Array.from(document.querySelectorAll('input[name="language"]:checked')).map(cb => cb.value);
+            const typeFilters = Array.from(document.querySelectorAll('input[name="text-type"]:checked')).map(cb => cb.value);
+            const authorFilters = Array.from(document.querySelectorAll('input[name="author"]:checked')).map(cb => cb.value);
+            const priceFilters = Array.from(document.querySelectorAll('input[name="price"]:checked')).map(cb => cb.value);
+            const searchTerm = document.querySelector('.search-input').value.toLowerCase();
+
+            // Mock filter logic - in real implementation, this would filter actual products
+            let resultCount = 70;
+            if (languageFilters.length > 0) resultCount -= 10;
+            if (typeFilters.length > 0) resultCount -= 15;
+            if (authorFilters.length > 0) resultCount -= 20;
+            if (priceFilters.length > 0) resultCount -= 5;
+            if (searchTerm) resultCount -= 10;
+            
+            resultCount = Math.max(0, resultCount);
+            document.querySelector('.results-count').textContent = resultCount;
+
+            // In real implementation, would hide/show product cards based on filters
+            console.log('Filtering products...', {
+                languages: languageFilters,
+                types: typeFilters,
+                authors: authorFilters,
+                prices: priceFilters,
+                search: searchTerm
+            });
+        }
+
+        // Add event listeners to all filters
+        document.querySelectorAll('input[type="checkbox"]').forEach(checkbox => {
+            checkbox.addEventListener('change', filterProducts);
+        });
+
+        document.querySelector('.search-input').addEventListener('input', filterProducts);
+
+        // Sort dropdown functionality
+        document.getElementById('sort-select').addEventListener('change', function(e) {
+            console.log('Sorting by:', e.target.value);
+            // In real implementation, would re-sort and re-render products
+        });
+
+        // Add to cart functionality
+        document.querySelectorAll('.add-to-cart-btn').forEach(button => {
+            button.addEventListener('click', function() {
+                const productCard = this.closest('.product-card');
+                const productTitle = productCard.querySelector('.product-title').textContent;
+                
+                // Mock add to cart
+                alert(`Added "${productTitle}" to cart!`);
+                
+                // In real implementation, would integrate with WooCommerce
+                console.log('Adding to cart:', productTitle);
+            });
+        });
+
+        // Close mobile filters when clicking outside
+        document.addEventListener('click', function(e) {
+            const sidebar = document.getElementById('filtersSidebar');
+            const toggle = document.querySelector('.mobile-filter-toggle');
+            
+            if (window.innerWidth <= 1024 && 
+                !sidebar.contains(e.target) && 
+                !toggle.contains(e.target) &&
+                sidebar.classList.contains('mobile-open')) {
+                sidebar.classList.remove('mobile-open');
+            }
+        });
+
+        // Smooth scrolling for better UX
+        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+            anchor.addEventListener('click', function (e) {
+                e.preventDefault();
+                const target = document.querySelector(this.getAttribute('href'));
+                if (target) {
+                    target.scrollIntoView({
+                        behavior: 'smooth',
+                        block: 'start'
+                    });
+                }
+            });
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,1041 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>About Us - Marpa Translation Society</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Crimson Text', 'Georgia', serif;
+            line-height: 1.7;
+            color: #2d3748;
+            background: #faf8f5;
+        }
+
+        :root {
+            --primary: #14375d;
+            --burgundy: #8b1538;
+            --gold: #d4af37;
+            --cream: #faf8f5;
+            --parchment: #f7f4f0;
+            --text: #2d3748;
+            --light-text: #4a5568;
+            --border: #d4c5a9;
+            --white: #ffffff;
+        }
+
+        /* Header */
+        header {
+            background: var(--white);
+            border-bottom: 3px solid var(--gold);
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+        }
+
+        .header-top {
+            background: var(--primary);
+            color: var(--white);
+            padding: 0.5rem 0;
+            text-align: center;
+            font-size: 0.875rem;
+        }
+
+        nav {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 1.5rem 2rem;
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: var(--primary);
+        }
+
+        .logo img {
+            height: 60px;
+            width: auto;
+            margin-right: 20px;
+            border: 2px solid var(--gold);
+            border-radius: 50%;
+            padding: 8px;
+            background: var(--white);
+        }
+
+        .nav-links {
+            display: flex;
+            list-style: none;
+            gap: 2.5rem;
+        }
+
+        .nav-links a {
+            color: var(--text);
+            text-decoration: none;
+            font-weight: 600;
+            font-size: 1.05rem;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            transition: color 0.3s ease;
+            border-bottom: 2px solid transparent;
+            padding-bottom: 0.25rem;
+        }
+
+        .nav-links a:hover,
+        .nav-links a.active {
+            color: var(--burgundy);
+            border-bottom-color: var(--gold);
+        }
+
+        /* Page Header */
+        .page-header {
+            background: 
+                linear-gradient(45deg, rgba(20, 55, 93, 0.85), rgba(139, 21, 56, 0.75)),
+                url('https://i.ibb.co/8nhLCH04/0X5A7830.jpg');
+            background-size: cover;
+            background-position: center;
+            background-attachment: fixed;
+            color: var(--white);
+            padding: 120px 2rem 80px;
+            text-align: center;
+            position: relative;
+        }
+
+        .page-header::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><defs><pattern id="header-pattern" width="20" height="20" patternUnits="userSpaceOnUse"><circle cx="10" cy="10" r="1" fill="rgba(212,175,55,0.1)"/></pattern></defs><rect width="100" height="100" fill="url(%23header-pattern)"/></svg>');
+        }
+
+        .page-header-content {
+            max-width: 800px;
+            margin: 0 auto;
+            position: relative;
+            z-index: 2;
+        }
+
+        .page-subtitle {
+            font-size: 1.125rem;
+            margin-bottom: 1rem;
+            color: var(--gold);
+            font-weight: 500;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+        }
+
+        .page-header h1 {
+            font-size: 3.5rem;
+            font-weight: 700;
+            margin-bottom: 1.5rem;
+            line-height: 1.2;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+
+        .page-header p {
+            font-size: 1.25rem;
+            line-height: 1.6;
+            opacity: 0.95;
+            font-style: italic;
+        }
+
+        /* Breadcrumb */
+        .breadcrumb {
+            background: var(--parchment);
+            padding: 1rem 2rem;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .breadcrumb-content {
+            max-width: 1200px;
+            margin: 0 auto;
+            font-size: 0.95rem;
+            color: var(--light-text);
+        }
+
+        .breadcrumb a {
+            color: var(--primary);
+            text-decoration: none;
+            font-weight: 600;
+        }
+
+        .breadcrumb a:hover {
+            color: var(--burgundy);
+        }
+
+        /* Sections */
+        .section {
+            padding: 80px 2rem;
+        }
+
+        .section.dark {
+            background: var(--primary);
+            color: var(--white);
+        }
+
+        .section.parchment {
+            background: var(--parchment);
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .section-header {
+            text-align: center;
+            margin-bottom: 4rem;
+            position: relative;
+        }
+
+        .section-header::before {
+            content: '❋';
+            position: absolute;
+            top: -2rem;
+            left: 50%;
+            transform: translateX(-50%);
+            font-size: 2rem;
+            color: var(--gold);
+        }
+
+        .section-title {
+            font-size: 2.75rem;
+            font-weight: 700;
+            color: var(--primary);
+            margin-bottom: 1.5rem;
+            position: relative;
+        }
+
+        .section.dark .section-title {
+            color: var(--white);
+        }
+
+        .section-title::after {
+            content: '';
+            position: absolute;
+            bottom: -0.5rem;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 80px;
+            height: 3px;
+            background: var(--gold);
+        }
+
+        .section-subtitle {
+            font-size: 1.25rem;
+            color: var(--light-text);
+            max-width: 700px;
+            margin: 0 auto;
+            line-height: 1.6;
+            font-style: italic;
+        }
+
+        .section.dark .section-subtitle {
+            color: rgba(255,255,255,0.85);
+        }
+
+        /* Timeline */
+        .timeline {
+            position: relative;
+            margin: 4rem 0;
+        }
+
+        .timeline::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 50%;
+            width: 3px;
+            height: 100%;
+            background: linear-gradient(to bottom, var(--gold), var(--burgundy));
+            transform: translateX(-50%);
+        }
+
+        .timeline-item {
+            display: flex;
+            align-items: center;
+            margin: 3rem 0;
+            position: relative;
+        }
+
+        .timeline-item:nth-child(odd) {
+            flex-direction: row;
+        }
+
+        .timeline-item:nth-child(even) {
+            flex-direction: row-reverse;
+        }
+
+        .timeline-content {
+            background: var(--white);
+            border: 2px solid var(--border);
+            padding: 2.5rem;
+            width: 45%;
+            position: relative;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+
+        .timeline-content::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 4px;
+            background: linear-gradient(90deg, var(--gold), var(--burgundy));
+        }
+
+        .timeline-item:nth-child(odd) .timeline-content::after {
+            content: '';
+            position: absolute;
+            top: 50%;
+            right: -12px;
+            width: 0;
+            height: 0;
+            border: 12px solid transparent;
+            border-left-color: var(--border);
+            transform: translateY(-50%);
+        }
+
+        .timeline-item:nth-child(even) .timeline-content::after {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: -12px;
+            width: 0;
+            height: 0;
+            border: 12px solid transparent;
+            border-right-color: var(--border);
+            transform: translateY(-50%);
+        }
+
+        .timeline-year {
+            position: absolute;
+            left: 50%;
+            top: 50%;
+            transform: translate(-50%, -50%);
+            background: var(--primary);
+            color: var(--white);
+            width: 80px;
+            height: 80px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+            font-size: 1.1rem;
+            border: 4px solid var(--gold);
+        }
+
+        .timeline-title {
+            font-size: 1.4rem;
+            font-weight: 700;
+            color: var(--primary);
+            margin-bottom: 1rem;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .timeline-text {
+            color: var(--text);
+            line-height: 1.6;
+        }
+
+        /* Founder Profile */
+        .founder-profile {
+            background: var(--white);
+            border: 2px solid var(--gold);
+            padding: 3rem;
+            margin: 3rem 0;
+            position: relative;
+            box-shadow: 0 8px 15px rgba(0,0,0,0.1);
+        }
+
+        .profile-content {
+            display: grid;
+            grid-template-columns: 200px 1fr;
+            gap: 3rem;
+            align-items: start;
+        }
+
+        .profile-image {
+            width: 200px;
+            height: 200px;
+            border-radius: 50%;
+            border: 4px solid var(--gold);
+            object-fit: cover;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+        }
+
+        .profile-details h3 {
+            font-size: 2rem;
+            font-weight: 700;
+            color: var(--primary);
+            margin-bottom: 0.5rem;
+        }
+
+        .profile-title {
+            font-size: 1.2rem;
+            color: var(--burgundy);
+            font-weight: 600;
+            margin-bottom: 1.5rem;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .profile-bio {
+            font-size: 1.1rem;
+            line-height: 1.7;
+            color: var(--text);
+        }
+
+        .profile-quote {
+            background: var(--parchment);
+            border-left: 4px solid var(--gold);
+            padding: 1.5rem;
+            margin-top: 2rem;
+            font-style: italic;
+            position: relative;
+        }
+
+        .profile-quote::before {
+            content: '"';
+            font-size: 3rem;
+            color: var(--gold);
+            position: absolute;
+            top: -10px;
+            left: 20px;
+        }
+
+        /* Team Grid */
+        .team-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 2.5rem;
+            margin-top: 3rem;
+        }
+
+        .team-card {
+            background: var(--white);
+            border: 1px solid var(--border);
+            padding: 2.5rem;
+            text-align: center;
+            position: relative;
+            transition: transform 0.3s ease;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+
+        .team-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 4px;
+            background: linear-gradient(90deg, var(--gold), var(--burgundy));
+        }
+
+        .team-card:hover {
+            transform: translateY(-5px);
+        }
+
+        .team-icon {
+            width: 80px;
+            height: 80px;
+            background: var(--primary);
+            color: var(--white);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 2rem;
+            margin: 0 auto 1.5rem;
+            border: 4px solid var(--gold);
+        }
+
+        .team-title {
+            font-size: 1.3rem;
+            font-weight: 700;
+            color: var(--primary);
+            margin-bottom: 0.5rem;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .team-subtitle {
+            color: var(--burgundy);
+            font-weight: 600;
+            margin-bottom: 1rem;
+        }
+
+        .team-description {
+            color: var(--text);
+            line-height: 1.6;
+        }
+
+        /* Philosophy Cards */
+        .philosophy-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+            gap: 2.5rem;
+            margin-top: 3rem;
+        }
+
+        .philosophy-card {
+            background: rgba(255,255,255,0.95);
+            border: 2px solid var(--border);
+            padding: 2.5rem;
+            position: relative;
+            transition: all 0.3s ease;
+        }
+
+        .philosophy-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 4px;
+            background: var(--gold);
+            transform: scaleX(0);
+            transition: transform 0.3s ease;
+        }
+
+        .philosophy-card:hover::before {
+            transform: scaleX(1);
+        }
+
+        .philosophy-card:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 15px rgba(0,0,0,0.15);
+        }
+
+        .philosophy-icon {
+            width: 60px;
+            height: 60px;
+            background: var(--burgundy);
+            color: var(--white);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+            margin-bottom: 1.5rem;
+            border: 3px solid var(--gold);
+        }
+
+        .philosophy-title {
+            font-size: 1.4rem;
+            font-weight: 700;
+            color: var(--primary);
+            margin-bottom: 1rem;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .philosophy-text {
+            color: var(--text);
+            line-height: 1.7;
+            font-size: 1.05rem;
+        }
+
+        /* Statistics */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 2rem;
+            margin: 4rem 0;
+        }
+
+        .stat-item {
+            text-align: center;
+            padding: 2rem;
+            background: rgba(255,255,255,0.1);
+            border: 2px solid rgba(212,175,55,0.3);
+        }
+
+        .stat-number {
+            font-size: 3rem;
+            font-weight: 700;
+            color: var(--gold);
+            display: block;
+            margin-bottom: 0.5rem;
+        }
+
+        .stat-label {
+            font-size: 1.1rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        /* Footer */
+        footer {
+            background: var(--primary);
+            color: var(--white);
+            padding: 3rem 2rem 2rem;
+            border-top: 3px solid var(--gold);
+        }
+
+        .footer-content {
+            max-width: 1200px;
+            margin: 0 auto;
+            text-align: center;
+        }
+
+        .footer-motto {
+            font-size: 1.25rem;
+            font-style: italic;
+            margin-bottom: 2rem;
+            color: var(--gold);
+        }
+
+        .footer-links {
+            display: flex;
+            justify-content: center;
+            gap: 3rem;
+            margin-bottom: 2rem;
+            flex-wrap: wrap;
+        }
+
+        .footer-links a {
+            color: var(--white);
+            text-decoration: none;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            transition: color 0.3s ease;
+            border-bottom: 2px solid transparent;
+            padding-bottom: 0.25rem;
+        }
+
+        .footer-links a:hover {
+            color: var(--gold);
+            border-bottom-color: var(--gold);
+        }
+
+        .footer-text {
+            font-size: 0.95rem;
+            opacity: 0.85;
+            line-height: 1.6;
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .nav-links {
+                display: none;
+            }
+
+            .page-header h1 {
+                font-size: 2.5rem;
+            }
+
+            .timeline::before {
+                left: 20px;
+            }
+
+            .timeline-item {
+                flex-direction: column;
+                align-items: flex-start;
+                padding-left: 60px;
+            }
+
+            .timeline-content {
+                width: 100%;
+            }
+
+            .timeline-item:nth-child(odd) .timeline-content::after,
+            .timeline-item:nth-child(even) .timeline-content::after {
+                display: none;
+            }
+
+            .timeline-year {
+                left: 20px;
+                width: 60px;
+                height: 60px;
+                font-size: 0.9rem;
+            }
+
+            .profile-content {
+                grid-template-columns: 1fr;
+                text-align: center;
+            }
+
+            .profile-image {
+                justify-self: center;
+            }
+
+            .team-grid,
+            .philosophy-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .stats-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+
+            .section-title {
+                font-size: 2.25rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Header -->
+    <header>
+        <div class="header-top">
+            Founded 2015 by Drupon Khen Rinpoche • Thrangu Sekhar Retreat Center, Nepal
+        </div>
+        <nav>
+            <div class="logo">
+                <img src="https://i.ibb.co/HDg6gHn8/mts-logo-259x300.png" alt="MTS Logo">
+                <span>Marpa Translation Society</span>
+            </div>
+            <ul class="nav-links">
+                <li><a href="translation_society_website.html">Home</a></li>
+                <li><a href="mts_about_page.html" class="active">About</a></li>
+                <li><a href="mts_catalog_page.html">Catalog</a></li>
+                <li><a href="mts_knowledge_hub.html">Knowledge Hub</a></li>
+                <li><a href="#contact">Contact</a></li>
+            </ul>
+        </nav>
+    </header>
+
+    <!-- Breadcrumb -->
+    <div class="breadcrumb">
+        <div class="breadcrumb-content">
+            <a href="index.html">Home</a> / <span>About Us</span>
+        </div>
+    </div>
+
+    <!-- Page Header -->
+    <section class="page-header">
+        <div class="page-header-content">
+            <div class="page-subtitle">Our Sacred Story</div>
+            <h1>About Marpa Translation Society</h1>
+            <p>Continuing the noble tradition of the great translators, bringing authentic dharma wisdom across linguistic boundaries since 2015.</p>
+        </div>
+    </section>
+
+    <!-- Our Story -->
+    <section class="section parchment">
+        <div class="container">
+            <div class="section-header">
+                <h2 class="section-title">Our Sacred Journey</h2>
+                <p class="section-subtitle">From the vision of one remarkable teacher to a global community of scholar-practitioners dedicated to preserving and sharing Buddhist wisdom.</p>
+            </div>
+
+            <div class="timeline">
+                <div class="timeline-item">
+                    <div class="timeline-content">
+                        <h3 class="timeline-title">The Vision</h3>
+                        <p class="timeline-text">Having traveled extensively in both East and West, Drupon Khen Rinpoche Karma Lhabu recognized the critical need for authentic, accessible Buddhist translations. Observing that sincere practitioners often lack financial resources due to their dedication to practice rather than wealth accumulation, he envisioned a translation society operating on pure dharmic principles.</p>
+                    </div>
+                    <div class="timeline-year">2015</div>
+                </div>
+
+                <div class="timeline-item">
+                    <div class="timeline-content">
+                        <h3 class="timeline-title">Foundation at Thrangu Sekhar</h3>
+                        <p class="timeline-text">The Marpa Translation Society was formally established at the Thrangu Sekhar Retreat Center in Nepal. Named after the great translator Marpa Lotsawa, who brought many essential tantric teachings from India to Tibet, our society committed to continuing this sacred tradition of making wisdom accessible across cultures.</p>
+                    </div>
+                    <div class="timeline-year">2015</div>
+                </div>
+
+                <div class="timeline-item">
+                    <div class="timeline-content">
+                        <h3 class="timeline-title">First Translation Projects</h3>
+                        <p class="timeline-text">Our pioneering translators, all students of Rinpoche residing at the retreat center, began work on foundational texts. The principle was established: charge only production costs, never profit from dharma. Quality was paramount—each translation refined through Rinpoche's teachings to ensure authentic transmission.</p>
+                    </div>
+                    <div class="timeline-year">2016</div>
+                </div>
+
+                <div class="timeline-item">
+                    <div class="timeline-content">
+                        <h3 class="timeline-title">Growing Community</h3>
+                        <p class="timeline-text">Word spread among serious dharma practitioners worldwide. Our unique approach—combining scholarly rigor with authentic practice experience—attracted dedicated translators fluent in multiple languages. The team expanded while maintaining our core principle: translators must be practitioners under Rinpoche's guidance.</p>
+                    </div>
+                    <div class="timeline-year">2018</div>
+                </div>
+
+                <div class="timeline-item">
+                    <div class="timeline-content">
+                        <h3 class="timeline-title">Global Impact</h3>
+                        <p class="timeline-text">With translations available in English, Chinese, German, and French, our work reaches practitioners across continents. The MTS Knowledge Hub launches, creating a comprehensive digital library. Our cost-only model proves sustainable while keeping authentic dharma accessible to all sincere seekers.</p>
+                    </div>
+                    <div class="timeline-year">2020</div>
+                </div>
+
+                <div class="timeline-item">
+                    <div class="timeline-content">
+                        <h3 class="timeline-title">Continued Excellence</h3>
+                        <p class="timeline-text">Today, with twenty-plus translators working on major projects, we continue Rinpoche's vision. Each text is refined during his teachings to retreatants, ensuring translations carry not just words but the living blessing of dharma. Our mission remains unchanged: authentic wisdom, accessible to all.</p>
+                    </div>
+                    <div class="timeline-year">2025</div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Founder Profile -->
+    <section class="section">
+        <div class="container">
+            <div class="section-header">
+                <h2 class="section-title">Our Guiding Light</h2>
+                <p class="section-subtitle">The vision and wisdom of Drupon Khen Rinpoche Karma Lhabu continues to inspire our mission of making authentic dharma accessible to all sincere practitioners.</p>
+            </div>
+
+            <div class="founder-profile">
+                <div class="profile-content">
+                    <img src="https://via.placeholder.com/200x200/14375d/ffffff?text=Rinpoche" alt="Drupon Khen Rinpoche" class="profile-image">
+                    <div class="profile-details">
+                        <h3>Drupon Khen Rinpoche Karma Lhabu</h3>
+                        <div class="profile-title">Founder & Spiritual Director</div>
+                        <div class="profile-bio">
+                            <p>A profound scholar and accomplished meditation master, Drupon Khen Rinpoche represents the authentic continuation of the Thrangu lineage. His extensive travels throughout Asia, Europe, and the Americas provided unique insights into the challenges facing dharma practitioners in different cultures.</p>
+                            
+                            <p>Recognizing that many sincere practitioners dedicate their lives to spiritual development rather than material accumulation, Rinpoche established our cost-only principle. His deep understanding that "dharma is more than words" guides our translation methodology, ensuring each text carries the living essence of Buddhist wisdom.</p>
+                            
+                            <p>At Thrangu Sekhar Retreat Center, Rinpoche personally oversees our translation work, refining each text through his teachings to ensure authentic transmission. His vision of translator-practitioners who combine scholarly excellence with genuine realization continues to shape our community.</p>
+                        </div>
+                        <div class="profile-quote">
+                            "Someone who conveys the Dharma in their own language to their fellow countrymen is doing something wonderful and very important. With this motivation, I have been encouraging people to become translators."
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Philosophy -->
+    <section class="section dark">
+        <div class="container">
+            <div class="section-header">
+                <h2 class="section-title">Our Guiding Principles</h2>
+                <p class="section-subtitle">The philosophical foundations that shape every aspect of our translation work and organizational structure.</p>
+            </div>
+
+            <div class="philosophy-grid">
+                <div class="philosophy-card">
+                    <div class="philosophy-icon">💰</div>
+                    <h3 class="philosophy-title">Cost-Only Commitment</h3>
+                    <p class="philosophy-text">We charge only what it costs to produce and distribute texts, adding no profit margin. This ensures authentic dharma remains accessible to practitioners who prioritize spiritual development over material accumulation.</p>
+                </div>
+
+                <div class="philosophy-card">
+                    <div class="philosophy-icon">🧘</div>
+                    <h3 class="philosophy-title">Practitioner-Scholars</h3>
+                    <p class="philosophy-text">Every translator in our society is both a scholar and a practitioner under Rinpoche's guidance. We believe translation requires not just linguistic skill but genuine understanding born from practice and realization.</p>
+                </div>
+
+                <div class="philosophy-card">
+                    <div class="philosophy-icon">✨</div>
+                    <h3 class="philosophy-title">Living Dharma</h3>
+                    <p class="philosophy-text">As Rinpoche teaches, "dharma is more than words"—it carries feeling and blessing. Our translations are refined through his teachings to retreatants, ensuring they transmit the living essence of Buddhist wisdom.</p>
+                </div>
+
+                <div class="philosophy-card">
+                    <div class="philosophy-icon">🏛️</div>
+                    <h3 class="philosophy-title">Authentic Sources</h3>
+                    <p class="philosophy-text">We focus exclusively on treatises and instructions by Indian and Tibetan masters universally recognized as learned and genuine, ensuring our translations preserve authentic Buddhist teachings.</p>
+                </div>
+
+                <div class="philosophy-card">
+                    <div class="philosophy-icon">🌍</div>
+                    <h3 class="philosophy-title">Universal Access</h3>
+                    <p class="philosophy-text">Buddhist wisdom transcends cultural boundaries. Through translations into multiple languages, we make profound teachings accessible to sincere seekers regardless of their linguistic background.</p>
+                </div>
+
+                <div class="philosophy-card">
+                    <div class="philosophy-icon">🎯</div>
+                    <h3 class="philosophy-title">Quality Excellence</h3>
+                    <p class="philosophy-text">Each translation undergoes rigorous review and refinement. We work closely with learned khenpos and receive Rinpoche's detailed guidance to ensure accuracy and authentic transmission.</p>
+                </div>
+            </div>
+
+            <!-- Statistics -->
+            <div class="stats-grid">
+                <div class="stat-item">
+                    <span class="stat-number">20+</span>
+                    <span class="stat-label">Translators</span>
+                </div>
+                <div class="stat-item">
+                    <span class="stat-number">4</span>
+                    <span class="stat-label">Languages</span>
+                </div>
+                <div class="stat-item">
+                    <span class="stat-number">10</span>
+                    <span class="stat-label">Years</span>
+                </div>
+                <div class="stat-item">
+                    <span class="stat-number">50+</span>
+                    <span class="stat-label">Texts</span>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Our Team -->
+    <section class="section parchment">
+        <div class="container">
+            <div class="section-header">
+                <h2 class="section-title">Our Dedicated Community</h2>
+                <p class="section-subtitle">A global network of scholar-practitioners united by the common goal of making authentic Buddhist wisdom accessible across linguistic and cultural boundaries.</p>
+            </div>
+
+            <div class="team-grid">
+                <div class="team-card">
+                    <div class="team-icon">📚</div>
+                    <h3 class="team-title">Senior Translators</h3>
+                    <div class="team-subtitle">Masters of Language & Dharma</div>
+                    <p class="team-description">Experienced practitioners with decades of study under Rinpoche's guidance. They lead major translation projects and mentor newer members of our community.</p>
+                </div>
+
+                <div class="team-card">
+                    <div class="team-icon">🌟</div>
+                    <h3 class="team-title">Project Coordinators</h3>
+                    <div class="team-subtitle">Organizing Sacred Work</div>
+                    <p class="team-description">Managing complex multi-language projects while maintaining our quality standards and cost-only principles. They ensure smooth collaboration across our global team.</p>
+                </div>
+
+                <div class="team-card">
+                    <div class="team-icon">🔍</div>
+                    <h3 class="team-title">Research Specialists</h3>
+                    <div class="team-subtitle">Scholarly Excellence</div>
+                    <p class="team-description">Working with Khenpo Wangchuk and other learned teachers to clarify difficult points and ensure historical and doctrinal accuracy in all translations.</p>
+                </div>
+
+                <div class="team-card">
+                    <div class="team-icon">💻</div>
+                    <h3 class="team-title">Digital Librarians</h3>
+                    <div class="team-subtitle">Knowledge Preservation</div>
+                    <p class="team-description">Maintaining the MTS Knowledge Hub, ensuring consistent terminology across projects, and preserving our growing digital library for future generations.</p>
+                </div>
+
+                <div class="team-card">
+                    <div class="team-icon">🌐</div>
+                    <h3 class="team-title">Language Teams</h3>
+                    <div class="team-subtitle">Multilingual Wisdom</div>
+                    <p class="team-description">Specialized teams working in English, Chinese, German, and French, each bringing cultural sensitivity and linguistic expertise to their translations.</p>
+                </div>
+
+                <div class="team-card">
+                    <div class="team-icon">✏️</div>
+                    <h3 class="team-title">Editorial Board</h3>
+                    <div class="team-subtitle">Quality Guardians</div>
+                    <p class="team-description">Ensuring consistency, accuracy, and readability across all publications while preserving the authentic voice and blessing of the original teachings.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Location -->
+    <section class="section">
+        <div class="container">
+            <div class="section-header">
+                <h2 class="section-title">Thrangu Sekhar Retreat Center</h2>
+                <p class="section-subtitle">Our home in the sacred mountains of Nepal, where ancient wisdom meets modern translation excellence in an environment of authentic dharma practice.</p>
+            </div>
+
+            <div class="founder-profile">
+                <div class="profile-content">
+                    <img src="https://via.placeholder.com/200x200/8b1538/ffffff?text=Center" alt="Thrangu Sekhar" class="profile-image">
+                    <div class="profile-details">
+                        <h3>Sacred Environment</h3>
+                        <div class="profile-title">Where Translation Meets Practice</div>
+                        <div class="profile-bio">
+                            <p>Nestled in the serene mountains of Nepal, Thrangu Sekhar Retreat Center provides the ideal environment for our translation work. Here, surrounded by the natural beauty that has inspired spiritual seekers for millennia, our translators combine rigorous scholarly work with authentic dharma practice.</p>
+                            
+                            <p>The center's unique atmosphere allows for the deep contemplation necessary for quality translation work. As Rinpoche teaches the texts to retreatants, our translations are continuously refined, ensuring they carry not just intellectual accuracy but the living blessing of transmitted wisdom.</p>
+                            
+                            <p>This integration of practice and scholarship creates translations that serve practitioners at every level—from beginning students to advanced yogis seeking the most subtle nuances of meaning in classical Buddhist texts.</p>
+                        </div>
+                        <div class="profile-quote">
+                            The mountain silence and community of practice provide the perfect conditions for translations that truly serve the dharma and its sincere practitioners worldwide.
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer>
+        <div class="footer-content">
+            <div class="footer-motto">"Someone who conveys the Dharma in their own language to their fellow countrymen, is doing something wonderful and very important."</div>
+            <div class="footer-links">
+                <a href="index.html">Home</a>
+                <a href="about.html">About</a>
+                <a href="#projects">Projects</a>
+                <a href="#hub">Knowledge Hub</a>
+                <a href="#contact">Contact</a>
+                <a href="#">Available Texts</a>
+            </div>
+            <p class="footer-text">&copy; 2025 Marpa Translation Society. Founded in 2015 by Drupon Khen Rinpoche Karma Lhabu.<br>
+            Making authentic Buddhist wisdom accessible through scholarly translation.</p>
+        </div>
+    </footer>
+
+    <script>
+        // Smooth scrolling for anchor links
+        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+            anchor.addEventListener('click', function (e) {
+                e.preventDefault();
+                const target = document.querySelector(this.getAttribute('href'));
+                if (target) {
+                    target.scrollIntoView({
+                        behavior: 'smooth',
+                        block: 'start'
+                    });
+                }
+            });
+        });
+
+        // Animate timeline items on scroll
+        const observerOptions = {
+            threshold: 0.1,
+            rootMargin: '0px 0px -50px 0px'
+        };
+
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    entry.target.style.opacity = '1';
+                    entry.target.style.transform = 'translateY(0)';
+                }
+            });
+        }, observerOptions);
+
+        // Apply animation to timeline items
+        document.querySelectorAll('.timeline-item').forEach((item, index) => {
+            item.style.opacity = '0';
+            item.style.transform = 'translateY(30px)';
+            item.style.transition = `opacity 0.6s ease ${index * 0.1}s, transform 0.6s ease ${index * 0.1}s`;
+            observer.observe(item);
+        });
+
+        // Apply animation to cards
+        document.querySelectorAll('.philosophy-card, .team-card').forEach((item, index) => {
+            item.style.opacity = '0';
+            item.style.transform = 'translateY(20px)';
+            item.style.transition = `opacity 0.5s ease ${index * 0.1}s, transform 0.5s ease ${index * 0.1}s`;
+            observer.observe(item);
+        });
+    </script>
+</body>
+</html>

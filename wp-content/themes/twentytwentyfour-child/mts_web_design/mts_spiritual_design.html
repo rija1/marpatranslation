@@ -1,0 +1,1138 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Marpa Translation Society - Wisdom Through Practice</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Noto Serif', 'Georgia', serif;
+            line-height: 1.75;
+            color: #3c2f2f;
+            background: linear-gradient(135deg, #f7f5f3 0%, #ede6e0 100%);
+        }
+
+        :root {
+            --primary: #14375d;
+            --saffron: #ff9500;
+            --maroon: #800020;
+            --lotus: #db7093;
+            --sage: #87a96b;
+            --earth: #8b4513;
+            --gold: #daa520;
+            --cream: #faf8f5;
+            --mist: #f0ede8;
+            --text: #3c2f2f;
+            --light-text: #6b5b5b;
+            --white: #ffffff;
+        }
+
+        /* Smooth animations */
+        * {
+            transition: all 0.3s cubic-bezier(0.4, 0.0, 0.2, 1);
+        }
+
+        /* Header */
+        header {
+            background: rgba(255,255,255,0.95);
+            backdrop-filter: blur(20px);
+            border-bottom: 1px solid rgba(219, 112, 147, 0.3);
+            position: fixed;
+            top: 0;
+            width: 100%;
+            z-index: 1000;
+        }
+
+        nav {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 1rem 2rem;
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            font-size: 1.25rem;
+            font-weight: 400;
+            color: var(--maroon);
+        }
+
+        .logo img {
+            height: 50px;
+            width: auto;
+            margin-right: 15px;
+            border-radius: 50%;
+            padding: 5px;
+            background: radial-gradient(circle, rgba(255,255,255,0.9), rgba(219, 112, 147, 0.1));
+            box-shadow: 0 0 20px rgba(219, 112, 147, 0.3);
+        }
+
+        .nav-links {
+            display: flex;
+            list-style: none;
+            gap: 2rem;
+        }
+
+        .nav-links a {
+            color: var(--text);
+            text-decoration: none;
+            font-weight: 400;
+            font-size: 1rem;
+            position: relative;
+            padding: 0.5rem 1rem;
+            border-radius: 25px;
+        }
+
+        .nav-links a::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: linear-gradient(45deg, var(--lotus), var(--sage));
+            border-radius: 25px;
+            opacity: 0;
+            z-index: -1;
+        }
+
+        .nav-links a:hover::before {
+            opacity: 0.1;
+        }
+
+        .nav-links a:hover {
+            color: var(--maroon);
+        }
+
+        /* Hero Section */
+        .hero {
+            background: 
+                linear-gradient(135deg, 
+                    rgba(20, 55, 93, 0.7), 
+                    rgba(219, 112, 147, 0.6), 
+                    rgba(135, 169, 107, 0.5)
+                ),
+                url('https://i.ibb.co/8nhLCH04/0X5A7830.jpg');
+            background-size: cover;
+            background-position: center;
+            background-attachment: fixed;
+            color: var(--white);
+            padding: 120px 2rem 100px;
+            text-align: center;
+            position: relative;
+            min-height: 80vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .hero::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: 
+                radial-gradient(circle at 20% 80%, rgba(219, 112, 147, 0.3) 0%, transparent 50%),
+                radial-gradient(circle at 80% 20%, rgba(135, 169, 107, 0.3) 0%, transparent 50%),
+                radial-gradient(circle at 40% 40%, rgba(255, 149, 0, 0.2) 0%, transparent 50%);
+            animation: gentle-pulse 8s ease-in-out infinite;
+        }
+
+        @keyframes gentle-pulse {
+            0%, 100% { opacity: 0.7; }
+            50% { opacity: 1; }
+        }
+
+        .hero-content {
+            max-width: 900px;
+            margin: 0 auto;
+            position: relative;
+            z-index: 2;
+        }
+
+        .dharma-symbol {
+            font-size: 3rem;
+            margin-bottom: 1rem;
+            opacity: 0.9;
+            animation: gentle-rotate 20s linear infinite;
+        }
+
+        @keyframes gentle-rotate {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+        }
+
+        .hero h1 {
+            font-size: 3.5rem;
+            font-weight: 300;
+            margin-bottom: 1.5rem;
+            line-height: 1.2;
+            text-shadow: 2px 2px 8px rgba(0,0,0,0.3);
+            letter-spacing: 1px;
+        }
+
+        .hero-subtitle {
+            font-size: 1.4rem;
+            margin-bottom: 2.5rem;
+            opacity: 0.9;
+            line-height: 1.6;
+            font-style: italic;
+            text-shadow: 1px 1px 4px rgba(0,0,0,0.3);
+        }
+
+        .wisdom-quote {
+            font-size: 1.1rem;
+            margin-bottom: 2.5rem;
+            opacity: 0.85;
+            font-style: italic;
+            max-width: 600px;
+            margin-left: auto;
+            margin-right: auto;
+            border-top: 1px solid rgba(255,255,255,0.3);
+            border-bottom: 1px solid rgba(255,255,255,0.3);
+            padding: 1.5rem 0;
+        }
+
+        .cta-buttons {
+            display: flex;
+            gap: 1.5rem;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            padding: 12px 28px;
+            text-decoration: none;
+            font-weight: 500;
+            font-size: 1rem;
+            border-radius: 30px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .btn-primary {
+            background: rgba(255, 149, 0, 0.9);
+            color: var(--white);
+            border: 2px solid transparent;
+        }
+
+        .btn-secondary {
+            background: rgba(255,255,255,0.2);
+            color: var(--white);
+            border: 2px solid rgba(255,255,255,0.3);
+            backdrop-filter: blur(10px);
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(0,0,0,0.2);
+        }
+
+        .btn-primary:hover {
+            background: rgba(218, 165, 32, 0.9);
+        }
+
+        /* Floating Elements */
+        .floating-lotus {
+            position: absolute;
+            font-size: 1.5rem;
+            opacity: 0.3;
+            animation: float 6s ease-in-out infinite;
+        }
+
+        .floating-lotus:nth-child(1) { top: 20%; left: 10%; animation-delay: 0s; }
+        .floating-lotus:nth-child(2) { top: 30%; right: 15%; animation-delay: 2s; }
+        .floating-lotus:nth-child(3) { bottom: 20%; left: 20%; animation-delay: 4s; }
+
+        @keyframes float {
+            0%, 100% { transform: translateY(0px); }
+            50% { transform: translateY(-20px); }
+        }
+
+        /* Sections */
+        .section {
+            padding: 100px 2rem;
+            position: relative;
+        }
+
+        .section.mist {
+            background: var(--mist);
+        }
+
+        .section.lotus {
+            background: linear-gradient(135deg, rgba(219, 112, 147, 0.1), rgba(135, 169, 107, 0.1));
+        }
+
+        .section.sage {
+            background: linear-gradient(45deg, var(--cream), var(--mist));
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            position: relative;
+        }
+
+        .section-header {
+            text-align: center;
+            margin-bottom: 5rem;
+            position: relative;
+        }
+
+        .section-symbol {
+            font-size: 2.5rem;
+            margin-bottom: 2rem;
+            display: block;
+            color: var(--lotus);
+            opacity: 0.8;
+        }
+
+        .section-title {
+            font-size: 2.8rem;
+            font-weight: 300;
+            color: var(--primary);
+            margin-bottom: 1.5rem;
+            letter-spacing: 1px;
+            position: relative;
+        }
+
+        .section-title::after {
+            content: '';
+            position: absolute;
+            bottom: -1rem;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 60px;
+            height: 2px;
+            background: linear-gradient(90deg, var(--lotus), var(--sage));
+            border-radius: 1px;
+        }
+
+        .section-subtitle {
+            font-size: 1.2rem;
+            color: var(--light-text);
+            max-width: 700px;
+            margin: 0 auto;
+            line-height: 1.7;
+            font-style: italic;
+        }
+
+        /* Wisdom Quote */
+        .wisdom-section {
+            background: var(--white);
+            border-radius: 20px;
+            padding: 3rem;
+            margin: 4rem 0;
+            position: relative;
+            box-shadow: 
+                0 10px 30px rgba(219, 112, 147, 0.1),
+                0 0 50px rgba(135, 169, 107, 0.05);
+        }
+
+        .wisdom-section::before {
+            content: '🙏';
+            position: absolute;
+            top: -20px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: var(--white);
+            padding: 10px;
+            border-radius: 50%;
+            font-size: 1.5rem;
+        }
+
+        .founder-wisdom p {
+            font-size: 1.25rem;
+            line-height: 1.8;
+            color: var(--text);
+            margin-bottom: 1.5rem;
+            text-align: center;
+            font-style: italic;
+        }
+
+        .wisdom-attribution {
+            text-align: center;
+            font-weight: 500;
+            color: var(--maroon);
+            font-style: normal;
+            font-size: 1.1rem;
+            border-top: 1px solid var(--lotus);
+            padding-top: 1.5rem;
+            margin-top: 2rem;
+        }
+
+        /* Meditation Cards */
+        .card-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+            gap: 2rem;
+            margin-top: 4rem;
+        }
+
+        .meditation-card {
+            background: var(--white);
+            border-radius: 20px;
+            padding: 2.5rem;
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+            box-shadow: 0 8px 25px rgba(219, 112, 147, 0.15);
+            border: 1px solid rgba(135, 169, 107, 0.2);
+        }
+
+        .meditation-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 4px;
+            background: linear-gradient(90deg, var(--lotus), var(--sage), var(--saffron));
+        }
+
+        .meditation-card:hover {
+            transform: translateY(-8px);
+            box-shadow: 0 15px 35px rgba(219, 112, 147, 0.25);
+        }
+
+        .card-symbol {
+            font-size: 2.5rem;
+            margin-bottom: 1.5rem;
+            display: block;
+        }
+
+        .card-title {
+            font-size: 1.4rem;
+            font-weight: 500;
+            color: var(--primary);
+            margin-bottom: 1rem;
+            letter-spacing: 0.5px;
+        }
+
+        .card-text {
+            color: var(--text);
+            line-height: 1.7;
+            font-size: 1.05rem;
+        }
+
+        /* Project Lotus */
+        .project-container {
+            margin-top: 4rem;
+        }
+
+        .project-lotus {
+            background: var(--white);
+            border-radius: 20px;
+            padding: 2rem;
+            margin-bottom: 1.5rem;
+            position: relative;
+            overflow: hidden;
+            border-left: 5px solid var(--saffron);
+            box-shadow: 0 5px 20px rgba(255, 149, 0, 0.1);
+        }
+
+        .project-lotus::before {
+            content: '';
+            position: absolute;
+            top: -2px;
+            right: -2px;
+            width: 60px;
+            height: 60px;
+            background: linear-gradient(45deg, var(--lotus), var(--sage));
+            border-radius: 50%;
+            opacity: 0.1;
+        }
+
+        .project-lotus:hover {
+            transform: translateX(5px);
+            box-shadow: 0 8px 30px rgba(255, 149, 0, 0.2);
+        }
+
+        .project-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 1rem;
+        }
+
+        .project-title {
+            font-size: 1.2rem;
+            font-weight: 500;
+            color: var(--primary);
+            line-height: 1.4;
+            flex: 1;
+        }
+
+        .project-languages {
+            display: flex;
+            gap: 0.5rem;
+            flex-wrap: wrap;
+            margin-left: 1rem;
+        }
+
+        .language-petal {
+            background: linear-gradient(45deg, var(--lotus), var(--sage));
+            color: var(--white);
+            padding: 0.3rem 0.8rem;
+            border-radius: 15px;
+            font-size: 0.85rem;
+            font-weight: 500;
+        }
+
+        /* Knowledge Garden */
+        .garden-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 2rem;
+            margin-top: 4rem;
+        }
+
+        .garden-item {
+            background: var(--white);
+            border-radius: 20px;
+            text-align: center;
+            padding: 2.5rem 2rem;
+            position: relative;
+            border: 2px solid transparent;
+            background-clip: padding-box;
+        }
+
+        .garden-item::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            padding: 2px;
+            background: linear-gradient(45deg, var(--lotus), var(--sage), var(--saffron));
+            border-radius: 20px;
+            mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+            mask-composite: xor;
+            -webkit-mask-composite: xor;
+        }
+
+        .garden-item:hover::before {
+            animation: border-flow 3s linear infinite;
+        }
+
+        @keyframes border-flow {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+
+        .garden-icon {
+            font-size: 3rem;
+            margin-bottom: 1.5rem;
+            display: block;
+        }
+
+        .garden-title {
+            font-size: 1.3rem;
+            font-weight: 500;
+            color: var(--primary);
+            margin-bottom: 1rem;
+            letter-spacing: 0.5px;
+        }
+
+        .garden-description {
+            color: var(--text);
+            line-height: 1.6;
+            font-size: 1rem;
+        }
+
+        /* Contact Mandala */
+        .contact-section {
+            background: 
+                radial-gradient(circle at center, 
+                    rgba(20, 55, 93, 0.9) 0%, 
+                    rgba(128, 0, 32, 0.9) 50%, 
+                    rgba(20, 55, 93, 0.95) 100%
+                ),
+                url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><defs><pattern id="mandala" width="50" height="50" patternUnits="userSpaceOnUse"><circle cx="25" cy="25" r="1" fill="rgba(219,112,147,0.3)"/><circle cx="12.5" cy="12.5" r="0.5" fill="rgba(255,149,0,0.2)"/><circle cx="37.5" cy="12.5" r="0.5" fill="rgba(135,169,107,0.2)"/><circle cx="12.5" cy="37.5" r="0.5" fill="rgba(218,165,32,0.2)"/><circle cx="37.5" cy="37.5" r="0.5" fill="rgba(219,112,147,0.2)"/></pattern></defs><rect width="100" height="100" fill="url(%23mandala)"/></svg>');
+            color: var(--white);
+        }
+
+        .contact-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 4rem;
+            align-items: start;
+        }
+
+        .contact-info {
+            position: relative;
+        }
+
+        .contact-info h3 {
+            font-size: 2rem;
+            font-weight: 400;
+            margin-bottom: 2rem;
+            color: var(--saffron);
+            text-align: center;
+            letter-spacing: 1px;
+        }
+
+        .contact-detail {
+            display: flex;
+            align-items: flex-start;
+            margin-bottom: 2rem;
+            padding: 1.5rem;
+            background: rgba(255,255,255,0.1);
+            border-radius: 15px;
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255,255,255,0.2);
+        }
+
+        .contact-icon {
+            width: 50px;
+            height: 50px;
+            background: linear-gradient(45deg, var(--saffron), var(--gold));
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-right: 1.5rem;
+            font-size: 1.25rem;
+            flex-shrink: 0;
+            color: var(--white);
+        }
+
+        /* Form Lotus */
+        .form-lotus {
+            background: rgba(255,255,255,0.95);
+            border-radius: 20px;
+            padding: 3rem;
+            position: relative;
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(219, 112, 147, 0.3);
+        }
+
+        .form-title {
+            font-size: 1.8rem;
+            font-weight: 400;
+            color: var(--primary);
+            margin-bottom: 2rem;
+            text-align: center;
+            letter-spacing: 1px;
+        }
+
+        .form-group {
+            margin-bottom: 2rem;
+            position: relative;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 0.75rem;
+            font-weight: 500;
+            color: var(--primary);
+            letter-spacing: 0.5px;
+        }
+
+        .form-group input,
+        .form-group textarea,
+        .form-group select {
+            width: 100%;
+            padding: 1rem;
+            border: 2px solid rgba(219, 112, 147, 0.3);
+            border-radius: 10px;
+            background: rgba(255,255,255,0.8);
+            color: var(--text);
+            font-size: 1rem;
+            font-family: inherit;
+        }
+
+        .form-group input:focus,
+        .form-group textarea:focus,
+        .form-group select:focus {
+            outline: none;
+            border-color: var(--lotus);
+            box-shadow: 0 0 0 3px rgba(219, 112, 147, 0.1);
+        }
+
+        .form-group textarea {
+            height: 120px;
+            resize: vertical;
+        }
+
+        .submit-lotus {
+            width: 100%;
+            background: linear-gradient(45deg, var(--saffron), var(--gold));
+            color: var(--white);
+            border: none;
+            padding: 1rem;
+            border-radius: 30px;
+            font-size: 1.1rem;
+            font-weight: 500;
+            cursor: pointer;
+            letter-spacing: 1px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .submit-lotus:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(255, 149, 0, 0.4);
+        }
+
+        /* Footer Mandala */
+        footer {
+            background: var(--primary);
+            color: var(--white);
+            padding: 4rem 2rem 2rem;
+            text-align: center;
+            position: relative;
+        }
+
+        footer::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 1px;
+            background: linear-gradient(90deg, transparent, var(--saffron), transparent);
+        }
+
+        .footer-content {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .footer-symbol {
+            font-size: 2.5rem;
+            margin-bottom: 2rem;
+            opacity: 0.8;
+        }
+
+        .footer-wisdom {
+            font-size: 1.2rem;
+            font-style: italic;
+            margin-bottom: 2rem;
+            color: var(--saffron);
+            max-width: 600px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+
+        .footer-links {
+            display: flex;
+            justify-content: center;
+            gap: 2rem;
+            margin-bottom: 2rem;
+            flex-wrap: wrap;
+        }
+
+        .footer-links a {
+            color: var(--white);
+            text-decoration: none;
+            font-weight: 400;
+            padding: 0.5rem 1rem;
+            border-radius: 20px;
+            border: 1px solid transparent;
+        }
+
+        .footer-links a:hover {
+            border-color: var(--saffron);
+            color: var(--saffron);
+        }
+
+        .footer-text {
+            font-size: 0.95rem;
+            opacity: 0.8;
+            line-height: 1.6;
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .nav-links {
+                display: none;
+            }
+
+            .hero h1 {
+                font-size: 2.5rem;
+            }
+
+            .cta-buttons {
+                flex-direction: column;
+                align-items: center;
+            }
+
+            .contact-grid {
+                grid-template-columns: 1fr;
+                gap: 3rem;
+            }
+
+            .project-header {
+                flex-direction: column;
+                gap: 1rem;
+            }
+
+            .project-languages {
+                margin-left: 0;
+            }
+
+            .card-grid,
+            .garden-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .section-title {
+                font-size: 2.2rem;
+            }
+
+            .wisdom-section {
+                padding: 2rem;
+            }
+
+            .section {
+                padding: 80px 1rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="floating-lotus">🌸</div>
+    <div class="floating-lotus">🪷</div>
+    <div class="floating-lotus">🌺</div>
+
+    <!-- Header -->
+    <header>
+        <nav>
+            <div class="logo">
+                <img src="https://i.ibb.co/HDg6gHn8/mts-logo-259x300.png" alt="MTS Logo">
+                <span>Marpa Translation Society</span>
+            </div>
+            <ul class="nav-links">
+                <li><a href="translation_society_website.html">Home</a></li>
+                <li><a href="mts_about_page.html">About</a></li>
+                <li><a href="mts_catalog_page.html">Catalog</a></li>
+                <li><a href="mts_knowledge_hub.html">Knowledge Hub</a></li>
+                <li><a href="#contact">Contact</a></li>
+            </ul>
+        </nav>
+    </header>
+
+    <!-- Hero -->
+    <section class="hero" id="home">
+        <div class="hero-content">
+            <div class="dharma-symbol">☸️</div>
+            <h1>Wisdom Through Practice</h1>
+            <p class="hero-subtitle">Where Ancient Teachings Meet Modern Hearts</p>
+            <div class="wisdom-quote">"Dharma is more than just words - translations must carry the feeling and blessing of the dharma"</div>
+            <div class="cta-buttons">
+                <a href="#mission" class="btn btn-primary">🙏 Explore Our Path</a>
+                <a href="#contact" class="btn btn-secondary">💌 Join Our Community</a>
+            </div>
+        </div>
+    </section>
+
+    <!-- Mission -->
+    <section class="section mist" id="mission">
+        <div class="container">
+            <div class="section-header">
+                <span class="section-symbol">🕊️</span>
+                <h2 class="section-title">Our Sacred Mission</h2>
+                <p class="section-subtitle">Founded with compassion in 2015, we honor Drupon Khen Rinpoche's vision of making profound dharma teachings accessible to all sincere practitioners.</p>
+            </div>
+
+            <div class="wisdom-section">
+                <div class="founder-wisdom">
+                    <p>"Having travelled widely in both the East and the West, I came to see the importance of good translators and translations. Many practitioners do not have a lot of money because they do not spend their time making money, they practise."</p>
+                    
+                    <p>"Someone who conveys the Dharma in their own language to their fellow countrymen, is doing something wonderful and very important. With this motivation, I have been encouraging some people to become translators."</p>
+                    
+                    <div class="wisdom-attribution">— Drupon Khen Rinpoche Karma Lhabu, Compassionate Founder</div>
+                </div>
+            </div>
+
+            <div class="card-grid">
+                <div class="meditation-card">
+                    <span class="card-symbol">💎</span>
+                    <h3 class="card-title">Practice Before Profit</h3>
+                    <p class="card-text">We offer texts at cost-only prices, understanding that sincere practitioners dedicate their lives to dharma rather than wealth accumulation. Every teaching should be accessible to the earnest heart.</p>
+                </div>
+                
+                <div class="meditation-card">
+                    <span class="card-symbol">🧘‍♂️</span>
+                    <h3 class="card-title">Translators as Practitioners</h3>
+                    <p class="card-text">Our twenty-plus translators study and practice under Rinpoche's loving guidance at Thrangu Sekhar Retreat Center, Nepal. They embody the teachings they translate, ensuring authentic transmission.</p>
+                </div>
+                
+                <div class="meditation-card">
+                    <span class="card-symbol">📿</span>
+                    <h3 class="card-title">Wisdom Lineage</h3>
+                    <p class="card-text">Working closely with Khenpo Wangchuk and receiving Rinpoche's detailed instructions, we maintain the sacred connection between ancient wisdom and contemporary understanding.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Projects -->
+    <section class="section lotus" id="projects">
+        <div class="container">
+            <div class="section-header">
+                <span class="section-symbol">🌸</span>
+                <h2 class="section-title">Blossoming Projects</h2>
+                <p class="section-subtitle">Like lotus flowers emerging from muddy waters, we carefully translate treatises by masters whose wisdom has been tested through centuries of practice.</p>
+            </div>
+
+            <div class="project-container">
+                <div class="project-lotus">
+                    <div class="project-header">
+                        <div class="project-title">Jamgon Kongtrul Rinpoche's Great Seal Preliminaries - The Torch for the Definitive Meaning</div>
+                        <div class="project-languages">
+                            <span class="language-petal">English</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="project-lotus">
+                    <div class="project-header">
+                        <div class="project-title">Gampopa's Collected Works - Ocean of Profound Instructions</div>
+                        <div class="project-languages">
+                            <span class="language-petal">English</span>
+                            <span class="language-petal">Chinese</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="project-lotus">
+                    <div class="project-header">
+                        <div class="project-title">Jamgon Kongtrul Rinpoche's Commentary to the Highest Continuum - The Indomitable Roar of the Lion</div>
+                        <div class="project-languages">
+                            <span class="language-petal">English</span>
+                            <span class="language-petal">Chinese</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="project-lotus">
+                    <div class="project-header">
+                        <div class="project-title">Karmapa Mikyo Dorje's Sacred Commentaries on the Four Foundations</div>
+                        <div class="project-languages">
+                            <span class="language-petal">English</span>
+                            <span class="language-petal">Chinese</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="project-lotus">
+                    <div class="project-header">
+                        <div class="project-title">The Life of Milarepa - Songs from the Black Treasury</div>
+                        <div class="project-languages">
+                            <span class="language-petal">English</span>
+                            <span class="language-petal">Chinese</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="project-lotus">
+                    <div class="project-header">
+                        <div class="project-title">Karmapa Wangchuk Dorje's Ocean of Definitive Meaning</div>
+                        <div class="project-languages">
+                            <span class="language-petal">German</span>
+                            <span class="language-petal">French</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Knowledge Garden -->
+    <section class="section sage" id="garden">
+        <div class="container">
+            <div class="section-header">
+                <span class="section-symbol">🌳</span>
+                <h2 class="section-title">Knowledge Garden</h2>
+                <p class="section-subtitle">Our digital sanctuary where wisdom traditions flourish through careful cultivation of terminology, context, and understanding.</p>
+            </div>
+
+            <div class="garden-grid">
+                <div class="garden-item">
+                    <span class="garden-icon">🌸</span>
+                    <h4 class="garden-title">Sacred Terms</h4>
+                    <p class="garden-description">Glossary of Buddhist terminology lovingly translated with consistency across all projects</p>
+                </div>
+                
+                <div class="garden-item">
+                    <span class="garden-icon">🪷</span>
+                    <h4 class="garden-title">Tibetan Roots</h4>
+                    <p class="garden-description">Original Tibetan terms preserved with pronunciation and contextual wisdom</p>
+                </div>
+                
+                <div class="garden-item">
+                    <span class="garden-icon">🕊️</span>
+                    <h4 class="garden-title">Enlightened Masters</h4>
+                    <p class="garden-description">Profiles of great beings whose teachings continue to benefit countless practitioners</p>
+                </div>
+                
+                <div class="garden-item">
+                    <span class="garden-icon">📚</span>
+                    <h4 class="garden-title">Living Translations</h4>
+                    <p class="garden-description">Catalog of our offerings with updates on availability and progress</p>
+                </div>
+                
+                <div class="garden-item">
+                    <span class="garden-icon">🙏</span>
+                    <h4 class="garden-title">Translator Hearts</h4>
+                    <p class="garden-description">Profiles of our dedicated community and their areas of spiritual expertise</p>
+                </div>
+                
+                <div class="garden-item">
+                    <span class="garden-icon">🔍</span>
+                    <h4 class="garden-title">Wisdom Tools</h4>
+                    <p class="garden-description">Search and reference capabilities for deep study and contemplation</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Contact -->
+    <section class="section contact-section" id="contact">
+        <div class="container">
+            <div class="section-header">
+                <h2 class="section-title">Connect With Our Sangha</h2>
+                <p class="section-subtitle">Whether you seek teachings, wish to support our work, or feel called to join our translation community, we welcome your sincere heart.</p>
+            </div>
+
+            <div class="contact-grid">
+                <div class="contact-info">
+                    <h3>🌸 Reach Out With Love 🌸</h3>
+                    
+                    <div class="contact-detail">
+                        <div class="contact-icon">💌</div>
+                        <div>
+                            <strong>Sacred Communication</strong><br>
+                            MarpaTranslationSociety@gmail.com
+                        </div>
+                    </div>
+
+                    <div class="contact-detail">
+                        <div class="contact-icon">🏔️</div>
+                        <div>
+                            <strong>Mountain Sanctuary</strong><br>
+                            Thrangu Sekhar Retreat Center<br>
+                            Nepal - Land of the Buddha
+                        </div>
+                    </div>
+
+                    <div class="contact-detail">
+                        <div class="contact-icon">🌐</div>
+                        <div>
+                            <strong>Digital Presence</strong><br>
+                            marpatranslation.org<br>
+                            Facebook Community
+                        </div>
+                    </div>
+
+                    <div class="contact-detail">
+                        <div class="contact-icon">📿</div>
+                        <div>
+                            <strong>Living Teachings</strong><br>
+                            Texts refined as Rinpoche shares<br>
+                            wisdom with retreat practitioners
+                        </div>
+                    </div>
+                </div>
+
+                <div class="form-lotus">
+                    <h3 class="form-title">🙏 Send Your Message 🙏</h3>
+                    <form>
+                        <div class="form-group">
+                            <label for="name">Your Name</label>
+                            <input type="text" id="name" name="name" required>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="email">Email Address</label>
+                            <input type="email" id="email" name="email" required>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="heart-call">What Calls Your Heart?</label>
+                            <select id="heart-call" name="heart-call">
+                                <option value="">Please choose...</option>
+                                <option value="teachings">🌸 Available Teachings</option>
+                                <option value="volunteer">🙏 Translation Service</option>
+                                <option value="academic">📚 Academic Collaboration</option>
+                                <option value="support">💎 Supporting Our Mission</option>
+                                <option value="practice">🧘‍♂️ Practice Questions</option>
+                                <option value="other">🌿 Other Sacred Inquiry</option>
+                            </select>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="message">Share from Your Heart</label>
+                            <textarea id="message" name="message" placeholder="Tell us about your connection to dharma practice or questions about our translations..."></textarea>
+                        </div>
+
+                        <button type="submit" class="submit-lotus">🌸 Send With Love 🌸</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer>
+        <div class="footer-content">
+            <div class="footer-symbol">☸️</div>
+            <div class="footer-wisdom">"Someone who conveys the Dharma in their own language to their fellow countrymen, is doing something wonderful and very important."</div>
+            <div class="footer-links">
+                <a href="#home">🏠 Home</a>
+                <a href="#mission">🙏 Mission</a>
+                <a href="#projects">🌸 Projects</a>
+                <a href="#garden">🌳 Knowledge Garden</a>
+                <a href="#contact">💌 Connect</a>
+            </div>
+            <p class="footer-text">🌸 2025 Marpa Translation Society 🌸<br>
+            Founded in 2015 by the compassionate Drupon Khen Rinpoche Karma Lhabu<br>
+            May all beings benefit from these precious teachings</p>
+        </div>
+    </footer>
+
+    <script>
+        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+            anchor.addEventListener('click', function (e) {
+                e.preventDefault();
+                const target = document.querySelector(this.getAttribute('href'));
+                if (target) {
+                    target.scrollIntoView({
+                        behavior: 'smooth',
+                        block: 'start'
+                    });
+                }
+            });
+        });
+
+        document.querySelector('form').addEventListener('submit', function(e) {
+            e.preventDefault();
+            alert('🙏 Thank you for reaching out with love. Your message has been sent with the aspiration that it may benefit all beings. We will respond with care and kindness. 🌸');
+        });
+
+        // Add gentle scroll effect
+        window.addEventListener('scroll', function() {
+            const scrolled = window.pageYOffset;
+            const parallax = document.querySelector('.hero');
+            const speed = scrolled * 0.5;
+            if (parallax) {
+                parallax.style.transform = `translateY(${speed}px)`;
+            }
+        });
+    </script>
+</body>
+</html>

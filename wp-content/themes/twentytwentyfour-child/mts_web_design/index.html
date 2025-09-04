@@ -1,0 +1,628 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Marpa Translation Society - Making Tibetan Buddhism Accessible</title>
+    <meta name="description" content="Founded by Drupon Khen Rinpoche in 2015, the Marpa Translation Society translates the classics of Tibetan Buddhism for practitioners worldwide.">
+    
+    <!-- Preconnect to external domains for performance -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Crimson+Text:ital,wght@0,400;0,600;0,700;1,400&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    
+    <!-- Main Stylesheet -->
+    <link rel="stylesheet" href="assets/css/main.css">
+    
+    <!-- Page-specific styles -->
+    <style>
+        /* Hero Section Enhancements */
+        .hero {
+            background: linear-gradient(rgba(20, 55, 93, 0.7), rgba(139, 69, 19, 0.6)), 
+                        url('https://i.ibb.co/8nhLCH04/0X5A7830.jpg');
+            background-size: cover;
+            background-position: center;
+            background-attachment: fixed;
+            color: var(--text-inverse);
+            padding: var(--space-3xl) var(--space-lg) var(--space-2xl);
+            text-align: center;
+            position: relative;
+            min-height: 70vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .hero-content {
+            max-width: 800px;
+            margin: 0 auto;
+            position: relative;
+            z-index: 2;
+        }
+
+        .hero h1 {
+            font-size: var(--text-6xl);
+            margin-bottom: var(--space-md);
+            font-weight: var(--weight-bold);
+            line-height: var(--leading-tight);
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.5);
+            color: var(--text-inverse);
+        }
+
+        .hero p {
+            font-size: var(--text-xl);
+            margin-bottom: var(--space-xl);
+            opacity: 0.95;
+            line-height: var(--leading-relaxed);
+            text-shadow: 1px 1px 2px rgba(0,0,0,0.5);
+        }
+
+        .cta-button {
+            display: inline-block;
+            background: var(--gold);
+            color: var(--primary);
+            padding: var(--space-md) var(--space-xl);
+            text-decoration: none;
+            border-radius: var(--radius-md);
+            font-weight: var(--weight-bold);
+            font-size: var(--text-lg);
+            transition: all var(--duration-normal) var(--ease-out);
+            box-shadow: var(--shadow-lg);
+            font-family: inherit;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .cta-button::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
+            transition: left var(--duration-slow) var(--ease-out);
+        }
+
+        .cta-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(184, 134, 11, 0.4);
+            background: var(--gold-light);
+        }
+
+        .cta-button:hover::before {
+            left: 100%;
+        }
+
+        /* Mission Cards */
+        .mission-details {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: var(--space-lg);
+            margin-top: var(--space-2xl);
+        }
+
+        .mission-card {
+            background: var(--bg-primary);
+            padding: var(--space-xl) var(--space-lg);
+            border-radius: var(--radius-lg);
+            text-align: center;
+            box-shadow: var(--shadow-sm);
+            border-top: 4px solid var(--burgundy);
+            transition: all var(--duration-normal) var(--ease-out);
+        }
+
+        .mission-card:hover {
+            transform: translateY(-4px);
+            box-shadow: var(--shadow-lg);
+        }
+
+        .mission-card h4 {
+            color: var(--primary);
+            margin-bottom: var(--space-md);
+            font-size: var(--text-xl);
+        }
+
+        .mission-card p {
+            color: var(--text-light);
+            line-height: var(--leading-relaxed);
+        }
+
+        /* Project Cards */
+        .project-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+            gap: var(--space-lg);
+            margin-top: var(--space-2xl);
+        }
+
+        .project-card {
+            background: var(--bg-tertiary);
+            padding: var(--space-lg);
+            border-radius: var(--radius-lg);
+            border-left: 4px solid var(--primary);
+            transition: all var(--duration-normal) var(--ease-out);
+        }
+
+        .project-card:hover {
+            transform: translateY(-3px);
+            box-shadow: var(--shadow-lg);
+        }
+
+        .project-title {
+            font-size: var(--text-lg);
+            color: var(--primary);
+            font-weight: var(--weight-semibold);
+            margin-bottom: var(--space-sm);
+            line-height: var(--leading-normal);
+        }
+
+        .project-languages {
+            display: flex;
+            gap: var(--space-xs);
+            margin-top: var(--space-sm);
+            flex-wrap: wrap;
+        }
+
+        .language-badge {
+            padding: 0.3rem 0.7rem;
+            border-radius: 15px;
+            font-size: var(--text-xs);
+            font-weight: var(--weight-semibold);
+            color: var(--text-inverse);
+            display: inline-block;
+        }
+
+        .language-badge.english { background: #3498db; }
+        .language-badge.chinese { background: #f39c12; }
+        .language-badge.german { background: #34495e; }
+        .language-badge.french { background: #2ecc71; }
+
+        /* Knowledge Hub Features */
+        .hub-features {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: var(--space-lg);
+            margin-top: var(--space-2xl);
+        }
+
+        .hub-feature {
+            background: var(--bg-primary);
+            padding: var(--space-lg);
+            border-radius: var(--radius-lg);
+            text-align: center;
+            box-shadow: var(--shadow-sm);
+            border-top: 3px solid var(--gold);
+            transition: all var(--duration-normal) var(--ease-out);
+        }
+
+        .hub-feature:hover {
+            transform: translateY(-4px);
+            box-shadow: var(--shadow-lg);
+        }
+
+        .hub-feature-icon {
+            font-size: 2.5rem;
+            margin-bottom: var(--space-md);
+            display: block;
+            color: var(--burgundy);
+        }
+
+        .hub-feature h4 {
+            color: var(--primary);
+            font-weight: var(--weight-semibold);
+            margin-bottom: var(--space-sm);
+            font-size: var(--text-xl);
+        }
+
+        .hub-feature p {
+            color: var(--text-light);
+            font-size: var(--text-base);
+            line-height: var(--leading-relaxed);
+        }
+
+        /* Values Section */
+        .values-content {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: var(--space-3xl);
+            align-items: center;
+        }
+
+        .value-points {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: var(--space-lg);
+            margin-top: var(--space-2xl);
+        }
+
+        .value-item {
+            text-align: center;
+            padding: var(--space-lg);
+            background: var(--bg-secondary);
+            border-radius: var(--radius-lg);
+            border-top: 3px solid var(--gold);
+        }
+
+        .value-icon {
+            font-size: 2rem;
+            color: var(--burgundy);
+            display: block;
+            margin-bottom: var(--space-md);
+        }
+
+        .value-item h4 {
+            color: var(--primary);
+            font-weight: var(--weight-semibold);
+            margin-bottom: var(--space-xs);
+        }
+
+        .values-image {
+            background: var(--bg-tertiary);
+            border-radius: var(--radius-xl);
+            padding: var(--space-2xl);
+            text-align: center;
+            min-height: 400px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 4rem;
+            color: var(--primary);
+            border: 3px solid var(--gold);
+        }
+
+        /* Contact Section Enhancements */
+        .contact-content {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: var(--space-3xl);
+        }
+
+        .contact-item {
+            display: flex;
+            align-items: flex-start;
+            margin-bottom: var(--space-lg);
+        }
+
+        .contact-item-icon {
+            width: 50px;
+            height: 50px;
+            background: rgba(184, 134, 11, 0.2);
+            border-radius: var(--radius-md);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-right: var(--space-md);
+            font-size: var(--text-xl);
+            flex-shrink: 0;
+        }
+
+        .contact-form {
+            background: rgba(255,255,255,0.08);
+            padding: var(--space-2xl);
+            border-radius: var(--radius-lg);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(184, 134, 11, 0.3);
+        }
+    </style>
+</head>
+<body>
+    <!-- Skip link for accessibility -->
+    <a href="#main-content" class="skip-link">Skip to main content</a>
+    
+    <!-- Header -->
+    <header>
+        <div class="header-top">
+            Founded 2015 by Drupon Khen Rinpoche • Thrangu Sekhar Retreat Center, Nepal
+        </div>
+        <nav>
+            <a href="#home" class="logo">
+                <img src="https://i.ibb.co/HDg6gHn8/mts-logo-259x300.png" alt="MTS Logo">
+                <span>Marpa Translation Society</span>
+            </a>
+            <ul class="nav-links">
+                <li><a href="#home" class="active">Home</a></li>
+                <li><a href="mts_about_page.html">About</a></li>
+                <li><a href="mts_catalog_page.html">Catalog</a></li>
+                <li><a href="mts_knowledge_hub.html">Knowledge Hub</a></li>
+                <li><a href="#contact">Contact</a></li>
+            </ul>
+        </nav>
+    </header>
+
+    <!-- Main Content -->
+    <main id="main-content">
+        <!-- Hero Section -->
+        <section class="hero" id="home">
+            <div class="hero-content">
+                <h1>Making Tibetan Buddhism Accessible</h1>
+                <p>Founded by Drupon Khen Rinpoche in 2015, the Marpa Translation Society is dedicated to translating the classics of Tibetan Buddhism for non-Tibetan-speaking practitioners worldwide, supporting their study and practice of the dharma.</p>
+                <a href="#contact" class="cta-button">Connect With Us</a>
+            </div>
+        </section>
+
+        <!-- Mission Section -->
+        <section class="section section-cream" id="mission">
+            <div class="container">
+                <div class="section-header">
+                    <h2 class="section-title">Our Sacred Mission</h2>
+                    <p class="section-subtitle">Following the vision of Drupon Khen Rinpoche, we continue the tradition of great translators like Marpa Lotsāwa, making profound Buddhist teachings accessible across linguistic boundaries.</p>
+                </div>
+
+                <div class="card" style="margin-bottom: var(--space-2xl);">
+                    <div class="card-body">
+                        <p style="font-size: var(--text-lg); line-height: var(--leading-loose); margin-bottom: var(--space-md);">"Having travelled widely in both the East and the West, I came to see the importance of good translators and translations. Many practitioners do not have a lot of money because they do not spend their time and effort making money, they practise. Therefore, it can be difficult for them to acquire texts."</p>
+                        
+                        <p style="font-size: var(--text-lg); line-height: var(--leading-loose);">"Someone who conveys the Dharma in their own language to their fellow countrymen, is doing something wonderful and very important. With this motivation, I have been encouraging some people to become translators."</p>
+                    </div>
+                    <div class="card-footer">
+                        <strong style="color: var(--primary); font-style: normal;">— Drupon Khen Rinpoche Karma Lhabu, Founder</strong>
+                    </div>
+                </div>
+
+                <div class="mission-details">
+                    <div class="mission-card fade-in">
+                        <h4>Cost-Only Approach</h4>
+                        <p>We charge only the equivalent of publishing costs, with no profit margin, making authentic dharma texts affordable for sincere practitioners.</p>
+                    </div>
+                    
+                    <div class="mission-card fade-in">
+                        <h4>Scholarly Collaboration</h4>
+                        <p>Our translators work closely under Rinpoche's guidance at Thrangu Sekhar Retreat Center, meeting with Khenpo Wangchuk to clarify difficult points.</p>
+                    </div>
+                    
+                    <div class="mission-card fade-in">
+                        <h4>Practitioner-Translators</h4>
+                        <p>As Rinpoche reminds us, "dharma is more than just words" - our translators are practitioners first, ensuring translations carry the feeling and blessing of the dharma.</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Current Projects Section -->
+        <section class="section" id="projects">
+            <div class="container">
+                <div class="section-header">
+                    <h2 class="section-title">Current Translation Projects</h2>
+                    <p class="section-subtitle">We focus on translating treatises, instructions and advice by Indian and Tibetan masters who are universally accepted as learned and genuine.</p>
+                </div>
+
+                <div class="project-grid">
+                    <div class="project-card slide-up">
+                        <div class="project-title">Jamgon Kongtrul Rinpoche's Great Seal Preliminaries - The Torch for the Definitive Meaning (nges don sgron me)</div>
+                        <div class="project-languages">
+                            <span class="language-badge english">English</span>
+                        </div>
+                    </div>
+
+                    <div class="project-card slide-up stagger-1">
+                        <div class="project-title">Gampopa's Collected Works (dvags po gsung 'bum)</div>
+                        <div class="project-languages">
+                            <span class="language-badge english">English</span>
+                            <span class="language-badge chinese">Chinese</span>
+                        </div>
+                    </div>
+
+                    <div class="project-card slide-up stagger-2">
+                        <div class="project-title">Jamgon Kongtrul Rinpoche's Commentary to the Highest Continuum - The Indomitable Roar of the Lion</div>
+                        <div class="project-languages">
+                            <span class="language-badge english">English</span>
+                            <span class="language-badge chinese">Chinese</span>
+                        </div>
+                    </div>
+
+                    <div class="project-card slide-up stagger-3">
+                        <div class="project-title">Karmapa Mikyo Dorje's Major Commentaries on Abhidharma, Vinaya, Middle Way, and Perfection of Intelligence</div>
+                        <div class="project-languages">
+                            <span class="language-badge english">English</span>
+                            <span class="language-badge chinese">Chinese</span>
+                        </div>
+                    </div>
+
+                    <div class="project-card slide-up stagger-4">
+                        <div class="project-title">The 8th Situ Rinpoche's Golden Rosary of the Kagyu (bka' brgyud gser phreng)</div>
+                        <div class="project-languages">
+                            <span class="language-badge english">English</span>
+                            <span class="language-badge chinese">Chinese</span>
+                        </div>
+                    </div>
+
+                    <div class="project-card slide-up stagger-5">
+                        <div class="project-title">Karmapa Wangchuk Dorje's Ocean of Definitive Meaning</div>
+                        <div class="project-languages">
+                            <span class="language-badge german">German</span>
+                            <span class="language-badge french">French</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Knowledge Hub Section -->
+        <section class="section section-cream" id="knowledge-hub">
+            <div class="container">
+                <div class="section-header">
+                    <h2 class="section-title">MTS Knowledge Hub</h2>
+                    <p class="section-subtitle">Our comprehensive digital library and lexicon system supports translators and students with consistent terminology and scholarly resources.</p>
+                </div>
+
+                <div class="hub-features">
+                    <div class="hub-feature fade-in">
+                        <span class="hub-feature-icon">📚</span>
+                        <h4>Translated Terms</h4>
+                        <p>Comprehensive glossary of Buddhist terms with consistent translations across all our projects</p>
+                    </div>
+                    
+                    <div class="hub-feature fade-in">
+                        <span class="hub-feature-icon">📖</span>
+                        <h4>Tibetan Terms</h4>
+                        <p>Database of original Tibetan terminology with pronunciation guides and contextual usage</p>
+                    </div>
+                    
+                    <div class="hub-feature fade-in">
+                        <span class="hub-feature-icon">✍️</span>
+                        <h4>Authors & Texts</h4>
+                        <p>Detailed profiles of Buddhist masters and their works, providing historical and doctrinal context</p>
+                    </div>
+                    
+                    <div class="hub-feature fade-in">
+                        <span class="hub-feature-icon">🌐</span>
+                        <h4>Translations</h4>
+                        <p>Complete catalog of our translations with progress updates and availability information</p>
+                    </div>
+                    
+                    <div class="hub-feature fade-in">
+                        <span class="hub-feature-icon">👥</span>
+                        <h4>Translators</h4>
+                        <p>Profiles of our dedicated translators and their areas of expertise within Buddhist studies</p>
+                    </div>
+                    
+                    <div class="hub-feature fade-in">
+                        <span class="hub-feature-icon">🔍</span>
+                        <h4>Research Tools</h4>
+                        <p>Advanced search and cross-reference capabilities for scholars and serious students</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Values Section -->
+        <section class="section" id="values">
+            <div class="container">
+                <div class="values-content">
+                    <div class="values-text">
+                        <h2 style="font-size: var(--text-4xl); color: var(--primary); margin-bottom: var(--space-lg); font-weight: var(--weight-bold);">Our Guiding Principles</h2>
+                        <p style="color: var(--text-light); margin-bottom: var(--space-md); line-height: var(--leading-loose); font-size: var(--text-lg);">The Society has over twenty people involved in translation work, most studying and practicing under Rinpoche's guidance at Thrangu Sekhar Retreat Center, Nepal.</p>
+                        <p style="color: var(--text-light); line-height: var(--leading-loose); font-size: var(--text-lg);">We emphasize translating treatises, instructions and advice by masters universally accepted as learned and genuine, ensuring our translations carry both scholarly accuracy and spiritual authenticity.</p>
+                        
+                        <div class="value-points">
+                            <div class="value-item">
+                                <span class="value-icon">🧘</span>
+                                <h4>Practice First</h4>
+                                <p>Practitioner-translators who understand dharma deeply</p>
+                            </div>
+                            <div class="value-item">
+                                <span class="value-icon">💰</span>
+                                <h4>No Profit</h4>
+                                <p>Cost-only pricing to serve practitioners</p>
+                            </div>
+                            <div class="value-item">
+                                <span class="value-icon">🏔️</span>
+                                <h4>Traditional Guidance</h4>
+                                <p>Working under authentic lineage masters</p>
+                            </div>
+                            <div class="value-item">
+                                <span class="value-icon">🌍</span>
+                                <h4>Global Access</h4>
+                                <p>Making wisdom available worldwide</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="values-image">
+                        ☸️
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Contact Section -->
+        <section class="section section-primary" id="contact">
+            <div class="container">
+                <div class="section-header">
+                    <h2 class="section-title" style="color: var(--text-inverse);">Get In Touch</h2>
+                    <p class="section-subtitle" style="color: rgba(255,255,255,0.8);">For translation inquiries or to support our mission of making authentic dharma teachings accessible.</p>
+                </div>
+
+                <div class="contact-content">
+                    <div class="contact-info">
+                        <h3 style="font-size: var(--text-2xl); margin-bottom: var(--space-lg); color: var(--gold); font-weight: var(--weight-semibold);">Contact Information</h3>
+                        
+                        <div class="contact-item">
+                            <div class="contact-item-icon">📧</div>
+                            <div>
+                                <strong>Email</strong><br>
+                                MarpaTranslationSociety@gmail.com
+                            </div>
+                        </div>
+
+                        <div class="contact-item">
+                            <div class="contact-item-icon">🌐</div>
+                            <div>
+                                <strong>Website & Resources</strong><br>
+                                marpatranslation.org<br>
+                                <em>Including our Knowledge Hub and translation updates</em>
+                            </div>
+                        </div>
+
+                        <div class="contact-item">
+                            <div class="contact-item-icon">🏔️</div>
+                            <div>
+                                <strong>Based in Nepal</strong><br>
+                                Thrangu Sekhar Retreat Center<br>
+                                <em>Where our translators study and work</em>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="contact-form">
+                        <form>
+                            <div class="form-group">
+                                <label for="name" class="form-label">Name <span class="required-indicator" aria-label="required">*</span></label>
+                                <input type="text" id="name" name="name" class="form-input" required>
+                            </div>
+
+                            <div class="form-group">
+                                <label for="email" class="form-label">Email <span class="required-indicator" aria-label="required">*</span></label>
+                                <input type="email" id="email" name="email" class="form-input" required>
+                            </div>
+
+                            <div class="form-group">
+                                <label for="interest" class="form-label">Area of Interest</label>
+                                <select id="interest" name="interest" class="form-input form-select">
+                                    <option value="">Please select...</option>
+                                    <option value="translations">Available Translations</option>
+                                    <option value="volunteer">Volunteer Translation Work</option>
+                                    <option value="support">Supporting Our Mission</option>
+                                    <option value="academic">Academic Collaboration</option>
+                                    <option value="knowledge-hub">Knowledge Hub Access</option>
+                                    <option value="other">Other Inquiry</option>
+                                </select>
+                            </div>
+
+                            <div class="form-group">
+                                <label for="message" class="form-label">Message <span class="required-indicator" aria-label="required">*</span></label>
+                                <textarea id="message" name="message" class="form-input form-textarea" placeholder="Please share your interest in our work or specific questions about translations..." required></textarea>
+                            </div>
+
+                            <button type="submit" class="btn btn-accent" style="width: 100%;">Send Message</button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <!-- Footer -->
+    <footer>
+        <div class="footer-content">
+            <div class="footer-motto">"Someone who conveys the Dharma in their own language to their fellow countrymen, is doing something wonderful and very important."</div>
+            <div class="footer-links">
+                <a href="#home">Home</a>
+                <a href="mts_about_page.html">About</a>
+                <a href="mts_catalog_page.html">Catalog</a>
+                <a href="mts_knowledge_hub.html">Knowledge Hub</a>
+                <a href="#contact">Contact</a>
+                <a href="mts_catalog_page.html">Available Texts</a>
+            </div>
+            <p class="footer-text">&copy; 2025 Marpa Translation Society. Founded 2015 by Drupon Khen Rinpoche. | Making authentic dharma accessible worldwide.</p>
+        </div>
+    </footer>
+
+    <!-- Main JavaScript -->
+    <script src="assets/js/main.js"></script>
+</body>
+</html>

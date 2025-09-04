@@ -1,0 +1,1009 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Marpa Translation Society - Scholarly Tradition</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Crimson Text', 'Georgia', serif;
+            line-height: 1.7;
+            color: #2d3748;
+            background: #faf8f5;
+        }
+
+        :root {
+            --primary: #14375d;
+            --burgundy: #8b1538;
+            --gold: #d4af37;
+            --cream: #faf8f5;
+            --parchment: #f7f4f0;
+            --text: #2d3748;
+            --light-text: #4a5568;
+            --border: #d4c5a9;
+            --white: #ffffff;
+        }
+
+        /* Header */
+        header {
+            background: var(--white);
+            border-bottom: 3px solid var(--gold);
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+        }
+
+        .header-top {
+            background: var(--primary);
+            color: var(--white);
+            padding: 0.5rem 0;
+            text-align: center;
+            font-size: 0.875rem;
+        }
+
+        nav {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 1.5rem 2rem;
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: var(--primary);
+        }
+
+        .logo img {
+            height: 60px;
+            width: auto;
+            margin-right: 20px;
+            border: 2px solid var(--gold);
+            border-radius: 50%;
+            padding: 8px;
+            background: var(--white);
+        }
+
+        .nav-links {
+            display: flex;
+            list-style: none;
+            gap: 2.5rem;
+        }
+
+        .nav-links a {
+            color: var(--text);
+            text-decoration: none;
+            font-weight: 600;
+            font-size: 1.05rem;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            transition: color 0.3s ease;
+            border-bottom: 2px solid transparent;
+            padding-bottom: 0.25rem;
+        }
+
+        .nav-links a:hover {
+            color: var(--burgundy);
+            border-bottom-color: var(--gold);
+        }
+
+        /* Hero Section */
+        .hero {
+            background: 
+                linear-gradient(45deg, rgba(20, 55, 93, 0.85), rgba(139, 21, 56, 0.75)),
+                url('https://i.ibb.co/8nhLCH04/0X5A7830.jpg');
+            background-size: cover;
+            background-position: center;
+            background-attachment: fixed;
+            color: var(--white);
+            padding: 100px 2rem 80px;
+            text-align: center;
+            position: relative;
+        }
+
+        .hero::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><defs><pattern id="academic-pattern" width="20" height="20" patternUnits="userSpaceOnUse"><circle cx="10" cy="10" r="1" fill="rgba(212,175,55,0.1)"/></pattern></defs><rect width="100" height="100" fill="url(%23academic-pattern)"/></svg>');
+        }
+
+        .hero-content {
+            max-width: 900px;
+            margin: 0 auto;
+            position: relative;
+            z-index: 2;
+        }
+
+        .hero-subtitle {
+            font-size: 1.125rem;
+            margin-bottom: 1rem;
+            color: var(--gold);
+            font-weight: 500;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+        }
+
+        .hero h1 {
+            font-size: 3.75rem;
+            font-weight: 700;
+            margin-bottom: 1.5rem;
+            line-height: 1.2;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+
+        .hero p {
+            font-size: 1.35rem;
+            margin-bottom: 2.5rem;
+            line-height: 1.6;
+            opacity: 0.95;
+        }
+
+        .hero-buttons {
+            display: flex;
+            gap: 1.5rem;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+
+        .btn {
+            display: inline-block;
+            padding: 12px 30px;
+            text-decoration: none;
+            font-weight: 600;
+            font-size: 1.05rem;
+            border-radius: 0;
+            transition: all 0.3s ease;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .btn-primary {
+            background: var(--gold);
+            color: var(--primary);
+            border: 2px solid var(--gold);
+        }
+
+        .btn-primary:hover {
+            background: transparent;
+            color: var(--gold);
+        }
+
+        .btn-secondary {
+            background: transparent;
+            color: var(--white);
+            border: 2px solid var(--white);
+        }
+
+        .btn-secondary:hover {
+            background: var(--white);
+            color: var(--primary);
+        }
+
+        /* Sections */
+        .section {
+            padding: 80px 2rem;
+        }
+
+        .section.dark {
+            background: var(--primary);
+            color: var(--white);
+        }
+
+        .section.parchment {
+            background: var(--parchment);
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .section-header {
+            text-align: center;
+            margin-bottom: 4rem;
+            position: relative;
+        }
+
+        .section-header::before {
+            content: '※';
+            position: absolute;
+            top: -2rem;
+            left: 50%;
+            transform: translateX(-50%);
+            font-size: 2rem;
+            color: var(--gold);
+        }
+
+        .section-title {
+            font-size: 2.75rem;
+            font-weight: 700;
+            color: var(--primary);
+            margin-bottom: 1.5rem;
+            position: relative;
+        }
+
+        .section.dark .section-title {
+            color: var(--white);
+        }
+
+        .section-title::after {
+            content: '';
+            position: absolute;
+            bottom: -0.5rem;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 80px;
+            height: 3px;
+            background: var(--gold);
+        }
+
+        .section-subtitle {
+            font-size: 1.25rem;
+            color: var(--light-text);
+            max-width: 700px;
+            margin: 0 auto;
+            line-height: 1.6;
+            font-style: italic;
+        }
+
+        .section.dark .section-subtitle {
+            color: rgba(255,255,255,0.85);
+        }
+
+        /* Founder Quote */
+        .founder-section {
+            background: var(--white);
+            border: 1px solid var(--border);
+            border-radius: 0;
+            padding: 3rem;
+            margin: 3rem 0;
+            position: relative;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+
+        .founder-section::before {
+            content: '"';
+            position: absolute;
+            top: -10px;
+            left: 30px;
+            font-size: 4rem;
+            color: var(--gold);
+            line-height: 1;
+        }
+
+        .founder-quote p {
+            font-size: 1.2rem;
+            line-height: 1.8;
+            color: var(--text);
+            margin-bottom: 1.5rem;
+            font-style: italic;
+            text-indent: 2rem;
+        }
+
+        .founder-attribution {
+            text-align: right;
+            font-weight: 600;
+            color: var(--burgundy);
+            font-style: normal;
+            font-size: 1.1rem;
+            border-top: 2px solid var(--gold);
+            padding-top: 1rem;
+            margin-top: 2rem;
+        }
+
+        /* Academic Cards */
+        .academic-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+            gap: 2.5rem;
+            margin-top: 3rem;
+        }
+
+        .academic-card {
+            background: var(--white);
+            border: 1px solid var(--border);
+            padding: 2.5rem;
+            position: relative;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            transition: transform 0.3s ease;
+        }
+
+        .academic-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 4px;
+            background: linear-gradient(90deg, var(--gold), var(--burgundy));
+        }
+
+        .academic-card:hover {
+            transform: translateY(-5px);
+        }
+
+        .card-icon {
+            width: 60px;
+            height: 60px;
+            background: var(--primary);
+            color: var(--white);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+            margin-bottom: 1.5rem;
+            border: 3px solid var(--gold);
+        }
+
+        .card-title {
+            font-size: 1.4rem;
+            font-weight: 700;
+            color: var(--primary);
+            margin-bottom: 1rem;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .card-text {
+            color: var(--text);
+            line-height: 1.7;
+            font-size: 1.05rem;
+        }
+
+        /* Project List */
+        .project-list {
+            margin-top: 3rem;
+        }
+
+        .project-item {
+            background: var(--white);
+            border-left: 5px solid var(--burgundy);
+            padding: 2rem;
+            margin-bottom: 1.5rem;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+
+        .project-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 1rem;
+        }
+
+        .project-title {
+            font-size: 1.2rem;
+            font-weight: 600;
+            color: var(--primary);
+            line-height: 1.4;
+            flex: 1;
+        }
+
+        .project-languages {
+            display: flex;
+            gap: 0.5rem;
+            flex-wrap: wrap;
+            margin-left: 1rem;
+        }
+
+        .language-tag {
+            background: var(--gold);
+            color: var(--white);
+            padding: 0.25rem 0.75rem;
+            font-size: 0.875rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        /* Knowledge Hub */
+        .hub-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 2rem;
+            margin-top: 3rem;
+        }
+
+        .hub-item {
+            background: var(--white);
+            border: 1px solid var(--border);
+            text-align: center;
+            padding: 2.5rem 2rem;
+            position: relative;
+            transition: all 0.3s ease;
+        }
+
+        .hub-item::before {
+            content: '';
+            position: absolute;
+            top: -1px;
+            left: -1px;
+            right: -1px;
+            height: 4px;
+            background: var(--gold);
+            transform: scaleX(0);
+            transition: transform 0.3s ease;
+        }
+
+        .hub-item:hover::before {
+            transform: scaleX(1);
+        }
+
+        .hub-item:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 15px rgba(0,0,0,0.15);
+        }
+
+        .hub-icon {
+            font-size: 3rem;
+            margin-bottom: 1.5rem;
+            display: block;
+            color: var(--burgundy);
+        }
+
+        .hub-title {
+            font-size: 1.3rem;
+            font-weight: 600;
+            color: var(--primary);
+            margin-bottom: 1rem;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .hub-description {
+            color: var(--text);
+            line-height: 1.6;
+        }
+
+        /* Contact Section */
+        .contact-section {
+            background: 
+                linear-gradient(45deg, rgba(20, 55, 93, 0.95), rgba(139, 21, 56, 0.95)),
+                url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><defs><pattern id="contact-pattern" width="30" height="30" patternUnits="userSpaceOnUse"><path d="M15 0 L30 15 L15 30 L0 15 Z" fill="rgba(212,175,55,0.1)" stroke="rgba(212,175,55,0.2)" stroke-width="0.5"/></pattern></defs><rect width="100" height="100" fill="url(%23contact-pattern)"/></svg>');
+        }
+
+        .contact-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 4rem;
+            align-items: start;
+        }
+
+        .contact-info {
+            color: var(--white);
+        }
+
+        .contact-info h3 {
+            font-size: 2rem;
+            font-weight: 700;
+            margin-bottom: 2rem;
+            color: var(--gold);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .contact-detail {
+            display: flex;
+            align-items: flex-start;
+            margin-bottom: 2rem;
+            padding: 1.5rem;
+            background: rgba(255,255,255,0.1);
+            border-left: 4px solid var(--gold);
+        }
+
+        .contact-icon {
+            width: 50px;
+            height: 50px;
+            background: var(--gold);
+            color: var(--primary);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-right: 1.5rem;
+            font-size: 1.25rem;
+            flex-shrink: 0;
+        }
+
+        /* Form */
+        .contact-form {
+            background: rgba(255,255,255,0.95);
+            padding: 3rem;
+            border: 2px solid var(--gold);
+        }
+
+        .form-title {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: var(--primary);
+            margin-bottom: 2rem;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            text-align: center;
+        }
+
+        .form-group {
+            margin-bottom: 2rem;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 0.75rem;
+            font-weight: 600;
+            color: var(--primary);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            font-size: 0.95rem;
+        }
+
+        .form-group input,
+        .form-group textarea,
+        .form-group select {
+            width: 100%;
+            padding: 1rem;
+            border: 2px solid var(--border);
+            background: var(--white);
+            color: var(--text);
+            font-size: 1rem;
+            font-family: inherit;
+            transition: border-color 0.3s ease;
+        }
+
+        .form-group input:focus,
+        .form-group textarea:focus,
+        .form-group select:focus {
+            outline: none;
+            border-color: var(--gold);
+        }
+
+        .form-group textarea {
+            height: 120px;
+            resize: vertical;
+        }
+
+        .submit-btn {
+            width: 100%;
+            background: var(--primary);
+            color: var(--white);
+            border: 2px solid var(--primary);
+            padding: 1rem;
+            font-size: 1.1rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .submit-btn:hover {
+            background: transparent;
+            color: var(--primary);
+        }
+
+        /* Footer */
+        footer {
+            background: var(--primary);
+            color: var(--white);
+            padding: 3rem 2rem 2rem;
+            border-top: 3px solid var(--gold);
+        }
+
+        .footer-content {
+            max-width: 1200px;
+            margin: 0 auto;
+            text-align: center;
+        }
+
+        .footer-motto {
+            font-size: 1.25rem;
+            font-style: italic;
+            margin-bottom: 2rem;
+            color: var(--gold);
+        }
+
+        .footer-links {
+            display: flex;
+            justify-content: center;
+            gap: 3rem;
+            margin-bottom: 2rem;
+            flex-wrap: wrap;
+        }
+
+        .footer-links a {
+            color: var(--white);
+            text-decoration: none;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            transition: color 0.3s ease;
+            border-bottom: 2px solid transparent;
+            padding-bottom: 0.25rem;
+        }
+
+        .footer-links a:hover {
+            color: var(--gold);
+            border-bottom-color: var(--gold);
+        }
+
+        .footer-text {
+            font-size: 0.95rem;
+            opacity: 0.85;
+            line-height: 1.6;
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .nav-links {
+                display: none;
+            }
+
+            .hero h1 {
+                font-size: 2.5rem;
+            }
+
+            .hero-buttons {
+                flex-direction: column;
+                align-items: center;
+            }
+
+            .contact-grid {
+                grid-template-columns: 1fr;
+                gap: 3rem;
+            }
+
+            .project-header {
+                flex-direction: column;
+                gap: 1rem;
+            }
+
+            .project-languages {
+                margin-left: 0;
+            }
+
+            .academic-grid,
+            .hub-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .section-title {
+                font-size: 2.25rem;
+            }
+
+            .founder-section {
+                padding: 2rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Header -->
+    <header>
+        <div class="header-top">
+            Founded 2015 by Drupon Khen Rinpoche • Thrangu Sekhar Retreat Center, Nepal
+        </div>
+        <nav>
+            <div class="logo">
+                <img src="https://i.ibb.co/HDg6gHn8/mts-logo-259x300.png" alt="MTS Logo">
+                <span>Marpa Translation Society</span>
+            </div>
+            <ul class="nav-links">
+                <li><a href="translation_society_website.html">Home</a></li>
+                <li><a href="mts_about_page.html">About</a></li>
+                <li><a href="mts_catalog_page.html">Catalog</a></li>
+                <li><a href="mts_knowledge_hub.html">Knowledge Hub</a></li>
+                <li><a href="#contact">Contact</a></li>
+            </ul>
+        </nav>
+    </header>
+
+    <!-- Hero -->
+    <section class="hero" id="home">
+        <div class="hero-content">
+            <div class="hero-subtitle">Scholarly Buddhist Translation</div>
+            <h1>Preserving Wisdom Through Language</h1>
+            <p>Following the tradition of great translators, we make classical Tibetan Buddhist texts accessible to practitioners worldwide, offering authentic dharma at cost-only prices since 2015.</p>
+            <div class="hero-buttons">
+                <a href="#projects" class="btn btn-primary">View Projects</a>
+                <a href="#contact" class="btn btn-secondary">Get In Touch</a>
+            </div>
+        </div>
+    </section>
+
+    <!-- Mission -->
+    <section class="section parchment" id="mission">
+        <div class="container">
+            <div class="section-header">
+                <h2 class="section-title">Our Sacred Mission</h2>
+                <p class="section-subtitle">Guided by the vision of Drupon Khen Rinpoche, we continue the noble tradition of making profound Buddhist teachings accessible across linguistic boundaries.</p>
+            </div>
+
+            <div class="founder-section">
+                <div class="founder-quote">
+                    <p>"Having travelled widely in both the East and the West, I came to see the importance of good translators and translations. Many practitioners do not have a lot of money because they do not spend their time making money, they practise. Therefore, it can be difficult for them to acquire texts."</p>
+                    
+                    <p>"Someone who conveys the Dharma in their own language to their fellow countrymen, is doing something wonderful and very important. With this motivation, I have been encouraging some people to become translators."</p>
+                    
+                    <div class="founder-attribution">— Drupon Khen Rinpoche Karma Lhabu, Founder</div>
+                </div>
+            </div>
+
+            <div class="academic-grid">
+                <div class="academic-card">
+                    <div class="card-icon">💰</div>
+                    <h3 class="card-title">Cost-Only Principle</h3>
+                    <p class="card-text">We charge only the equivalent of publishing costs, adding no profit margin. This ensures authentic dharma remains accessible to sincere practitioners who dedicate their lives to study and practice rather than wealth accumulation.</p>
+                </div>
+                
+                <div class="academic-card">
+                    <div class="card-icon">🧘</div>
+                    <h3 class="card-title">Practitioner-Scholars</h3>
+                    <p class="card-text">Our twenty-plus translators study and practice under Rinpoche's guidance at Thrangu Sekhar Retreat Center. As Rinpoche reminds us, "dharma is more than words" - our translations must carry the feeling and blessing of dharma.</p>
+                </div>
+                
+                <div class="academic-card">
+                    <div class="card-icon">📚</div>
+                    <h3 class="card-title">Scholarly Excellence</h3>
+                    <p class="card-text">We work closely with Khenpo Wangchuk to clarify difficult points, receiving detailed instructions on works under translation. We focus on treatises by masters universally accepted as learned and genuine.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Projects -->
+    <section class="section" id="projects">
+        <div class="container">
+            <div class="section-header">
+                <h2 class="section-title">Current Translation Projects</h2>
+                <p class="section-subtitle">We emphasize translating treatises, instructions and advice by Indian and Tibetan masters who are universally accepted as learned and genuine.</p>
+            </div>
+
+            <div class="project-list">
+                <div class="project-item">
+                    <div class="project-header">
+                        <div class="project-title">Jamgon Kongtrul Rinpoche's Great Seal Preliminaries - The Torch for the Definitive Meaning (nges don sgron me)</div>
+                        <div class="project-languages">
+                            <span class="language-tag">English</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="project-item">
+                    <div class="project-header">
+                        <div class="project-title">Gampopa's Collected Works (dvags po gsung 'bum)</div>
+                        <div class="project-languages">
+                            <span class="language-tag">English</span>
+                            <span class="language-tag">Chinese</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="project-item">
+                    <div class="project-header">
+                        <div class="project-title">Jamgon Kongtrul Rinpoche's Commentary to the Highest Continuum - The Indomitable Roar of the Lion</div>
+                        <div class="project-languages">
+                            <span class="language-tag">English</span>
+                            <span class="language-tag">Chinese</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="project-item">
+                    <div class="project-header">
+                        <div class="project-title">Karmapa Mikyo Dorje's Major Commentaries on Abhidharma, Vinaya, Middle Way, and Perfection of Intelligence</div>
+                        <div class="project-languages">
+                            <span class="language-tag">English</span>
+                            <span class="language-tag">Chinese</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="project-item">
+                    <div class="project-header">
+                        <div class="project-title">The Life of Milarepa - The Black Treasury (mdzod nag ma)</div>
+                        <div class="project-languages">
+                            <span class="language-tag">English</span>
+                            <span class="language-tag">Chinese</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="project-item">
+                    <div class="project-header">
+                        <div class="project-title">Karmapa Wangchuk Dorje's Ocean of Definitive Meaning</div>
+                        <div class="project-languages">
+                            <span class="language-tag">German</span>
+                            <span class="language-tag">French</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Knowledge Hub -->
+    <section class="section dark" id="hub">
+        <div class="container">
+            <div class="section-header">
+                <h2 class="section-title">MTS Knowledge Hub</h2>
+                <p class="section-subtitle">Our comprehensive digital library and lexicon system supports consistent translation work and scholarly research across all projects.</p>
+            </div>
+
+            <div class="hub-grid">
+                <div class="hub-item">
+                    <span class="hub-icon">📚</span>
+                    <h4 class="hub-title">Translated Terms</h4>
+                    <p class="hub-description">Comprehensive glossary of Buddhist terminology with consistent translations across all our projects</p>
+                </div>
+                
+                <div class="hub-item">
+                    <span class="hub-icon">📖</span>
+                    <h4 class="hub-title">Tibetan Terms</h4>
+                    <p class="hub-description">Database of original Tibetan terminology with pronunciation guides and contextual usage</p>
+                </div>
+                
+                <div class="hub-item">
+                    <span class="hub-icon">✍️</span>
+                    <h4 class="hub-title">Authors & Texts</h4>
+                    <p class="hub-description">Detailed profiles of Buddhist masters and their works, providing historical and doctrinal context</p>
+                </div>
+                
+                <div class="hub-item">
+                    <span class="hub-icon">🌐</span>
+                    <h4 class="hub-title">Translations</h4>
+                    <p class="hub-description">Complete catalog of our translations with progress updates and availability information</p>
+                </div>
+                
+                <div class="hub-item">
+                    <span class="hub-icon">👥</span>
+                    <h4 class="hub-title">Translators</h4>
+                    <p class="hub-description">Profiles of our dedicated translators and their areas of expertise within Buddhist studies</p>
+                </div>
+                
+                <div class="hub-item">
+                    <span class="hub-icon">🔍</span>
+                    <h4 class="hub-title">Research Tools</h4>
+                    <p class="hub-description">Advanced search and cross-reference capabilities for scholars and serious students</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Contact -->
+    <section class="section contact-section" id="contact">
+        <div class="container">
+            <div class="section-header">
+                <h2 class="section-title">Scholarly Correspondence</h2>
+                <p class="section-subtitle">For inquiries regarding translations, academic collaboration, or supporting our mission of making authentic dharma accessible.</p>
+            </div>
+
+            <div class="contact-grid">
+                <div class="contact-info">
+                    <h3>Contact Information</h3>
+                    
+                    <div class="contact-detail">
+                        <div class="contact-icon">📧</div>
+                        <div>
+                            <strong>Primary Email</strong><br>
+                            MarpaTranslationSociety@gmail.com
+                        </div>
+                    </div>
+
+                    <div class="contact-detail">
+                        <div class="contact-icon">🏔️</div>
+                        <div>
+                            <strong>Location</strong><br>
+                            Thrangu Sekhar Retreat Center<br>
+                            Nepal
+                        </div>
+                    </div>
+
+                    <div class="contact-detail">
+                        <div class="contact-icon">🌐</div>
+                        <div>
+                            <strong>Digital Presence</strong><br>
+                            marpatranslation.org<br>
+                            Facebook: Marpa Translation Society
+                        </div>
+                    </div>
+
+                    <div class="contact-detail">
+                        <div class="contact-icon">📚</div>
+                        <div>
+                            <strong>Text Availability</strong><br>
+                            Translations refined while Rinpoche<br>
+                            teaches them to retreatants
+                        </div>
+                    </div>
+                </div>
+
+                <div class="contact-form">
+                    <h3 class="form-title">Send Inquiry</h3>
+                    <form>
+                        <div class="form-group">
+                            <label for="name">Full Name</label>
+                            <input type="text" id="name" name="name" required>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="email">Email Address</label>
+                            <input type="email" id="email" name="email" required>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="interest">Area of Interest</label>
+                            <select id="interest" name="interest">
+                                <option value="">Please select...</option>
+                                <option value="translations">Available Translations</option>
+                                <option value="volunteer">Translation Volunteer Work</option>
+                                <option value="academic">Academic Collaboration</option>
+                                <option value="support">Supporting Our Mission</option>
+                                <option value="knowledge-hub">Knowledge Hub Access</option>
+                                <option value="other">Other Scholarly Inquiry</option>
+                            </select>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="message">Detailed Message</label>
+                            <textarea id="message" name="message" placeholder="Please share your specific interest in our translation work or questions about our texts..."></textarea>
+                        </div>
+
+                        <button type="submit" class="submit-btn">Send Inquiry</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer>
+        <div class="footer-content">
+            <div class="footer-motto">"Someone who conveys the Dharma in their own language to their fellow countrymen, is doing something wonderful and very important."</div>
+            <div class="footer-links">
+                <a href="#home">Home</a>
+                <a href="#mission">Mission</a>
+                <a href="#projects">Projects</a>
+                <a href="#hub">Knowledge Hub</a>
+                <a href="#contact">Contact</a>
+                <a href="#">Available Texts</a>
+            </div>
+            <p class="footer-text">&copy; 2025 Marpa Translation Society. Founded in 2015 by Drupon Khen Rinpoche Karma Lhabu.<br>
+            Making authentic Buddhist wisdom accessible through scholarly translation.</p>
+        </div>
+    </footer>
+
+    <script>
+        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+            anchor.addEventListener('click', function (e) {
+                e.preventDefault();
+                const target = document.querySelector(this.getAttribute('href'));
+                if (target) {
+                    target.scrollIntoView({
+                        behavior: 'smooth',
+                        block: 'start'
+                    });
+                }
+            });
+        });
+
+        document.querySelector('form').addEventListener('submit', function(e) {
+            e.preventDefault();
+            alert('Thank you for your scholarly inquiry. We will respond with the respect and attention your interest in authentic dharma deserves.');
+        });
+    </script>
+</body>
+</html>
