@@ -30,7 +30,7 @@ class Main {
 	 */
 	public function init() {
 		if ( ! defined( 'THEMEISLE_BLOCKS_VERSION' ) ) {
-			define( 'THEMEISLE_BLOCKS_VERSION', '3.1.1' );
+			define( 'THEMEISLE_BLOCKS_VERSION', '3.1.2' );
 		}
 
 		add_action( 'init', array( $this, 'autoload_classes' ), 9 );

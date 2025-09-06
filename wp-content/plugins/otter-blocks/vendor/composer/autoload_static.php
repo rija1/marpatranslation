@@ -4,7 +4,7 @@
 
 namespace Composer\Autoload;
 
-class ComposerStaticInit9acc55e79cc7b3416ecd51d46ee8612b
+class ComposerStaticInitb823d780538a4de103f62cac887db88d
 {
     public static $files = array (
         '16e4325dd9bdbbd2ce8c9530b088e50b' => __DIR__ . '/..' . '/codeinwp/themeisle-sdk/load.php',
@@ -75,6 +75,7 @@ class ComposerStaticInit9acc55e79cc7b3416ecd51d46ee8612b
         'Masterminds\\HTML5\\Serializer\\OutputRules' => __DIR__ . '/..' . '/masterminds/html5/src/HTML5/Serializer/OutputRules.php',
         'Masterminds\\HTML5\\Serializer\\RulesInterface' => __DIR__ . '/..' . '/masterminds/html5/src/HTML5/Serializer/RulesInterface.php',
         'Masterminds\\HTML5\\Serializer\\Traverser' => __DIR__ . '/..' . '/masterminds/html5/src/HTML5/Serializer/Traverser.php',
+        'Sabberworm\\CSS\\CSSElement' => __DIR__ . '/..' . '/sabberworm/php-css-parser/src/CSSElement.php',
         'Sabberworm\\CSS\\CSSList\\AtRuleBlockList' => __DIR__ . '/..' . '/sabberworm/php-css-parser/src/CSSList/AtRuleBlockList.php',
         'Sabberworm\\CSS\\CSSList\\CSSBlockList' => __DIR__ . '/..' . '/sabberworm/php-css-parser/src/CSSList/CSSBlockList.php',
         'Sabberworm\\CSS\\CSSList\\CSSList' => __DIR__ . '/..' . '/sabberworm/php-css-parser/src/CSSList/CSSList.php',
@@ -91,6 +92,8 @@ class ComposerStaticInit9acc55e79cc7b3416ecd51d46ee8612b
         'Sabberworm\\CSS\\Parsing\\SourceException' => __DIR__ . '/..' . '/sabberworm/php-css-parser/src/Parsing/SourceException.php',
         'Sabberworm\\CSS\\Parsing\\UnexpectedEOFException' => __DIR__ . '/..' . '/sabberworm/php-css-parser/src/Parsing/UnexpectedEOFException.php',
         'Sabberworm\\CSS\\Parsing\\UnexpectedTokenException' => __DIR__ . '/..' . '/sabberworm/php-css-parser/src/Parsing/UnexpectedTokenException.php',
+        'Sabberworm\\CSS\\Position\\Position' => __DIR__ . '/..' . '/sabberworm/php-css-parser/src/Position/Position.php',
+        'Sabberworm\\CSS\\Position\\Positionable' => __DIR__ . '/..' . '/sabberworm/php-css-parser/src/Position/Positionable.php',
         'Sabberworm\\CSS\\Property\\AtRule' => __DIR__ . '/..' . '/sabberworm/php-css-parser/src/Property/AtRule.php',
         'Sabberworm\\CSS\\Property\\CSSNamespace' => __DIR__ . '/..' . '/sabberworm/php-css-parser/src/Property/CSSNamespace.php',
         'Sabberworm\\CSS\\Property\\Charset' => __DIR__ . '/..' . '/sabberworm/php-css-parser/src/Property/Charset.php',
@@ -216,6 +219,7 @@ class ComposerStaticInit9acc55e79cc7b3416ecd51d46ee8612b
         'Stripe\\Invoice' => __DIR__ . '/..' . '/stripe/stripe-php/lib/Invoice.php',
         'Stripe\\InvoiceItem' => __DIR__ . '/..' . '/stripe/stripe-php/lib/InvoiceItem.php',
         'Stripe\\InvoiceLineItem' => __DIR__ . '/..' . '/stripe/stripe-php/lib/InvoiceLineItem.php',
+        'Stripe\\InvoiceRenderingTemplate' => __DIR__ . '/..' . '/stripe/stripe-php/lib/InvoiceRenderingTemplate.php',
         'Stripe\\Issuing\\Authorization' => __DIR__ . '/..' . '/stripe/stripe-php/lib/Issuing/Authorization.php',
         'Stripe\\Issuing\\Card' => __DIR__ . '/..' . '/stripe/stripe-php/lib/Issuing/Card.php',
         'Stripe\\Issuing\\CardDetails' => __DIR__ . '/..' . '/stripe/stripe-php/lib/Issuing/CardDetails.php',
@@ -306,6 +310,7 @@ class ComposerStaticInit9acc55e79cc7b3416ecd51d46ee8612b
         'Stripe\\Service\\Identity\\VerificationReportService' => __DIR__ . '/..' . '/stripe/stripe-php/lib/Service/Identity/VerificationReportService.php',
         'Stripe\\Service\\Identity\\VerificationSessionService' => __DIR__ . '/..' . '/stripe/stripe-php/lib/Service/Identity/VerificationSessionService.php',
         'Stripe\\Service\\InvoiceItemService' => __DIR__ . '/..' . '/stripe/stripe-php/lib/Service/InvoiceItemService.php',
+        'Stripe\\Service\\InvoiceRenderingTemplateService' => __DIR__ . '/..' . '/stripe/stripe-php/lib/Service/InvoiceRenderingTemplateService.php',
         'Stripe\\Service\\InvoiceService' => __DIR__ . '/..' . '/stripe/stripe-php/lib/Service/InvoiceService.php',
         'Stripe\\Service\\Issuing\\AuthorizationService' => __DIR__ . '/..' . '/stripe/stripe-php/lib/Service/Issuing/AuthorizationService.php',
         'Stripe\\Service\\Issuing\\CardService' => __DIR__ . '/..' . '/stripe/stripe-php/lib/Service/Issuing/CardService.php',
@@ -553,9 +558,9 @@ class ComposerStaticInit9acc55e79cc7b3416ecd51d46ee8612b
     public static function getInitializer(ClassLoader $loader)
     {
         return \Closure::bind(function () use ($loader) {
-            $loader->prefixLengthsPsr4 = ComposerStaticInit9acc55e79cc7b3416ecd51d46ee8612b::$prefixLengthsPsr4;
-            $loader->prefixDirsPsr4 = ComposerStaticInit9acc55e79cc7b3416ecd51d46ee8612b::$prefixDirsPsr4;
-            $loader->classMap = ComposerStaticInit9acc55e79cc7b3416ecd51d46ee8612b::$classMap;
+            $loader->prefixLengthsPsr4 = ComposerStaticInitb823d780538a4de103f62cac887db88d::$prefixLengthsPsr4;
+            $loader->prefixDirsPsr4 = ComposerStaticInitb823d780538a4de103f62cac887db88d::$prefixDirsPsr4;
+            $loader->classMap = ComposerStaticInitb823d780538a4de103f62cac887db88d::$classMap;
 
         }, null, ClassLoader::class);
     }
