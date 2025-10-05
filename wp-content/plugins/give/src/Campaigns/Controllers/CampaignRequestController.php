@@ -3,6 +3,7 @@
 namespace Give\Campaigns\Controllers;
 
 use Exception;
+use Give\API\REST\V3\Routes\Campaigns\Permissions\CampaignPermissions;
 use Give\API\REST\V3\Routes\Campaigns\ValueObjects\CampaignRoute;
 use Give\Campaigns\Models\Campaign;
 use Give\Campaigns\Models\CampaignPage;
@@ -27,6 +28,7 @@ use WP_REST_Response;
 class CampaignRequestController
 {
     /**
+     * @since 4.10.1 Added status check to ensure non-authorized users can only access active campaigns
      * @since 4.0.0
      *
      * @return WP_Error | WP_REST_Response
@@ -37,6 +39,14 @@ class CampaignRequestController
 
         if ( ! $campaign) {
             return new WP_Error('campaign_not_found', __('Campaign not found', 'give'), ['status' => 404]);
+        }
+
+        if (!$campaign->status->isActive() && !CampaignPermissions::canViewPrivate()) {
+            return new WP_Error(
+                'rest_forbidden',
+                esc_html__('You do not have permission to view this campaign.', 'give'),
+                ['status' => CampaignPermissions::authorizationStatusCode()]
+            );
         }
 
         return new WP_REST_Response((new CampaignViewModel($campaign))->exports());
@@ -53,6 +63,7 @@ class CampaignRequestController
         $status = $request->get_param('status');
         $sortBy = $request->get_param('sortBy');
         $orderBy = $request->get_param('orderBy');
+        $search = $request->get_param('search');
 
         $query = Campaign::query();
 
@@ -60,6 +71,10 @@ class CampaignRequestController
 
         if ( ! empty($ids)) {
             $query->whereIn('id', $ids);
+        }
+
+        if ($search) {
+            $query->whereLike('campaign_title', '%%' . $search . '%%');
         }
 
         $totalQuery = clone $query;
@@ -78,8 +93,7 @@ class CampaignRequestController
             return $campaign->id;
         }, $campaigns);
 
-        // We don't have to optimize if the number of campaigns is less than 3
-        $campaignsData = count($ids) >= 3
+        $campaignsData = ! empty($ids)
             ? CampaignsDataRepository::campaigns($ids)
             : null;
 

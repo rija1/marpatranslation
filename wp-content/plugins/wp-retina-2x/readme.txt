@@ -5,7 +5,7 @@ Donate link: https://www.patreon.com/meowapps
 Requires at least: 6.0
 Tested up to: 6.8
 Requires PHP: 7.4
-Stable tag: 7.0.4
+Stable tag: 7.0.6
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -63,6 +63,16 @@ Disable WordPress’ automatic scaling of large images, preventing files with "-
 3. Navigate to the plugin settings to configure your preferences.
 
 == Changelog ==
+
+= 7.0.6 (2025/10/01) =
+* Fix: Hotfix for PRO version displaying the FREE header incorrectly
+
+= 7.0.5 (2025/09/29) =
+* Update: Renamed "Regenerate" to "Build" and added icons for clearer terminology.
+* Fix: Resolved issues with generating disabled thumbnail sizes.
+* Fix: Verified non-registered sizes are handled correctly.  
+* Fix: Thumbnails regeneration is now optimized to delete unused sizes.  
+* Fix: Fixed display issues.
 
 = 7.0.4 (2025/08/27) =
 * Update: Version synchronization with WordPress.org repository.
