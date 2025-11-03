@@ -229,7 +229,9 @@ class WCML_Multi_Currency_Shipping {
 			$priceWithRounding = $this->applyRoundingRules( $shippingCosts );
 
 			$shippingRate->set_cost( $priceWithRounding );
-			$shippingRate->set_taxes( $this->calculateTaxForCost( $priceWithRounding ) );
+			if ( $shippingTaxes > 0 ) {
+				$shippingRate->set_taxes( $this->calculateTaxForCost( $priceWithRounding ) );
+			}
 
 			return $shippingRate;
 		}
@@ -247,7 +249,9 @@ class WCML_Multi_Currency_Shipping {
 				$newCost = $priceWithRounding / ( 1 + $tax );
 
 				$shippingRate->set_cost( $newCost );
-				$shippingRate->set_taxes( $this->calculateTaxForCost( $newCost ) );
+				if ( $shippingTaxes > 0 ) {
+					$shippingRate->set_taxes( $this->calculateTaxForCost( $newCost ) );
+				}
 
 				return $shippingRate;
 			}

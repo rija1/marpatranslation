@@ -928,7 +928,11 @@ class WCML_Url_Translation {
 			}
 
 			icl_add_string_translation( $string_id, $language, $base_translation, ICL_STRING_TRANSLATION_COMPLETE );
+		}
 
+		if ( in_array( $original_base, [ WCTaxonomies::TAXONOMY_PRODUCT_CATEGORY, WCTaxonomies::TAXONOMY_PRODUCT_TAG ], true ) ) {
+			// Notify WPML that the taxonomy slug was translated.
+			do_action( 'wpml_activate_slug_translation', $original_base, $original_base_value, WPML_Slug_Translation_Factory::TAX );
 		}
 
 		$edit_base = new WCML_Store_URLs_Edit_Base_UI( $original_base, $language, $this->woocommerce_wpml, $this->sitepress );

@@ -6,10 +6,10 @@
  * Author: OnTheGoSystems
  * Author URI: http://www.onthegosystems.com/
  * Text Domain: woocommerce-multilingual
- * Version: 5.5.1.1
+ * Version: 5.5.2.3
  * Plugin Slug: woocommerce-multilingual
  * WC requires at least: 3.9
- * WC tested up to: 10.2
+ * WC tested up to: 10.3
  *
  * @package WCML
  * @author  OnTheGoSystems
@@ -35,7 +35,7 @@ if ( ! $wpml_php_version_check->is_ok() ) {
 	return;
 }
 
-define( 'WCML_VERSION', '5.5.1.1' );
+define( 'WCML_VERSION', '5.5.2.3' );
 define( 'WCML_PLUGIN_PATH', dirname( __FILE__ ) );
 define( 'WCML_PLUGIN_FOLDER', basename( WCML_PLUGIN_PATH ) );
 define( 'WCML_LOCALE_PATH', WCML_PLUGIN_PATH . '/locale' );
@@ -138,6 +138,7 @@ function wcml_loader() {
 		\WCML\OrderItems\Hooks::class,
 		\WCML\Multicurrency\WpQueryMcPrice\Factory::class,
 		\WCML\Synchronization\Hooks::class,
+		\WCML\PostHog\Hooks::class,
 	];
 
 	$loaders[] = 'WCML_Product_Image_Filter_Factory';

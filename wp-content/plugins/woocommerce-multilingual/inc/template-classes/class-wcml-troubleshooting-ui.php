@@ -60,12 +60,12 @@ class WCML_Troubleshooting_UI extends WCML_Templates_Factory {
 				],
 			],
 			'taxonomies' => [
-				'title'             => __( 'Fix missing product taxonomies', 'woocommerce-multilingual' ),
+				'title'             => __( 'Fix product taxonomies', 'woocommerce-multilingual' ),
 				'items'             => [
-					'productType' => __( 'Create missing translations for product types', 'woocommerce-multilingual' ),
+					'productType' => __( 'Set product types as not translatable and delete unwanted translations', 'woocommerce-multilingual' ),
 					'attributes'  => __( 'Create missing translations for product attributes:', 'woocommerce-multilingual' ),
 				],
-				'productTypeEnable' => empty( $translatedProductTypeTerms ),
+				'productTypeEnable' => ! empty( $translatedProductTypeTerms ),
 				'link'              => sprintf(
 				/* translators: %1$s and %2$s are opening and closing HTML link tags */
 					esc_html__( 'To translate product taxonomies, go to the %1$sTaxonomy Translation%2$s page.', 'woocommerce-multilingual' ),

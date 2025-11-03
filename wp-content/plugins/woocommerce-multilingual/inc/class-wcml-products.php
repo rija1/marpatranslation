@@ -833,7 +833,7 @@ class WCML_Products {
 		) {
 			$current_language = $this->sitepress->get_current_language();
 			if ( $current_language !== $this->sitepress->get_default_language() ) {
-				$url .= '&lang=' . $this->sitepress->get_current_language();
+				$url = add_query_arg( 'lang', $current_language, $url );
 			}
 		}
 

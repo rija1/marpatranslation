@@ -701,7 +701,10 @@ class WP_Installer {
 								'text' => sprintf( __( 'You are using an invalid site key defined as the constant %s (most likely in wp-config.php).
                                                 Please remove it or use the correct value in order to be able to register correctly.', 'installer' ), 'OTGS_INSTALLER_SITE_KEY_' . strtoupper( $repository_id ) )
 							);
-						}
+						} else {
+                            // This is mainly needed to trigger a request to AMS to inform them about the new site key
+                            do_action( 'otgs_installer_site_key_update', $repository_id );
+                        }
 					}
 				}
 			}

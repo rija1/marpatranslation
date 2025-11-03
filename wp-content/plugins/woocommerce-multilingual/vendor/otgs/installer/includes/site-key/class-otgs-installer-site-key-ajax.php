@@ -9,17 +9,21 @@ class OTGS_Installer_Site_Key_Ajax {
 	private $subscription_factory;
 	private $subscriptionManagerFactory;
 
+	/** @var OTGS_Installer_Site_Key_Remove_Service */
+	private $removeService;
+
 	public function __construct(
 		OTGS_Installer_Logger $logger,
 		OTGS_Installer_Repositories $repositories,
 		OTGS_Installer_Subscription_Factory $subscription_factory,
-		SubscriptionManagerFactory $subscriptionManagerFactory
-
+		SubscriptionManagerFactory $subscriptionManagerFactory,
+		OTGS_Installer_Site_Key_Remove_Service  $removeService
 	) {
-		$this->logger               = $logger;
-		$this->repositories         = $repositories;
-		$this->subscription_factory = $subscription_factory;
+		$this->logger                     = $logger;
+		$this->repositories               = $repositories;
+		$this->subscription_factory       = $subscription_factory;
 		$this->subscriptionManagerFactory = $subscriptionManagerFactory;
+		$this->removeService              = $removeService;
 	}
 
 	public function add_hooks() {
@@ -85,15 +89,9 @@ class OTGS_Installer_Site_Key_Ajax {
 		$nonce_action = 'remove_site_key_' . $repository;
 
 		if ( wp_verify_nonce( $nonce, $nonce_action ) ) {
-			$repository = $this->repositories->get( $repository );
-			$repository->set_subscription( null );
-			$this->repositories->save_subscription( $repository );
-
-			$this->clean_plugins_update_cache();
-			do_action( 'otgs_installer_site_key_update', $repository->get_id() );
+			$this->removeService->remove( $repository );
 		}
 
-		$this->repositories->refresh();
 		wp_send_json_success();
 	}
 

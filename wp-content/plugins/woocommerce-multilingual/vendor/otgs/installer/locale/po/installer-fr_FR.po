@@ -7,7 +7,7 @@ msgstr ""
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"POT-Creation-Date: 2025-04-08T10:19:58+00:00\n"
+"POT-Creation-Date: 2025-07-21T14:15:01+00:00\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "X-Generator: WP-CLI 2.11.0\n"
 "X-Domain: installer\n"
@@ -232,27 +232,27 @@ msgid_plural "Your %s account expires in %d days."
 msgstr[0] "Votre compte %s expire dans %d jour."
 msgstr[1] "Votre compte %s expire dans %d jours."
 
-#: includes/class-otgs-installer-wp-share-local-components-setting-hooks.php:97
+#: includes/class-otgs-installer-wp-share-local-components-setting-hooks.php:110
 msgid "Reporting to"
 msgstr "Rattaché(e) à"
 
-#: includes/class-otgs-installer-wp-share-local-components-setting-hooks.php:98
+#: includes/class-otgs-installer-wp-share-local-components-setting-hooks.php:111
 msgid "Report to"
 msgstr "Rapport à"
 
-#: includes/class-otgs-installer-wp-share-local-components-setting-hooks.php:99
+#: includes/class-otgs-installer-wp-share-local-components-setting-hooks.php:112
 msgid "Send theme and plugins information, in order to get faster support and compatibility alerts"
 msgstr "Envoyez infos thème et plugins pour support."
 
-#: includes/class-otgs-installer-wp-share-local-components-setting-hooks.php:101
+#: includes/class-otgs-installer-wp-share-local-components-setting-hooks.php:114
 msgid "Don't send this information and skip compatibility alerts"
 msgstr "N'envoyez pas ces infos, ignorez alertes."
 
-#: includes/class-otgs-installer-wp-share-local-components-setting-hooks.php:103
+#: includes/class-otgs-installer-wp-share-local-components-setting-hooks.php:116
 msgid "which theme and plugins you are using."
 msgstr "Thème et plugins utilisés."
 
-#: includes/class-otgs-installer-wp-share-local-components-setting-hooks.php:142
+#: includes/class-otgs-installer-wp-share-local-components-setting-hooks.php:160
 msgid "Privacy and data usage policy"
 msgstr "Politique de confidentialité et d'utilisation des données"
 
@@ -282,7 +282,7 @@ msgstr "Activation de %s"
 
 #: includes/class-wp-installer.php:358
 #: includes/class-wp-installer.php:359
-#: includes/class-wp-installer.php:1124
+#: includes/class-wp-installer.php:1127
 msgid "Installer"
 msgstr "Installateur"
 
@@ -300,71 +300,71 @@ msgid ""
 "                                                Please remove it or use the correct value in order to be able to register correctly."
 msgstr "Clé de site invalide %s. Corrigez-la pour l'enregistrement."
 
-#: includes/class-wp-installer.php:824
+#: includes/class-wp-installer.php:827
 msgid "Commercial"
 msgstr "Commercial"
 
-#: includes/class-wp-installer.php:1014
+#: includes/class-wp-installer.php:1017
 msgid "Installer cannot display the products information because the automatic updating for %s was explicitly disabled with the configuration below (usually in wp-config.php):"
 msgstr "Mise à jour automatique %s désactivée."
 
-#: includes/class-wp-installer.php:1016
+#: includes/class-wp-installer.php:1019
 msgid "In order to see the products information, please run the %smanual updates check%s to initialize the products list or (temporarily) remove the above code."
 msgstr "Pour voir les informations sur les produits, veuillez exécuter le %smanual updates check%s pour initialiser la liste des produits ou supprimer (temporairement) le code ci-dessus."
 
-#: includes/class-wp-installer.php:1044
+#: includes/class-wp-installer.php:1047
 msgid "Installer cannot contact our updates server to get information about the available products and check for new versions. If you are seeing this message for the first time, you can ignore it, as it may be a temporary communication problem. If the problem persists and your WordPress admin is slowing down, you can disable automated version checks. Add the following line to your wp-config.php file:"
 msgstr "Le programme d'installation ne peut pas contacter le serveur."
 
-#: includes/class-wp-installer.php:1071
-#: includes/class-wp-installer.php:1075
+#: includes/class-wp-installer.php:1074
+#: includes/class-wp-installer.php:1078
 msgid "Information about new versions is invalid. It may be a temporary communication problem, please check for updates again."
 msgstr "Infos nouvelles versions non valides."
 
-#: includes/class-wp-installer.php:1115
+#: includes/class-wp-installer.php:1118
 msgid "Sorry, you are not allowed to manage Installer for this site."
 msgstr "Pas autorisé à gérer l'installateur."
 
-#: includes/class-wp-installer.php:1154
+#: includes/class-wp-installer.php:1157
 msgid "No repositories defined."
 msgstr "Aucun dépôt défini."
 
-#: includes/class-wp-installer.php:1376
+#: includes/class-wp-installer.php:1379
 msgid "We have preselected the plugins your site needs to be fully multilingual."
 msgstr "Nous avons présélectionné les plugins dont votre site a besoin pour être entièrement multilingue."
 
-#: includes/class-wp-installer.php:1612
-#: includes/site-key/class-otgs-installer-site-key-ajax.php:67
+#: includes/class-wp-installer.php:1615
+#: includes/site-key/class-otgs-installer-site-key-ajax.php:71
 msgid "Invalid site key for the current site."
 msgstr "Clé de site invalide."
 
-#: includes/class-wp-installer.php:1613
-#: includes/site-key/class-otgs-installer-site-key-ajax.php:67
+#: includes/class-wp-installer.php:1616
+#: includes/site-key/class-otgs-installer-site-key-ajax.php:71
 msgid "Please note that the site key is case sensitive."
 msgstr "Clé du site sensible à la casse."
 
-#: includes/class-wp-installer.php:1618
+#: includes/class-wp-installer.php:1621
 msgid "%s cannot access %s to register. Try again to see if it's a temporary problem. If the problem continues, make sure that this site has access to the Internet."
 msgstr "%s ne peut pas accéder à %s pour s'enregistrer. Réessayez pour voir s'il s'agit d'un problème temporaire. Si le problème persiste, assurez-vous que ce site a accès à l'internet."
 
-#: includes/class-wp-installer.php:2259
+#: includes/class-wp-installer.php:2262
 msgid "Connection failed! Please refresh the page and try again. (%s)"
 msgstr "Échec de la connexion ! Veuillez rafraîchir la page et réessayer. (%s)"
 
-#: includes/class-wp-installer.php:2262
+#: includes/class-wp-installer.php:2265
 msgid "Your subscription appears to no longer be valid. Please try to register again using a valid site key."
 msgstr "Abonnement non valide. Réinscrivez-vous."
 
-#: includes/class-wp-installer.php:2891
-#: includes/class-wp-installer.php:2953
+#: includes/class-wp-installer.php:2894
+#: includes/class-wp-installer.php:2956
 msgid "%s cannot update because your site's registration is not valid. Please %sregister %s%s again for this site first."
 msgstr "%s ne peut pas être mis à jour car l'enregistrement de votre site n'est pas valide. Veuillez %senregistrer à nouveau %s%s pour ce site en premier lieu."
 
-#: includes/class-wp-installer.php:2976
+#: includes/class-wp-installer.php:2979
 msgid "Update Plugin"
 msgstr "Mise à jour du plugin"
 
-#: includes/class-wp-installer.php:2977
+#: includes/class-wp-installer.php:2980
 msgid "Return to the plugins page"
 msgstr "Retour à la page des plugins"
 
@@ -380,19 +380,19 @@ msgstr "Notes de mise à jour"
 msgid "Information about versions of %s are invalid. It may be a temporary communication problem, please check for updates again."
 msgstr "Infos versions %s invalides."
 
-#: includes/site-key/class-otgs-installer-site-key-ajax.php:40
+#: includes/site-key/class-otgs-installer-site-key-ajax.php:44
 msgid "Empty site key!"
 msgstr "Clé de site vide !"
 
-#: includes/site-key/class-otgs-installer-site-key-ajax.php:44
+#: includes/site-key/class-otgs-installer-site-key-ajax.php:48
 msgid "Invalid request!"
 msgstr "Demande non valide !"
 
-#: includes/site-key/class-otgs-installer-site-key-ajax.php:125
+#: includes/site-key/class-otgs-installer-site-key-ajax.php:123
 msgid "Invalid site key for the current site. If the error persists, try to un-register first and then register again with the same site key."
 msgstr "Clé invalide. Désinscrivez-vous puis réinscrivez-vous."
 
-#: includes/site-key/class-otgs-installer-site-key-ajax.php:179
+#: includes/site-key/class-otgs-installer-site-key-ajax.php:177
 msgid "%s cannot access %s to register. Try again to see if it's a temporary problem. If the problem continues, make sure that this site has access to the Internet. You can still use the plugin without registration, but you will not receive automated updates."
 msgstr "%s ne peut pas accéder à %s pour s'enregistrer. Réessayez pour voir s'il s'agit d'un problème temporaire. Si le problème persiste, assurez-vous que ce site a accès à l'internet. Vous pouvez toujours utiliser le plugin sans vous enregistrer, mais vous ne recevrez pas de mises à jour automatiques."
 
@@ -809,10 +809,10 @@ msgstr "Désinscrire %s de ce site"
 msgid "Check for updates"
 msgstr "Vérifier les mises à jour"
 
-#: templates/repository-registered.php:10
-msgid "%s is registered on this site. You will receive automatic updates until %s"
-msgstr "%s est enregistré sur ce site. Vous recevrez des mises à jour automatiques jusqu'à ce que %s"
+#: templates/repository-registered.php:13
+msgid "%s is registered on this site using the following sitekey: <strong>%s</strong>. You will receive automatic updates until %s"
+msgstr "%s est enregistré sur ce site avec la clé de site suivante : <strong>%s</strong>. Vous recevrez des mises à jour automatiques jusqu'au %s"
 
-#: templates/repository-registered.php:11
-msgid "%s is registered on this site. Your Lifetime account gives you updates for life."
-msgstr "%s enregistré. Mises à jour à vie."
+#: templates/repository-registered.php:19
+msgid "%s is registered on this site using the following sitekey: <strong>%s</strong>. Your Lifetime account gives you updates for life."
+msgstr "%s est enregistré sur ce site avec la clé de site suivante : <strong>%s</strong>. Votre compte à vie vous donne des mises à jour à vie."

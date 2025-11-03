@@ -5,7 +5,6 @@ namespace WCML\TranslationJob;
 use WPML\FP\Obj;
 use WPML\FP\Fns;
 use WPML\FP\Str;
-use WPML\Jobs\ExtraData;
 use WPML\LIB\WP\Hooks as WPHooks;
 use WPML\TM\Jobs\FieldId;
 use WCML\Utilities\WCTaxonomies;
@@ -165,13 +164,13 @@ class Hooks implements \IWPML_Backend_Action, \IWPML_REST_Action {
 				$group       = self::getTopLevelGroup();
 				$group['pa'] = 'Attributes';
 
-				$extradata = ExtraData::decode( Obj::path( [ 'attributes', 'extradata' ], $field ) );
+				$extradata = isset( $field['extradata'] ) ? $field['extradata'] : [];
 
 				$extradata['unit']     = $title;
 				$extradata['group']    = implode( '/', array_values( $group ) );
 				$extradata['group_id'] = implode( '/', array_keys( $group ) );
 
-				$field = Obj::assocPath( [ 'attributes', 'extradata' ], ExtraData::encode( $extradata ), $field );
+				$field['extradata'] = $extradata;
 			}
 		}
 

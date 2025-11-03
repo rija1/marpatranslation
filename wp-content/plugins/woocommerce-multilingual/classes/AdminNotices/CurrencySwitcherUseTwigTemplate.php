@@ -26,22 +26,29 @@ class CurrencySwitcherUseTwigTemplate implements \IWPML_Backend_Action, \IWPML_D
 		$this->notices = $notices;
 	}
 
+	public function add_hooks() {
+		if ( wcml_is_multi_currency_on() ) {
+			add_action( 'admin_init', [ $this, 'initNotice' ] );
+		}
+	}
+
 	/**
 	 * Add hooks to manage visibility of notice.
 	 */
-	public function add_hooks() {
+	public function initNotice() {
 		$notice      = $this->notices->get_notice( self::NOTICE_ID );
 		$needsNotice = wcml_is_multi_currency_on() && $this->hasUniqueCurrency();
 
 		if ( $needsNotice && ! $notice ) {
 			add_action( 'wpml_currency_switcher_uses_twig_templates', [ $this, 'addNotice' ] );
-		} elseif ( ! $needsNotice && $notice ) {
-			add_action( 'admin_init', [ $this, 'removeNotice' ] );
+		} elseif ( ! $needsNotice && ( $notice instanceof \WPML_Notice ) ) {
+			$this->removeNotice( $notice );
 		}
 	}
 
 	public function addNotice( string $templateSlug ) {
-		if ( $this->wcml->cs_templates->get_first_active() !== $templateSlug ) {
+		$activeTemplateNames = array_keys( $this->wcml->cs_templates->get_active_templates() );
+		if ( ! in_array( $templateSlug, $activeTemplateNames, true ) ) {
 			return;
 		}
 
@@ -80,8 +87,7 @@ class CurrencySwitcherUseTwigTemplate implements \IWPML_Backend_Action, \IWPML_D
 	/**
 	 * Remove the notice if the problem has been fixed
 	 */
-	public function removeNotice() {
-		$notice = $this->notices->get_notice( self::NOTICE_ID );
+	private function removeNotice( \WPML_Notice $notice ) {
 		$this->notices->remove_notice( $notice->get_group(), $notice->get_id() );
 	}
 

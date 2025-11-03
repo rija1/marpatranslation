@@ -4,7 +4,7 @@
 
 namespace Composer\Autoload;
 
-class ComposerStaticInit7d8fd38c9a7856dfb5c921ab4fedbe59
+class ComposerStaticInitce3a59db496801901ccd0176d01c168d
 {
     public static $files = array (
         'b45b351e6b6f7487d819961fef2fda77' => __DIR__ . '/..' . '/jakeasmith/http_build_url/src/http_build_url.php',
@@ -215,6 +215,7 @@ class ComposerStaticInit7d8fd38c9a7856dfb5c921ab4fedbe59
         'WCML\\Permalinks\\Settings\\TranslationControls' => __DIR__ . '/../..' . '/classes/Permalinks/Settings/TranslationControls.php',
         'WCML\\Permalinks\\Strings' => __DIR__ . '/../..' . '/classes/Permalinks/Strings.php',
         'WCML\\PointerUi\\Factory' => __DIR__ . '/../..' . '/classes/PointerUi/Factory.php',
+        'WCML\\PostHog\\Hooks' => __DIR__ . '/../..' . '/classes/PostHog/Hooks.php',
         'WCML\\Products\\Hooks' => __DIR__ . '/../..' . '/classes/product/Hooks.php',
         'WCML\\Reports\\Categories\\Query' => __DIR__ . '/../..' . '/classes/Reports/Categories/Query.php',
         'WCML\\Reports\\Hooks' => __DIR__ . '/../..' . '/classes/Reports/Hooks.php',
@@ -409,7 +410,6 @@ class ComposerStaticInit7d8fd38c9a7856dfb5c921ab4fedbe59
         'WCML_Settings_UI' => __DIR__ . '/../..' . '/inc/template-classes/class-wcml-settings-ui.php',
         'WCML_Setup' => __DIR__ . '/../..' . '/classes/wcml-setup/class-wcml-setup.php',
         'WCML_Setup_Attributes_UI' => __DIR__ . '/../..' . '/inc/template-classes/setup/class-wcml-setup-attributes-ui.php',
-        'WCML_Setup_Display_As_Translated_UI' => __DIR__ . '/../..' . '/inc/template-classes/setup/class-wcml-setup-display-as-translated-ui.php',
         'WCML_Setup_Footer_UI' => __DIR__ . '/../..' . '/inc/template-classes/setup/class-wcml-setup-footer.php',
         'WCML_Setup_Handlers' => __DIR__ . '/../..' . '/classes/wcml-setup/class-wcml-setup-handlers.php',
         'WCML_Setup_Header_UI' => __DIR__ . '/../..' . '/inc/template-classes/setup/class-wcml-setup-header.php',
@@ -483,9 +483,9 @@ class ComposerStaticInit7d8fd38c9a7856dfb5c921ab4fedbe59
     public static function getInitializer(ClassLoader $loader)
     {
         return \Closure::bind(function () use ($loader) {
-            $loader->prefixLengthsPsr4 = ComposerStaticInit7d8fd38c9a7856dfb5c921ab4fedbe59::$prefixLengthsPsr4;
-            $loader->prefixDirsPsr4 = ComposerStaticInit7d8fd38c9a7856dfb5c921ab4fedbe59::$prefixDirsPsr4;
-            $loader->classMap = ComposerStaticInit7d8fd38c9a7856dfb5c921ab4fedbe59::$classMap;
+            $loader->prefixLengthsPsr4 = ComposerStaticInitce3a59db496801901ccd0176d01c168d::$prefixLengthsPsr4;
+            $loader->prefixDirsPsr4 = ComposerStaticInitce3a59db496801901ccd0176d01c168d::$prefixDirsPsr4;
+            $loader->classMap = ComposerStaticInitce3a59db496801901ccd0176d01c168d::$classMap;
 
         }, null, ClassLoader::class);
     }

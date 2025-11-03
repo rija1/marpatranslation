@@ -127,7 +127,6 @@ class WCML_Bookings implements \IWPML_Action {
 		}
 
 		add_filter( 'woocommerce_bookings_in_date_range_query', [ $this, 'bookings_in_date_range_query' ] );
-		add_filter( 'woocommerce_bookings_filter_time_slots', [ $this, 'fix_bookings_filter_time_slots_when_product_not_translated' ], 10, 3 );
 
 		add_action( 'before_delete_post', [ $this, 'delete_bookings' ] );
 		add_action( 'wp_trash_post', [ $this, 'trash_bookings' ] );
@@ -1013,88 +1012,6 @@ class WCML_Bookings implements \IWPML_Action {
 		return $this->wpml_post_translations->get_element_translations( $booking_id, false, $actual_translations_only );
 	}
 
-	/**
-	 * @param array              $available_slots
-	 * @param WC_Product_Booking $bookable_product
-	 * @param array              $args
-	 *
-	 * @return array
-	 */
-	public function fix_bookings_filter_time_slots_when_product_not_translated( $available_slots, $bookable_product, $args ) {
-		if ( empty( $available_slots ) || ! is_array( $available_slots ) ) {
-			return $available_slots;
-		}
-
-		$calculate_slot_time = function ( array $slots, array $args ): int {
-			if ( ! isset( $slots[1] ) ) {
-				// Full day reservation (day = 1 slot)
-				return $args['to'] - $slots[0];
-			}
-
-			// several reservations per day, e.g. hourly
-			return $slots[1] - $slots[0];
-		};
-
-		$slots     = array_keys( $available_slots );
-		$slot_time = $calculate_slot_time( $slots, $args );
-
-		$coverage_for_unique_products = function ( int $from_unix_ts, int $to_unix_ts ) use ( $bookable_product ) {
-			/**
-			 * `WC_Booking_Data_Store::get_all_existing_bookings()` returns booking "overlapping in this time window"
-			 * so we need to add and subtract so that it doesn't return those that end/start (in the window earlier/later)
-			 * If we have 3 bookings:
-			 *
-			 * 1. 17:00-18:00
-			 * 2. 18:00-19:00
-			 * 3. 19:00-20:00
-			 *
-			 * And I ask the `WC_Booking_Data_Store::get_all_existing_bookings()`:
-			 * 18:00-19:00 would return [1, 2, 3] (overlapping)
-			 * So I have to ask for 18:00:01 to 18:59:59 - then we only have [2]
-			 *
-			 * at the time of this patch's creation, such time windows were available (that's why 1s is "safe")
-			 * Booking duration:
-			 * - Month(s)
-			 * - Day(s)
-			 * - Hour(s)
-			 * - Minute(s)
-			 */
-			$from_unix_ts += 1;
-			$to_unix_ts   -= 1;
-
-			/* @phpstan-ignore-next-line */
-			$existing_bookings = WC_Booking_Data_Store::get_all_existing_bookings( $bookable_product, $from_unix_ts, $to_unix_ts );
-
-			$booking_order_ids = [];
-			array_walk( $existing_bookings, function ( WC_Booking $booking ) use ( &$booking_order_ids ) {
-				/* @phpstan-ignore-next-line */
-				$booking_order_ids[] = $booking->get_order_id();
-			} );
-			$unique_ids = array_unique( $booking_order_ids ); // when blocked, we don't want each N-language variation to occupy one slot
-
-			return count( $unique_ids );
-		};
-
-		array_walk( $available_slots, function ( array &$slot, $from_unix_ts ) use ( $coverage_for_unique_products, $slot_time ) {
-			if ( $slot['booked'] > 0 ) {
-				$to_unix_ts = ( $from_unix_ts + $slot_time );
-
-				$available_qty       = $slot['booked'] + $slot['available'];
-				$qty_booked_in_block = $coverage_for_unique_products( $from_unix_ts, $to_unix_ts );
-
-				$slot['booked']    = $qty_booked_in_block;
-				$slot['available'] = $available_qty - $qty_booked_in_block;
-
-				$free = array_sum( $slot['resources'] );
-				if ( $slot['available'] > $free ) {
-					$slot['resources'] = [ $slot['available'] ];
-				}
-			}
-		} );
-
-		return $available_slots;
-	}
-
 	public function bookings_in_date_range_query( $booking_ids ) {
 		$current_language = $this->sitepress->get_current_language();
 		$default_language = $this->sitepress->get_default_language();
@@ -1102,7 +1019,7 @@ class WCML_Bookings implements \IWPML_Action {
 		foreach ( $booking_ids as $key => $booking_id ) {
 			$language_code   = $this->sitepress->get_language_for_element( get_post_meta( $booking_id, self::BOOKING_PRODUCT_ID_META, true ), 'post_product' );
 			$wc_booking_lang = get_post_meta( $booking_id, '_language_code', true );
-			$wc_booking_lang = $wc_booking_lang ?: $default_language;
+			$wc_booking_lang = $wc_booking_lang ?: $language_code ?: $default_language;
 
 			if ( $wc_booking_lang != $current_language ) {
 				unset( $booking_ids[ $key ] );

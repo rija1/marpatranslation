@@ -49,6 +49,7 @@ class WCML_Upgrade {
 		'5.3.0',
 		'5.4.1',
 		'5.4.4',
+		'5.5.2',
 	];
 
 	public function __construct() {
@@ -933,5 +934,9 @@ class WCML_Upgrade {
 
 	private function upgrade_5_4_4() {
 		\WCML_Capabilities::set_up_capabilities();
+	}
+
+	private function upgrade_5_5_2() {
+		delete_option( 'wcml_currency_switcher_template_objects' );
 	}
 }

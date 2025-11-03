@@ -194,14 +194,12 @@ class RecommendationsManager {
 			$recommendationsForInstallerPlugins = $this->prepareRecommendationsForInstalledPlugins( $repositoryId, $subscription, $downloads, $installedPlugins, $pluginsRecommendations, $pluginsData );
 			$pluginsData = $recommendationsForInstallerPlugins->getPluginsData();
 
-			foreach ( $recommendationsForInstallerPlugins->getRecommendations() as $section => $plugins_recommendation ) {
-				// Use current site lang if available, otherwise 'en'.
-				$lang = array_key_exists( $language, $sections[ $section ] )
-					? $language
-					: 'en';
+			$pluginsRecommendations = $recommendationsForInstallerPlugins->getRecommendations();
 
-				$pluginsRecommendations[ $section ]['title'] = $sections[ $section ][ $lang ]['name'];
-				$pluginsRecommendations[ $section ]['order'] = $sections[ $section ][ $lang ]['order'];
+			foreach ( $recommendationsForInstallerPlugins->getRecommendations() as $section => $plugins_recommendation ) {
+				$pluginsRecommendations[ $section ]['title'] = $sections[ $section ][ $language ]['name'] ?? $sections[ $section ]['en']['name'] ?? '';
+				$pluginsRecommendations[ $section ]['order'] = $sections[ $section ][ $language ]['order'] ?? $sections[ $section ]['en']['order'] ?? '';
+
 			}
 		}
 

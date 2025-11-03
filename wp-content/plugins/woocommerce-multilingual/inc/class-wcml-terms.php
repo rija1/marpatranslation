@@ -994,7 +994,8 @@ class WCML_Terms {
 	* Use custom query, because get_term_by function return false for terms with "0" slug      *
 	*/
 	public function wcml_get_term_id_by_slug( $taxonomy, $slug ) {
-
+		// phpcs:disable WordPress.DB.PreparedSQL.NotPrepared
+		// phpcs:disable WordPress.DB.PreparedSQL.InterpolatedNotPrepared
 		return $this->wpdb->get_var(
 			$this->wpdb->prepare(
 				"SELECT tt.term_id FROM {$this->wpdb->terms} AS t
@@ -1005,10 +1006,12 @@ class WCML_Terms {
 				sanitize_title( $slug )
 			)
 		);
+		// phpcs:enable
 	}
 
 	public function wcml_get_term_by_id( $term_id, $taxonomy ) {
-
+		// phpcs:disable WordPress.DB.PreparedSQL.NotPrepared
+		// phpcs:disable WordPress.DB.PreparedSQL.InterpolatedNotPrepared
 		return $this->wpdb->get_row(
 			$this->wpdb->prepare(
 				"
@@ -1020,6 +1023,53 @@ class WCML_Terms {
 				$taxonomy
 			)
 		);
+		// phpcs:enable
+	}
+
+	/**
+	 * @param int    $term_taxonomy_id
+	 * @param string $taxonomy
+	 *
+	 * @return object|null
+	 */
+	public function wcml_get_term_by_taxonomy_id( $term_taxonomy_id, $taxonomy ) {
+		// phpcs:disable WordPress.DB.PreparedSQL.NotPrepared
+		// phpcs:disable WordPress.DB.PreparedSQL.InterpolatedNotPrepared
+		return $this->wpdb->get_row(
+			$this->wpdb->prepare(
+				"
+                        SELECT * FROM {$this->wpdb->terms} t
+                        JOIN {$this->wpdb->term_taxonomy} x
+                        ON x.term_id = t.term_id
+                        WHERE x.term_taxonomy_id = %d AND x.taxonomy = %s",
+				$term_taxonomy_id,
+				$taxonomy
+			)
+		);
+		// phpcs:enable
+	}
+
+	/**
+	 * @param string $slug
+	 * @param string $taxonomy
+	 *
+	 * @return object|null
+	 */
+	public function wcml_get_term_by_slug( $slug, $taxonomy ) {
+		// phpcs:disable WordPress.DB.PreparedSQL.NotPrepared
+		// phpcs:disable WordPress.DB.PreparedSQL.InterpolatedNotPrepared
+		return $this->wpdb->get_row(
+			$this->wpdb->prepare(
+				"
+                        SELECT * FROM {$this->wpdb->terms} t
+                        JOIN {$this->wpdb->term_taxonomy} x
+                        ON x.term_id = t.term_id
+                        WHERE t.slug = %s AND x.taxonomy = %s LIMIT 1",
+				$slug,
+				$taxonomy
+			)
+		);
+		// phpcs:enable
 	}
 
 	public function wcml_get_translated_term( $term_id, $taxonomy, $language ) {
@@ -1049,6 +1099,8 @@ class WCML_Terms {
 		$wcml_settings = $this->woocommerce_wpml->get_settings();
 		$ttid          = isset( $wcml_settings['default_categories'][ $lang ] ) ? (int) $wcml_settings['default_categories'][ $lang ] : 0;
 
+		// phpcs:disable WordPress.DB.PreparedSQL.NotPrepared
+		// phpcs:disable WordPress.DB.PreparedSQL.InterpolatedNotPrepared
 		return $ttid === 0
 			? false : $this->wpdb->get_var(
 				$this->wpdb->prepare(
@@ -1059,6 +1111,7 @@ class WCML_Terms {
 					$ttid
 				)
 			);
+		// phpcs:enable
 	}
 
 	public function update_option_default_product_cat( $oldvalue, $new_value ) {

@@ -461,7 +461,13 @@ class WCML_Troubleshooting {
 	public function trbl_fix_product_type_terms() {
 		self::checkNonce( 'trbl_product_type_terms' );
 
+		// Delete product_type terms translations and fix relationships.
 		WCML_Install::check_product_type_terms();
+
+		// Mark the product_type taxonomy as non-translatable.
+		$sync_settings                 = $this->sitepress->get_setting( 'taxonomies_sync_option', [] );
+		$sync_settings['product_type'] = 0;
+		$this->sitepress->set_setting( 'taxonomies_sync_option', $sync_settings, true );
 
 		$response = [
 			'complete' => true,

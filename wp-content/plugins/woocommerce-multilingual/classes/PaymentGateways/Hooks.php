@@ -33,7 +33,11 @@ class Hooks implements IWPML_Backend_Action, IWPML_Frontend_Action, IWPML_DIC_Ac
 				add_action( 'woocommerce_update_options_checkout', [ $this, 'updateSettingsOnSave' ], self::PRIORITY );
 				add_action( 'woocommerce_settings_checkout', [ $this, 'outputInSettings' ], self::PRIORITY );
 				add_action( 'woocommerce_after_settings_checkout', [ $this, 'outputAfterSettings' ], self::PRIORITY );
-				add_action( 'admin_enqueue_scripts', [ $this, 'loadAssets' ] );
+				if( $this->isWooC10_1_Spa() ) {
+					add_action( 'admin_enqueue_scripts', [ $this, 'loadSPAAssets' ] );
+				} else {
+					add_action( 'admin_enqueue_scripts', [ $this, 'loadClassicAssets' ] );
+				}
 			}
 			add_action( 'admin_notices', [ $this, 'maybeAddNotice' ] );
 			add_action( 'wp_ajax_wcml_save_payment_gateways', [ $this, 'updateSettingsOnAjaxSave' ] );
@@ -120,9 +124,8 @@ class Hooks implements IWPML_Backend_Action, IWPML_Frontend_Action, IWPML_DIC_Ac
 		return $this->updateSettings( $settings );
 	}
 
-	public function loadAssets() {
-		$enqueue = Resources::enqueueApp( 'paymentGatewaysAdmin' );
-
+	public function loadClassicAssets() {
+		$enqueue   = Resources::enqueueApp( 'paymentGatewaysAdmin' );
 		$gatewayId = sanitize_title( $_GET['section'] );
 
 		$enqueue( [
@@ -133,6 +136,27 @@ class Hooks implements IWPML_Backend_Action, IWPML_Frontend_Action, IWPML_DIC_Ac
 				'allCountries' => $this->getAllCountries(),
 				'strings'      => $this->getStrings(),
 				'settings'     => $this->getGatewaySettings( $gatewayId ),
+			],
+		] );
+
+		wp_register_style( 'wcml-payment-gateways', WCML_PLUGIN_URL . '/res/css/wcml-payment-gateways.css', [], WCML_VERSION );
+		wp_enqueue_style( 'wcml-payment-gateways' );
+	}
+
+	public function loadSpaAssets() {
+		$enqueue   = Resources::enqueueApp( 'paymentGatewaysAdminSPA' );
+
+		$allGatewaySettings             = get_option( self::OPTION_KEY, [] );
+		$allGatewaySettings['_default'] = [ 'mode' => 'all', 'countries' => [] ];
+
+		$enqueue( [
+			'name' => 'wcmlPaymentGateways',
+			'data' => [
+				'endpoint'     => self::OPTION_KEY,
+				'gatewayId'    => null,
+				'allCountries' => $this->getAllCountries(),
+				'strings'      => $this->getStrings(),
+				'settings'     => $allGatewaySettings,
 			],
 		] );
 
@@ -292,10 +316,24 @@ class Hooks implements IWPML_Backend_Action, IWPML_Frontend_Action, IWPML_DIC_Ac
 	 * @return bool
 	 */
 	private function isWCGatewaysSettingsScreen() {
+		if ( $this->isWooC10_1_Spa() ) {
+			return $this->isWCGatewaysSettingsScreenSPA();
+		}
+
 		return Obj::prop( 'section', $_GET )
 			&& Relation::equals( AdminUrl::PAGE_WOO_SETTINGS, Obj::prop( 'page', $_GET ) )
 			&& Relation::equals( 'checkout', Obj::prop( 'tab', $_GET ) )
 			&& ! Relation::propEq( 'section', 'offline', $_GET );
+	}
+
+	private function isWooC10_1_Spa(): bool {
+		return (bool) Obj::prop( 'path', $_GET );
+	}
+
+	private function isWCGatewaysSettingsScreenSPA(): bool {
+		return Obj::prop( 'path', $_GET )
+			   && Relation::equals( AdminUrl::PAGE_WOO_SETTINGS, Obj::prop( 'page', $_GET ) )
+			   && Relation::equals( 'checkout', Obj::prop( 'tab', $_GET ) );
 	}
 
 }

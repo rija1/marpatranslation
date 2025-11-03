@@ -224,11 +224,23 @@ class WCML_Resources {
 	public static function load_tooltip_resources() {
 
 		if ( class_exists( 'WooCommerce' ) && function_exists( 'WC' ) ) {
-			wp_register_script( 'jquery-tiptip', WC()->plugin_url() . '/assets/js/jquery-tiptip/jquery.tipTip.min.js', [ 'jquery' ], WC_VERSION, true );
-			wp_register_script( 'wcml-tooltip-init', WCML_PLUGIN_URL . '/res/js/tooltip_init' . WCML_JS_MIN . '.js', [ 'jquery' ], WCML_VERSION, true );
-			wp_enqueue_script( 'jquery-tiptip' );
-			wp_enqueue_script( 'wcml-tooltip-init' );
-			wp_enqueue_style( 'woocommerce_admin_styles', WC()->plugin_url() . '/assets/css/admin.css', [], WC_VERSION );
+			// After self::admin_scripts() at admin_enqueue_scripts:10
+			// After WC_Admin_Assets::admin_scripts at admin_enqueue_scripts:10
+			add_action( 'admin_enqueue_scripts', function() {
+				$jQueryTipTipHandler = 'wc-jquery-tiptip';
+				if ( defined( 'WC_VERSION' ) && version_compare( WC_VERSION, '10.3', '<' ) ) {
+					$jQueryTipTipHandler = 'jquery-tiptip';
+				}
+
+				if ( wp_script_is( $jQueryTipTipHandler, 'registered' ) ) {
+					wp_register_script( 'wcml-tooltip-init', WCML_PLUGIN_URL . '/res/js/tooltip_init' . WCML_JS_MIN . '.js', [ 'jquery' ], WCML_VERSION, true );
+					wp_enqueue_script( $jQueryTipTipHandler );
+					wp_enqueue_script( 'wcml-tooltip-init' );
+				}
+				if ( wp_style_is( 'woocommerce_admin_styles', 'registered') ) {
+					wp_enqueue_style( 'woocommerce_admin_styles' );
+				}
+			}, 11 );
 		}
 
 	}

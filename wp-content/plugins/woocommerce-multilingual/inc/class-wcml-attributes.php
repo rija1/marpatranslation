@@ -774,12 +774,14 @@ class WCML_Attributes {
 	public function filter_product_variation_post_meta_attribute_values_in_current_language( $value, $object_id, $meta_key, $single ) {
 
 		if ( '' === $meta_key && 'product_variation' === get_post_type( $object_id ) ) {
+			$cache_key = $this->getCacheKey( $object_id );
 
-			$cache_key    = $this->getCacheKey( $object_id );
-			$cached_value = wp_cache_get( $cache_key, self::CACHE_GROUP_VARIATION );
+			if ( null === $value ) {
+				$cached_value = wp_cache_get( $cache_key, self::CACHE_GROUP_VARIATION );
 
-			if ( $cached_value ) {
-				return $cached_value;
+				if ( $cached_value ) {
+					return $cached_value;
+				}
 			}
 
 			remove_filter(

@@ -54,6 +54,25 @@ class WCML_Translation_Editor {
 		add_action( 'wp_ajax_wcml_editor_auto_slug', [ $this, 'auto_generate_slug' ] );
 
 		add_filter( 'wpml_tm_show_page_builders_translation_editor_warning', [ $this, 'show_page_builders_translation_editor_warning' ], 10, 2 );
+		add_filter( 'wpml_translation_editor_save_job_data', [ $this, 'set_ctp_as_editor_for_this_product' ] );
+	}
+
+	/**
+	 * @param array $data
+	 *
+	 * @return array
+	 */
+	public function set_ctp_as_editor_for_this_product( $data ) {
+		if ( 'post_product' === $data['job_post_type'] ) {
+			/**
+			 * @param int $job_id
+			 */
+			add_action( 'wpml_save_job_fields_from_post', function ( $job_id ) {
+				wpml_tm_load_old_jobs_editor()->set( $job_id, 'wpml' );
+			} );
+		}
+
+		return $data;
 	}
 
 	public function fetch_translation_job_for_editor( $job, $job_details ) {

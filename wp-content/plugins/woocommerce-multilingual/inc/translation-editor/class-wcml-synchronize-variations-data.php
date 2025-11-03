@@ -432,6 +432,33 @@ class WCML_Synchronize_Variations_Data {
 	}
 
 	/**
+	 * @param array  $variation_meta
+	 * @param int    $variation_id
+	 * @param int    $translation_id
+	 * @param string $language
+	 *
+	 * @return string
+	 */
+	private function get_current_meta_hash( $variation_meta, $variation_id, $translation_id, $language ) {
+		$translation_meta = $variation_meta;
+		foreach ( $variation_meta as $meta_key => $meta ) {
+			if ( substr( $meta_key, 0, 10 ) !== 'attribute_' ) {
+				continue;
+			}
+			$meta_value = reset( $meta );
+			if ( ! $meta_value ) {
+				continue;
+			}
+			$trn_post_meta                 = $this->woocommerce_wpml->attributes->get_translated_variation_attribute_post_meta( $meta_value, $meta_key, $variation_id, $translation_id, $language );
+			$meta_value                    = $trn_post_meta['meta_value'];
+			$meta_key                      = $trn_post_meta['meta_key'];
+			$translation_meta[ $meta_key ] = [ $meta_value ];
+		}
+		// phpcs:ignore WordPress.PHP.DiscouragedPHPFunctions.serialize_serialize
+		return md5( serialize( $translation_meta ) );
+	}
+
+	/**
 	 * @param int    $original_variation_id
 	 * @param int    $variation_id
 	 * @param array  $data
@@ -444,7 +471,7 @@ class WCML_Synchronize_Variations_Data {
 	public function duplicate_variation_data( $original_variation_id, $variation_id, $data, $lang, $trbl, $isNewTranslatedVariation ) {
 		$all_meta = get_post_custom( $original_variation_id );
 		unset( $all_meta[ SyncHash::META_KEY ] );
-		$currentHash   = md5( serialize( $all_meta ) );
+		$currentHash   = $this->get_current_meta_hash( $all_meta, $original_variation_id, $variation_id, $lang );
 		$delayedFields = [];
 		/**
 		 * @return bool

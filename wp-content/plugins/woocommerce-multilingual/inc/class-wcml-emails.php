@@ -736,7 +736,10 @@ class WCML_Emails {
 			$email_option = get_option( $email_string[0], [] );
 			$context      = 'admin_texts_' . $email_string[0];
 
-			$current_language = $this->wcmlStrings->get_string_language( $email_option[ $email_string[1] ], $context, $name );
+			$text = $email_option[ $email_string[1] ] ?? null;
+			if ( null !== $text ) {
+				$current_language = $this->wcmlStrings->get_string_language( $text, $context, $name );
+			}
 		} elseif ( $this->order_id ) {
 			$order_id = $this->order_id;
 		}

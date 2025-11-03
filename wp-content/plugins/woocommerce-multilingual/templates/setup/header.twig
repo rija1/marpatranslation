@@ -6,6 +6,7 @@
     <title>{{ title }}</title>
     {{ wp_print_scripts( 'wcml-setup' ) }}
     {{ wp_do_action( 'admin_enqueue_scripts' ) }}
+    {{ wp_print_scripts( 'wpml-posthog' ) }} {# Needs to be after `admin_enqueue_scripts` where it's enqueued / See entry point in wpml/wpml/src/config-scripts.php #}
     {{ wp_do_action( 'admin_print_styles' ) }}
     {{ wp_do_action( 'admin_head' ) }}
 </head>

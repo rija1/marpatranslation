@@ -264,7 +264,7 @@ class WCML_Currency_Switcher_Templates {
 				foreach ( $files as $file ) {
 					$template_path = $dir . '/' . $file;
 					if ( is_dir( $template_path )
-						&& file_exists( $template_path . $this->ds . WCML_Currency_Switcher_Template::FILENAME )
+						&& $this->is_template_file_exists( $template_path )
 						&& file_exists( $template_path . $this->ds . self::CONFIG_FILE )
 					) {
 						$templates_paths[] = $template_path;
@@ -553,5 +553,10 @@ class WCML_Currency_Switcher_Templates {
 		}
 
 		throw new \RuntimeException( 'Currency switcher template must implement WCML\Multicurrency\CurrencySwitcher\CurrencySwitcherTemplateInterface' );
+	}
+
+	private function is_template_file_exists( string $template_path ): bool {
+		return file_exists( $template_path . $this->ds . CurrencySwitcherComponent::TEMPLATE_FILENAME )
+			|| file_exists( $template_path . $this->ds . WCML_Currency_Switcher_Template::TEMPLATE_FILENAME_LEGACY_TWIG );
 	}
 }

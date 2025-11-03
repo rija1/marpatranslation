@@ -270,11 +270,14 @@ class OTGS_Installer_Factory {
 			new OTGS_Installer_Logger_Storage( new OTGS_Installer_Log_Factory() )
 		);
 
+		$removeService = $this->create_site_key_remove_service();
+
 		return new OTGS_Installer_Site_Key_Ajax(
 			$logger,
 			$this->get_repositories(),
 			new OTGS_Installer_Subscription_Factory(),
-			new SubscriptionManagerFactory($this->installer->get_settings())
+			new SubscriptionManagerFactory($this->installer->get_settings()),
+			$removeService
 		);
 	}
 
@@ -283,6 +286,16 @@ class OTGS_Installer_Factory {
 		$site_key_ajax_handler->add_hooks();
 
 		return $this;
+	}
+
+	/**
+	 * @return OTGS_Installer_Site_Key_Remove_Service
+	 */
+	private function create_site_key_remove_service() {
+		return new OTGS_Installer_Site_Key_Remove_Service(
+			$this->get_repositories(),
+			new OTGS_Installer_Site_Key_Remove_Request()
+		);
 	}
 
 	public function load_installer_support_hooks() {
@@ -360,6 +373,22 @@ class OTGS_Installer_Factory {
 		);
 
 		$autoUpgrade->addHooks();
+		return $this;
+	}
+
+	/**
+	 * @return OTGS_Installer_Cloned_Sites_Handler
+	 */
+	private function create_cloned_sites_handler() {
+		return new OTGS_Installer_Cloned_Sites_Handler(
+			$this->create_site_key_remove_service()
+		);
+	}
+
+	public function load_cloned_sites_handler() {
+		$cloned_sites_handler = $this->create_cloned_sites_handler();
+		$cloned_sites_handler->add_hooks();
+
 		return $this;
 	}
 

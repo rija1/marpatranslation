@@ -6,8 +6,6 @@ use WPML\FP\Relation;
 
 class WCML_Setup_Handlers {
 
-	const KEY_DISPLAY_AS_TRANSLATED = 'display-as-translated';
-
 	/** @var  woocommerce_wpml */
 	private $woocommerce_wpml;
 
@@ -27,12 +25,11 @@ class WCML_Setup_Handlers {
 
 		$this->woocommerce_wpml->get_multi_currency();
 
-		if ( Obj::prop( 'enabled', $data ) ) {
+		if ( Obj::prop( WCML_Setup::MULTI_CURRENCY_STATUS_GET_KEY, $data ) ) {
 			$this->woocommerce_wpml->multi_currency->enable();
 		} else {
 			$this->woocommerce_wpml->multi_currency->disable();
 		}
-
 	}
 
 	public function install_store_pages( array $data ) {
@@ -45,37 +42,5 @@ class WCML_Setup_Handlers {
 			$this->woocommerce_wpml->store->create_missing_store_pages_with_redirect();
 		}
 
-	}
-
-	/**
-	 * This handler might shortcut the previous one,
-	 * so we are re-saving the translation preference
-	 * for the product and product_cat.
-	 *
-	 * @param array $data
-	 */
-	public function save_display_as_translated( $data ) {
-		$isDisplayAsTranslated = Relation::propEq( self::KEY_DISPLAY_AS_TRANSLATED, 'yes', $data );
-		$settings_helper       = wpml_load_settings_helper();
-
-		if ( $isDisplayAsTranslated ) {
-			$settings_helper->set_post_type_display_as_translated( 'product' );
-			$settings_helper->set_post_type_translation_unlocked_option( 'product' );
-			$settings_helper->set_taxonomy_display_as_translated( 'product_cat' );
-			$settings_helper->set_taxonomy_translation_unlocked_option( 'product_cat' );
-		} else {
-			$this->set_product_translatable();
-		}
-	}
-
-	/**
-	 * @retrun void
-	 */
-	private function set_product_translatable() {
-		$settings_helper = wpml_load_settings_helper();
-		$settings_helper->set_post_type_translatable( 'product' );
-		$settings_helper->set_post_type_translation_unlocked_option( 'product', false );
-		$settings_helper->set_taxonomy_translatable( 'product_cat' );
-		$settings_helper->set_taxonomy_translation_unlocked_option( 'product_cat', false );
 	}
 }

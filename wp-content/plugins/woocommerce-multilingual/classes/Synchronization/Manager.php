@@ -71,11 +71,7 @@ class Manager {
 	 * @param array<int,string> $translationsLanguages
 	 */
 	public function run( $product, $translationsIds = [], $translationsLanguages = [] ) {
-		$originalProductId = $this->postTranslations->get_original_element( $product->ID ) ?: $product->ID;
-		$originalProduct   = $product;
-		if ( $originalProductId !== $product->ID ) {
-			$originalProduct = get_post( $originalProduct );
-		}
+		$originalProduct = $this->getOriginalProduct( $product );
 
 		if ( empty( $translationsIds ) ) {
 			$translationsIds = $this->postTranslations->get_element_translations( $originalProduct->ID, false, true );

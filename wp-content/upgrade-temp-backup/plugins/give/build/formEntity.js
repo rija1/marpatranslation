@@ -1,1 +1,0 @@
-(()=>{"use strict";const a=window.wp.i18n,i=window.wp.data,o=window.wp.coreData;(0,i.dispatch)(o.store).addEntities([{name:"form",kind:"givewp",baseURL:"/givewp/v3/forms",baseURLParams:{},plural:"forms",label:(0,a.__)("Donation Form","give"),supportsPagination:!0}])})();

@@ -7,7 +7,7 @@ msgstr ""
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"POT-Creation-Date: 2025-04-08T10:19:58+00:00\n"
+"POT-Creation-Date: 2025-07-21T14:15:01+00:00\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "X-Generator: WP-CLI 2.11.0\n"
 "X-Domain: installer\n"
@@ -232,27 +232,27 @@ msgid_plural "Your %s account expires in %d days."
 msgstr[0] "Tài khoản %s của bạn sẽ hết hạn vào ngày %d."
 msgstr[1] "Tài khoản %s của bạn sẽ hết hạn sau %d ngày."
 
-#: includes/class-otgs-installer-wp-share-local-components-setting-hooks.php:97
+#: includes/class-otgs-installer-wp-share-local-components-setting-hooks.php:110
 msgid "Reporting to"
 msgstr "Báo cáo với"
 
-#: includes/class-otgs-installer-wp-share-local-components-setting-hooks.php:98
+#: includes/class-otgs-installer-wp-share-local-components-setting-hooks.php:111
 msgid "Report to"
 msgstr "Báo cáo cho"
 
-#: includes/class-otgs-installer-wp-share-local-components-setting-hooks.php:99
+#: includes/class-otgs-installer-wp-share-local-components-setting-hooks.php:112
 msgid "Send theme and plugins information, in order to get faster support and compatibility alerts"
 msgstr "Gửi thông tin để nhận hỗ trợ nhanh hơn."
 
-#: includes/class-otgs-installer-wp-share-local-components-setting-hooks.php:101
+#: includes/class-otgs-installer-wp-share-local-components-setting-hooks.php:114
 msgid "Don't send this information and skip compatibility alerts"
 msgstr "Không gửi thông tin và bỏ qua cảnh báo."
 
-#: includes/class-otgs-installer-wp-share-local-components-setting-hooks.php:103
+#: includes/class-otgs-installer-wp-share-local-components-setting-hooks.php:116
 msgid "which theme and plugins you are using."
 msgstr "Bạn dùng chủ đề và plugin nào."
 
-#: includes/class-otgs-installer-wp-share-local-components-setting-hooks.php:142
+#: includes/class-otgs-installer-wp-share-local-components-setting-hooks.php:160
 msgid "Privacy and data usage policy"
 msgstr "Chính sách bảo mật và sử dụng dữ liệu"
 
@@ -282,7 +282,7 @@ msgstr "Đang kích hoạt %s"
 
 #: includes/class-wp-installer.php:358
 #: includes/class-wp-installer.php:359
-#: includes/class-wp-installer.php:1124
+#: includes/class-wp-installer.php:1127
 msgid "Installer"
 msgstr "Trình cài đặt"
 
@@ -300,71 +300,71 @@ msgid ""
 "                                                Please remove it or use the correct value in order to be able to register correctly."
 msgstr "Bạn đang dùng khóa site không hợp lệ %s (có thể trong wp-config.php). Hãy xóa hoặc sửa để đăng ký được."
 
-#: includes/class-wp-installer.php:824
+#: includes/class-wp-installer.php:827
 msgid "Commercial"
 msgstr "Thương mại"
 
-#: includes/class-wp-installer.php:1014
+#: includes/class-wp-installer.php:1017
 msgid "Installer cannot display the products information because the automatic updating for %s was explicitly disabled with the configuration below (usually in wp-config.php):"
 msgstr "Trình cài đặt không thể hiển thị thông tin sản phẩm vì tính năng cập nhật tự động cho %s đã bị vô hiệu hóa rõ ràng bằng cấu hình bên dưới (thường là trong wp-config.php):"
 
-#: includes/class-wp-installer.php:1016
+#: includes/class-wp-installer.php:1019
 msgid "In order to see the products information, please run the %smanual updates check%s to initialize the products list or (temporarily) remove the above code."
 msgstr "Để xem thông tin sản phẩm, vui lòng chạy %skiểm tra cập nhật thủ công%s để khởi tạo danh sách sản phẩm hoặc (tạm thời) xóa mã trên."
 
-#: includes/class-wp-installer.php:1044
+#: includes/class-wp-installer.php:1047
 msgid "Installer cannot contact our updates server to get information about the available products and check for new versions. If you are seeing this message for the first time, you can ignore it, as it may be a temporary communication problem. If the problem persists and your WordPress admin is slowing down, you can disable automated version checks. Add the following line to your wp-config.php file:"
 msgstr "Trình cài đặt không thể liên hệ máy chủ cập nhật."
 
-#: includes/class-wp-installer.php:1071
-#: includes/class-wp-installer.php:1075
+#: includes/class-wp-installer.php:1074
+#: includes/class-wp-installer.php:1078
 msgid "Information about new versions is invalid. It may be a temporary communication problem, please check for updates again."
 msgstr "Thông tin về phiên bản mới không hợp lệ. Có thể đây là sự cố giao tiếp tạm thời, vui lòng kiểm tra lại bản cập nhật."
 
-#: includes/class-wp-installer.php:1115
+#: includes/class-wp-installer.php:1118
 msgid "Sorry, you are not allowed to manage Installer for this site."
 msgstr "Bạn không được phép quản lý Trình cài đặt."
 
-#: includes/class-wp-installer.php:1154
+#: includes/class-wp-installer.php:1157
 msgid "No repositories defined."
 msgstr "Không có kho lưu trữ nào được xác định."
 
-#: includes/class-wp-installer.php:1376
+#: includes/class-wp-installer.php:1379
 msgid "We have preselected the plugins your site needs to be fully multilingual."
 msgstr "Chúng tôi đã lựa chọn trước các plugin cần thiết để trang web của bạn hoàn toàn đa ngôn ngữ."
 
-#: includes/class-wp-installer.php:1612
-#: includes/site-key/class-otgs-installer-site-key-ajax.php:67
+#: includes/class-wp-installer.php:1615
+#: includes/site-key/class-otgs-installer-site-key-ajax.php:71
 msgid "Invalid site key for the current site."
 msgstr "Khóa trang web không hợp lệ."
 
-#: includes/class-wp-installer.php:1613
-#: includes/site-key/class-otgs-installer-site-key-ajax.php:67
+#: includes/class-wp-installer.php:1616
+#: includes/site-key/class-otgs-installer-site-key-ajax.php:71
 msgid "Please note that the site key is case sensitive."
 msgstr "Khóa trang web có phân biệt chữ."
 
-#: includes/class-wp-installer.php:1618
+#: includes/class-wp-installer.php:1621
 msgid "%s cannot access %s to register. Try again to see if it's a temporary problem. If the problem continues, make sure that this site has access to the Internet."
 msgstr "%s không thể truy cập %s để đăng ký. Kiểm tra Internet."
 
-#: includes/class-wp-installer.php:2259
+#: includes/class-wp-installer.php:2262
 msgid "Connection failed! Please refresh the page and try again. (%s)"
 msgstr "Kết nối không thành công! Vui lòng làm mới trang và thử lại. (%s)"
 
-#: includes/class-wp-installer.php:2262
+#: includes/class-wp-installer.php:2265
 msgid "Your subscription appears to no longer be valid. Please try to register again using a valid site key."
 msgstr "Đăng ký không còn hiệu lực. Đăng ký lại với khóa hợp lệ."
 
-#: includes/class-wp-installer.php:2891
-#: includes/class-wp-installer.php:2953
+#: includes/class-wp-installer.php:2894
+#: includes/class-wp-installer.php:2956
 msgid "%s cannot update because your site's registration is not valid. Please %sregister %s%s again for this site first."
 msgstr "%s không thể cập nhật vì đăng ký trang web của bạn không hợp lệ. Vui lòng %sđăng ký %s%s lại cho trang web này trước."
 
-#: includes/class-wp-installer.php:2976
+#: includes/class-wp-installer.php:2979
 msgid "Update Plugin"
 msgstr "Cập nhật plugin"
 
-#: includes/class-wp-installer.php:2977
+#: includes/class-wp-installer.php:2980
 msgid "Return to the plugins page"
 msgstr "Quay lại trang plugin"
 
@@ -380,19 +380,19 @@ msgstr "Ghi chú phát hành"
 msgid "Information about versions of %s are invalid. It may be a temporary communication problem, please check for updates again."
 msgstr "Thông tin về phiên bản %s không hợp lệ. Có thể đây là sự cố giao tiếp tạm thời, vui lòng kiểm tra lại các bản cập nhật."
 
-#: includes/site-key/class-otgs-installer-site-key-ajax.php:40
+#: includes/site-key/class-otgs-installer-site-key-ajax.php:44
 msgid "Empty site key!"
 msgstr "Khóa trang web trống!"
 
-#: includes/site-key/class-otgs-installer-site-key-ajax.php:44
+#: includes/site-key/class-otgs-installer-site-key-ajax.php:48
 msgid "Invalid request!"
 msgstr "Yêu cầu không hợp lệ!"
 
-#: includes/site-key/class-otgs-installer-site-key-ajax.php:125
+#: includes/site-key/class-otgs-installer-site-key-ajax.php:123
 msgid "Invalid site key for the current site. If the error persists, try to un-register first and then register again with the same site key."
 msgstr "Khóa không hợp lệ. Hủy rồi đăng ký lại."
 
-#: includes/site-key/class-otgs-installer-site-key-ajax.php:179
+#: includes/site-key/class-otgs-installer-site-key-ajax.php:177
 msgid "%s cannot access %s to register. Try again to see if it's a temporary problem. If the problem continues, make sure that this site has access to the Internet. You can still use the plugin without registration, but you will not receive automated updates."
 msgstr "%s không thể truy cập %s để đăng ký. Kiểm tra Internet."
 
@@ -813,10 +813,10 @@ msgstr "Hủy đăng ký %s khỏi trang web này"
 msgid "Check for updates"
 msgstr "Kiểm tra cập nhật"
 
-#: templates/repository-registered.php:10
-msgid "%s is registered on this site. You will receive automatic updates until %s"
-msgstr "%s đã đăng ký. Cập nhật tự động đến %s."
+#: templates/repository-registered.php:13
+msgid "%s is registered on this site using the following sitekey: <strong>%s</strong>. You will receive automatic updates until %s"
+msgstr "%s được đăng ký trên trang web này bằng mã khóa sau: <strong>%s</strong>. Bạn sẽ nhận được các bản cập nhật tự động cho đến %s"
 
-#: templates/repository-registered.php:11
-msgid "%s is registered on this site. Your Lifetime account gives you updates for life."
-msgstr "%s đã đăng ký. Cập nhật trọn đời."
+#: templates/repository-registered.php:19
+msgid "%s is registered on this site using the following sitekey: <strong>%s</strong>. Your Lifetime account gives you updates for life."
+msgstr "%s được đăng ký trên trang web này bằng mã khóa sau: <strong>%s</strong>. Tài khoản Trọn đời của bạn cho phép bạn nhận cập nhật suốt đời."

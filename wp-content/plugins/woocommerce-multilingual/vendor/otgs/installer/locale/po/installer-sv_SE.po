@@ -7,7 +7,7 @@ msgstr ""
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"POT-Creation-Date: 2025-04-08T10:19:58+00:00\n"
+"POT-Creation-Date: 2025-07-21T14:15:01+00:00\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "X-Generator: WP-CLI 2.11.0\n"
 "X-Domain: installer\n"
@@ -232,27 +232,27 @@ msgid_plural "Your %s account expires in %d days."
 msgstr[0] "Ditt %s-konto löper ut om %d dag."
 msgstr[1] "Ditt %s-konto löper ut om %d dagar."
 
-#: includes/class-otgs-installer-wp-share-local-components-setting-hooks.php:97
+#: includes/class-otgs-installer-wp-share-local-components-setting-hooks.php:110
 msgid "Reporting to"
 msgstr "Rapporterar till"
 
-#: includes/class-otgs-installer-wp-share-local-components-setting-hooks.php:98
+#: includes/class-otgs-installer-wp-share-local-components-setting-hooks.php:111
 msgid "Report to"
 msgstr "Rapportera till"
 
-#: includes/class-otgs-installer-wp-share-local-components-setting-hooks.php:99
+#: includes/class-otgs-installer-wp-share-local-components-setting-hooks.php:112
 msgid "Send theme and plugins information, in order to get faster support and compatibility alerts"
 msgstr "Skicka tema- och plugininformation för snabbare support"
 
-#: includes/class-otgs-installer-wp-share-local-components-setting-hooks.php:101
+#: includes/class-otgs-installer-wp-share-local-components-setting-hooks.php:114
 msgid "Don't send this information and skip compatibility alerts"
 msgstr "Skicka inte denna information"
 
-#: includes/class-otgs-installer-wp-share-local-components-setting-hooks.php:103
+#: includes/class-otgs-installer-wp-share-local-components-setting-hooks.php:116
 msgid "which theme and plugins you are using."
 msgstr "tema och plugins du använder."
 
-#: includes/class-otgs-installer-wp-share-local-components-setting-hooks.php:142
+#: includes/class-otgs-installer-wp-share-local-components-setting-hooks.php:160
 msgid "Privacy and data usage policy"
 msgstr "Integritetspolicy"
 
@@ -282,7 +282,7 @@ msgstr "Aktiverar %s"
 
 #: includes/class-wp-installer.php:358
 #: includes/class-wp-installer.php:359
-#: includes/class-wp-installer.php:1124
+#: includes/class-wp-installer.php:1127
 msgid "Installer"
 msgstr "Installerare"
 
@@ -300,71 +300,71 @@ msgid ""
 "                                                Please remove it or use the correct value in order to be able to register correctly."
 msgstr "Du använder en ogiltig webbplatsnyckel som definieras som konstanten %s (troligen i wp-config.php).\n Ta bort den eller använd rätt värde för att kunna registrera dig korrekt."
 
-#: includes/class-wp-installer.php:824
+#: includes/class-wp-installer.php:827
 msgid "Commercial"
 msgstr "Kommersiell"
 
-#: includes/class-wp-installer.php:1014
+#: includes/class-wp-installer.php:1017
 msgid "Installer cannot display the products information because the automatic updating for %s was explicitly disabled with the configuration below (usually in wp-config.php):"
 msgstr "Installeraren kan inte visa produktinformationen eftersom den automatiska uppdateringen för %s uttryckligen avaktiverades med konfigurationen nedan (vanligtvis i wp-config.php):"
 
-#: includes/class-wp-installer.php:1016
+#: includes/class-wp-installer.php:1019
 msgid "In order to see the products information, please run the %smanual updates check%s to initialize the products list or (temporarily) remove the above code."
 msgstr "För att se produktinformationen, kör %smanuell uppdateringskontroll%s för att initiera produktlistan eller (tillfälligt) ta bort ovanstående kod."
 
-#: includes/class-wp-installer.php:1044
+#: includes/class-wp-installer.php:1047
 msgid "Installer cannot contact our updates server to get information about the available products and check for new versions. If you are seeing this message for the first time, you can ignore it, as it may be a temporary communication problem. If the problem persists and your WordPress admin is slowing down, you can disable automated version checks. Add the following line to your wp-config.php file:"
 msgstr "Kan ej kontakta uppdateringsserver"
 
-#: includes/class-wp-installer.php:1071
-#: includes/class-wp-installer.php:1075
+#: includes/class-wp-installer.php:1074
+#: includes/class-wp-installer.php:1078
 msgid "Information about new versions is invalid. It may be a temporary communication problem, please check for updates again."
 msgstr "Ogiltig info om nya versioner."
 
-#: includes/class-wp-installer.php:1115
+#: includes/class-wp-installer.php:1118
 msgid "Sorry, you are not allowed to manage Installer for this site."
 msgstr "Ej behörig att hantera Installer."
 
-#: includes/class-wp-installer.php:1154
+#: includes/class-wp-installer.php:1157
 msgid "No repositories defined."
 msgstr "Inga arkiv definierade."
 
-#: includes/class-wp-installer.php:1376
+#: includes/class-wp-installer.php:1379
 msgid "We have preselected the plugins your site needs to be fully multilingual."
 msgstr "Vi har förvalt de plugins som din webbplats behöver för att vara helt flerspråkig."
 
-#: includes/class-wp-installer.php:1612
-#: includes/site-key/class-otgs-installer-site-key-ajax.php:67
+#: includes/class-wp-installer.php:1615
+#: includes/site-key/class-otgs-installer-site-key-ajax.php:71
 msgid "Invalid site key for the current site."
 msgstr "Ogiltig webbplatsnyckel."
 
-#: includes/class-wp-installer.php:1613
-#: includes/site-key/class-otgs-installer-site-key-ajax.php:67
+#: includes/class-wp-installer.php:1616
+#: includes/site-key/class-otgs-installer-site-key-ajax.php:71
 msgid "Please note that the site key is case sensitive."
 msgstr "Nyckeln är skiftlägeskänslig."
 
-#: includes/class-wp-installer.php:1618
+#: includes/class-wp-installer.php:1621
 msgid "%s cannot access %s to register. Try again to see if it's a temporary problem. If the problem continues, make sure that this site has access to the Internet."
 msgstr "%s kan inte komma åt %s för att registrera sig. Försök igen för att se om det är ett tillfälligt problem. Om problemet kvarstår ska du kontrollera att den här webbplatsen har tillgång till Internet."
 
-#: includes/class-wp-installer.php:2259
+#: includes/class-wp-installer.php:2262
 msgid "Connection failed! Please refresh the page and try again. (%s)"
 msgstr "Anslutningen misslyckades! Uppdatera sidan och försök igen. (%s)"
 
-#: includes/class-wp-installer.php:2262
+#: includes/class-wp-installer.php:2265
 msgid "Your subscription appears to no longer be valid. Please try to register again using a valid site key."
 msgstr "Prenumeration ogiltig."
 
-#: includes/class-wp-installer.php:2891
-#: includes/class-wp-installer.php:2953
+#: includes/class-wp-installer.php:2894
+#: includes/class-wp-installer.php:2956
 msgid "%s cannot update because your site's registration is not valid. Please %sregister %s%s again for this site first."
 msgstr "%s kan inte uppdateras eftersom registreringen av din webbplats inte är giltig. Vänligen %sregistrera %s%s igen för den här webbplatsen först."
 
-#: includes/class-wp-installer.php:2976
+#: includes/class-wp-installer.php:2979
 msgid "Update Plugin"
 msgstr "Uppdatera plugin"
 
-#: includes/class-wp-installer.php:2977
+#: includes/class-wp-installer.php:2980
 msgid "Return to the plugins page"
 msgstr "Tillbaka till pluginsidan"
 
@@ -380,19 +380,19 @@ msgstr "Versionsnoteringar"
 msgid "Information about versions of %s are invalid. It may be a temporary communication problem, please check for updates again."
 msgstr "Information om versioner av %s är ogiltig. Det kan vara ett tillfälligt kommunikationsproblem, vänligen kontrollera om det finns uppdateringar igen."
 
-#: includes/site-key/class-otgs-installer-site-key-ajax.php:40
+#: includes/site-key/class-otgs-installer-site-key-ajax.php:44
 msgid "Empty site key!"
 msgstr "Tom webbplatsnyckel!"
 
-#: includes/site-key/class-otgs-installer-site-key-ajax.php:44
+#: includes/site-key/class-otgs-installer-site-key-ajax.php:48
 msgid "Invalid request!"
 msgstr "Ogiltig begäran!"
 
-#: includes/site-key/class-otgs-installer-site-key-ajax.php:125
+#: includes/site-key/class-otgs-installer-site-key-ajax.php:123
 msgid "Invalid site key for the current site. If the error persists, try to un-register first and then register again with the same site key."
 msgstr "Ogiltig webbplatsnyckel."
 
-#: includes/site-key/class-otgs-installer-site-key-ajax.php:179
+#: includes/site-key/class-otgs-installer-site-key-ajax.php:177
 msgid "%s cannot access %s to register. Try again to see if it's a temporary problem. If the problem continues, make sure that this site has access to the Internet. You can still use the plugin without registration, but you will not receive automated updates."
 msgstr "%s kan inte komma åt %s för att registrera sig. Försök igen för att se om det är ett tillfälligt problem. Om problemet kvarstår, se till att den här webbplatsen har tillgång till Internet. Du kan fortfarande använda insticksprogrammet utan registrering, men du kommer inte att få automatiska uppdateringar."
 
@@ -809,10 +809,10 @@ msgstr "Avregistrera %s från denna webbplats"
 msgid "Check for updates"
 msgstr "Sök efter uppdateringar"
 
-#: templates/repository-registered.php:10
-msgid "%s is registered on this site. You will receive automatic updates until %s"
-msgstr "%s är registrerat. Du får automatiska uppdateringar till %s"
+#: templates/repository-registered.php:13
+msgid "%s is registered on this site using the following sitekey: <strong>%s</strong>. You will receive automatic updates until %s"
+msgstr "%s är registrerad på den här webbplatsen med följande platsnyckel: <strong>%s</strong>. Du kommer att få automatiska uppdateringar fram till %s"
 
-#: templates/repository-registered.php:11
-msgid "%s is registered on this site. Your Lifetime account gives you updates for life."
-msgstr "%s är registrerat. Ditt livstidskonto ger dig uppdateringar för alltid."
+#: templates/repository-registered.php:19
+msgid "%s is registered on this site using the following sitekey: <strong>%s</strong>. Your Lifetime account gives you updates for life."
+msgstr "%s är registrerad på den här webbplatsen med följande platsnyckel: <strong>%s</strong>. Ditt livstidskonto ger dig uppdateringar livet ut."

@@ -108,7 +108,7 @@ class Hooks implements \IWPML_Backend_Action, \IWPML_Frontend_Action, \IWPML_DIC
 			|| $isApiRequest
 			|| in_array( $pagenow, [ 'post.php', 'post-new.php', 'admin.php' ], true );
 
-		return $isValidContext;
+		return apply_filters( 'wcml_product_synchronization_on_save_is_valid_context', $isValidContext );
 	}
 
 	/**

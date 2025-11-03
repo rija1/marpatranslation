@@ -34,7 +34,7 @@ class VariationMeta extends SynchronizerForMeta {
 	protected function synchronizeVariationMeta( $variationId, $translationId, $language, $delayedFields ) {
 		$variationMeta = get_post_custom( $variationId );
 		unset( $variationMeta[ SyncHash::META_KEY ] );
-		$currentHash  = md5( serialize( $variationMeta ) );
+		$currentHash  = $this->getCurrentHash( $variationMeta, $variationId, $translationId, $language );
 		$isSyncNeeded = $this->syncHashManager->isNewGroupValue( $translationId, SyncHash::GROUP_FIELDS, $currentHash );
 
 		if ( ! $isSyncNeeded ) {
@@ -185,6 +185,33 @@ class VariationMeta extends SynchronizerForMeta {
 				}
 			}
 		}
+	}
+
+	/**
+	 * @param array  $variationMeta
+	 * @param int    $variationId
+	 * @param int    $translationId
+	 * @param string $language
+	 *
+	 * @return string
+	 */
+	private function getCurrentHash( $variationMeta, $variationId, $translationId, $language ) {
+		$translationMeta = $variationMeta;
+		foreach ( $variationMeta as $metaKey => $meta ) {
+			if ( substr( $metaKey, 0, 10 ) !== 'attribute_' ) {
+				continue;
+			}
+			$metaValue = reset( $meta );
+			if ( ! $metaValue ) {
+				continue;
+			}
+			$trn_post_meta               = $this->woocommerceWpml->attributes->get_translated_variation_attribute_post_meta( $metaValue, $metaKey, $variationId, $translationId, $language );
+			$metaValue                   = $trn_post_meta['meta_value'];
+			$metaKey                     = $trn_post_meta['meta_key'];
+			$translationMeta[ $metaKey ] = [ $metaValue ];
+		}
+		// phpcs:ignore WordPress.PHP.DiscouragedPHPFunctions.serialize_serialize
+		return md5( serialize( $translationMeta ) );
 	}
 
 }

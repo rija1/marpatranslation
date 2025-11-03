@@ -3,22 +3,20 @@
 use WCML\Options\WPML;
 use WPML\API\Sanitize;
 
-/**
- * Class WCML_Setup
- */
 class WCML_Setup {
+	const MULTI_CURRENCY_STATUS_GET_KEY = 'enabled';
 
 	/** @var WCML_Setup_UI */
 	private $ui;
 	/** @var WCML_Setup_Handlers */
 	private $handlers;
-	/** @var  array */
+	/** @var array */
 	private $steps;
-	/** @var  string */
+	/** @var string */
 	private $step;
-	/** @var  woocommerce_wpml */
+	/** @var woocommerce_wpml */
 	private $woocommerce_wpml;
-	/** @var  SitePress */
+	/** @var SitePress */
 	private $sitepress;
 
 	/**
@@ -36,20 +34,19 @@ class WCML_Setup {
 		$this->woocommerce_wpml = $woocommerce_wpml;
 		$this->sitepress        = $sitepress;
 
-		$stepUrlStorePages          = \WCML\Utilities\AdminUrl::getSetup( WCML_Setup_Store_Pages_UI::SLUG );
-		$stepUrlAttributes          = \WCML\Utilities\AdminUrl::getSetup( WCML_Setup_Attributes_UI::SLUG );
-		$stepUrlMulticurrency       = \WCML\Utilities\AdminUrl::getSetup( WCML_Setup_Multi_Currency_UI::SLUG );
-		$stepUrlDisplayAsTranslated = \WCML\Utilities\AdminUrl::getSetup( WCML_Setup_Display_As_Translated_UI::SLUG );
+		$stepUrlStorePages    = \WCML\Utilities\AdminUrl::getSetup( WCML_Setup_Store_Pages_UI::SLUG );
+		$stepUrlAttributes    = \WCML\Utilities\AdminUrl::getSetup( WCML_Setup_Attributes_UI::SLUG );
+		$stepUrlMulticurrency = \WCML\Utilities\AdminUrl::getSetup( WCML_Setup_Multi_Currency_UI::SLUG );
 
 		$this->steps = [
-			'introduction'        => [
+			WCML_Setup_Introduction_UI::SLUG   => [
 				'name'    => __( 'Introduction', 'woocommerce-multilingual' ),
 				'view'    => new WCML_Setup_Introduction_UI(
 					$stepUrlStorePages
 				),
 				'handler' => '',
 			],
-			'store-pages'         => [
+			WCML_Setup_Store_Pages_UI::SLUG    => [
 				'name'    => __( 'Store Pages', 'woocommerce-multilingual' ),
 				'view'    => new WCML_Setup_Store_Pages_UI(
 					$this->woocommerce_wpml,
@@ -59,7 +56,7 @@ class WCML_Setup {
 				),
 				'handler' => [ $this->handlers, 'install_store_pages' ],
 			],
-			'attributes'          => [
+			WCML_Setup_Attributes_UI::SLUG     => [
 				'name'    => __( 'Global Attributes', 'woocommerce-multilingual' ),
 				'view'    => new WCML_Setup_Attributes_UI(
 					$this->woocommerce_wpml,
@@ -68,31 +65,22 @@ class WCML_Setup {
 				),
 				'handler' => [ $this->handlers, 'save_attributes' ],
 			],
-			'multi-currency'      => [
+			WCML_Setup_Multi_Currency_UI::SLUG => [
 				'name'    => __( 'Multiple Currencies', 'woocommerce-multilingual' ),
 				'view'    => new WCML_Setup_Multi_Currency_UI(
-					$stepUrlDisplayAsTranslated,
+					$stepUrlMulticurrency,
 					$stepUrlAttributes
 				),
 				'handler' => [ $this->handlers, 'save_multi_currency' ],
 			],
-			'translation-options' => [
-				'name'    => __( 'Translation Options', 'woocommerce-multilingual' ),
-				'view'    => new WCML_Setup_Display_As_Translated_UI(
-					'',
-					$stepUrlMulticurrency
-				),
-				'handler' => [ $this->handlers, 'save_display_as_translated' ],
-			],
 		];
 	}
 
-	/**
-	 * @return bool
-	 */
-	private function is_submitting_display_as_translated() {
+	private function is_submitting_last_step_multicurrency_status(): bool {
 		/* phpcs:ignore WordPress.VIP.SuperGlobalInputUsage.AccessDetected */
-		return (bool) Sanitize::stringProp( WCML_Setup_Handlers::KEY_DISPLAY_AS_TRANSLATED, $_POST );
+		$value = \WPML\FP\Obj::prop( self::MULTI_CURRENCY_STATUS_GET_KEY, $_GET );
+
+		return in_array( $value, [ "0", "1" ], true );
 	}
 
 	public function add_hooks() {
@@ -139,7 +127,7 @@ class WCML_Setup {
 	 * @return bool
 	 */
 	private function is_wcml_setup_page() {
-		return isset( $_GET['page'] ) && 'wcml-setup' === $_GET['page'];
+		return isset( $_GET['page'] ) && WCML_Setup_UI::SLUG === $_GET['page'];
 	}
 
 	/**
@@ -188,15 +176,12 @@ class WCML_Setup {
 
 	/**
 	 * @param string $step
-	 *
-	 * @return bool
 	 */
-	private function is_setup_complete( $step ) {
-		if ( WCML_Setup_Display_As_Translated_UI::SLUG !== $step ) {
+	private function is_setup_complete( $step ): bool {
+		if ( WCML_Setup_Multi_Currency_UI::SLUG !== $step ) {
 			return false;
 		}
-
-		return $this->is_submitting_display_as_translated();
+		return $this->is_submitting_last_step_multicurrency_status();
 	}
 
 	/**
@@ -219,6 +204,8 @@ class WCML_Setup {
 	}
 
 	public function complete_setup() {
+		$this->save_product_translation_mode();
+
 		$this->woocommerce_wpml->settings['set_up_wizard_run']    = 1;
 		$this->woocommerce_wpml->settings['set_up_wizard_splash'] = 1;
 		$this->woocommerce_wpml->update_settings();
@@ -231,14 +218,30 @@ class WCML_Setup {
 		do_action( 'wcml_setup_completed' );
 	}
 
-	/**
-	 * @return bool
-	 */
-	public static function is_product_automatically_translated() {
-		return WPML::isAutomatic( 'product' );
+	public function save_product_translation_mode() {
+		$custom_posts_unlocked = apply_filters( 'wpml_get_setting', false, 'custom_posts_unlocked_option' );
+		$custom_posts_sync     = apply_filters( 'wpml_get_setting', false, 'custom_posts_sync_option' );
+
+		$is_display_as_translated_checked = isset( $custom_posts_unlocked['product'], $custom_posts_sync['product'] )
+		                                    && 1 === $custom_posts_unlocked['product']
+		                                    && WPML_CONTENT_TYPE_DISPLAY_AS_IF_TRANSLATED === $custom_posts_sync['product'];
+
+		$settings_helper = wpml_load_settings_helper();
+
+		if ( $is_display_as_translated_checked ) {
+			$settings_helper->set_post_type_display_as_translated( 'product' );
+			$settings_helper->set_post_type_translation_unlocked_option( 'product' );
+			$settings_helper->set_taxonomy_display_as_translated( 'product_cat' );
+			$settings_helper->set_taxonomy_translation_unlocked_option( 'product_cat' );
+		} else {
+			$settings_helper->set_post_type_translatable( 'product' );
+			$settings_helper->set_post_type_translation_unlocked_option( 'product', false );
+			$settings_helper->set_taxonomy_translatable( 'product_cat' );
+			$settings_helper->set_taxonomy_translation_unlocked_option( 'product_cat', false );
+		}
 	}
 
-	private function has_completed() {
+	private function has_completed(): bool {
 		return ! empty( $this->woocommerce_wpml->settings['set_up_wizard_run'] );
 	}
 
@@ -251,6 +254,7 @@ class WCML_Setup {
 		if ( isset( $_POST['next_step_url'] ) && $_POST['next_step_url'] ) {
 			$url = sanitize_text_field( $_POST['next_step_url'] );
 		}
+
 		return $url;
 	}
 
@@ -261,6 +265,7 @@ class WCML_Setup {
 	 */
 	private function get_handler( $step ) {
 		$handler = ! empty( $this->steps[ $step ]['handler'] ) ? $this->steps[ $step ]['handler'] : '';
+
 		return $handler;
 	}
 
