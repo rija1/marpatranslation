@@ -10,7 +10,7 @@ if ( ! class_exists( 'WC_Payment_Gateway_Stripe' ) ) {
  *
  * @since   3.0.0
  * @author  PaymentPlugins
- * @package Stripe/Gateways
+ * @package PaymentPlugins\Gateways
  */
 class WC_Payment_Gateway_Stripe_GooglePay extends WC_Payment_Gateway_Stripe {
 

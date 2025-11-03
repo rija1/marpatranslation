@@ -18,6 +18,7 @@ class TRP_Language_Switcher_V2 {
     private TRP_Translate_Press $trp;
     private TRP_Url_Converter $url_converter;
     private TRP_Languages $languages;
+    private TRP_Language_Switcher_Tab $language_switcher_tab;
     private ?string $current_lang = null;
     private static ?self $instance = null;
     /**
@@ -48,15 +49,17 @@ class TRP_Language_Switcher_V2 {
      * @param TRP_Translate_Press $trp TRP root instance.
      */
     private function __construct( array $settings, TRP_Translate_Press $trp ) {
-        $this->settings      = $settings;
-        $this->url_converter = $trp->get_component( 'url_converter' );
-        $this->languages     = $trp->get_component( 'languages' );
-        $this->trp           = $trp;
-        $this->viewport      = wp_is_mobile() ? 'mobile' : 'desktop';
+        $this->settings = $settings;
 
-        $ls_option = get_option( 'trp_language_switcher_settings' );
+        $this->url_converter         = $trp->get_component( 'url_converter' );
+        $this->languages             = $trp->get_component( 'languages' );
+        $this->language_switcher_tab = $trp->get_component( 'language_switcher_tab' );
 
-        $this->config = $ls_option !== false ? $ls_option : [];
+        $this->trp      = $trp;
+        $this->viewport = wp_is_mobile() ? 'mobile' : 'desktop';
+
+        $this->config = $this->language_switcher_tab->get_initial_config(); // In case it's not yet initialized, we initialize it here
+
         $this->resolve_language_context();
     }
 
@@ -278,11 +281,11 @@ class TRP_Language_Switcher_V2 {
         $flag_position = $layout['flagIconPosition'] ?? 'before';
         $flag_shape    = $config['flagShape']        ?? 'rect';
         $open_on_click = ! empty( $config['clickLanguage'] );
-
-        $flag_position = ( $flag_position === 'after' ) ? 'after' : 'before';
         $flag_ratio    = ( $flag_shape === 'square' ) ? 'square' : 'rect';
 
-        $list = $this->get_language_items( $name_type, false );
+        $is_opposite = (bool) $config['oppositeLanguage'];
+
+        $list = $this->get_language_items( $name_type, $is_opposite );
 
         if ( empty( $list ) || !isset( $list[0]['code'] ) )
             return ''; // nothing to render
@@ -300,7 +303,7 @@ class TRP_Language_Switcher_V2 {
         // Render the partial (string), then allow filtering of the final HTML
         $html = $this->get_template(
             $this->template_path( 'shortcode-switcher.php' ),
-            compact( 'list', 'config', 'style_value', 'flag_position', 'open_on_click', 'is_editor' ),
+            compact( 'list', 'config', 'style_value', 'flag_position', 'open_on_click', 'is_editor', 'is_opposite' ),
             true
         );
 
@@ -704,7 +707,7 @@ class TRP_Language_Switcher_V2 {
             if ( $shape === 'square' )  $classes[] = 'trp-flag-square';
 
             $html = sprintf(
-                '<img src="%s" class="%s" alt="%s" loading="lazy" decoding="async" />',
+                '<img src="%s" class="%s" alt="%s" loading="lazy" decoding="async" width="18" height="14" />',
                 esc_url( $flag_path ),
                 esc_attr( implode( ' ', $classes ) ),
                 esc_attr( $name )
@@ -733,7 +736,7 @@ class TRP_Language_Switcher_V2 {
         if ( $shape === 'square' )  $classes[] = 'trp-flag-square';
 
         $html = sprintf(
-            '<img src="%s" class="%s" alt="%s" loading="lazy" decoding="async" />',
+            '<img src="%s" class="%s" alt="%s" loading="lazy" decoding="async" width="18" height="14" />',
             esc_url( $url ),
             esc_attr( implode( ' ', $classes ) ),
             esc_attr( $name )

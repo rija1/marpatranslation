@@ -13,7 +13,9 @@ class ShortLinksGenerator implements Hookable, HookablePluginDependant {
 
 	use PluginAccess;
 
-	const SHORTENER_DOMAIN = 'https://wpdesk.link/';
+	const SHORTENER_DOMAIN_PL = 'https://wpdesk.pl/sk/';
+
+	const SHORTENER_DOMAIN_EN = 'https://wpdesk.net/sk/';
 
 	/**
 	 * {@inheritdoc}
@@ -37,7 +39,8 @@ class ShortLinksGenerator implements Hookable, HookablePluginDependant {
 		}
 
 		$locale    = get_user_locale();
-		$short_url = self::SHORTENER_DOMAIN . $short_path;
+		$locale_url = $locale === 'pl_PL' ? self::SHORTENER_DOMAIN_PL : self::SHORTENER_DOMAIN_EN;
+		$short_url = $locale_url . $short_path;
 		switch ( $locale ) {
 			case 'pl_PL':
 				$short_url .= '-pl';

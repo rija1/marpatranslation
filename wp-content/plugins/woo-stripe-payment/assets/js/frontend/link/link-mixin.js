@@ -33,6 +33,7 @@ export default function (Base) {
         }
 
         onClickElement(event) {
+            this.store_attribution_values();
             // pass initial data.
             const data = {};
 

@@ -101,6 +101,7 @@
         }
 
         PaymentRequest.prototype.button_click = function (e) {
+            this.store_attribution_values();
             if (this.$button.is('.disabled')) {
                 e.preventDefault();
             } else if (this.get_quantity() == 0) {
@@ -173,6 +174,7 @@
         }
 
         PaymentRequest.prototype.button_click = function (e) {
+            this.store_attribution_values();
             this.paymentRequest.update(this.get_payment_request_update({
                 total: {
                     pending: false

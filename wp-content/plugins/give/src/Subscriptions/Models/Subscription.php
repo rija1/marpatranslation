@@ -26,12 +26,14 @@ use Give\Subscriptions\ValueObjects\SubscriptionStatus;
 /**
  * Class Subscription
  *
+ * @since 4.11.0 added campaign ID property
  * @since 4.10.0 added campaign relationship
  * @since 2.23.0 added the renewsAt property
  * @since 2.19.6
  *
  * @property int $id
  * @property int $donationFormId
+ * @property int $campaignId
  * @property DateTime $createdAt
  * @property DateTime $renewsAt The date the subscription will renew next
  * @property int $donorId
@@ -58,6 +60,7 @@ class Subscription extends Model implements ModelCrud, ModelHasFactory
     protected $properties = [
         'id' => 'int',
         'donationFormId' => 'int',
+        'campaignId' => 'int',
         'createdAt' => DateTime::class,
         'renewsAt' => DateTime::class,
         'donorId' => 'int',
@@ -274,6 +277,14 @@ class Subscription extends Model implements ModelCrud, ModelHasFactory
     public function trash(): bool
     {
         return give()->subscriptions->trash($this);
+    }
+
+    /**
+     * @since 4.12.0
+     */
+    public function unTrash(): bool
+    {
+        return give()->subscriptions->unTrash($this);
     }
 
     /**

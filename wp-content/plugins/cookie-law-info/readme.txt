@@ -5,7 +5,7 @@ Tags: cookie notice, cookie consent, cookie banner, cookie, gdpr
 Requires at least: 5.0.0
 Tested up to: 6.8
 Requires PHP: 5.6
-Stable tag: 3.3.5
+Stable tag: 3.3.6
 License: GPLv3
 License URI: http://www.gnu.org/licenses/gpl-3.0.html
 
@@ -41,11 +41,9 @@ The plugin offers a customizable cookie banner that blocks non-essential scripts
 
 **Banner Customization**
 
-- **Customizable Styles:** Adjust banner colors, fonts, and position to match your website design.
-
 - **Layout Options:** Choose top/bottom bar, box, or popup layouts for your WordPress cookie banner.
 
-- **Behavior Customization:** Define banner actions when users click “Accept All” or “Reject All.”
+- **Reload page on consent action:** Automatically reload the page when users click “Accept All” or “Reject All”.
 
 **Cookie Scanner & Management**
 
@@ -55,7 +53,7 @@ The plugin offers a customizable cookie banner that blocks non-essential scripts
 
 **Multilingual & Accessibility**
 
-- **Auto-Translation:** Automatically translate the banner into over 30 languages based on the visitor’s browser language.
+- **Auto-Translation:** Translate the banner into 40+ languages based on browser settings.
 
 - **Multilingual Compatibility:** Works with WPML and Polylang for multilingual sites.
 
@@ -85,6 +83,7 @@ Access the following features by subscribing to a premium plan (Basic, Pro, or U
 
 **Enhanced Banner Customization**
 
+&#9989; **Customizable Styles:** Adjust banner colors, fonts, and position to match your website design.
 &#9989; **Page-Specific Controls:** Disable the banner on specific pages (e.g., login, checkout).
 &#9989; **Custom CSS:** Custom CSS for advanced design customization.
 &#9989; **Custom Logo:** Add your brand’s logo to the cookie banner.
@@ -257,6 +256,13 @@ Every time we update the plugin, you will see a notification on the installed pl
 
 == Changelog ==
 
+= 3.3.6 =
+
+[Fix] - Revisit icon text's french translation.
+[Enhancement] - GCM - Update consent based on cookie's value.
+[Enhancement] - Banner dark theme accessibility.
+[Fix] - Admin screen translation not working.
+
 = 3.3.5 =
 
 [Fix] - Fixed minor security vulnerabilities.
@@ -268,8 +274,9 @@ For the changelog of earlier versions, please refer to the [changelog.txt](https
 
 == Upgrade Notice ==
 
-= 3.3.5 =
+= 3.3.6 =
 
-[Fix] - Fixed minor security vulnerabilities.
-[Enhancement] - UI/UX improvements.
-[Fix] - Mismatch in consent chart data.
+[Fix] - Revisit icon text's french translation.
+[Enhancement] - GCM - Update consent based on cookie's value.
+[Enhancement] - Banner dark theme accessibility.
+[Fix] - Admin screen translation not working.

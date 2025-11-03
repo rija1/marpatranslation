@@ -540,7 +540,9 @@ class TRP_Translation_Render{
         if( is_object($wp_rewrite) ) {
             if( strpos( $this->url_converter->cur_page_url( false ), get_rest_url() ) !== false
                 && current_filter() !== 'oembed_response_data'
-                && current_filter() !== 'rest_pre_echo_response' )
+                && current_filter() !== 'rest_pre_echo_response'
+                && current_filter() !== 'wp_mail'
+            )
             {
                 $trpremoved = $this->remove_trp_html_tags( $output );
                 /* add back the excluded tags like script and style to the html */
@@ -1168,11 +1170,11 @@ class TRP_Translation_Render{
 	    }
 	    $final_html = $html->save();
 
-       /* perform preg replace on the remaining trp-gettext tags */
-        $final_html = $this->remove_trp_html_tags( $final_html );
-
         /* add back the excluded tags like script and style to the html */
         $final_html = $this->add_excluded_tags_after_translation( $final_html, $output_with_excluded_tags_removed['excluded_tags'] );
+
+       /* perform preg replace on the remaining trp-gettext tags */
+        $final_html = $this->remove_trp_html_tags( $final_html );
 
 	    return apply_filters( 'trp_translated_html', $final_html, $TRP_LANGUAGE, $language_code, $preview_mode );
     }
@@ -2078,16 +2080,18 @@ class TRP_Translation_Render{
      * @return array
      */
     public function wp_mail_filter( $args ){
-        if (!is_array($args)){
+        if ( !is_array( $args ) ){
             return $args;
         }
 
-        if(array_key_exists('subject', $args)){
-            $args['subject'] = $this->translate_page( do_shortcode( $args['subject'] ) );
+        $whitelisted_shortcodes = apply_filters( 'trp_whitelisted_shortcodes_for_wp_mail', [ 'trp_language', 'language-include', 'language-exclude' ] );
+
+        if ( array_key_exists( 'subject', $args ) ){
+            $args['subject'] = $this->translate_page( trp_do_these_shortcodes( $args['subject'], $whitelisted_shortcodes ) );
         }
 
-        if(array_key_exists('message', $args)){
-            $args['message'] = $this->translate_page( do_shortcode( $args['message'] ) );
+        if ( array_key_exists( 'message', $args ) ){
+            $args['message'] = $this->translate_page( trp_do_these_shortcodes( $args['message'], $whitelisted_shortcodes ) );
         }
 
         return $args;

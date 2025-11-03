@@ -233,3 +233,17 @@ if ( ! function_exists( 'cky_missing_tables' ) ) {
 		return get_option( 'cky_missing_tables', array() );
 	}
 }
+if ( ! function_exists( 'cky_verify_nonce' ) ) {
+	/**
+	 * Verify nonce.
+	 *
+	 * @return WP_Error|boolean
+	 */
+	function cky_verify_nonce( $request ) {
+		$nonce = $request->get_header( 'X-WP-Nonce' );
+		if ( ! $nonce || ! wp_verify_nonce( $nonce, 'wp_rest' ) ) {
+			return new WP_Error( 'cookieyes_rest_invalid_nonce', __( 'Invalid nonce. Please refresh the page and try again.', 'cookie-law-info' ), array( 'status' => 403 ) );
+		}
+		return true;
+	}
+}

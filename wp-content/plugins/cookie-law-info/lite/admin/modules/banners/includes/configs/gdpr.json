@@ -4,7 +4,7 @@
         "type": "box",
         "preferenceCenterType": "popup",
         "position": "bottom-left",
-        "versionID": "6.0.0",
+        "versionID": "6.2.0",
         "applicableLaw": "gdpr",
         "languages": {
             "default": "en",
@@ -323,8 +323,8 @@
                     "status": true,
                     "tag": "detail-powered-by",
                     "styles": {
-                        "background-color": "#EDEDED",
-                        "color": "#293C5B"
+                        "background-color": "transparent",
+                        "color": "inherit"
                     }
                 }
             }
@@ -406,8 +406,8 @@
                     "status": true,
                     "tag": "optout-powered-by",
                     "styles": {
-                        "background-color": "#EDEDED",
-                        "color": "#293C5B"
+                        "background-color": "transparent",
+                        "color": "inherit"
                     }
                 },
                 "buttons": {
@@ -496,6 +496,67 @@
                     "status": true,
                     "styles": {
                         "color": "#ffffff"
+                    }
+                }
+            }
+        },
+        "accessibilityOverrides": {
+            "status": true,
+            "tag": "accessibility-overrides",
+            "elements": {
+                "preferenceCenter": {
+                    "elements": {
+                        "alwaysActive": {
+                            "status": true,
+                            "tag": "always-active",
+                            "styles": {
+                                "color": "#008000"
+                            }
+                        },
+                        "showMore": {
+                            "status": true,
+                            "tag": "show-desc-button",
+                            "type": "button",
+                            "styles": {
+                                "color": "#1863DC"
+                            }
+                        },
+                        "showLess": {
+                            "status": true,
+                            "tag": "hide-desc-button",
+                            "type": "button",
+                            "styles": {
+                                "color": "#1863DC"
+                            }
+                        }
+                    }
+                },
+                "optoutPopup": {
+                    "elements": {
+                        "showMore": {
+                            "status": true,
+                            "tag": "optout-show-desc-button",
+                            "type": "button",
+                            "styles": {
+                                "color": "#1863DC"
+                            }
+                        },
+                        "showLess": {
+                            "status": true,
+                            "tag": "optout-hide-desc-button",
+                            "type": "button",
+                            "styles": {
+                                "color": "#1863DC"
+                            }
+                        }
+                    }
+                },
+                "manualLinks": {
+                    "status": true,
+                    "tag": "manual-links",
+                    "type": "link",
+                    "styles": {
+                        "color": "#1863DC"
                     }
                 }
             }

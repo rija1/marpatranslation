@@ -1,5 +1,8 @@
 <?php
 
+/**
+ * @package PaymentPlugins\Gateways
+ */
 class WC_Payment_Gateway_Stripe_Link extends \WC_Payment_Gateway_Stripe {
 
 	use WC_Stripe_Payment_Intent_Trait;

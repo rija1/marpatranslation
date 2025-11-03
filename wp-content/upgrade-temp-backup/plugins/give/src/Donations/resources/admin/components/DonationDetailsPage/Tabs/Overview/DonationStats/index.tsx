@@ -15,6 +15,7 @@ interface DonationStatsProps {
 }
 
 /**
+ * @since 4.10.0 use upgrade object instead of inActive.
  * @since 4.6.0
  */
 export default function DonationStats({ donation, isResolving }: DonationStatsProps) {
@@ -26,25 +27,24 @@ export default function DonationStats({ donation, isResolving }: DonationStatsPr
         <div className={styles.container}>
             <StatWidget
                 label={__('Donation amount', 'give')}
-                value={intendedAmount}
-                formatter={formatter}
+                value={formatter.format(intendedAmount)}
                 loading={isResolving}
             />
             {shouldShowEventTicketStat && (
                 <StatWidget
                     label={__('Event ticket', 'give')}
-                    value={Number(eventTicketsAmount)}
-                    formatter={formatter}
+                    value={formatter.format(Number(eventTicketsAmount))}
                     loading={isResolving}
                 />
             )}
             <StatWidget
                 label={__('Fees recovered', 'give')}
-                value={feeAmountRecovered}
-                formatter={formatter}
+                value={formatter.format(feeAmountRecovered)}
                 loading={isResolving}
-                href={'https://givewp.com/addons/fee-recovery/'}
-                inActive={!isFeeRecoveryEnabled}
+                upgrade={{
+                    href: 'https://docs.givewp.com/fee-recovery-stats',
+                    tooltip: __('Keep 100% of your fundraising revenue by providing donors with the option to cover the credit card processing fees.', 'give')
+                }}
             />
         </div>
     );

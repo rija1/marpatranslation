@@ -189,6 +189,18 @@ class Api extends Rest_Controller {
 				),
 			)
 		);
+		register_rest_route(
+			$this->namespace,
+			'/' . $this->rest_base . '/apply_filter',
+			array(
+				array(
+					'methods'             => WP_REST_Server::CREATABLE,
+					'callback'            => array( $this, 'apply_filter' ),
+					'permission_callback' => array( $this, 'create_item_permissions_check' ),
+					'args'                => $this->get_collection_params(),
+				),
+			)
+		);
 	}
 	/**
 	 * Get a collection of items.
@@ -322,6 +334,32 @@ class Api extends Rest_Controller {
 	public function disconnect() {
 		$response = Controller::get_instance()->disconnect();
 		return rest_ensure_response( $response );
+	}
+
+	/**
+	 * Apply WordPress filter hook
+	 *
+	 * @param WP_REST_Request $request Full details about the request.
+	 * @return WP_Error|WP_REST_Response
+	 */
+	public function apply_filter( $request ) {
+		$filter_name = $request->get_param( 'filter_name' );
+		$filter_data = $request->get_param( 'filter_data' );
+
+		if ( empty( $filter_name ) ) {
+			return new WP_Error( 'missing_filter_name', __( 'Filter name is required.', 'cookie-law-info' ), array( 'status' => 400 ) );
+		}
+
+		// Apply the WordPress filter
+		$result = apply_filters( $filter_name, $filter_data );
+
+		// If filter returns false, it means navigation should be prevented
+		$response_data = array(
+			'prevent_navigation' => ( $result === false ),
+			'filter_result' => $result,
+		);
+
+		return rest_ensure_response( $response_data );
 	}
 
 	/**

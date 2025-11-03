@@ -9,7 +9,7 @@ if ( ! class_exists( 'WC_Payment_Gateway_Stripe' ) ) {
  * This gateway is provided so merchants can accept Chrome Payments, Microsoft Pay, etc.
  *
  * @author  PaymentPlugins
- * @package Stripe/Gateways
+ * @package PaymentPlugins\Gateways
  *
  */
 class WC_Payment_Gateway_Stripe_Payment_Request extends WC_Payment_Gateway_Stripe {

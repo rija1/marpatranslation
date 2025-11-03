@@ -98,7 +98,6 @@
 <?php __("This website is already activated under a free license. Each website can only use one free license. Please upgrade to a premium plan for more TranslatePress AI words from %1$s your account %2$s.", "translatepress-multilingual"); ?>
 <?php __("You do not have a valid license for <strong>TranslatePress</strong>. %1$sGet one for free%2$s to get access to TranslatePress AI.", "translatepress-multilingual"); ?>
 <?php __("The daily quota for machine translation characters exceeded. Please check the <strong>TranslatePress -> <a href=\"%s\">Automatic Translation</a></strong> page for more information.", "translatepress-multilingual"); ?>
-<?php __("One or more languages are unsupported by the automatic translation provider. Please check the <strong>TranslatePress -> <a href=\"%s\">Automatic Translation</a></strong> page for more information.", "translatepress-multilingual"); ?>
 <?php __("Marketing optin", "translatepress-multilingual"); ?>
 <?php __("Opt in to our security and feature updates notifications, and non-sensitive diagnostic tracking.", "translatepress-multilingual"); ?>
 <?php __("TranslatePress Preferred User Language", "translatepress-multilingual"); ?>
@@ -468,6 +467,7 @@
 <?php __("Active, Deactivated, installed version and settings", "translatepress-multilingual"); ?>
 <?php __("Privacy Policy", "translatepress-multilingual"); ?>
 <?php __("Terms of Service", "translatepress-multilingual"); ?>
+<?php __("Website language selector", "translatepress-multilingual"); ?>
 <?php __("Optimize TranslatePress database tables", "translatepress-multilingual"); ?>
 <?php __("<strong>IMPORTANT NOTE:</strong> Before performing this action it is strongly recommended to first backup the database.", "translatepress-multilingual"); ?>
 <?php __("IMPORTANT: It is strongly recommended to first backup the database!! Are you sure you want to continue?", "translatepress-multilingual"); ?>
@@ -555,6 +555,8 @@
 <?php __("Applies to all types of language switchers (floating, shortcode, and menu). When enabled, the site will revert to using the original Language Switcher configured in the General Settings tab, replacing the new customizable version. Your existing switcher settings will remain saved, but they will be ignored while this option is active.", "translatepress-multilingual"); ?>
 <?php __("Load legacy SEO Pack Add-On", "translatepress-multilingual"); ?>
 <?php __("In case the recent migration to the new slug rewrite is causing trouble, set this to Yes to use the old method <br> Please <a href=\"https://translatepress.com/support/open-ticket/\" target=\"_blank\">open a support ticket</a> letting us know of the issues you are having.", "translatepress-multilingual"); ?>
+<?php __("Manual Translation Only", "translatepress-multilingual"); ?>
+<?php __("TranslatePress pro-actively scans and saves strings in the database when users access translated pages.\n        \n                                             This setting disables this functionality and only allows translation and string saving when inside the Translation Editor. \n                                             \n                                             Also disables machine translation outside the Translation Editor, giving you better control over character spending, by translating only the pages you visit in the Translation Editor.", "translatepress-multilingual"); ?>
 <?php __("Open language switcher only on click", "translatepress-multilingual"); ?>
 <?php __("Open the language switcher shortcode by clicking on it instead of hovering.<br> Close it by clicking on it, anywhere else on the screen or by pressing the escape key. This will affect only the shortcode language switcher.", "translatepress-multilingual"); ?>
 <?php __("Show opposite language in the language switcher", "translatepress-multilingual"); ?>

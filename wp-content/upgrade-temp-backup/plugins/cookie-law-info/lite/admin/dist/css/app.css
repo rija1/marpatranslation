@@ -2476,6 +2476,9 @@ fieldset[disabled] .cky-app-wrap .cky-select {
 .cky-app-wrap .cky-connect-section .cky-section-content .cky-card .cky-card-body .cky-section-plans .cky-info-widget-container .cky-button {
   width: 100%;
 }
+.cky-app-wrap .cky-connect-section .cky-section-content .cky-card .cky-card-body .cky-section-plans .cky-info-widget-container.cky-info-items-4 .cky-plan-pricing, .cky-app-wrap .cky-connect-section .cky-section-content .cky-card .cky-card-body .cky-section-plans .cky-info-widget-container.cky-info-items-3 .cky-plan-pricing {
+  width: 100%;
+}
 .cky-app-wrap .cky-connect-section .cky-section-content .cky-card .cky-card-body .cky-section-plans .cky-info-widget-container.cky-info-items-2 .cky-info-widget {
   padding: 24px;
 }
@@ -2602,9 +2605,8 @@ fieldset[disabled] .cky-app-wrap .cky-select {
   color: #4E4B66;
 }
 .cky-app-wrap .cky-connect-section .cky-section-content .cky-card .cky-card-body .cky-section-plans .cky-info-widget p.cky-widget-desc {
-  padding: 6px 28px 20px 0px;
-  margin-right: 65px;
-  max-width: 33ch;
+  padding-bottom: 20px;
+  max-width: 17ch;
   font-size: 13px;
 }
 .cky-app-wrap .cky-connect-section .cky-section-content .cky-card .cky-card-body .cky-section-plans .cky-info-widget .cky-widget-row {

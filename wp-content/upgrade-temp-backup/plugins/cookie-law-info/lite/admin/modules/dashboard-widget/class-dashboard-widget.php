@@ -274,7 +274,7 @@ class Dashboard_Widget extends Modules {
                 const accepted = getCount(data, 'accepted');
                 const rejected = getCount(data, 'rejected');
                 const partial = getCount(data, 'partial');
-                const responseArr = [accepted, rejected, partial].filter(function(value){ return value !== 0; });
+                const responseArr = [accepted, rejected, partial];
                 const total = accepted + rejected + partial;
 
                 if (total === 0) {

@@ -5,7 +5,7 @@ Tags: translate, translation, multilingual, automatic translation, bilingual, fr
 Requires at least: 3.1.0
 Tested up to: 6.8.2
 Requires PHP: 7.4
-Stable tag: 2.10.3
+Stable tag: 2.10.6
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 
@@ -30,11 +30,11 @@ https://www.youtube.com/watch?v=pUlYisvBm8g
 * Live preview of your translated pages, as you edit them.
 * Automatic translation support through [TranslatePress AI Free](https://translatepress.com/ai-free/?utm_source=wp.org&utm_medium=tp-description-page&utm_campaign=TPFree), with a 2.000 AI words limit.
 * Integrates with Google Translate, allowing you to set up unlimited automatic translations using your own Google API key.
+* Fully customizable language switcher that you can display as a menu item, a floating dropdown, or place anywhere else using the Language Switcher block, or the **[language-switcher]** shortcode.
 * [Image translation](https://translatepress.com/docs/image-translation/?utm_source=wp.org&utm_medium=tp-description-page&utm_campaign=TPFree) support, for [translating images, sliders and other media](https://translatepress.com/translate-images-in-wordpress/?utm_source=wp.org&utm_medium=tp-description-page&utm_campaign=TPFree).
 * Support for both manual and automatic translation
 * Ability to [translate dynamic strings](https://translatepress.com/translate-dynamic-strings-wordpress/?utm_source=wp.org&utm_medium=tp-description-page&utm_campaign=TPFree) (gettext) added by WordPress, plugins and themes.
 * Translate larger html blocks by merging strings into translation blocks.
-* Place language switchers anywhere using shortcode **[language-switcher]**, WP menu item or as a floating dropdown.
 * Editorial control allowing you to publish your language only when all your translations are done
 * Conditional display content shortcode based on language [trp_language language="en_US"] English content only [/trp_language]
 * Possibility to [edit gettext strings](https://translatepress.com/edit-plugin-strings/?utm_source=wp.org&utm_medium=tp-description-page&utm_campaign=TPFree) from themes and plugins from English to English, without adding another language. Basically a string-replace functionality.
@@ -142,6 +142,29 @@ For more information please check out our [documentation](https://translatepress
 
 
 == Changelog ==
+= 2.10.6 =
+* Added Opposite Language mode for language switcher shortcode
+* Added Manual Translation Only - advanced option for better control over character spending by translating only the pages visited in the Translation Editor.
+* Improved performance when loading html pages with large inline scripts and styles, while also minimizing the potential for JS errors
+* Improved accessibility and fixed minor UI issues of the Translation Editor
+* Improved reliability of detecting WP crons by using wp_doing_cron function
+* Fixed some cases with missing GET parameters on internal links for translated pages
+* Fixed JS issue when opposite language option is active in language switcher
+* Fixed CSS issue with shortcode language switcher where arrow appeared twice when opacity was less than 1
+* Fixed some CSS issues with flags
+
+= 2.10.5 =
+* Fixed bug that made unnecessary site lookup calls to TP AI
+
+= 2.10.4 =
+* Added compatibility with Breakdance theme
+* Fixed WooCommerce product names for variable products having missing attributes in the cart when using woocommerce_cart shortcode
+* Fixed canonical links not being translated properly on archive pages when SEOPress plugin was active
+* Fixed compatibility issue between Visual Composer and the language switcher customizer
+* Fixed flag hiding option not applying properly in the new language switcher
+* Fixed CSS issue by explicitly declaring flag height in the new language switcher
+* Fixed php warning for new installations in some cases
+
 = 2.10.3 =
 * Fixed vulnerability when Advanced option Filter Gettext wrapping from post meta was active
 * Fixed Stripe forms from Event Tickets plugin not working on additional languages

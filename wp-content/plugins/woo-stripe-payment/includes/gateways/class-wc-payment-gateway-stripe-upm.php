@@ -2,6 +2,9 @@
 
 defined( 'ABSPATH' ) || exit();
 
+/**
+ * @package PaymentPlugins\Gateways
+ */
 class WC_Payment_Gateway_Stripe_UPM extends WC_Payment_Gateway_Stripe {
 
 	use WC_Stripe_Payment_Intent_Trait;

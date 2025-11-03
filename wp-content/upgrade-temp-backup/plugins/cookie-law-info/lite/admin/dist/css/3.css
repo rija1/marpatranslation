@@ -85,7 +85,7 @@
   font-size: 18px;
 }
 .cky-app-wrap .cky-aria-expanded-notice {
-  height: 546px;
+  height: auto;
 }
 .cky-app-wrap .cky-aria-expanded {
   height: 376px;

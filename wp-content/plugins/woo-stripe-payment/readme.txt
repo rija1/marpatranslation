@@ -4,7 +4,7 @@ Tags: stripe, klarna, credit card, apple pay, google pay
 Requires at least: 3.0.1
 Tested up to: 6.8
 Requires PHP: 5.6
-Stable tag: 3.3.93
+Stable tag: 3.3.95
 Copyright: Payment Plugins
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
@@ -63,6 +63,17 @@ If your site is not loading over https, then Stripe won't render the Payment Req
 9. Stripe Link for high conversion
 
 == Changelog ==
+= 3.3.95 - 10/29/25 =
+* Added - WC Tested to 10.3
+* Added - Support for Billie payment method
+* Added - Puerto Rico to Klarna supported countries
+* Updated - Changed script handles for WooCommerce to include the "wc-" prefix for WooCommerce 10.3.0.
+* Updated - When express payment is made on product and cart page, ensure attribution data is included in the request.
+* Updated - Removed Giropay and Sofort from payment method options since they have been deprecated by Stripe.
+= 3.3.94 - 10/15/25 =
+* Updated - Merchants using Bluehost reported that payment methods were not showing in settings or checkout page. This was caused by an update to the Bluehost plugin where it triggered the "woocommerce_payment_gateways" too early in the WordPress load sequence.
+ We have added additional code to ensure Stripe payment methods are loaded even if the filter "woocommerce_payment_gateways" is called before the WordPress "init" action.
+* Added - Filter "wc_stripe_order_cancelled_enabled". [https://wordpress.org/support/topic/limit-refund-on-cancel-option/](https://wordpress.org/support/topic/limit-refund-on-cancel-option/)
 = 3.3.93 - 10/03/25 =
 * Fixed - When Stripe inline form was enabled, Link was always active
 * Fixed - Apple Pay rounded button option on checkout block

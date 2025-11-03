@@ -259,7 +259,7 @@ class Cookie_Law_Info_Review_Request {
 				);
 
 				return sprintf(
-					/* translators: %1$s: plugin name in bold, %2$s: star rating link, %3$s: WordPress.org link */
+					/* translators: %1$s: CookieYes plugin name in bold, %2$s: star rating link, %3$s: WordPress.org link */
 					esc_html__(
 						'Please rate %1$s %2$s on %3$s to help us spread the word. Thank you from the team CookieYes!',
 						'cookie-law-info'
