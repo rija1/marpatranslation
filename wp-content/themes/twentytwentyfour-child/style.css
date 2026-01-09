@@ -14,10 +14,12 @@ Text Domain:  twentytwentyfour
 .mts_kh_left_menu {
   background: white !important;
   border-radius: 12px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  -webkit-box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+          box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
   border: 1px solid #dee2e6;
   overflow: hidden;
-  animation: fadeInUp 0.3s ease-out;
+  -webkit-animation: fadeInUp 0.3s ease-out;
+          animation: fadeInUp 0.3s ease-out;
 }
 .mts_kh_left_menu .wp-block-heading {
   background: #f8f9fa;
@@ -43,6 +45,7 @@ Text Domain:  twentytwentyfour
   border-bottom: none;
 }
 .mts_kh_left_menu ul li.current-menu-item {
+  background: -webkit-gradient(linear, left top, right top, from(rgba(52, 152, 219, 0.1)), to(transparent));
   background: linear-gradient(90deg, rgba(52, 152, 219, 0.1) 0%, transparent 100%);
   border-left: 4px solid #3498db;
 }
@@ -58,6 +61,7 @@ Text Domain:  twentytwentyfour
   text-decoration: none;
   font-weight: 500;
   font-size: 0.95rem;
+  -webkit-transition: all 0.2s ease;
   transition: all 0.2s ease;
   border-radius: 0;
   background: transparent;
@@ -69,10 +73,12 @@ Text Domain:  twentytwentyfour
 .mts_kh_left_menu ul a:hover, .mts_kh_left_menu ul a:focus {
   background: rgba(52, 152, 219, 0.08);
   color: #2980b9;
-  transform: translateX(4px);
+  -webkit-transform: translateX(4px);
+          transform: translateX(4px);
 }
 .mts_kh_left_menu ul a:active {
-  transform: translateX(2px);
+  -webkit-transform: translateX(2px);
+          transform: translateX(2px);
 }
 @media (max-width: 768px) {
   .mts_kh_left_menu {
@@ -103,14 +109,29 @@ Text Domain:  twentytwentyfour
   border-radius: 4px;
 }
 
-@keyframes fadeInUp {
+@-webkit-keyframes fadeInUp {
   from {
     opacity: 0;
-    transform: translateY(20px);
+    -webkit-transform: translateY(20px);
+            transform: translateY(20px);
   }
   to {
     opacity: 1;
-    transform: translateY(0);
+    -webkit-transform: translateY(0);
+            transform: translateY(0);
+  }
+}
+
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    -webkit-transform: translateY(20px);
+            transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    -webkit-transform: translateY(0);
+            transform: translateY(0);
   }
 }
 .mts_kh_left_menu.brand-colors .wp-block-heading {
@@ -118,6 +139,7 @@ Text Domain:  twentytwentyfour
   color: white;
 }
 .mts_kh_left_menu.brand-colors ul li.current-menu-item {
+  background: -webkit-gradient(linear, left top, right top, from(rgba(139, 21, 56, 0.1)), to(transparent));
   background: linear-gradient(90deg, rgba(139, 21, 56, 0.1) 0%, transparent 100%);
   border-left-color: #8b1538;
 }
@@ -133,7 +155,8 @@ Text Domain:  twentytwentyfour
 
 @media print {
   .mts_kh_left_menu {
-    box-shadow: none;
+    -webkit-box-shadow: none;
+            box-shadow: none;
     border: 1px solid #ccc;
   }
 }
@@ -158,6 +181,22 @@ Text Domain:  twentytwentyfour
     background: #fff !important;
     border-color: #dee2e6 !important;
     color: #2c3e50 !important;
+  }
+  #termFilter::-webkit-input-placeholder, .term-filter::-webkit-input-placeholder {
+    color: #666 !important;
+    opacity: 0.7;
+  }
+  #termFilter::-moz-placeholder, .term-filter::-moz-placeholder {
+    color: #666 !important;
+    opacity: 0.7;
+  }
+  #termFilter:-ms-input-placeholder, .term-filter:-ms-input-placeholder {
+    color: #666 !important;
+    opacity: 0.7;
+  }
+  #termFilter::-ms-input-placeholder, .term-filter::-ms-input-placeholder {
+    color: #666 !important;
+    opacity: 0.7;
   }
   #termFilter::placeholder, .term-filter::placeholder {
     color: #666 !important;
@@ -192,7 +231,8 @@ Text Domain:  twentytwentyfour
 * {
   margin: 0;
   padding: 0;
-  box-sizing: border-box;
+  -webkit-box-sizing: border-box;
+          box-sizing: border-box;
 }
 
 body {
@@ -218,7 +258,8 @@ body {
 header {
   background: var(--white);
   border-bottom: 3px solid var(--gold);
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  -webkit-box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+          box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
   position: sticky;
   top: 0;
   z-index: 1000;
@@ -233,17 +274,27 @@ header {
 }
 
 nav {
+  display: -webkit-box;
+  display: -ms-flexbox;
   display: flex;
-  justify-content: space-between;
-  align-items: center;
+  -webkit-box-pack: justify;
+      -ms-flex-pack: justify;
+          justify-content: space-between;
+  -webkit-box-align: center;
+      -ms-flex-align: center;
+          align-items: center;
   max-width: 1200px;
   margin: 0 auto;
   padding: 1.5rem 2rem;
 }
 
 .logo {
+  display: -webkit-box;
+  display: -ms-flexbox;
   display: flex;
-  align-items: center;
+  -webkit-box-align: center;
+      -ms-flex-align: center;
+          align-items: center;
   font-size: 1.5rem;
   font-weight: 700;
   color: var(--primary);
@@ -260,6 +311,8 @@ nav {
 }
 
 .nav-links {
+  display: -webkit-box;
+  display: -ms-flexbox;
   display: flex;
   list-style: none;
   gap: 2.5rem;
@@ -272,6 +325,7 @@ nav {
   font-size: 1.05rem;
   text-transform: uppercase;
   letter-spacing: 0.5px;
+  -webkit-transition: color 0.3s ease;
   transition: color 0.3s ease;
   border-bottom: 2px solid transparent;
   padding-bottom: 0.25rem;
@@ -336,10 +390,15 @@ nav {
 }
 
 .mts-hero-buttons {
+  display: -webkit-box;
+  display: -ms-flexbox;
   display: flex;
   gap: 1.5rem;
-  justify-content: center;
-  flex-wrap: wrap;
+  -webkit-box-pack: center;
+      -ms-flex-pack: center;
+          justify-content: center;
+  -ms-flex-wrap: wrap;
+      flex-wrap: wrap;
 }
 
 .btn {
@@ -349,6 +408,7 @@ nav {
   font-weight: 600;
   font-size: 1.05rem;
   border-radius: 0;
+  -webkit-transition: all 0.3s ease;
   transition: all 0.3s ease;
   text-transform: uppercase;
   letter-spacing: 0.5px;
@@ -406,7 +466,8 @@ nav {
   position: absolute;
   top: -3rem;
   left: 50%;
-  transform: translateX(-50%);
+  -webkit-transform: translateX(-50%);
+          transform: translateX(-50%);
   font-size: 2rem;
   color: var(--gold);
 }
@@ -427,7 +488,8 @@ nav {
   position: absolute;
   bottom: -0.5rem;
   left: 50%;
-  transform: translateX(-50%);
+  -webkit-transform: translateX(-50%);
+          transform: translateX(-50%);
   width: 80px;
   height: 3px;
   background: var(--gold);
@@ -453,7 +515,8 @@ nav {
   padding: 3rem;
   margin: 3rem 0;
   position: relative;
-  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  -webkit-box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+          box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
 }
 
 .mts-founder-section::before {
@@ -500,8 +563,12 @@ nav {
   border: 1px solid var(--border);
   padding: 2.5rem;
   position: relative;
-  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  -webkit-box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+          box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  -webkit-transition: -webkit-transform 0.3s ease;
+  transition: -webkit-transform 0.3s ease;
   transition: transform 0.3s ease;
+  transition: transform 0.3s ease, -webkit-transform 0.3s ease;
 }
 
 .mts-academic-card::before {
@@ -511,11 +578,13 @@ nav {
   left: 0;
   right: 0;
   height: 4px;
+  background: -webkit-gradient(linear, left top, right top, from(var(--gold)), to(var(--burgundy)));
   background: linear-gradient(90deg, var(--gold), var(--burgundy));
 }
 
 .mts-academic-card:hover {
-  transform: translateY(-5px);
+  -webkit-transform: translateY(-5px);
+          transform: translateY(-5px);
 }
 
 .mts-card-icon {
@@ -524,9 +593,15 @@ nav {
   background: var(--primary);
   color: var(--white);
   border-radius: 50%;
+  display: -webkit-box;
+  display: -ms-flexbox;
   display: flex;
-  align-items: center;
-  justify-content: center;
+  -webkit-box-align: center;
+      -ms-flex-align: center;
+          align-items: center;
+  -webkit-box-pack: center;
+      -ms-flex-pack: center;
+          justify-content: center;
   font-size: 1.5rem;
   margin-bottom: 1.5rem;
   border: 3px solid var(--gold);
@@ -557,13 +632,20 @@ nav {
   border-left: 5px solid var(--burgundy);
   padding: 2rem;
   margin-bottom: 1.5rem;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  -webkit-box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+          box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 }
 
 .mts-project-header {
+  display: -webkit-box;
+  display: -ms-flexbox;
   display: flex;
-  justify-content: space-between;
-  align-items: flex-start;
+  -webkit-box-pack: justify;
+      -ms-flex-pack: justify;
+          justify-content: space-between;
+  -webkit-box-align: start;
+      -ms-flex-align: start;
+          align-items: flex-start;
   margin-bottom: 1rem;
 }
 
@@ -582,6 +664,7 @@ nav {
   font-weight: 600;
   font-size: 1.05rem;
   border-radius: 0;
+  -webkit-transition: all 0.3s ease;
   transition: all 0.3s ease;
   text-transform: uppercase;
   letter-spacing: 0.5px;
@@ -610,12 +693,17 @@ nav {
   border: 1px solid var(--border);
   padding: 2.5rem 2rem;
   text-align: center;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  -webkit-box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+          box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  -webkit-transition: -webkit-transform 0.3s ease;
+  transition: -webkit-transform 0.3s ease;
   transition: transform 0.3s ease;
+  transition: transform 0.3s ease, -webkit-transform 0.3s ease;
 }
 
 .mts-hub-item:hover {
-  transform: translateY(-3px);
+  -webkit-transform: translateY(-3px);
+          transform: translateY(-3px);
 }
 
 .mts-hub-icon {
@@ -716,7 +804,9 @@ nav {
 .wc-block-product {
   background: white;
   border-radius: 12px;
-  box-shadow: var(--marpa-shadow-light);
+  -webkit-box-shadow: var(--marpa-shadow-light);
+          box-shadow: var(--marpa-shadow-light);
+  -webkit-transition: var(--marpa-transition);
   transition: var(--marpa-transition);
   overflow: hidden;
   border: 1px solid var(--marpa-border);
@@ -725,8 +815,10 @@ nav {
 }
 
 .wc-block-product:hover {
-  box-shadow: var(--marpa-shadow-large);
-  transform: translateY(-4px);
+  -webkit-box-shadow: var(--marpa-shadow-large);
+          box-shadow: var(--marpa-shadow-large);
+  -webkit-transform: translateY(-4px);
+          transform: translateY(-4px);
   border-color: rgba(212, 146, 107, 0.3);
 }
 
@@ -739,12 +831,14 @@ nav {
 }
 
 .wc-block-components-product-image img {
+  -webkit-transition: var(--marpa-transition);
   transition: var(--marpa-transition);
   border-radius: 8px;
 }
 
 .wc-block-product:hover .wc-block-components-product-image img {
-  transform: scale(1.05);
+  -webkit-transform: scale(1.05);
+          transform: scale(1.05);
 }
 
 /* Product image overlay effect */
@@ -757,6 +851,7 @@ nav {
   bottom: 0;
   background: linear-gradient(135deg, transparent 0%, rgba(44, 79, 99, 0.1) 100%);
   opacity: 0;
+  -webkit-transition: var(--marpa-transition);
   transition: var(--marpa-transition);
   border-radius: 8px;
 }
@@ -775,6 +870,7 @@ nav {
   color: var(--marpa-primary);
   text-decoration: none;
   font-weight: 600;
+  -webkit-transition: var(--marpa-transition);
   transition: var(--marpa-transition);
   font-family: "Cardo", serif;
 }
@@ -800,22 +896,26 @@ nav {
 
 /* Button improvements */
 .wc-block-components-product-button .wp-block-button__link {
-  background: linear-gradient(135deg, var(--marpa-primary) 0%, var(--marpa-secondary) 100%);
+  background: #f6f5ed;
   border: none;
   border-radius: 8px;
   padding: 0.75rem 1.5rem;
   font-weight: 600;
   text-transform: uppercase;
   letter-spacing: 0.5px;
+  -webkit-transition: var(--marpa-transition);
   transition: var(--marpa-transition);
   position: relative;
   overflow: hidden;
-  box-shadow: var(--marpa-shadow-medium);
+  -webkit-box-shadow: var(--marpa-shadow-medium);
+          box-shadow: var(--marpa-shadow-medium);
 }
 
 .wc-block-components-product-button .wp-block-button__link:hover {
-  transform: translateY(-2px);
-  box-shadow: var(--marpa-shadow-large);
+  -webkit-transform: translateY(-2px);
+          transform: translateY(-2px);
+  -webkit-box-shadow: var(--marpa-shadow-large);
+          box-shadow: var(--marpa-shadow-large);
 }
 
 .wc-block-components-product-button .wp-block-button__link::before {
@@ -825,12 +925,12 @@ nav {
   left: -100%;
   width: 100%;
   height: 100%;
+  background: -webkit-gradient(linear, left top, right top, from(transparent), color-stop(rgba(255, 255, 255, 0.2)), to(transparent));
   background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+  -webkit-transition: left 0.5s;
   transition: left 0.5s;
 }
 
 .wc-block-components-product-button .wp-block-button__link:hover::before {
   left: 100%;
-}
-
-/*# sourceMappingURL=style.css.map */
+}/*# sourceMappingURL=style.css.map */

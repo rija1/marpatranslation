@@ -1,78 +1,212 @@
 === Perfect Images ===
 Contributors: TigrouMeow
-Tags: retina, upscale, replace, thumbnail, regenerate
+Tags: retina, webp, avif, thumbnails, regenerate
 Donate link: https://www.patreon.com/meowapps
 Requires at least: 6.0
-Tested up to: 6.8
+Tested up to: 6.9
 Requires PHP: 7.4
-Stable tag: 7.0.6
+Stable tag: 7.0.9
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
-Optimize your images effortlessly. Replace, regenerate, resize, upscale, improve, transform, and achieve perfect images for your site.
+The foundational image management plugin for WordPress. Control image sizes, regenerate thumbnails, enable retina, add modern formats—everything you need for a clean, streamlined media library.
 
 == Description ==
 
-Take complete control of your images with Perfect Images! This powerful plugin helps you optimize and manage your images with ease. Seamlessly replace or regenerate existing images in bulk, set custom sizes, improve performance, and create retina-ready versions for high-quality displays. Whether you're working with core JPEGs, WebPs, or AVIFs, Perfect Images has you covered. Upscaling is also supported to generate thumbnails that weren't possible before. With additional features like CDN support and the ability to disable image thresholding, you can fine-tune your image management to suit your needs. Perfect Images is fast, efficient, and fully compatible with other plugins without creating new database tables.
+**Perfect Images handles the basics of WordPress image management that should have been built-in from the start.** Manage image sizes, disable the ones you don't need, add custom sizes, and regenerate thumbnails in bulk. It's the essential foundation every WordPress install needs for clean, efficient image handling.
 
-**Key Features:**
+Think of it as your image management base layer. WordPress creates too many sizes? Disable them. Need a custom thumbnail size? Add it. Want retina support or modern formats like WebP/AVIF? Enable those modules. Perfect Images gives you complete control without bloat.
 
-* **Manage Image Sizes**: Customize, disable, and track image sizes effortlessly.
-* **Replace Image**: Swap out images directly from the Media Library or the plugin dashboard.
-* **Regenerate Thumbnails**: Update thumbnails in bulk with a handy progress tracker.
-* **Upscaling**: Enhance image resolution and generate better thumbnails, even for previously unsupported sizes.
-* **Retina Images / High DPI**: Automatically create and serve stunning retina images.
-* **WebP & AVIF Support**: Generate and serve modern image formats for better performance and quality.
-* **CDN Integration**: Optimize and deliver images via EWWW Image Optimization.
-* **Disable Image Threshold**: Disable WordPress’ automatic image scaling feature.
+Explore [our official site](https://meowapps.com/wp-retina-2x) and check out [the tutorial](https://meowapps.com/wp-retina-2x/tutorial/) to get started.
 
-**Pro Features:**
+== Core Features ==
 
-* Retina support for full-size images.
-* WebP and AVIF support for full-size images.
-* Priority support from the Meow Apps team.
+⚙️ **Image Size Management**
+The foundation of everything. View all registered image sizes (WordPress defaults, theme sizes, plugin sizes), disable the ones you don't need, and add custom sizes. Finally, control over those pesky WordPress-generated sizes like `medium_large`, `1536x1536`, and `2048x2048`.
 
-Originally designed to handle retina images, Perfect Images has evolved into an indispensable tool for any WordPress site.
+🔄 **Regenerate Thumbnails**
+Bulk regenerate thumbnails after changing sizes or switching themes. Progress tracking, smart processing, and automatic cleanup of old unused sizes.
 
-== Features in Detail ==
+🖼️ **Retina Images (Module)**
+Optional module for high-DPI displays. Automatically generate and serve crisp @2x versions of your thumbnails. Works seamlessly with WordPress responsive images.
 
-=== Manage Image Sizes ===
+🎨 **Modern Formats (Module)**
+Optional WebP/AVIF conversion. Convert images to modern formats for smaller file sizes and faster loading—without replacing your originals.
 
-Simplify your image management by disabling unnecessary sizes and tracking the sizes created for each media entry. For instance, you can disable WordPress-generated sizes like `medium_large`, `1536x1536`, and `2048x2048` to save space and resources.
+🤖 **AI Upscaling (Module)**
+Optional AI-powered upscaling via Claid.ai. Generate larger thumbnails than your source image, or create retina versions without needing 2x originals.
 
-=== Replace Image & Media ===
+== 🖼️ Retina Images ==
 
-Replace images quickly and effortlessly. Whether through the dedicated plugin dashboard or directly from the Media Library and Edit Attachment pages, you can streamline your workflow and avoid manual replacements.
+Your visitors expect sharp, crisp images. Perfect Images makes retina support effortless.
 
-=== Regenerate Thumbnails ===
+**Smart Generation:**
 
-Update your thumbnails in bulk with ease. A built-in progress bar keeps you informed, while the plugin handles all the details, including regenerating retina images and updating media metadata. Upscaling ensures that thumbnails can even be created for sizes that were previously unsupported.
+* Automatic retina creation for all thumbnail sizes
+* Multiple delivery methods (Responsive Images, PictureFill, Retina.js)
+* Works with WordPress srcset natively
+* Full-size retina support
 
-=== Retina Images / High DPI ===
+**Delivery Options:**
 
-Ensure your site looks stunning on all devices. Perfect Images generates and serves retina-ready images automatically. Additionally, you can manually create retina images and even generate retina versions for full-size images. Visit our official website for more details and tutorials.
+* Responsive Images: Modern, standard method
+* PictureFill: Hybrid approach with fallbacks
+* Retina.js: Client-side detection
+* Choose what fits your theme best
 
-=== Disable Image Threshold ===
+== 🎨 Modern Formats ==
 
-Disable WordPress’ automatic scaling of large images, preventing files with "-scaled" in their filenames from being created.
+WebP and AVIF offer dramatically better compression than JPEG/PNG—up to 50% smaller files with the same visual quality.
+
+**What You Get:**
+
+* Generate WebP or AVIF for any image size
+* Automatic browser detection and fallbacks
+* Works alongside your original images
+* Enable for thumbnails or full-size
+* Responsive Images delivery built-in
+
+== 🤖 AI Features ==
+
+Perfect Images integrates with AI services like Claid.ai to unlock powerful upscaling.
+
+**Upscaling:**
+
+* Generate retina images without 2x source files
+* Create thumbnails larger than the original image
+* Multiple upscaling modes (Smart Enhance, Digital Art, Photo, etc.)
+* Automatic or manual processing
+
+== ⚙️ Image Management ==
+
+**Regenerate Thumbnails:**
+
+* Bulk regenerate all thumbnails
+* Progress tracking for large libraries
+* Preserves custom crops
+* Updates retina and WebP versions automatically
+
+**Replace Images:**
+
+* Swap images directly from Media Library
+* Drag & drop replacement in dashboard
+* Maintains all metadata and links
+* Updates all thumbnails instantly
+
+**Manage Sizes:**
+
+* View all registered image sizes
+* Disable unwanted sizes (medium_large, 1536x1536, etc.)
+* Create custom sizes
+* Track which sizes are enabled per image
+
+**Disable Image Threshold:**
+
+* Stop WordPress from creating "-scaled" versions
+* Keep your original full-size images intact
+
+== Pro Features ==
+
+* Full-size retina images
+* Full-size WebP/AVIF conversion
+* Priority support
+
+== Why Perfect Images? ==
+
+**Essential Foundation**
+Every WordPress site needs proper image size management and thumbnail control. Perfect Images makes it simple, giving you the baseline image handling WordPress should have included.
+
+**Modular & Lightweight**
+Start with just image size management and thumbnail regeneration. Enable retina, WebP, or AI modules only if you need them. No bloat, no unnecessary features.
+
+**Works with Everything**
+Compatible with WooCommerce, page builders, galleries, and any theme. It uses WordPress's native image handling, so there are no conflicts.
+
+**No Database Bloat**
+Everything works through WordPress's existing metadata structure. No custom tables, no performance overhead.
+
+**Built for Real Workflows**
+Developed by someone who manages dozens of WordPress sites. Every feature solves a real problem we've encountered over years of WordPress development.
 
 == Installation ==
 
-1. Upload the plugin folder to `/wp-content/plugins/` directory or install it directly through the WordPress plugin repository.
-2. Activate the plugin through the 'Plugins' menu in WordPress.
-3. Navigate to the plugin settings to configure your preferences.
+1. Upload `wp-retina-2x-pro` to `/wp-content/plugins/`
+2. Activate through the 'Plugins' menu
+3. Visit Perfect Images in your admin menu
+4. Enable the modules you need
+5. Start optimizing! 🚀
+
+For AI upscaling, sign up for [Claid.ai](https://claid.ai/pricing?via=meow) and add your API key.
+
+== Frequently Asked Questions ==
+
+= Does Perfect Images slow down my site? =
+
+No. Perfect Images processes images during upload or when you manually regenerate. There's no performance impact on the frontend—just optimized images served efficiently.
+
+= Can I use WebP and Retina together? =
+
+Absolutely! Perfect Images can generate both retina and WebP/AVIF versions of your images. Enable both modules and they work seamlessly together.
+
+= Do I need AI for retina images? =
+
+No. Perfect Images generates retina images from your uploaded originals by default. AI upscaling is optional—use it when you need to create retina versions larger than your source images.
+
+= Which format should I use: WebP or AVIF? =
+
+* **WebP**: Excellent browser support, great compression, safe choice for most sites
+* **AVIF**: Better compression than WebP, but newer—check your visitor's browsers first
+
+You can switch between them anytime in settings.
+
+= Will this work with my page builder? =
+
+Yes! Perfect Images works with WordPress's native image handling, so it's compatible with Elementor, Divi, Gutenberg, WooCommerce, and virtually any plugin or theme.
+
+= Can I regenerate thumbnails for thousands of images? =
+
+Yes! Perfect Images includes bulk regeneration with progress tracking. It handles large libraries efficiently.
+
+= What happens to my existing images? =
+
+Nothing, unless you choose to regenerate them. Perfect Images never modifies your original uploads—it creates additional optimized versions alongside them.
+
+= Is this compatible with CDNs? =
+
+Absolutely. Use the built-in Easy IO integration, or enter your own CDN domain in settings.
+
+= Can I disable specific WordPress image sizes? =
+
+Yes! Perfect Images lets you disable any registered size—WordPress defaults, theme sizes, plugin sizes—complete control.
 
 == Changelog ==
 
+= 7.0.9 (2025/12/16) =
+* Update: Removed legacy features.
+* Update: Enhanced UI.
+
+= 7.0.8 (2025/12/03) =
+* Update: Cleaned up duplicated code.
+* Fix: Hotfix resolved the busy/loading state.
+* Fix: Corrected tooltip positioning.
+* 🎵 Discuss with others about Wp Retina 2x on [the Discord](https://discord.gg/bHDGh38).
+* 🌴 Keep us motivated with [a little review here](https://wordpress.org/support/plugin/wp-retina-2x/reviews/). Thank you!
+* 🥰 If you want to help us, check our [Patreon](https://www.patreon.com/meowapps). Thank you!
+
+= 7.0.7 (2025/11/15) =
+- Update: Moved Dashboard into Settings as the Images tab.    
+- Update: Made various UI/UX tweaks.  
+- Update: Upgraded to MeowKit.
+
 = 7.0.6 (2025/10/01) =
-* Fix: Hotfix for PRO version displaying the FREE header incorrectly
+* Fix: PRO version header display issue resolved.
 
 = 7.0.5 (2025/09/29) =
-* Update: Renamed "Regenerate" to "Build" and added icons for clearer terminology.
-* Fix: Resolved issues with generating disabled thumbnail sizes.
-* Fix: Verified non-registered sizes are handled correctly.  
-* Fix: Thumbnails regeneration is now optimized to delete unused sizes.  
-* Fix: Fixed display issues.
+* Update: Renamed "Regenerate" to "Build" with clearer icons.
+* Fix: Disabled thumbnail size generation issues resolved.
+* Fix: Non-registered sizes now handled correctly.
+* Fix: Thumbnails regeneration optimized to delete unused sizes.
+* Fix: Display issues corrected.
 
 = 7.0.4 (2025/08/27) =
 * Update: Version synchronization with WordPress.org repository.
@@ -540,43 +674,3 @@ Disable WordPress’ automatic scaling of large images, preventing files with "-
 
 = 0.1 =
 * Very first release.
-
-== Installation ==
-
-Quick and easy installation:
-
-1. Upload the folder `wp-retina-2x` to the `/wp-content/plugins/` directory.
-2. Activate the plugin through the 'Plugins' menu in WordPress.
-3. Check the settings of WP Retina 2x in the WordPress administration screen.
-4. Check the Retina Dashboard.
-6. Read the tutorial about the plugin: <a href='https://meowapps.com/wp-retina-2x/tutorial/'>WP Retina 2x Tutorial</a>.
-
-== Frequently Asked Questions ==
-
-Users, you will find the FAQ here: https://meowapps.com/wp-retina-2x/faq/.
-
-Developers, WP Retina 2x has a little API. Here are a few filters and actions you might want to use.
-
-= Functions =
-* wr2x_get_retina_from_url( $url ): return the URL of the retina image (empty string if not found)
-* wr2x_get_retina( $syspath ): return the system path of the retina image (null if not found)
-
-= Actions =
-* wr2x_retina_file_added: called when a new retina file is created, 1st argument is $attachment_id (of the media) and second is the $retina_filepath
-* wr2x_retina_file_removed: called when a new retina file is removed, 1st argument is $attachment_id (of the media) and second is the $retina_filepath
-
-= Filters =
-* wr2x_img_url: you can check and potentially override the $wr2x_img_url (normal/original image from the src) that will be used in the srcset for 1x
-* wr2x_img_retina_url: you can check and potentially override the $wr2x_img_retina_url (retina image) that will be used in the srcset for 2x
-* wr2x_img_src: you can check and potentially override the $wr2x_img_src that will be used in the img's src (only used in Pro version)
-* wr2x_validate_src: the img src is passed; return it if it is valid, return null if it should be skipped
-
-== Upgrade Notice ==
-
-None.
-
-== Screenshots ==
-
-1. Retina Dashboard
-2. Basic Settings
-3. Advanced Settings

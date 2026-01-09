@@ -233,6 +233,9 @@
                         }
                     });
                     button.on('click', this.banner_checkout.bind(this));
+                    button.on('ready', function () {
+                        $('#wc-stripe-payment-request-banner iframe').css({borderRadius: this.params.button_radius});
+                    }.bind(this))
                     button.mount("#wc-stripe-payment-request-banner");
                 }
             }.bind(this))

@@ -889,8 +889,8 @@ nav {
 }
 
 /* Button improvements */
-.wc-block-components-product-button .wp-block-button__link {
-  background: linear-gradient(135deg, var(--marpa-primary) 0%, var(--marpa-secondary) 100%);
+.wc-block-components-product-button .wp-block-button__link { 
+  background: #f6f5ed ; 
   border: none;
   border-radius: 8px;
   padding: 0.75rem 1.5rem;

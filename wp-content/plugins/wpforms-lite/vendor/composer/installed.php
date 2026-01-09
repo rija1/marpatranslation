@@ -3,7 +3,7 @@
         'name' => 'awesomemotive/wpforms',
         'pretty_version' => 'dev-master',
         'version' => 'dev-master',
-        'reference' => '173541a06f7cd9b1499ebf4516bb151603b10ff8',
+        'reference' => '9aeb12ae1bbfc80de47d89307a82700c13b356ca',
         'type' => 'library',
         'install_path' => __DIR__ . '/../../',
         'aliases' => array(),
@@ -29,9 +29,9 @@
             'dev_requirement' => false,
         ),
         'apimatic/jsonmapper' => array(
-            'pretty_version' => '3.1.6',
-            'version' => '3.1.6.0',
-            'reference' => 'c6cc21bd56bfe5d5822bbd08f514be465c0b24e7',
+            'pretty_version' => '3.1.7',
+            'version' => '3.1.7.0',
+            'reference' => '61e45f6021e4a4e07497be596b4787c3c6b39bea',
             'type' => 'library',
             'install_path' => __DIR__ . '/../apimatic/jsonmapper',
             'aliases' => array(),
@@ -49,7 +49,7 @@
         'awesomemotive/wpforms' => array(
             'pretty_version' => 'dev-master',
             'version' => 'dev-master',
-            'reference' => '173541a06f7cd9b1499ebf4516bb151603b10ff8',
+            'reference' => '9aeb12ae1bbfc80de47d89307a82700c13b356ca',
             'type' => 'library',
             'install_path' => __DIR__ . '/../../',
             'aliases' => array(),
@@ -65,9 +65,9 @@
             'dev_requirement' => false,
         ),
         'ezyang/htmlpurifier' => array(
-            'pretty_version' => 'v4.18.0',
-            'version' => '4.18.0.0',
-            'reference' => 'cb56001e54359df7ae76dc522d08845dc741621b',
+            'pretty_version' => 'v4.19.0',
+            'version' => '4.19.0.0',
+            'reference' => 'b287d2a16aceffbf6e0295559b39662612b77fcf',
             'type' => 'library',
             'install_path' => __DIR__ . '/../ezyang/htmlpurifier',
             'aliases' => array(),
@@ -103,7 +103,7 @@
         'roave/security-advisories' => array(
             'pretty_version' => 'dev-latest',
             'version' => 'dev-latest',
-            'reference' => 'c13df7193990b8a3ec1a661acfba729cd650da97',
+            'reference' => '4400137eb61cd0db3192a409353ae83e811395fe',
             'type' => 'metapackage',
             'install_path' => null,
             'aliases' => array(

@@ -219,7 +219,7 @@ class Attributes extends SynchronizerForMeta {
 			$metaToUpdate = [];
 			foreach ( $defaultAttributesToUpdate as $translationId => $translationAttributes ) {
 				if ( ! array_key_exists( $translationId, $storedDefaultAttributes ) ) {
-					$metaToInsert[ $translationId ] = $defaultAttributesToUpdate[ $translationId ];
+					$metaToInsert[ $translationId ] = $translationAttributes;
 					continue;
 				}
 				$translationDefaultAttributes = $storedDefaultAttributes[ $translationId ];

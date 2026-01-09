@@ -77,7 +77,7 @@ class Meow_WR2X_Core {
 			$this->disable_image_sizes();
 		}
 
-		if ( MeowCommon_Helpers::is_rest() ) {
+		if ( MeowKit_WR2X_Helpers::is_rest() ) {
 			new Meow_WR2X_Rest( $this, $this->engine );
 			return;
 		}

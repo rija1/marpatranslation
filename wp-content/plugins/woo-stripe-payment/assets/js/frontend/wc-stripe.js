@@ -1386,7 +1386,7 @@
             $('.variations [name^="attribute_"]').each(function (index, el) {
                 var $el = $(el);
                 var name = $el.data('attribute_name') || $el.attr('name');
-                if (!(name in attributes)) {
+                if (!(name in attributes) || attributes[name] === '') {
                     attributes[name] = $el.val();
                 }
             });
@@ -1648,9 +1648,7 @@
 
         this.$button = $(this.paymentsClient.createButton(this.get_button_options()));
         this.$button.addClass('gpay-button-container');
-        /*if (!this.is_rectangle_button()) {
-            this.$button.find('button').css('border-radius', '100px');
-        }*/
+        this.$button.find('button').css({height: this.params.button_height});
     };
 
     wc_stripe.GooglePay.prototype.is_rectangle_button = function () {
@@ -1727,6 +1725,7 @@
         }
 
         this.$button = $(this.params.button);
+        this.$button.css({borderRadius: this.params.button_radius, height: this.params.button_height});
         this.$button.on('click', this.start.bind(this));
         this.append_button();
     };
@@ -1786,6 +1785,9 @@
                 }
             }
         });
+        this.paymentRequestButton.on('ready', function () {
+            $('#wc-stripe-payment-request-container iframe').css({borderRadius: this.params.button_radius});
+        }.bind(this))
     };
 
     wc_stripe.PaymentRequest.prototype.canMakePayment = function () {

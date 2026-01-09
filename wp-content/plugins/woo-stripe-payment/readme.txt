@@ -2,9 +2,9 @@
 Contributors: mr.clayton
 Tags: stripe, klarna, credit card, apple pay, google pay
 Requires at least: 3.0.1
-Tested up to: 6.8
+Tested up to: 6.9
 Requires PHP: 5.6
-Stable tag: 3.3.95
+Stable tag: 3.3.97
 Copyright: Payment Plugins
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
@@ -63,6 +63,21 @@ If your site is not loading over https, then Stripe won't render the Payment Req
 9. Stripe Link for high conversion
 
 == Changelog ==
+= 3.3.97 - 12/29/25 =
+* Added - Checkout page upsell support for new CheckoutWC feature coming out in January
+* Added - Apple Pay button height option. The minimum height is 40px and the maximum height is 55px.
+* Added - The cart block and checkout block Apple Pay integration now uses the new Stripe Express Checkout element. This allows Apple Pay to be available on browsers other than Safari. Support for the checkout shortcode, cart shortcode, and product pages will be added in upcoming releases.
+* Added - Button radius option for the Payment Request Gateway
+* Added - Button radius option for Link Checkout
+* Added - Button radius option for Apple Pay. This option replaces the now deprecated "Button Design" option
+* Added - Automatic registration of payment method domains during plugin update for improved Apple Pay compatibility
+* Updated - Default payment method configurations now automatically enable Apple Pay and Google Pay display preferences
+* Updated - For cart block and checkout block, updated logic for determining if the phone field is required
+* Updated - Improved compatibility with cart and checkout blocks
+= 3.3.96 - 11/30/25 =
+* Added - tested up to WordPress 6.9
+* Updated - Load wc-stripe-functions.php earlier than "init" action. Some 3rd party plugins were causing a conflict which is resolved by earlier loading of Stripe plugin functions.
+* Updated - Modified payment button logic on product variation pages to use the DOM value instead of Javascript variable values. [https://wordpress.org/support/topic/more-than-one-variation-on-a-product-causes-googlepay-error/](https://wordpress.org/support/topic/more-than-one-variation-on-a-product-causes-googlepay-error/)
 = 3.3.95 - 10/29/25 =
 * Added - WC Tested to 10.3
 * Added - Support for Billie payment method

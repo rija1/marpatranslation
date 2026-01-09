@@ -778,12 +778,16 @@ div.wpforms-container-full .wpforms-form .wpforms-recaptcha-container.wpforms-is
   padding: 0;
 }
 
-div.wpforms-container-full .wpforms-form .wpforms-recaptcha-container.wpforms-is-turnstile .g-recaptcha {
+div.wpforms-container-full .wpforms-form .wpforms-recaptcha-container.wpforms-is-turnstile .g-recaptcha,
+div.wpforms-container-full .wpforms-form .wpforms-recaptcha-container.wpforms-is-turnstile .h-captcha,
+div.wpforms-container-full .wpforms-form .wpforms-recaptcha-container.wpforms-is-turnstile .cf-turnstile {
   line-height: 0;
   font-size: 0;
 }
 
-div.wpforms-container-full .wpforms-form .wpforms-recaptcha-container.wpforms-is-turnstile .g-recaptcha iframe {
+div.wpforms-container-full .wpforms-form .wpforms-recaptcha-container.wpforms-is-turnstile .g-recaptcha iframe,
+div.wpforms-container-full .wpforms-form .wpforms-recaptcha-container.wpforms-is-turnstile .h-captcha iframe,
+div.wpforms-container-full .wpforms-form .wpforms-recaptcha-container.wpforms-is-turnstile .cf-turnstile iframe {
   position: relative !important;
 }
 
@@ -1336,6 +1340,12 @@ div.wpforms-field-file-upload .wpforms-file-upload-builder-modern input[type="fi
   display: none;
 }
 
+/* Multiple choices - other option
+----------------------------------------------------------------------------- */
+.wpforms-container .wpforms-field-radio .wpforms-other-input {
+  margin-top: 16px;
+}
+
 /* Camera field
 ----------------------------------------------------------------------------- */
 body div.wpforms-container-full .wpforms-camera-link {
@@ -1505,7 +1515,7 @@ body div.wpforms-container-full div.wpforms-camera-modal-overlay.wpforms-camera-
 }
 
 body div.wpforms-container-full div.wpforms-camera-modal-overlay.wpforms-camera-format-video .wpforms-camera-modal-footer .wpforms-camera-modal-buttons .wpforms-camera-crop {
-  background: url(../../../pro/images/video-cancel.svg) no-repeat center;
+  background: url(../../../images/crop.svg) no-repeat center;
 }
 
 body div.wpforms-container-full div.wpforms-camera-modal {

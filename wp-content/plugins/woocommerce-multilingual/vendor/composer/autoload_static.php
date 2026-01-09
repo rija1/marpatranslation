@@ -4,7 +4,7 @@
 
 namespace Composer\Autoload;
 
-class ComposerStaticInitce3a59db496801901ccd0176d01c168d
+class ComposerStaticInit90cb08de9ed891fcce821762c0583d08
 {
     public static $files = array (
         'b45b351e6b6f7487d819961fef2fda77' => __DIR__ . '/..' . '/jakeasmith/http_build_url/src/http_build_url.php',
@@ -136,6 +136,8 @@ class ComposerStaticInitce3a59db496801901ccd0176d01c168d
         'WCML\\DownloadableFiles\\SyncDownloadableFilesFromATE' => __DIR__ . '/../..' . '/classes/DownloadableFiles/SyncDownloadableFilesFromATE.php',
         'WCML\\Email\\Factory' => __DIR__ . '/../..' . '/classes/Email/Factory.php',
         'WCML\\Email\\Settings\\TranslationControls' => __DIR__ . '/../..' . '/classes/Email/Settings/TranslationControls.php',
+        'WCML\\Endpoints\\Factory' => __DIR__ . '/../..' . '/classes/Endpoints/Factory.php',
+        'WCML\\Endpoints\\Settings\\TranslationControls' => __DIR__ . '/../..' . '/classes/Endpoints/Settings/TranslationControls.php',
         'WCML\\Exporter\\AllLanguagesHooks' => __DIR__ . '/../..' . '/classes/Exporter/AllLanguagesHooks.php',
         'WCML\\Exporter\\AttributeHeadersHooks' => __DIR__ . '/../..' . '/classes/Exporter/AttributeHeadersHooks.php',
         'WCML\\HomeScreen\\Factory' => __DIR__ . '/../..' . '/classes/HomeScreen/Factory.php',
@@ -252,7 +254,6 @@ class ComposerStaticInitce3a59db496801901ccd0176d01c168d
         'WCML\\Reviews\\Translations\\Factory' => __DIR__ . '/../..' . '/classes/Reviews/Translations/Factory.php',
         'WCML\\Reviews\\Translations\\FrontEndHooks' => __DIR__ . '/../..' . '/classes/Reviews/Translations/FrontEndHooks.php',
         'WCML\\Reviews\\Translations\\Mapper' => __DIR__ . '/../..' . '/classes/Reviews/Translations/Mapper.php',
-        'WCML\\RewriteRules\\ChildMyAccountHooks' => __DIR__ . '/../..' . '/classes/RewriteRules/ChildMyAccountHooks.php',
         'WCML\\RewriteRules\\Hooks' => __DIR__ . '/../..' . '/classes/RewriteRules/Hooks.php',
         'WCML\\Setup\\BeforeHooks' => __DIR__ . '/../..' . '/classes/wcml-setup/BeforeHooks.php',
         'WCML\\StandAlone\\ActionFilterLoader' => __DIR__ . '/../..' . '/classes/StandAlone/ActionFilterLoader.php',
@@ -483,9 +484,9 @@ class ComposerStaticInitce3a59db496801901ccd0176d01c168d
     public static function getInitializer(ClassLoader $loader)
     {
         return \Closure::bind(function () use ($loader) {
-            $loader->prefixLengthsPsr4 = ComposerStaticInitce3a59db496801901ccd0176d01c168d::$prefixLengthsPsr4;
-            $loader->prefixDirsPsr4 = ComposerStaticInitce3a59db496801901ccd0176d01c168d::$prefixDirsPsr4;
-            $loader->classMap = ComposerStaticInitce3a59db496801901ccd0176d01c168d::$classMap;
+            $loader->prefixLengthsPsr4 = ComposerStaticInit90cb08de9ed891fcce821762c0583d08::$prefixLengthsPsr4;
+            $loader->prefixDirsPsr4 = ComposerStaticInit90cb08de9ed891fcce821762c0583d08::$prefixDirsPsr4;
+            $loader->classMap = ComposerStaticInit90cb08de9ed891fcce821762c0583d08::$classMap;
 
         }, null, ClassLoader::class);
     }

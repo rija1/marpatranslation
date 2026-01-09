@@ -75,7 +75,7 @@ class WCML_Terms {
 			add_action( 'admin_notices', [ $this, 'show_term_translation_screen_notices' ] );
 		}
 
-		$page = isset( $_GET['page'] ) ? $_GET['page'] : '';
+		$page = $_GET['page'] ?? '';
 		if ( $page === WPML_PLUGIN_FOLDER . '/menu/taxonomy-translation.php' ) {
 			WCML_Resources::load_management_css();
 			WCML_Resources::load_taxonomy_translation_scripts();
@@ -88,7 +88,7 @@ class WCML_Terms {
 		$taxonomies = array_keys( get_taxonomies( [ 'object_type' => [ 'product' ] ], 'objects' ) );
 		$taxonomies = $taxonomies + array_keys( get_taxonomies( [ 'object_type' => [ 'product_variations' ] ], 'objects' ) );
 		$taxonomies = array_unique( $taxonomies );
-		$taxonomy   = isset( $_GET['taxonomy'] ) ? $_GET['taxonomy'] : false;
+		$taxonomy   = $_GET['taxonomy'] ?? false;
 		if ( $taxonomy && in_array( $taxonomy, $taxonomies ) ) {
 			$taxonomy_obj = get_taxonomy( $taxonomy );
 			$message      = sprintf(
@@ -237,7 +237,7 @@ class WCML_Terms {
 
 	public function is_original_category( $tt_id, $taxonomy ) {
 		$is_original = $this->wpdb->get_var( $this->wpdb->prepare( "SELECT source_language_code IS NULL FROM {$this->wpdb->prefix}icl_translations WHERE element_id=%d AND element_type=%s", $tt_id, $taxonomy ) );
-		return $is_original ? true : false;
+		return (bool) $is_original;
 	}
 
 	public function update_terms_translated_status( $taxonomy ) {
@@ -499,7 +499,7 @@ class WCML_Terms {
 
 			foreach ( $object_types as $object_type ) {
 
-				$html .= $this->render_assignment_status( $object_type, $_POST['taxonomy'], $preview = true );
+				$html .= $this->render_assignment_status( $object_type, $_POST['taxonomy'] );
 
 			}
 		} else {
@@ -528,10 +528,10 @@ class WCML_Terms {
 
 		global $wp_taxonomies;
 
-		$html = $message = $errors = '';
+		$html = $errors = '';
 
 		if ( isset( $wp_taxonomies[ $_POST['taxonomy'] ] ) ) {
-			$html .= $this->render_assignment_status( $_POST['post'], $_POST['taxonomy'], $preview = false );
+			$html .= $this->render_assignment_status( $_POST['post'], $_POST['taxonomy'], false );
 
 		} else {
 			$errors .= sprintf(
@@ -550,6 +550,13 @@ class WCML_Terms {
 		exit;
 	}
 
+	/**
+	 * @param string|mixed $object_type
+	 * @param string|mixed $taxonomy
+	 * @param bool         $preview
+	 *
+	 * @return string
+	 */
 	public function render_assignment_status( $object_type, $taxonomy, $preview = true ) {
 		global $wp_post_types, $wp_taxonomies;
 
@@ -593,7 +600,7 @@ class WCML_Terms {
 								if ( $cterm->term_id != $term->term_id ) {
 									$updated_terms[] = $is_taxonomy_translatable ? $term->term_id : $term->name;
 								}
-								if ( ! $preview ) {
+								{
 
 									if ( $is_taxonomy_translatable && ! is_taxonomy_hierarchical( $taxonomy ) ) {
 										$updated_terms = array_unique( array_map( 'intval', $updated_terms ) );
@@ -632,11 +639,10 @@ class WCML_Terms {
 								)
 							);
 
-							if ( $translated_term ) {
+							if ( is_object( $translated_term ) ) {
 								$terms_array[] = $translated_term->term_id;
 							}
-
-							if ( ! $preview ) {
+							{
 
 								if ( $is_taxonomy_translatable && ! is_taxonomy_hierarchical( $taxonomy ) ) {
 									$terms_array = array_unique( array_map( 'intval', $terms_array ) );

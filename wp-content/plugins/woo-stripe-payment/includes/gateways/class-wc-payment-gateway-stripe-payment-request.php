@@ -112,13 +112,14 @@ class WC_Payment_Gateway_Stripe_Payment_Request extends WC_Payment_Gateway_Strip
 		return array_merge_recursive(
 			parent::get_localized_params(),
 			array(
-				'button'   => array(
+				'button'        => array(
 					'type'   => $this->get_option( 'button_type' ),
 					'theme'  => $this->get_option( 'button_theme' ),
 					'height' => $this->get_button_height(),
 				),
-				'icons'    => array( 'chrome' => stripe_wc()->assets_url( 'img/chrome.svg' ) ),
-				'messages' => array(
+				'button_radius' => $this->get_option( 'button_radius', 4 ) . 'px',
+				'icons'         => array( 'chrome' => stripe_wc()->assets_url( 'img/chrome.svg' ) ),
+				'messages'      => array(
 					'invalid_amount' => __( 'Please update you product quantity before paying.', 'woo-stripe-payment' ),
 					'add_to_cart'    => __( 'Adding to cart...', 'woo-stripe-payment' ),
 					'choose_product' => __( 'Please select a product option before updating quantity.', 'woo-stripe-payment' ),

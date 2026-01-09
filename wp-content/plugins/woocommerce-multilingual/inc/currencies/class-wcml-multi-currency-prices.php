@@ -285,7 +285,7 @@ class WCML_Multi_Currency_Prices {
 			$unlocked = true;
 		}
 
-		return isset( $price ) ? $price : $null;
+		return $price ?? $null;
 	}
 
 	/**
@@ -401,7 +401,7 @@ class WCML_Multi_Currency_Prices {
 
 	public function apply_rounding_rules( $price, $currency = false ) {
 
-		if ( is_null( $this->currency_options ) ) {
+		if ( empty( $this->currency_options ) ) {
 			global $woocommerce_wpml;
 			$this->currency_options = $woocommerce_wpml->get_setting( 'currency_options' );
 		}
@@ -457,17 +457,13 @@ class WCML_Multi_Currency_Prices {
 	 * The PHP 5.2 compatible equivalent to "round($amount, 0, PHP_ROUND_HALF_UP)"
 	 *
 	 * @param float|int $amount
-	 *
-	 * @return float|int
 	 */
-	private function round_up( $amount ) {
+	private function round_up( $amount ): float {
 		if ( $amount - floor( $amount ) < 0.5 ) {
-			$amount = floor( $amount );
-		} else {
-			$amount = ceil( $amount );
+			return floor( $amount );
 		}
 
-		return $amount;
+		return ceil( $amount );
 	}
 
 	/**

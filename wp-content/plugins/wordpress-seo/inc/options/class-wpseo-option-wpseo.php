@@ -153,6 +153,8 @@ class WPSEO_Option_Wpseo extends WPSEO_Option {
 		'last_updated_on'                                      => false,
 		'default_seo_title'                                    => [],
 		'default_seo_meta_desc'                                => [],
+		'first_activated_by'                                   => 0,
+		'enable_task_list'                                     => true,
 	];
 
 	/**
@@ -415,6 +417,16 @@ class WPSEO_Option_Wpseo extends WPSEO_Option {
 					}
 					break;
 
+				case 'first_activated_by':
+					// A slight change from the other integer fields, as we want to allow '0' here, but don't want to have much impact elsewhere.
+					$clean[ $key ] = false;
+					if ( isset( $dirty[ $key ] ) ) {
+						if ( $dirty[ $key ] === false || WPSEO_Utils::validate_int( $dirty[ $key ] ) !== false ) {
+							$clean[ $key ] = $dirty[ $key ];
+						}
+					}
+					break;
+
 				case 'tracking':
 					$clean[ $key ] = ( isset( $dirty[ $key ] ) ? WPSEO_Utils::validate_bool( $dirty[ $key ] ) : null );
 					break;
@@ -536,6 +548,7 @@ class WPSEO_Option_Wpseo extends WPSEO_Option {
 				 *  'site_kit_connected',
 				 *  'google_site_kit_feature_enabled',
 				 *  'enable_llms_txt',
+				 *  'enable_task_list',
 				 *  and most of the feature variables.
 				 */
 				default:
@@ -606,6 +619,7 @@ class WPSEO_Option_Wpseo extends WPSEO_Option {
 			'algolia_integration_active'         => false,
 			'google_site_kit_feature_enabled'    => false,
 			'enable_llms_txt'                    => false,
+			'enable_task_list'                   => false,
 		];
 
 		// We can reuse this logic from the base class with the above defaults to parse with the correct feature values.

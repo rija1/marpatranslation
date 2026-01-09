@@ -1,0 +1,23 @@
+{
+  "name": "mts-theme",
+  "version": "1.0.0",
+  "description": "SCSS compilation for MTS WordPress Theme",
+  "scripts": {
+    "watch": "sass --watch style.scss:style.css --style=expanded --source-map",
+    "build": "sass style.scss:style.css --style=compressed --no-source-map",
+    "dev": "sass style.scss:style.css --style=expanded --source-map",
+    "build:dev": "sass style.scss:style.css --style=expanded --source-map"
+  },
+  "devDependencies": {
+    "sass": "^1.69.0"
+  },
+  "keywords": [
+    "wordpress",
+    "theme",
+    "scss",
+    "buddhist",
+    "translation"
+  ],
+  "author": "MTS Development Team",
+  "license": "GPL-2.0-or-later"
+}

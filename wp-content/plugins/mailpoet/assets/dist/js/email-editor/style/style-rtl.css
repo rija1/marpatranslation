@@ -303,6 +303,10 @@
   right: 0;
 }
 
+.components-button[aria-controls="edit-site:global-styles"] {
+  display: none !important;
+}
+
 .components-notice.woocommerce-email-editor-validation-errors {
   margin: 0;
 }

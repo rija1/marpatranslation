@@ -2,14 +2,14 @@
 # This file is distributed under the same license as the Payment Plugins for Stripe WooCommerce plugin.
 msgid ""
 msgstr ""
-"Project-Id-Version: Payment Plugins for Stripe WooCommerce 3.3.95\n"
+"Project-Id-Version: Payment Plugins for Stripe WooCommerce 3.3.97\n"
 "Report-Msgid-Bugs-To: https://wordpress.org/support/plugin/woo-stripe-payment\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"POT-Creation-Date: 2025-10-29T16:13:53+00:00\n"
+"POT-Creation-Date: 2025-12-29T02:31:01+00:00\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "X-Generator: WP-CLI 2.12.0\n"
 "X-Domain: woo-stripe-payment\n"
@@ -152,10 +152,10 @@ msgid "Please fill out all required fields."
 msgstr ""
 
 #: includes/abstract/abstract-wc-payment-gateway-stripe.php:479
-#: includes/controllers/class-wc-stripe-controller-cart.php:136
-#: includes/controllers/class-wc-stripe-controller-cart.php:192
+#: includes/controllers/class-wc-stripe-controller-cart.php:141
+#: includes/controllers/class-wc-stripe-controller-cart.php:200
 #: includes/controllers/class-wc-stripe-controller-googlepay.php:134
-#: includes/gateways/class-wc-payment-gateway-stripe-googlepay.php:113
+#: includes/gateways/class-wc-payment-gateway-stripe-googlepay.php:114
 #: packages/blocks/src/Payments/AbstractStripePayment.php:78
 #: packages/blocks/src/Payments/Gateways/GooglePayPayment.php:28
 msgid "Total"
@@ -195,7 +195,7 @@ msgid "Charge voided in Stripe."
 msgstr ""
 
 #: includes/abstract/abstract-wc-payment-gateway-stripe.php:888
-#: includes/gateways/class-wc-payment-gateway-stripe-upm.php:706
+#: includes/gateways/class-wc-payment-gateway-stripe-upm.php:727
 msgid "n/a"
 msgstr ""
 
@@ -286,19 +286,26 @@ msgstr ""
 
 #: includes/abstract/abstract-wc-payment-gateway-stripe.php:1700
 #: includes/abstract/abstract-wc-payment-gateway-stripe.php:1731
+#: src/Transformers/DataTransformer.php:116
+#: src/Transformers/DataTransformer.php:186
 msgid "Shipping"
 msgstr ""
 
 #: includes/abstract/abstract-wc-payment-gateway-stripe.php:1708
 #: includes/abstract/abstract-wc-payment-gateway-stripe.php:1734
+#: src/Transformers/DataTransformer.php:140
+#: src/Transformers/DataTransformer.php:197
 msgid "Discount"
 msgstr ""
 
 #: includes/abstract/abstract-wc-payment-gateway-stripe.php:1711
+#: src/Transformers/DataTransformer.php:150
+#: src/Transformers/DataTransformer.php:221
 msgid "Tax"
 msgstr ""
 
 #: includes/abstract/abstract-wc-payment-gateway-stripe.php:1741
+#: src/Transformers/DataTransformer.php:211
 msgid "Fees"
 msgstr ""
 
@@ -336,7 +343,7 @@ msgid "Error processing payment. Reason: %s"
 msgstr ""
 
 #: includes/abstract/abstract-wc-stripe-rest-controller.php:58
-#: includes/controllers/class-wc-stripe-controller-gateway-settings.php:404
+#: includes/controllers/class-wc-stripe-controller-gateway-settings.php:427
 #: includes/controllers/class-wc-stripe-controller-order-actions.php:354
 msgid "You do not have permissions to access this resource."
 msgstr ""
@@ -452,13 +459,13 @@ msgstr ""
 
 #: includes/admin/meta-boxes/views/html-charge-data-subview.php:25
 #: includes/admin/settings/class-wc-stripe-api-settings.php:44
-#: includes/controllers/class-wc-stripe-controller-gateway-settings.php:209
+#: includes/controllers/class-wc-stripe-controller-gateway-settings.php:232
 msgid "Live"
 msgstr ""
 
 #: includes/admin/meta-boxes/views/html-charge-data-subview.php:25
 #: includes/admin/settings/class-wc-stripe-api-settings.php:43
-#: includes/controllers/class-wc-stripe-controller-gateway-settings.php:209
+#: includes/controllers/class-wc-stripe-controller-gateway-settings.php:232
 msgid "Test"
 msgstr ""
 
@@ -1121,12 +1128,12 @@ msgstr ""
 msgid "%1$s is an invalid controller name."
 msgstr ""
 
-#: includes/class-wc-stripe-update.php:63
+#: includes/class-wc-stripe-update.php:64
 #, php-format
 msgid "Thank you for updating Stripe for WooCommerce to version %1$s."
 msgstr ""
 
-#: includes/controllers/class-wc-stripe-controller-cart.php:93
+#: includes/controllers/class-wc-stripe-controller-cart.php:96
 msgid "Quantity must be greater than zero."
 msgstr ""
 
@@ -1151,53 +1158,70 @@ msgstr ""
 msgid "Please review your order details then click Place Order."
 msgstr ""
 
-#: includes/controllers/class-wc-stripe-controller-gateway-settings.php:114
-msgid "You cannot register your domain until you have completed the Connect process on the API Settings page. A registered domain is not required when test mode is enabled."
+#: includes/controllers/class-wc-stripe-controller-gateway-settings.php:122
+#, php-format
+msgid "Error fetching domains for %s mode: %s"
 msgstr ""
 
-#: includes/controllers/class-wc-stripe-controller-gateway-settings.php:144
-msgid "Domain registered successfully. You can confirm in your Stripe Dashboard at https://dashboard.stripe.com/account/apple_pay."
+#: includes/controllers/class-wc-stripe-controller-gateway-settings.php:146
+#, php-format
+msgid "Error creating domain %s for %s mode: %s"
 msgstr ""
 
-#: includes/controllers/class-wc-stripe-controller-gateway-settings.php:167
+#: includes/controllers/class-wc-stripe-controller-gateway-settings.php:149
+#, php-format
+msgid "Domain %s registered successfully. You can confirm in your Stripe Dashboard at %s."
+msgstr ""
+
+#: includes/controllers/class-wc-stripe-controller-gateway-settings.php:158
+#, php-format
+msgid "Error updating domain %s for %s mode: %s"
+msgstr ""
+
+#: includes/controllers/class-wc-stripe-controller-gateway-settings.php:160
+#, php-format
+msgid "Domain %s enabled successfully for %s mode."
+msgstr ""
+
+#: includes/controllers/class-wc-stripe-controller-gateway-settings.php:190
 msgid "You must configure your secret key before creating webhooks."
 msgstr ""
 
-#: includes/controllers/class-wc-stripe-controller-gateway-settings.php:189
+#: includes/controllers/class-wc-stripe-controller-gateway-settings.php:212
 msgid "There is already a webhook configured for this site. If you want to delete the webhook, login to your Stripe Dashboard."
 msgstr ""
 
-#: includes/controllers/class-wc-stripe-controller-gateway-settings.php:206
+#: includes/controllers/class-wc-stripe-controller-gateway-settings.php:229
 #, php-format
 msgid "Webhook created in Stripe for %s environment. You can test your webhook by logging in to the Stripe dashboard"
 msgstr ""
 
-#: includes/controllers/class-wc-stripe-controller-gateway-settings.php:254
+#: includes/controllers/class-wc-stripe-controller-gateway-settings.php:277
 msgid "You must enter your API keys or connect the plugin before performing a connection test."
 msgstr ""
 
-#: includes/controllers/class-wc-stripe-controller-gateway-settings.php:267
+#: includes/controllers/class-wc-stripe-controller-gateway-settings.php:290
 #, php-format
 msgid "Mode: %s. Invalid secret key. Please check your entry."
 msgstr ""
 
-#: includes/controllers/class-wc-stripe-controller-gateway-settings.php:291
-#: includes/controllers/class-wc-stripe-controller-gateway-settings.php:294
+#: includes/controllers/class-wc-stripe-controller-gateway-settings.php:314
+#: includes/controllers/class-wc-stripe-controller-gateway-settings.php:317
 #, php-format
 msgid "Mode: %s. Invalid publishable key. Please check your entry."
 msgstr ""
 
-#: includes/controllers/class-wc-stripe-controller-gateway-settings.php:308
+#: includes/controllers/class-wc-stripe-controller-gateway-settings.php:331
 #, php-format
 msgid "Connection test to Stripe was successful. Mode: %s."
 msgstr ""
 
-#: includes/controllers/class-wc-stripe-controller-gateway-settings.php:335
+#: includes/controllers/class-wc-stripe-controller-gateway-settings.php:358
 #, php-format
 msgid "Error creating payment method configuration. Reason: %s"
 msgstr ""
 
-#: includes/controllers/class-wc-stripe-controller-gateway-settings.php:368
+#: includes/controllers/class-wc-stripe-controller-gateway-settings.php:391
 msgid "Error retrieving payment method config. Check logs for more details."
 msgstr ""
 
@@ -1814,7 +1838,7 @@ msgid "Please update you product quantity before using Apple Pay."
 msgstr ""
 
 #: includes/gateways/class-wc-payment-gateway-stripe-applepay.php:88
-#: includes/gateways/class-wc-payment-gateway-stripe-payment-request.php:124
+#: includes/gateways/class-wc-payment-gateway-stripe-payment-request.php:125
 msgid "Please select a product option before updating quantity."
 msgstr ""
 
@@ -1972,7 +1996,7 @@ msgid "Credit card gateway that integrates with your Stripe account."
 msgstr ""
 
 #: includes/gateways/class-wc-payment-gateway-stripe-cc.php:95
-#: includes/gateways/class-wc-payment-gateway-stripe-upm.php:145
+#: includes/gateways/class-wc-payment-gateway-stripe-upm.php:154
 #: packages/blocks/src/Payments/Gateways/CreditCardPayment.php:113
 #: packages/blocks/src/Payments/Gateways/UniversalPayment.php:88
 msgid "Loading installments..."
@@ -2037,15 +2061,15 @@ msgstr ""
 msgid "Google Pay gateway that integrates with your Stripe account."
 msgstr ""
 
-#: includes/gateways/class-wc-payment-gateway-stripe-googlepay.php:115
+#: includes/gateways/class-wc-payment-gateway-stripe-googlepay.php:116
 msgid "Please update you product quantity before using Google Pay."
 msgstr ""
 
-#: includes/gateways/class-wc-payment-gateway-stripe-googlepay.php:170
+#: includes/gateways/class-wc-payment-gateway-stripe-googlepay.php:171
 msgid "Waiting..."
 msgstr ""
 
-#: includes/gateways/class-wc-payment-gateway-stripe-googlepay.php:171
+#: includes/gateways/class-wc-payment-gateway-stripe-googlepay.php:172
 msgid "loading shipping methods..."
 msgstr ""
 
@@ -2209,7 +2233,23 @@ msgid "Select where Link Express Checkout buttons will appear. Express Checkout 
 msgstr ""
 
 #: includes/gateways/class-wc-payment-gateway-stripe-link.php:93
+#: includes/gateways/settings/applepay-settings.php:119
+#: includes/gateways/settings/googlepay-settings.php:176
 msgid "Button Height"
+msgstr ""
+
+#: includes/gateways/class-wc-payment-gateway-stripe-link.php:107
+#: includes/gateways/settings/applepay-settings.php:133
+#: includes/gateways/settings/googlepay-settings.php:161
+#: includes/gateways/settings/payment-request-settings.php:124
+msgid "Button Radius"
+msgstr ""
+
+#: includes/gateways/class-wc-payment-gateway-stripe-link.php:111
+#: includes/gateways/settings/applepay-settings.php:137
+#: includes/gateways/settings/googlepay-settings.php:165
+#: includes/gateways/settings/payment-request-settings.php:128
+msgid "The border radius of the button."
 msgstr ""
 
 #: includes/gateways/class-wc-payment-gateway-stripe-mobilepay.php:25
@@ -2284,11 +2324,11 @@ msgstr ""
 msgid "Gateway that renders based on the user's browser. Chrome payment methods, Microsoft pay, etc."
 msgstr ""
 
-#: includes/gateways/class-wc-payment-gateway-stripe-payment-request.php:122
+#: includes/gateways/class-wc-payment-gateway-stripe-payment-request.php:123
 msgid "Please update you product quantity before paying."
 msgstr ""
 
-#: includes/gateways/class-wc-payment-gateway-stripe-payment-request.php:123
+#: includes/gateways/class-wc-payment-gateway-stripe-payment-request.php:124
 msgid "Adding to cart..."
 msgstr ""
 
@@ -2404,80 +2444,80 @@ msgstr ""
 msgid "Twint gateway that integrates with your Stripe account."
 msgstr ""
 
-#: includes/gateways/class-wc-payment-gateway-stripe-upm.php:27
+#: includes/gateways/class-wc-payment-gateway-stripe-upm.php:36
 msgid "Universal Payment Method"
 msgstr ""
 
-#: includes/gateways/class-wc-payment-gateway-stripe-upm.php:30
+#: includes/gateways/class-wc-payment-gateway-stripe-upm.php:39
 msgid "Universal Payment Methods (Stripe) By Payment Plugins"
 msgstr ""
 
-#: includes/gateways/class-wc-payment-gateway-stripe-upm.php:31
+#: includes/gateways/class-wc-payment-gateway-stripe-upm.php:40
 msgid "Stripe payment method that lets you combine all payment methods into a single integration."
 msgstr ""
 
-#: includes/gateways/class-wc-payment-gateway-stripe-upm.php:61
+#: includes/gateways/class-wc-payment-gateway-stripe-upm.php:70
 #, php-format
 msgid "%s is an unsupported payment method. Please remove it from your payment method configuration."
 msgstr ""
 
-#: includes/gateways/class-wc-payment-gateway-stripe-upm.php:86
+#: includes/gateways/class-wc-payment-gateway-stripe-upm.php:95
 msgid "Payment method type is required"
 msgstr ""
 
-#: includes/gateways/class-wc-payment-gateway-stripe-upm.php:291
+#: includes/gateways/class-wc-payment-gateway-stripe-upm.php:300
 msgid "Invalid payment method token. Please try again."
 msgstr ""
 
-#: includes/gateways/class-wc-payment-gateway-stripe-upm.php:332
+#: includes/gateways/class-wc-payment-gateway-stripe-upm.php:341
 msgid ""
 "The following list of payment methods are supported by the UPM integration. Payment methods that are\n"
 "\t\t\t\t\t\t\tdisabled are not supported by your Stripe account. Stripe will dynamically render these enabled payment methods based on inputs like the cart currency, amount, and customer location."
 msgstr ""
 
-#: includes/gateways/class-wc-payment-gateway-stripe-upm.php:336
+#: includes/gateways/class-wc-payment-gateway-stripe-upm.php:345
 msgid "Payment method settings are still maintained on their respective settings page."
 msgstr ""
 
-#: includes/gateways/class-wc-payment-gateway-stripe-upm.php:469
+#: includes/gateways/class-wc-payment-gateway-stripe-upm.php:487
 msgid "New Payment Method"
 msgstr ""
 
-#: includes/gateways/class-wc-payment-gateway-stripe-upm.php:473
+#: includes/gateways/class-wc-payment-gateway-stripe-upm.php:491
 msgid "Saved Payment Methods"
 msgstr ""
 
-#: includes/gateways/class-wc-payment-gateway-stripe-upm.php:526
+#: includes/gateways/class-wc-payment-gateway-stripe-upm.php:544
 msgid "Please connect to Stripe before configuring"
 msgstr ""
 
-#: includes/gateways/class-wc-payment-gateway-stripe-upm.php:532
+#: includes/gateways/class-wc-payment-gateway-stripe-upm.php:550
 msgid "Error fetching payment method configurations."
 msgstr ""
 
-#: includes/gateways/class-wc-payment-gateway-stripe-upm.php:588
+#: includes/gateways/class-wc-payment-gateway-stripe-upm.php:609
 msgid "Add New"
 msgstr ""
 
-#: includes/gateways/class-wc-payment-gateway-stripe-upm.php:591
+#: includes/gateways/class-wc-payment-gateway-stripe-upm.php:612
 msgid "Sync"
 msgstr ""
 
-#: includes/gateways/class-wc-payment-gateway-stripe-upm.php:605
+#: includes/gateways/class-wc-payment-gateway-stripe-upm.php:626
 #, php-format
 msgid "Please %1$sconnect your Stripe account%2$s to %3$s mode before configuring the Universal Payment Method."
 msgstr ""
 
-#: includes/gateways/class-wc-payment-gateway-stripe-upm.php:608
+#: includes/gateways/class-wc-payment-gateway-stripe-upm.php:629
 msgid "test"
 msgstr ""
 
-#: includes/gateways/class-wc-payment-gateway-stripe-upm.php:608
+#: includes/gateways/class-wc-payment-gateway-stripe-upm.php:629
 msgid "live"
 msgstr ""
 
-#: includes/gateways/class-wc-payment-gateway-stripe-upm.php:683
-#: includes/gateways/class-wc-payment-gateway-stripe-upm.php:684
+#: includes/gateways/class-wc-payment-gateway-stripe-upm.php:704
+#: includes/gateways/class-wc-payment-gateway-stripe-upm.php:705
 #, php-format
 msgid "Error saving payment method configuration in Stripe. Reason: %s"
 msgstr ""
@@ -2629,46 +2669,33 @@ msgstr ""
 msgid "This is the style for all Apple Pay buttons presented on your store."
 msgstr ""
 
-#: includes/gateways/settings/applepay-settings.php:108
-#: includes/gateways/settings/googlepay-settings.php:176
-msgid "Button Design"
-msgstr ""
-
-#: includes/gateways/settings/applepay-settings.php:113
-msgid "Rounded"
-msgstr ""
-
-#: includes/gateways/settings/applepay-settings.php:116
-msgid "Choose between the standard button or rounded corners."
-msgstr ""
-
-#: includes/gateways/settings/applepay-settings.php:119
+#: includes/gateways/settings/applepay-settings.php:147
 msgid "Checkout button type"
 msgstr ""
 
-#: includes/gateways/settings/applepay-settings.php:122
-#: includes/gateways/settings/applepay-settings.php:132
-#: includes/gateways/settings/applepay-settings.php:142
+#: includes/gateways/settings/applepay-settings.php:150
+#: includes/gateways/settings/applepay-settings.php:160
+#: includes/gateways/settings/applepay-settings.php:170
 msgid "Standard Button"
 msgstr ""
 
-#: includes/gateways/settings/applepay-settings.php:123
-#: includes/gateways/settings/applepay-settings.php:133
-#: includes/gateways/settings/applepay-settings.php:143
+#: includes/gateways/settings/applepay-settings.php:151
+#: includes/gateways/settings/applepay-settings.php:161
+#: includes/gateways/settings/applepay-settings.php:171
 msgid "Buy with Apple Pay"
 msgstr ""
 
-#: includes/gateways/settings/applepay-settings.php:124
-#: includes/gateways/settings/applepay-settings.php:134
-#: includes/gateways/settings/applepay-settings.php:144
+#: includes/gateways/settings/applepay-settings.php:152
+#: includes/gateways/settings/applepay-settings.php:162
+#: includes/gateways/settings/applepay-settings.php:172
 msgid "Checkout with Apple Pay"
 msgstr ""
 
-#: includes/gateways/settings/applepay-settings.php:129
+#: includes/gateways/settings/applepay-settings.php:157
 msgid "Cart button type"
 msgstr ""
 
-#: includes/gateways/settings/applepay-settings.php:139
+#: includes/gateways/settings/applepay-settings.php:167
 msgid "Product button type"
 msgstr ""
 
@@ -2942,15 +2969,11 @@ msgstr ""
 msgid "The button style of the GPay button."
 msgstr ""
 
-#: includes/gateways/settings/googlepay-settings.php:161
-msgid "Button Radius"
+#: includes/gateways/settings/googlepay-settings.php:203
+msgid "Button Design"
 msgstr ""
 
-#: includes/gateways/settings/googlepay-settings.php:165
-msgid "The border radius of the button."
-msgstr ""
-
-#: includes/gateways/settings/googlepay-settings.php:178
+#: includes/gateways/settings/googlepay-settings.php:205
 msgid "If you can't see the Google Pay button, try switching to a Chrome browser."
 msgstr ""
 
@@ -3627,6 +3650,17 @@ msgstr ""
 #: packages/blocks/src/Payments/Gateways/WeChatPayment.php:26
 #: templates/checkout/wechat.php:10
 msgid "After you authenticate, stay on this page until it redirects to the order received page."
+msgstr ""
+
+#. translators: %1$s the site name, %2$s the order number
+#: packages/checkoutwc/src/PaymentGateways/BasePaymentGateway.php:132
+#, php-format
+msgid "%1$s - Order %2$s - Order Bump"
+msgstr ""
+
+#: packages/checkoutwc/src/PaymentGateways/BasePaymentGateway.php:173
+#, php-format
+msgid "Error processing refund. Reason: %s"
 msgstr ""
 
 #: packages/woofunnels/src/Upsell/PaymentGateways/BasePaymentGateway.php:172

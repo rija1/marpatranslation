@@ -1,0 +1,238 @@
+<?php
+/**
+ * The Template for displaying product archives, including the main shop page
+ *
+ * This template can be overridden by copying it to yourtheme/woocommerce/archive-product.php.
+ *
+ * @package WooCommerce\Templates
+ * @version 8.6.0
+ */
+
+defined( 'ABSPATH' ) || exit;
+
+get_header();
+
+/**
+ * Hook: woocommerce_before_main_content.
+ */
+do_action( 'woocommerce_before_main_content' );
+?>
+
+<div class="page-header">
+    <h1><?php woocommerce_page_title(); ?></h1>
+    <p>Browse our collection of scholarly translations of Tibetan Buddhist texts</p>
+</div>
+
+<div class="catalog-container">
+    <?php
+    /**
+     * Hook: woocommerce_archive_description.
+     */
+    do_action( 'woocommerce_archive_description' );
+    ?>
+
+    <div class="catalog-layout">
+        <!-- Sidebar Filters -->
+        <aside class="filters-sidebar">
+            <h3>Filter Translations</h3>
+
+            <div class="filter-group">
+                <h4>Status</h4>
+                <?php
+                $current_status = isset($_GET['product_status']) ? $_GET['product_status'] : [];
+                if (!is_array($current_status)) {
+                    $current_status = array($current_status);
+                }
+                ?>
+                <label><input type="checkbox" name="product_status[]" value="published" <?php echo in_array('published', $current_status) ? 'checked' : ''; ?>> Published</label>
+                <label><input type="checkbox" name="product_status[]" value="in-progress" <?php echo in_array('in-progress', $current_status) ? 'checked' : ''; ?>> In Progress</label>
+                <label><input type="checkbox" name="product_status[]" value="forthcoming" <?php echo in_array('forthcoming', $current_status) ? 'checked' : ''; ?>> Forthcoming</label>
+            </div>
+
+            <div class="filter-group">
+                <h4>Tradition</h4>
+                <?php
+                $traditions = get_terms(array(
+                    'taxonomy' => 'product_tradition',
+                    'hide_empty' => false,
+                ));
+                $current_tradition = isset($_GET['product_tradition']) ? $_GET['product_tradition'] : [];
+                if (!is_array($current_tradition)) {
+                    $current_tradition = array($current_tradition);
+                }
+                
+                if (!empty($traditions) && !is_wp_error($traditions)) {
+                    foreach ($traditions as $tradition) {
+                        $checked = in_array($tradition->slug, $current_tradition) ? 'checked' : '';
+                        echo '<label><input type="checkbox" name="product_tradition[]" value="' . esc_attr($tradition->slug) . '" ' . $checked . '> ' . esc_html($tradition->name) . '</label>';
+                    }
+                } else {
+                    // Default options if taxonomy doesn't exist yet
+                    echo '<label><input type="checkbox" name="product_tradition[]" value="nyingma"> Nyingma</label>';
+                    echo '<label><input type="checkbox" name="product_tradition[]" value="kagyu"> Kagyu</label>';
+                    echo '<label><input type="checkbox" name="product_tradition[]" value="sakya"> Sakya</label>';
+                    echo '<label><input type="checkbox" name="product_tradition[]" value="gelug"> Gelug</label>';
+                    echo '<label><input type="checkbox" name="product_tradition[]" value="rime"> Rimé</label>';
+                }
+                ?>
+            </div>
+
+            <div class="filter-group">
+                <h4>Text Type</h4>
+                <?php
+                $text_types = get_terms(array(
+                    'taxonomy' => 'product_text_type',
+                    'hide_empty' => false,
+                ));
+                $current_text_type = isset($_GET['product_text_type']) ? $_GET['product_text_type'] : [];
+                if (!is_array($current_text_type)) {
+                    $current_text_type = array($current_text_type);
+                }
+                
+                if (!empty($text_types) && !is_wp_error($text_types)) {
+                    foreach ($text_types as $text_type) {
+                        $checked = in_array($text_type->slug, $current_text_type) ? 'checked' : '';
+                        echo '<label><input type="checkbox" name="product_text_type[]" value="' . esc_attr($text_type->slug) . '" ' . $checked . '> ' . esc_html($text_type->name) . '</label>';
+                    }
+                } else {
+                    // Default options if taxonomy doesn't exist yet
+                    echo '<label><input type="checkbox" name="product_text_type[]" value="root-texts"> Root Texts</label>';
+                    echo '<label><input type="checkbox" name="product_text_type[]" value="commentaries"> Commentaries</label>';
+                    echo '<label><input type="checkbox" name="product_text_type[]" value="practice-manuals"> Practice Manuals</label>';
+                    echo '<label><input type="checkbox" name="product_text_type[]" value="philosophical"> Philosophical Works</label>';
+                    echo '<label><input type="checkbox" name="product_text_type[]" value="biographical"> Biographical</label>';
+                }
+                ?>
+            </div>
+
+            <div class="filter-group">
+                <h4>Topic</h4>
+                <?php
+                $topics = get_terms(array(
+                    'taxonomy' => 'product_topic',
+                    'hide_empty' => false,
+                ));
+                $current_topic = isset($_GET['product_topic']) ? $_GET['product_topic'] : [];
+                if (!is_array($current_topic)) {
+                    $current_topic = array($current_topic);
+                }
+                
+                if (!empty($topics) && !is_wp_error($topics)) {
+                    foreach ($topics as $topic) {
+                        $checked = in_array($topic->slug, $current_topic) ? 'checked' : '';
+                        echo '<label><input type="checkbox" name="product_topic[]" value="' . esc_attr($topic->slug) . '" ' . $checked . '> ' . esc_html($topic->name) . '</label>';
+                    }
+                } else {
+                    // Default options if taxonomy doesn't exist yet
+                    echo '<label><input type="checkbox" name="product_topic[]" value="mahamudra"> Mahamudra</label>';
+                    echo '<label><input type="checkbox" name="product_topic[]" value="dzogchen"> Dzogchen</label>';
+                    echo '<label><input type="checkbox" name="product_topic[]" value="madhyamaka"> Madhyamaka</label>';
+                    echo '<label><input type="checkbox" name="product_topic[]" value="abhidharma"> Abhidharma</label>';
+                    echo '<label><input type="checkbox" name="product_topic[]" value="tantric"> Tantric Practice</label>';
+                    echo '<label><input type="checkbox" name="product_topic[]" value="mind-training"> Mind Training</label>';
+                }
+                ?>
+            </div>
+
+            <div class="filter-group">
+                <h4>Language Pair</h4>
+                <select name="language_pair">
+                    <option value="">All Languages</option>
+                    <option value="tibetan-english" <?php echo (isset($_GET['language_pair']) && $_GET['language_pair'] == 'tibetan-english') ? 'selected' : ''; ?>>Tibetan → English</option>
+                    <option value="tibetan-french" <?php echo (isset($_GET['language_pair']) && $_GET['language_pair'] == 'tibetan-french') ? 'selected' : ''; ?>>Tibetan → French</option>
+                    <option value="tibetan-german" <?php echo (isset($_GET['language_pair']) && $_GET['language_pair'] == 'tibetan-german') ? 'selected' : ''; ?>>Tibetan → German</option>
+                    <option value="sanskrit-english" <?php echo (isset($_GET['language_pair']) && $_GET['language_pair'] == 'sanskrit-english') ? 'selected' : ''; ?>>Sanskrit → English</option>
+                </select>
+            </div>
+
+            <div class="filter-actions">
+                <button type="button" id="apply-filters" class="button">Apply Filters</button>
+                <button type="button" id="clear-filters" class="button secondary">Clear All</button>
+            </div>
+        </aside>
+
+        <!-- Main Catalog -->
+        <main class="catalog-main">
+            <?php if ( woocommerce_product_loop() ) : ?>
+
+                <div class="catalog-header">
+                    <div class="catalog-count">
+                        <?php
+                        $total = wc_get_loop_prop( 'total' );
+                        $per_page = wc_get_loop_prop( 'per_page' );
+                        $current = wc_get_loop_prop( 'current_page' );
+                        $start = ($current - 1) * $per_page + 1;
+                        $end = min($current * $per_page, $total);
+                        ?>
+                        Showing <strong><?php echo $start; ?>-<?php echo $end; ?></strong> of <strong><?php echo $total; ?></strong> translations
+                    </div>
+                    <div class="catalog-controls">
+                        <div class="search-box">
+                            <input type="search" id="catalog-search" placeholder="Search translations, authors, topics..." value="<?php echo isset($_GET['catalog_search']) ? esc_attr($_GET['catalog_search']) : ''; ?>">
+                            <button id="catalog-search-btn">Search</button>
+                        </div>
+                        <select class="sort-select" name="orderby">
+                            <option value="date" <?php echo (isset($_GET['orderby']) && $_GET['orderby'] == 'date') ? 'selected' : ''; ?>>Sort: Most Recent</option>
+                            <option value="title" <?php echo (isset($_GET['orderby']) && $_GET['orderby'] == 'title') ? 'selected' : ''; ?>>Sort: Title A-Z</option>
+                            <option value="meta_value" <?php echo (isset($_GET['orderby']) && $_GET['orderby'] == 'meta_value') ? 'selected' : ''; ?>>Sort: Author A-Z</option>
+                            <option value="popularity" <?php echo (isset($_GET['orderby']) && $_GET['orderby'] == 'popularity') ? 'selected' : ''; ?>>Sort: Most Popular</option>
+                        </select>
+                    </div>
+                </div>
+
+                <?php
+                woocommerce_product_loop_start();
+
+                if ( wc_get_loop_prop( 'total' ) ) {
+                    while ( have_posts() ) {
+                        the_post();
+
+                        /**
+                         * Hook: woocommerce_shop_loop.
+                         */
+                        do_action( 'woocommerce_shop_loop' );
+
+                        wc_get_template_part( 'content', 'product' );
+                    }
+                }
+
+                woocommerce_product_loop_end();
+
+                /**
+                 * Hook: woocommerce_after_shop_loop.
+                 */
+                do_action( 'woocommerce_after_shop_loop' );
+                ?>
+
+            <?php else : ?>
+
+                <div class="no-products-found">
+                    <h3>No translations found</h3>
+                    <p>Try adjusting your filters or search terms to find what you're looking for.</p>
+                </div>
+
+                <?php
+                /**
+                 * Hook: woocommerce_no_products_found.
+                 */
+                do_action( 'woocommerce_no_products_found' );
+                ?>
+
+            <?php endif; ?>
+        </main>
+    </div>
+</div>
+
+<?php
+/**
+ * Hook: woocommerce_after_main_content.
+ */
+do_action( 'woocommerce_after_main_content' );
+
+/**
+ * Hook: woocommerce_sidebar.
+ */
+// do_action( 'woocommerce_sidebar' ); // We're using custom sidebar
+
+get_footer();
+?>
