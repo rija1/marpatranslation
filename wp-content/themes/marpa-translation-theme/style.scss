@@ -948,8 +948,7 @@ $status-forthcoming: (#d1ecf1, #0c5460);
 // About Video Section - WordPress Block Structure
 .wp-block-group.is-nowrap.is-layout-flex {
   &:has(.intro-video) {
-    padding: 100px 40px;
-    background: linear-gradient(135deg, $cream 0%, $white 50%, $cream 100%);
+    // background: linear-gradient(135deg, $cream 0%, $white 50%, $cream 100%);
     position: relative;
     overflow: hidden;
     gap: 60px !important;
