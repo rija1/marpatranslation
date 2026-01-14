@@ -131,6 +131,15 @@ function approved_book_request() {
 }
 
 /**
+ * Placeholder function to prevent fatal errors
+ */
+if (!function_exists('mts_add_html_before_add_to_cart_form')) {
+    function mts_add_html_before_add_to_cart_form() {
+        // Placeholder - can be implemented later if needed
+    }
+}
+
+/**
  * Add book request button
  */
 function mts_add_book_request_button() {
@@ -1080,7 +1089,7 @@ set_error_handler('custom_error_handler');
 
 // Update post_title in database when post is saved
 add_action('save_post', 'update_term_usage_post_title', 20, 3);
-add_action('pods_api_post_save_pod_item_translation', 'update_related_term_usage_titles', 20, 3);
+add_action('pods_api_post_save_pod_item_product', 'update_related_term_usage_titles', 20, 3);
 add_action('pods_api_post_save_pod_item_translator', 'update_related_term_usage_titles_via_translator', 20, 3);
 
 // Keep existing filters for frontend display as backup
@@ -1142,7 +1151,7 @@ function update_related_term_usage_titles($pieces, $is_new_item, $id) {
  */
 function update_related_term_usage_titles_via_translator($pieces, $is_new_item, $id) {
     $translations_with_translator = get_posts(array(
-        'post_type' => 'translation',
+        'post_type' => 'product',
         'meta_query' => array(
             array(
                 'key' => 'translation_translators',
@@ -1251,7 +1260,7 @@ function get_translator_from_translation($post_id) {
         return '';
     }
     
-    $pods_obj = pods('translation', $translation_id);
+    $pods_obj = pods('product', $translation_id);
     if (!$pods_obj) {
         return '';
     }
@@ -1377,7 +1386,7 @@ function show_translators_shortcode($atts) {
         return '';
     }
     
-    $pods_obj = pods('translation', $translation_id);
+    $pods_obj = pods('product', $translation_id);
     if (!$pods_obj) {
         return '';
     }
@@ -1439,7 +1448,7 @@ function get_translators_shortcode($atts) {
         return '';
     }
     
-    $pods_obj = pods('translation', $translation_id);
+    $pods_obj = pods('product', $translation_id);
     if (!$pods_obj) {
         return '';
     }
@@ -1581,9 +1590,9 @@ add_filter('manage_text_posts_columns', 'mts_add_text_admin_columns');
 add_action('manage_text_posts_custom_column', 'mts_display_text_admin_columns', 10, 2);
 add_filter('manage_edit-text_sortable_columns', 'mts_make_text_columns_sortable');
 
-// Translation post type columns
-add_filter('manage_translation_posts_columns', 'mts_add_translation_admin_columns');
-add_action('manage_translation_posts_custom_column', 'mts_display_translation_admin_columns', 10, 2);
+// Product post type columns for translations 
+add_filter('manage_product_posts_columns', 'mts_add_translation_admin_columns');
+add_action('manage_product_posts_custom_column', 'mts_display_translation_admin_columns', 10, 2);
 
 // Term Usage post type columns
 add_filter('manage_term_usage_posts_columns', 'mts_add_term_usage_admin_columns');
@@ -1833,7 +1842,7 @@ function mts_display_term_usage_admin_columns($column, $post_id) {
                 }
                 
                 foreach ($translation_ids as $translation_id) {
-                    $pods_obj = pods('translation', $translation_id);
+                    $pods_obj = pods('product', $translation_id);
                     if ($pods_obj) {
                         $translators_data = $pods_obj->field('translation_translators');
                         if (!empty($translators_data) && is_array($translators_data)) {
@@ -2092,7 +2101,7 @@ function mts_admin_columns_orderby($query) {
 function mts_admin_column_styles() {
     global $pagenow, $typenow;
     
-    if ($pagenow !== 'edit.php' || !in_array($typenow, ['text', 'translation', 'term_usage', 'translated_term'])) {
+    if ($pagenow !== 'edit.php' || !in_array($typenow, ['text', 'product', 'term_usage', 'translated_term'])) {
         return;
     }
     
@@ -2107,7 +2116,7 @@ function mts_admin_column_styles() {
         .wp-list-table .column-date { width: 12%; }';
     }
     
-    if ($typenow === 'translation') {
+    if ($typenow === 'product') {
         echo '
         .wp-list-table .column-cb { width: 2.2em; }
         .wp-list-table .column-title { width: 50%; }
