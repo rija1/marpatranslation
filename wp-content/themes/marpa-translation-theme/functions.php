@@ -217,6 +217,154 @@ function mts_generate_tibetan_term_title_cb($post_id, $post) {
 mts_register_title_generator('tibetan_term', 'mts_generate_tibetan_term_title_cb');
 
 
+// Glossary Autocomplete
+add_action( 'wp_ajax_glossary_autocomplete', 'glossary_autocomplete' );
+add_action( 'wp_ajax_nopriv_glossary_autocomplete', 'glossary_autocomplete' );
+
+function glossary_autocomplete() {
+    global $wpdb;
+
+    $q = sanitize_text_field( $_GET['q'] ?? '' );
+
+    if ( strlen( $q ) < 2 ) {
+        wp_send_json( [] );
+    }
+
+    $results = $wpdb->get_col( $wpdb->prepare( "
+        SELECT pm.meta_value
+        FROM {$wpdb->postmeta} pm
+        INNER JOIN {$wpdb->posts} p ON p.ID = pm.post_id
+        WHERE pm.meta_key = 'glossary_term'
+        AND pm.meta_value LIKE %s
+        AND p.post_type = 'glossary_entry'
+        AND p.post_status = 'publish'
+        LIMIT 10
+    ", '%' . $wpdb->esc_like( $q ) . '%' ) );
+
+    wp_send_json( array_values( array_unique( $results ) ) );
+}
+
+// Find glossary term page AJAX handler
+add_action( 'wp_ajax_find_glossary_term_page', 'find_glossary_term_page' );
+add_action( 'wp_ajax_nopriv_find_glossary_term_page', 'find_glossary_term_page' );
+
+function find_glossary_term_page() {
+    global $wpdb;
+
+    $term = sanitize_text_field( $_GET['term'] ?? '' );
+
+    if ( empty( $term ) ) {
+        wp_send_json_error( 'No term provided' );
+    }
+
+    // Get the glossary page ID (assuming it's the current page)
+    $page_id = get_queried_object_id();
+    
+    // Find the glossary entry with this term
+    $post_id = $wpdb->get_var( $wpdb->prepare( "
+        SELECT p.ID
+        FROM {$wpdb->postmeta} pm
+        INNER JOIN {$wpdb->posts} p ON p.ID = pm.post_id
+        WHERE pm.meta_key = 'glossary_term'
+        AND pm.meta_value LIKE %s
+        AND p.post_type = 'glossary_entry'
+        AND p.post_status = 'publish'
+        LIMIT 1
+    ", '%' . $wpdb->esc_like( $term ) . '%' ) );
+
+    if ( !$post_id ) {
+        wp_send_json_error( 'Term not found' );
+    }
+
+    // For now, return the current page URL since all terms show on the glossary page
+    // In future, you could implement logic to determine which page number the term appears on
+    $page_url = get_permalink( $page_id );
+    
+    wp_send_json_success( array(
+        'page_url' => $page_url,
+        'post_id' => $post_id
+    ) );
+}
+
+// Load specific glossary term AJAX handler
+add_action( 'wp_ajax_load_glossary_term', 'load_glossary_term' );
+add_action( 'wp_ajax_nopriv_load_glossary_term', 'load_glossary_term' );
+
+function load_glossary_term() {
+    global $wpdb;
+
+    $term = sanitize_text_field( $_GET['term'] ?? '' );
+
+    if ( empty( $term ) ) {
+        wp_send_json_error( 'No term provided' );
+    }
+
+    // Find the glossary entry with this term
+    $post_id = $wpdb->get_var( $wpdb->prepare( "
+        SELECT p.ID
+        FROM {$wpdb->postmeta} pm
+        INNER JOIN {$wpdb->posts} p ON p.ID = pm.post_id
+        WHERE pm.meta_key = 'glossary_term'
+        AND pm.meta_value LIKE %s
+        AND p.post_type = 'glossary_entry'
+        AND p.post_status = 'publish'
+        LIMIT 1
+    ", '%' . $wpdb->esc_like( $term ) . '%' ) );
+
+    if ( !$post_id ) {
+        wp_send_json_error( 'Term not found' );
+    }
+
+    // Get the post data
+    $post = get_post( $post_id );
+    $glossary_term = get_post_meta( $post_id, 'glossary_term', true );
+    $definition = get_post_meta( $post_id, 'definitiion', true ); // Note: keeping the typo as in field name
+    $sanskrit_terms = get_post_meta( $post_id, 'sanskrit_term', true );
+    $tibetan_terms = get_post_meta( $post_id, 'tibetan_term', true );
+
+    // Build HTML output matching your existing structure
+    ob_start();
+    ?>
+    <article class="glossary-entry loaded-term">
+        <h3 class="glossary-term"><?php echo esc_html( $glossary_term ); ?></h3>
+        
+        <?php if ( !empty( $sanskrit_terms ) || !empty( $tibetan_terms ) ): ?>
+        <ul class="glossary-languages">
+            <?php if ( !empty( $tibetan_terms ) ): ?>
+            <li class="tibetan">
+                <strong>Tibetan:</strong>
+                <?php echo esc_html( is_array( $tibetan_terms ) ? $tibetan_terms[0]['tibetan_term'] ?? '' : $tibetan_terms ); ?>
+            </li>
+            <?php endif; ?>
+            
+            <?php if ( !empty( $sanskrit_terms ) ): ?>
+            <li class="sanskrit">
+                <strong>Sanskrit:</strong>
+                <?php echo esc_html( is_array( $sanskrit_terms ) ? $sanskrit_terms[0]['sanskrit_term'] ?? '' : $sanskrit_terms ); ?>
+            </li>
+            <?php endif; ?>
+        </ul>
+        <?php endif; ?>
+        
+        <?php if ( !empty( $definition ) ): ?>
+        <div class="glossary-definition">
+            <p><?php echo wp_kses_post( $definition ); ?></p>
+        </div>
+        <?php endif; ?>
+    </article>
+    <?php
+    $html = ob_get_clean();
+
+    wp_send_json_success( array(
+        'html' => $html,
+        'post_id' => $post_id
+    ) );
+}
+
+
+
+
+
 /**
  * Sets up theme defaults and registers support for various WordPress features.
  *
@@ -301,8 +449,26 @@ function marpa_translation_scripts() {
         null
     );
 
+    // Enqueue custom JavaScript
+    wp_enqueue_script(
+        'marpa-translation-custom',
+        get_template_directory_uri() . '/assets/js/custom.js',
+        array('jquery'),
+        filemtime( get_template_directory() . '/assets/js/custom.js' ) ?: wp_get_theme()->get( 'Version' ),
+        true // Load in footer
+    );
+
+    // Enqueue glossary search CSS
+    wp_enqueue_style(
+        'marpa-translation-glossary-search',
+        get_template_directory_uri() . '/assets/css/glossary-search.css',
+        array(),
+        filemtime( get_template_directory() . '/assets/css/glossary-search.css' ) ?: wp_get_theme()->get( 'Version' )
+    );
+
 }
 add_action( 'wp_enqueue_scripts', 'marpa_translation_scripts' );
+
 
 /**
  * Register block patterns.

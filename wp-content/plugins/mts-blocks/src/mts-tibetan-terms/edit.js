@@ -14,7 +14,7 @@ export default function Edit({ attributes, setAttributes }) {
   const fetchTerms = async () => {
     try {
       const response = await apiFetch({
-        path: '/pods/v1/tibetan-terms',
+        path: '/wp/v2/tibetan_term',
         method: 'GET',
       });
       setTerms(response);
@@ -27,8 +27,7 @@ export default function Edit({ attributes, setAttributes }) {
   const handleSearch = (value) => {
     setSearchTerm(value);
     const filtered = terms.filter(term => 
-      term.tibetan.toLowerCase().includes(value.toLowerCase()) ||
-      term.english.toLowerCase().includes(value.toLowerCase())
+      term.title.rendered.toLowerCase().includes(value.toLowerCase())
     );
     setFilteredTerms(filtered);
   };
@@ -48,7 +47,7 @@ export default function Edit({ attributes, setAttributes }) {
       <div>
         {filteredTerms.map(term => (
           <div key={term.id}>
-            <strong>{term.tibetan}</strong> - {term.english}
+            <strong>{term.title.rendered}</strong>
           </div>
         ))}
       </div>

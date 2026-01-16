@@ -11,7 +11,7 @@
   "supports": {
     "html": false
   },
-  "textdomain": "mts-tibetan-terms",
+  "textdomain": "mts-translators",
   "editorScript": "file:./index.js",
   "editorStyle": "file:./index.css",
   "style": "file:./style-index.css",
