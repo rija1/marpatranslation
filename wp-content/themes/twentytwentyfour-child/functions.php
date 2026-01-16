@@ -146,6 +146,55 @@ function mts_add_book_request_button() {
     echo '<button type="submit" name="book-request" class="single_add_to_cart_button button alt wp-element-button">Request This Book</button>';
 }
 
+// TEST: Direct file write to see if functions.php is loading
+file_put_contents('/Users/reedz/Local Sites/marpatranslation/logs/php/test.log', "FUNCTIONS.PHP LOADED AT: " . date('Y-m-d H:i:s') . "\n", FILE_APPEND);
+
+/**
+ * TEMPORARY: Debug function to see which hooks fire for term_usage saves
+ */
+function debug_term_usage_hooks($post_id = null, $post = null, $update = null) {
+    if ($post && $post->post_type === 'term_usage') {
+        error_log("HOOK DEBUG: " . current_action() . " fired for term_usage {$post_id}, title: '{$post->post_title}'");
+    }
+}
+
+// Hook into various save actions to see which ones fire
+add_action('save_post', 'debug_term_usage_hooks', 10, 3);
+add_action('wp_insert_post', 'debug_term_usage_hooks', 10, 3);
+add_action('post_updated', 'debug_term_usage_hooks', 10, 3);
+
+// Test Pods-specific hooks
+add_action('pods_api_post_save_pod_item', function($pieces, $is_new_item, $id) {
+    $post = get_post($id);
+    if ($post && $post->post_type === 'term_usage') {
+        error_log("PODS DEBUG: pods_api_post_save_pod_item fired for term_usage {$id}");
+    }
+}, 10, 3);
+
+add_action('pods_api_post_save_pod_item_term_usage', function($pieces, $is_new_item, $id) {
+    error_log("PODS DEBUG: pods_api_post_save_pod_item_term_usage fired for {$id}");
+}, 10, 3);
+
+// Try more hooks
+add_action('edit_post', 'debug_term_usage_hooks', 10, 3);
+add_action('post_updated_messages', function($messages) {
+    error_log("HOOK DEBUG: post_updated_messages fired");
+    return $messages;
+});
+
+// Try checking on admin_init if any new term_usage posts were created recently
+add_action('admin_init', function() {
+    static $checked = false;
+    if (!$checked && is_admin()) {
+        $checked = true;
+        global $wpdb;
+        $recent_posts = $wpdb->get_results("SELECT ID, post_title FROM wp_posts WHERE post_type = 'term_usage' AND post_date > DATE_SUB(NOW(), INTERVAL 1 HOUR) ORDER BY post_date DESC LIMIT 5");
+        foreach ($recent_posts as $post) {
+            error_log("RECENT TERM_USAGE: ID {$post->ID}, title: '{$post->post_title}'");
+        }
+    }
+});
+
 /**
  * WooCommerce Cart and Quantity Restrictions
  */
@@ -1088,7 +1137,7 @@ set_error_handler('custom_error_handler');
  */
 
 // Update post_title in database when post is saved
-add_action('save_post', 'update_term_usage_post_title', 20, 3);
+add_action('save_post', 'update_term_usage_post_title', 999, 3);
 add_action('pods_api_post_save_pod_item_product', 'update_related_term_usage_titles', 20, 3);
 add_action('pods_api_post_save_pod_item_translator', 'update_related_term_usage_titles_via_translator', 20, 3);
 
@@ -1111,17 +1160,22 @@ function update_term_usage_post_title($post_id, $post, $update) {
         return;
     }
     
+    file_put_contents('/Users/reedz/Local Sites/marpatranslation/logs/php/test.log', "SAVE_POST: Fired for term_usage {$post_id}, title: '{$post->post_title}'\n", FILE_APPEND);
+    
     $custom_title = generate_term_usage_title_content($post_id);
+    file_put_contents('/Users/reedz/Local Sites/marpatranslation/logs/php/test.log', "SAVE_POST: Generated title: '{$custom_title}'\n", FILE_APPEND);
     
     if (!empty($custom_title) && $custom_title !== $post->post_title) {
-        remove_action('save_post', 'update_term_usage_post_title', 20);
+        remove_action('save_post', 'update_term_usage_post_title', 999);
         
         wp_update_post(array(
             'ID' => $post_id,
             'post_title' => $custom_title
         ));
         
-        add_action('save_post', 'update_term_usage_post_title', 20, 3);
+        file_put_contents('/Users/reedz/Local Sites/marpatranslation/logs/php/test.log', "SAVE_POST: Updated title to: '{$custom_title}'\n", FILE_APPEND);
+        
+        add_action('save_post', 'update_term_usage_post_title', 999, 3);
     }
 }
 

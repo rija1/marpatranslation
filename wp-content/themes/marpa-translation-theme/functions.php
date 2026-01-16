@@ -12,6 +12,212 @@ if ( ! defined( 'ABSPATH' ) ) {
 }
 
 /**
+ * Debug helper function
+ */
+function pa($truc, $die = false, $vdump = false) {
+    echo '<pre>';
+    if ($vdump) {
+        var_dump($truc);
+    } else {
+        print_r($truc);
+    }
+    echo '</pre>';
+    if ($die) {
+        die();
+    }
+}
+
+/**
+ * GENERIC POD TITLE GENERATOR ENGINE
+ * ============================================================================
+ */
+
+function mts_register_title_generator($post_type, callable $callback) {
+    $hook_function_name = 'mts_title_generator_' . $post_type;
+    
+    // Create a named function dynamically
+    $GLOBALS[$hook_function_name] = function ($post_id, $post, $update) use ($post_type, $callback, $hook_function_name) {
+        if ($post->post_type !== $post_type) {
+            return;
+        }
+
+        if (wp_is_post_revision($post_id) || wp_is_post_autosave($post_id)) {
+            return;
+        }
+
+        $new_title = call_user_func($callback, $post_id, $post);
+
+        if (
+            empty($new_title) ||
+            $new_title === $post->post_title ||
+            $new_title === 'Auto Draft'
+        ) {
+            return;
+        }
+
+        // Remove this specific hook temporarily
+        remove_action('save_post', $GLOBALS[$hook_function_name], 999);
+
+        wp_update_post([
+            'ID'         => $post_id,
+            'post_title' => $new_title,
+        ]);
+
+        // Re-add this specific hook
+        add_action('save_post', $GLOBALS[$hook_function_name], 999, 3);
+    };
+    
+    add_action('save_post', $GLOBALS[$hook_function_name], 999, 3);
+}
+
+function mts_generate_term_usage_title_cb($post_id, $post) {
+
+    $translated_term_id = get_post_meta($post_id, 'translated_term', true);
+    $translation_id     = get_post_meta($post_id, 'translations', true);
+
+    $title_parts = [];
+
+    // Translated term
+    if ($translated_term_id) {
+        $term_title = get_the_title($translated_term_id);
+        if ($term_title && $term_title !== 'Auto Draft') {
+            $title_parts[] = $term_title;
+        }
+    }
+
+    // Translators
+    if ($translation_id && function_exists('pods')) {
+        $pods_obj = pods('product', $translation_id);
+        if ($pods_obj && $pods_obj->exists()) {
+            $translators = $pods_obj->field('translation_translators');
+
+            if (is_array($translators)) {
+                $names = [];
+
+                foreach ($translators as $translator) {
+                    if (is_array($translator) && isset($translator['post_title'])) {
+                        $names[] = $translator['post_title'];
+                    } else {
+                        $t = get_the_title($translator);
+                        if ($t && $t !== 'Auto Draft') {
+                            $names[] = $t;
+                        }
+                    }
+                }
+
+                if ($names) {
+                    $title_parts[] = 'used by ' . implode(' and ', $names);
+                }
+            }
+        }
+    }
+
+    // Translation
+    if ($translation_id) {
+        $translation_title = get_the_title($translation_id);
+        if ($translation_title && $translation_title !== 'Auto Draft') {
+            $title_parts[] = 'in ' . $translation_title;
+        }
+    }
+
+    return $title_parts ? implode(' ', $title_parts) : 'Term Usage Entry';
+}
+
+mts_register_title_generator('term_usage', 'mts_generate_term_usage_title_cb');
+
+function mts_generate_glossary_entry_title_cb($post_id, $post) {
+
+    // IMPORTANT: false → get all repeatable values
+    $terms = get_post_meta($post_id, 'glossary_term', false);
+
+    if (empty($terms)) {
+        return 'Glossary Entry';
+    }
+
+    // Clean values
+    $terms = array_filter(array_map('trim', $terms));
+
+    if (!$terms) {
+        return 'Glossary Entry';
+    }
+
+    return implode(', ', $terms);
+}
+
+mts_register_title_generator('glossary_entry', 'mts_generate_glossary_entry_title_cb');
+
+/**
+ * Genre title generator
+ */
+function mts_generate_genre_title_cb($post_id, $post) {
+    $genre_name = get_post_meta($post_id, 'genre_name', true);
+    return !empty($genre_name) ? trim($genre_name) : 'Genre';
+}
+
+mts_register_title_generator('genre', 'mts_generate_genre_title_cb');
+
+/**
+ * Language title generator
+ */
+function mts_generate_language_title_cb($post_id, $post) {
+    $language_name = get_post_meta($post_id, 'language_name', true);
+    return !empty($language_name) ? trim($language_name) : 'Language';
+}
+
+mts_register_title_generator('language', 'mts_generate_language_title_cb');
+
+/**
+ * Philosophical School title generator
+ */
+function mts_generate_philosophical_school_title_cb($post_id, $post) {
+    $school_name = get_post_meta($post_id, 'philosophical_school_name', true);
+    return !empty($school_name) ? trim($school_name) : 'Philosophical School';
+}
+
+mts_register_title_generator('philosophical_school', 'mts_generate_philosophical_school_title_cb');
+
+/**
+ * Sanskrit Term title generator
+ */
+function mts_generate_sanskrit_term_title_cb($post_id, $post) {
+    $sanskrit_term = get_post_meta($post_id, 'sanskrit_term', true);
+    return !empty($sanskrit_term) ? trim($sanskrit_term) : 'Sanskrit Term';
+}
+
+mts_register_title_generator('sanskrit_term', 'mts_generate_sanskrit_term_title_cb');
+
+/**
+ * Text Author title generator
+ */
+function mts_generate_text_author_title_cb($post_id, $post) {
+    $author_name = get_post_meta($post_id, 'text_author_name', true);
+    return !empty($author_name) ? trim($author_name) : 'Text Author';
+}
+
+mts_register_title_generator('text_author', 'mts_generate_text_author_title_cb');
+
+/**
+ * Text title generator
+ */
+function mts_generate_text_title_cb($post_id, $post) {
+    $text_title = get_post_meta($post_id, 'text_full_title', true);
+    return !empty($text_title) ? trim($text_title) : 'Text';
+}
+
+mts_register_title_generator('text', 'mts_generate_text_title_cb');
+
+/**
+ * Tibetan Term title generator
+ */
+function mts_generate_tibetan_term_title_cb($post_id, $post) {
+    $tibetan_term = get_post_meta($post_id, 'tibetan_term', true);
+    return !empty($tibetan_term) ? trim($tibetan_term) : 'Tibetan Term';
+}
+
+mts_register_title_generator('tibetan_term', 'mts_generate_tibetan_term_title_cb');
+
+
+/**
  * Sets up theme defaults and registers support for various WordPress features.
  *
  * @since 1.0.0
@@ -1406,4 +1612,6 @@ function marpa_translation_force_shop_template( $template ) {
     return $template;
 }
 add_filter( 'template_include', 'marpa_translation_force_shop_template', 99 );
+
+
 
