@@ -24,6 +24,9 @@
         // Initialize glossary autocomplete
         initGlossaryAutocomplete();
         
+        // Initialize alphabet filter
+        initAlphabetFilter();
+        
         // Handle term anchor on page load
         handleTermAnchor();
     }
@@ -118,6 +121,10 @@
         
         searchInput.val(term);
         resultsContainer.hide();
+        
+        // Reset alphabet filter when using search
+        $('.alphabet-letter').removeClass('active');
+        $('.alphabet-letter[data-letter="all"]').addClass('active');
         
         // Filter to show only the selected term
         filterGlossaryEntries(term);
@@ -264,7 +271,13 @@
         if ($('.clear-filter-btn').length) return; // Already exists
         
         const clearBtn = $('<button class="clear-filter-btn">Show All Terms</button>');
-        $('.glossary-search').after(clearBtn);
+        
+        // Position after alphabet filter if it exists, otherwise after search
+        if ($('.alphabet-filter').length) {
+            $('.alphabet-filter').after(clearBtn);
+        } else {
+            $('.glossary-search').after(clearBtn);
+        }
         
         clearBtn.on('click', function() {
             clearFilter();
@@ -281,13 +294,14 @@
         $('.glossary-search-message').remove();
         $('#glossary-autocomplete').val('');
         
+        // Reset alphabet filter to "All"
+        $('.alphabet-letter').removeClass('active');
+        $('.alphabet-letter[data-letter="all"]').addClass('active');
+        
         // Remove any dynamically loaded entries
         $('.glossary-entry.loaded-term, .glossary-entry-item.loaded-term').remove();
         
-        // Scroll back to top
-        $('html, body').animate({
-            scrollTop: $('.glossary-search').offset().top - 100
-        }, 300);
+        // Don't auto-scroll when clearing filters
     }
     
     /**
@@ -324,6 +338,188 @@
                 }, 500);
             }
         }
+    }
+    
+    /**
+     * Initialize Alphabet Filter
+     */
+    function initAlphabetFilter() {
+        const searchContainer = $('.glossary-search');
+        if (!searchContainer.length) return;
+        
+        // Create alphabet filter container
+        const alphabetFilter = $('<div class="alphabet-filter"></div>');
+        const alphabetNav = $('<div class="alphabet-navigation"></div>');
+        
+        // Add "All" button
+        const allButton = $('<button class="alphabet-letter all-button active" data-letter="all">All</button>');
+        alphabetNav.append(allButton);
+        
+        // Get available letters from database via AJAX
+        getAvailableLettersFromDatabase(function(availableLetters) {
+            // Create A-Z buttons
+            const letters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'.split('');
+            letters.forEach(function(letter) {
+                const isAvailable = availableLetters.includes(letter);
+                const letterButton = $(`<button class="alphabet-letter${isAvailable ? '' : ' disabled'}" data-letter="${letter}"${isAvailable ? '' : ' disabled'}>${letter}</button>`);
+                alphabetNav.append(letterButton);
+            });
+            
+            // Add click handlers after buttons are created
+            $('.alphabet-letter').on('click', function() {
+                if ($(this).hasClass('disabled')) return;
+                
+                const letter = $(this).data('letter');
+                filterByLetter(letter);
+                
+                // Update active state
+                $('.alphabet-letter').removeClass('active');
+                $(this).addClass('active');
+            });
+        });
+        
+        alphabetFilter.append(alphabetNav);
+        searchContainer.after(alphabetFilter);
+    }
+    
+    /**
+     * Get available first letters from database via AJAX
+     */
+    function getAvailableLettersFromDatabase(callback) {
+        $.ajax({
+            url: '/wp-admin/admin-ajax.php',
+            type: 'GET',
+            data: {
+                action: 'get_glossary_letters'
+            },
+            success: function(response) {
+                if (response.success && response.data) {
+                    callback(response.data);
+                } else {
+                    // Fallback to current page detection if AJAX fails
+                    callback(getAvailableLettersFromPage());
+                }
+            },
+            error: function() {
+                // Fallback to current page detection if AJAX fails
+                callback(getAvailableLettersFromPage());
+            }
+        });
+    }
+    
+    /**
+     * Fallback: Get available first letters from current page entries
+     */
+    function getAvailableLettersFromPage() {
+        const letters = new Set();
+        const glossaryEntries = $('.glossary-entry-item, .glossary-entry');
+        
+        glossaryEntries.each(function() {
+            const $entry = $(this);
+            let termText = '';
+            
+            // Try different selectors for the term text
+            const $termElement = $entry.find('.term-name, .glossary-term, h3, h4').first();
+            if ($termElement.length) {
+                termText = $termElement.text().trim();
+            }
+            
+            if (termText) {
+                const firstLetter = termText.charAt(0).toUpperCase();
+                letters.add(firstLetter);
+            }
+        });
+        
+        return Array.from(letters).sort();
+    }
+    
+    /**
+     * Filter glossary entries by first letter
+     */
+    function filterByLetter(letter) {
+        const glossaryEntries = $('.glossary-entry-item, .glossary-entry');
+        const pagination = $('.pods-pagination');
+        
+        if (letter === 'all') {
+            // Show all entries
+            glossaryEntries.show().removeClass('highlighted');
+            pagination.show();
+            $('.clear-filter-btn').remove();
+            $('.glossary-search-message').remove();
+            $('#glossary-autocomplete').val('');
+            
+            // Remove any dynamically loaded entries
+            $('.glossary-entry.loaded-term, .glossary-entry-item.loaded-term').remove();
+        } else {
+            // Filter by letter
+            let matchFound = false;
+            
+            glossaryEntries.each(function() {
+                const $entry = $(this);
+                let termText = '';
+                
+                // Try different selectors for the term text
+                const $termElement = $entry.find('.term-name, .glossary-term, h3, h4').first();
+                if ($termElement.length) {
+                    termText = $termElement.text().trim();
+                }
+                
+                if (termText && termText.charAt(0).toUpperCase() === letter) {
+                    $entry.show();
+                    matchFound = true;
+                } else {
+                    $entry.hide();
+                }
+            });
+            
+            // If matches found on current page, just show them
+            if (matchFound) {
+                pagination.hide();
+                addClearFilterButton();
+            } else {
+                // No matches on current page, load from database
+                loadTermsByLetter(letter);
+            }
+        }
+    }
+    
+    /**
+     * Load all terms starting with a specific letter from the database
+     */
+    function loadTermsByLetter(letter) {
+        showSearchMessage('Loading terms starting with ' + letter + '...', 'loading');
+        
+        $.ajax({
+            url: '/wp-admin/admin-ajax.php',
+            type: 'GET',
+            data: {
+                action: 'get_glossary_terms_by_letter',
+                letter: letter
+            },
+            success: function(response) {
+                $('.glossary-search-message').remove();
+                
+                if (response.success && response.data.length > 0) {
+                    // Hide all current entries and pagination
+                    $('.glossary-entry-item, .glossary-entry').hide();
+                    $('.pods-pagination').hide();
+                    
+                    // Insert the loaded terms
+                    const container = $('.entry-content, .glossary-entries, main').first();
+                    response.data.forEach(function(termHtml) {
+                        container.append(termHtml);
+                    });
+                    
+                    addClearFilterButton();
+                } else {
+                    showSearchMessage('No terms found starting with ' + letter, 'error');
+                }
+            },
+            error: function() {
+                $('.glossary-search-message').remove();
+                showSearchMessage('Error loading terms for letter ' + letter, 'error');
+            }
+        });
     }
 
 })(jQuery);

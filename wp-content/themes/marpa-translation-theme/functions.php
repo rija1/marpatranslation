@@ -361,6 +361,101 @@ function load_glossary_term() {
     ) );
 }
 
+// Get available letters AJAX handler
+add_action( 'wp_ajax_get_glossary_letters', 'get_glossary_letters' );
+add_action( 'wp_ajax_nopriv_get_glossary_letters', 'get_glossary_letters' );
+
+function get_glossary_letters() {
+    global $wpdb;
+
+    $letters = $wpdb->get_col( "
+        SELECT DISTINCT UPPER(LEFT(pm.meta_value, 1)) as first_letter
+        FROM {$wpdb->postmeta} pm
+        INNER JOIN {$wpdb->posts} p ON p.ID = pm.post_id
+        WHERE pm.meta_key = 'glossary_term'
+        AND p.post_type = 'glossary_entry'
+        AND p.post_status = 'publish'
+        ORDER BY first_letter
+    " );
+
+    wp_send_json_success( array_values( array_unique( $letters ) ) );
+}
+
+// Get glossary terms by letter AJAX handler
+add_action( 'wp_ajax_get_glossary_terms_by_letter', 'get_glossary_terms_by_letter' );
+add_action( 'wp_ajax_nopriv_get_glossary_terms_by_letter', 'get_glossary_terms_by_letter' );
+
+function get_glossary_terms_by_letter() {
+    global $wpdb;
+
+    $letter = sanitize_text_field( $_GET['letter'] ?? '' );
+
+    if ( empty( $letter ) || strlen( $letter ) !== 1 ) {
+        wp_send_json_error( 'Invalid letter provided' );
+    }
+
+    // Find all glossary entries starting with the specified letter
+    $posts = $wpdb->get_results( $wpdb->prepare( "
+        SELECT p.ID, p.post_title, pm.meta_value as glossary_term
+        FROM {$wpdb->postmeta} pm
+        INNER JOIN {$wpdb->posts} p ON p.ID = pm.post_id
+        WHERE pm.meta_key = 'glossary_term'
+        AND UPPER(LEFT(pm.meta_value, 1)) = %s
+        AND p.post_type = 'glossary_entry'
+        AND p.post_status = 'publish'
+        ORDER BY pm.meta_value
+    ", strtoupper( $letter ) ) );
+
+    if ( empty( $posts ) ) {
+        wp_send_json_success( array() );
+    }
+
+    $html_entries = array();
+    
+    foreach ( $posts as $post ) {
+        $post_id = $post->ID;
+        $glossary_term = get_post_meta( $post_id, 'glossary_term', true );
+        $definition = get_post_meta( $post_id, 'definitiion', true ); // Note: keeping the typo as in field name
+        $sanskrit_terms = get_post_meta( $post_id, 'sanskrit_term', true );
+        $tibetan_terms = get_post_meta( $post_id, 'tibetan_term', true );
+
+        // Build HTML output matching your existing structure
+        ob_start();
+        ?>
+        <article class="glossary-entry loaded-term">
+            <h3 class="glossary-term"><?php echo esc_html( $glossary_term ); ?></h3>
+            
+            <?php if ( !empty( $sanskrit_terms ) || !empty( $tibetan_terms ) ): ?>
+            <ul class="glossary-languages">
+                <?php if ( !empty( $tibetan_terms ) ): ?>
+                <li class="tibetan">
+                    <strong>Tibetan:</strong>
+                    <?php echo esc_html( is_array( $tibetan_terms ) ? $tibetan_terms[0]['tibetan_term'] ?? '' : $tibetan_terms ); ?>
+                </li>
+                <?php endif; ?>
+                
+                <?php if ( !empty( $sanskrit_terms ) ): ?>
+                <li class="sanskrit">
+                    <strong>Sanskrit:</strong>
+                    <?php echo esc_html( is_array( $sanskrit_terms ) ? $sanskrit_terms[0]['sanskrit_term'] ?? '' : $sanskrit_terms ); ?>
+                </li>
+                <?php endif; ?>
+            </ul>
+            <?php endif; ?>
+            
+            <?php if ( !empty( $definition ) ): ?>
+            <div class="glossary-definition">
+                <p><?php echo wp_kses_post( $definition ); ?></p>
+            </div>
+            <?php endif; ?>
+        </article>
+        <?php
+        $html_entries[] = ob_get_clean();
+    }
+
+    wp_send_json_success( $html_entries );
+}
+
 
 
 
