@@ -8,11 +8,38 @@
 (function($) {
     'use strict';
 
-    // Document ready
-    $(document).ready(function() {
-        // Initialize custom functions when DOM is ready
+    let initialized = false;
+    
+    function safeInitialize() {
+        if (initialized) return;
+        if (!$('.glossary-search').length) return; // Wait for glossary search element
+        initialized = true;
         initCustomFunctions();
+    }
+    
+    // Standard DOM ready initialization
+    $(document).ready(safeInitialize);
+    
+    // Also watch for dynamic content loading
+    const observer = new MutationObserver(function(mutations) {
+        mutations.forEach(function(mutation) {
+            if (mutation.type === 'childList') {
+                // Check if glossary search was added
+                if (!initialized && $('.glossary-search').length) {
+                    safeInitialize();
+                }
+            }
+        });
     });
+    
+    // Start observing when document is available
+    if (document.body) {
+        observer.observe(document.body, { childList: true, subtree: true });
+    } else {
+        $(document).ready(function() {
+            observer.observe(document.body, { childList: true, subtree: true });
+        });
+    }
 
     /**
      * Initialize custom functions
@@ -353,31 +380,39 @@
         const allButton = $('<button class="alphabet-letter all-button active" data-letter="all">All</button>');
         alphabetNav.append(allButton);
         
-        // Get available letters from database via AJAX
-        getAvailableLettersFromDatabase(function(availableLetters) {
-            // Create A-Z buttons
-            const letters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'.split('');
-            letters.forEach(function(letter) {
-                const isAvailable = availableLetters.includes(letter);
-                const letterButton = $(`<button class="alphabet-letter${isAvailable ? '' : ' disabled'}" data-letter="${letter}"${isAvailable ? '' : ' disabled'}>${letter}</button>`);
-                alphabetNav.append(letterButton);
-            });
-            
-            // Add click handlers after buttons are created
-            $('.alphabet-letter').on('click', function() {
-                if ($(this).hasClass('disabled')) return;
-                
-                const letter = $(this).data('letter');
-                filterByLetter(letter);
-                
-                // Update active state
-                $('.alphabet-letter').removeClass('active');
-                $(this).addClass('active');
-            });
+        // Create A-Z buttons immediately (all enabled initially)
+        const letters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'.split('');
+        letters.forEach(function(letter) {
+            const letterButton = $(`<button class="alphabet-letter" data-letter="${letter}">${letter}</button>`);
+            alphabetNav.append(letterButton);
         });
         
+        // Add click handlers
+        alphabetNav.on('click', '.alphabet-letter', function() {
+            if ($(this).hasClass('disabled')) return;
+            
+            const letter = $(this).data('letter');
+            filterByLetter(letter);
+            
+            // Update active state
+            $('.alphabet-letter').removeClass('active');
+            $(this).addClass('active');
+        });
+        
+        // Show alphabet filter immediately
         alphabetFilter.append(alphabetNav);
         searchContainer.after(alphabetFilter);
+        
+        // Get available letters from database via AJAX and update disabled state
+        getAvailableLettersFromDatabase(function(availableLetters) {
+            letters.forEach(function(letter) {
+                const isAvailable = availableLetters.includes(letter);
+                const $letterButton = $(`.alphabet-letter[data-letter="${letter}"]`);
+                if (!isAvailable) {
+                    $letterButton.addClass('disabled').prop('disabled', true);
+                }
+            });
+        });
     }
     
     /**
