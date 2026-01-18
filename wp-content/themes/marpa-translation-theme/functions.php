@@ -318,38 +318,45 @@ function load_glossary_term() {
     // Get the post data
     $post = get_post( $post_id );
     $glossary_term = get_post_meta( $post_id, 'glossary_term', true );
-    $definition = get_post_meta( $post_id, 'definitiion', true ); // Note: keeping the typo as in field name
+    $definition = get_post_meta( $post_id, 'definition', true );
     $sanskrit_terms = get_post_meta( $post_id, 'sanskrit_term', true );
     $tibetan_terms = get_post_meta( $post_id, 'tibetan_term', true );
 
-    // Build HTML output matching your existing structure
+    // Build HTML output matching the original structure
     ob_start();
     ?>
     <article class="glossary-entry loaded-term">
-        <h3 class="glossary-term"><?php echo esc_html( $glossary_term ); ?></h3>
-        
+        <!-- English / main terms -->
+        <h3 class="glossary-term">
+            <?php echo esc_html( $glossary_term ); ?>
+        </h3>
+
+        <!-- Language terms -->
         <?php if ( !empty( $sanskrit_terms ) || !empty( $tibetan_terms ) ): ?>
-        <ul class="glossary-languages">
-            <?php if ( !empty( $tibetan_terms ) ): ?>
-            <li class="tibetan">
-                <strong>Tibetan:</strong>
-                <?php echo esc_html( is_array( $tibetan_terms ) ? $tibetan_terms[0]['tibetan_term'] ?? '' : $tibetan_terms ); ?>
-            </li>
-            <?php endif; ?>
-            
-            <?php if ( !empty( $sanskrit_terms ) ): ?>
-            <li class="sanskrit">
-                <strong>Sanskrit:</strong>
-                <?php echo esc_html( is_array( $sanskrit_terms ) ? $sanskrit_terms[0]['sanskrit_term'] ?? '' : $sanskrit_terms ); ?>
-            </li>
-            <?php endif; ?>
-        </ul>
+            <ul class="glossary-languages">
+                <!-- Tibetan -->
+                <?php if ( !empty( $tibetan_terms ) ): ?>
+                    <li class="tibetan">
+                        <strong>Tibetan:</strong>
+                        <?php echo esc_html( $tibetan_terms ); ?>
+                    </li>
+                <?php endif; ?>
+
+                <!-- Sanskrit -->
+                <?php if ( !empty( $sanskrit_terms ) ): ?>
+                    <li class="sanskrit">
+                        <strong>Sanskrit:</strong>
+                        <?php echo esc_html( $sanskrit_terms ); ?>
+                    </li>
+                <?php endif; ?>
+            </ul>
         <?php endif; ?>
-        
+
+        <!-- Definition -->
         <?php if ( !empty( $definition ) ): ?>
-        <div class="glossary-definition">
-            <p><?php echo wp_kses_post( $definition ); ?></p>
-        </div>
+            <div class="glossary-definition">
+                <p><?php echo wp_kses_post( $definition ); ?></p>
+            </div>
         <?php endif; ?>
     </article>
     <?php
@@ -415,38 +422,45 @@ function get_glossary_terms_by_letter() {
     foreach ( $posts as $post ) {
         $post_id = $post->ID;
         $glossary_term = get_post_meta( $post_id, 'glossary_term', true );
-        $definition = get_post_meta( $post_id, 'definitiion', true ); // Note: keeping the typo as in field name
+        $definition = get_post_meta( $post_id, 'definition', true );
         $sanskrit_terms = get_post_meta( $post_id, 'sanskrit_term', true );
         $tibetan_terms = get_post_meta( $post_id, 'tibetan_term', true );
 
-        // Build HTML output matching your existing structure
+        // Build HTML output matching the original structure
         ob_start();
         ?>
         <article class="glossary-entry loaded-term">
-            <h3 class="glossary-term"><?php echo esc_html( $glossary_term ); ?></h3>
-            
+            <!-- English / main terms -->
+            <h3 class="glossary-term">
+                <?php echo esc_html( $glossary_term ); ?>
+            </h3>
+
+            <!-- Language terms -->
             <?php if ( !empty( $sanskrit_terms ) || !empty( $tibetan_terms ) ): ?>
-            <ul class="glossary-languages">
-                <?php if ( !empty( $tibetan_terms ) ): ?>
-                <li class="tibetan">
-                    <strong>Tibetan:</strong>
-                    <?php echo esc_html( is_array( $tibetan_terms ) ? $tibetan_terms[0]['tibetan_term'] ?? '' : $tibetan_terms ); ?>
-                </li>
-                <?php endif; ?>
-                
-                <?php if ( !empty( $sanskrit_terms ) ): ?>
-                <li class="sanskrit">
-                    <strong>Sanskrit:</strong>
-                    <?php echo esc_html( is_array( $sanskrit_terms ) ? $sanskrit_terms[0]['sanskrit_term'] ?? '' : $sanskrit_terms ); ?>
-                </li>
-                <?php endif; ?>
-            </ul>
+                <ul class="glossary-languages">
+                    <!-- Tibetan -->
+                    <?php if ( !empty( $tibetan_terms ) ): ?>
+                        <li class="tibetan">
+                            <strong>Tibetan:</strong>
+                            <?php echo esc_html( $tibetan_terms ); ?>
+                        </li>
+                    <?php endif; ?>
+
+                    <!-- Sanskrit -->
+                    <?php if ( !empty( $sanskrit_terms ) ): ?>
+                        <li class="sanskrit">
+                            <strong>Sanskrit:</strong>
+                            <?php echo esc_html( $sanskrit_terms ); ?>
+                        </li>
+                    <?php endif; ?>
+                </ul>
             <?php endif; ?>
-            
+
+            <!-- Definition -->
             <?php if ( !empty( $definition ) ): ?>
-            <div class="glossary-definition">
-                <p><?php echo wp_kses_post( $definition ); ?></p>
-            </div>
+                <div class="glossary-definition">
+                    <p><?php echo wp_kses_post( $definition ); ?></p>
+                </div>
             <?php endif; ?>
         </article>
         <?php
@@ -553,13 +567,6 @@ function marpa_translation_scripts() {
         true // Load in footer
     );
 
-    // Enqueue glossary search CSS
-    wp_enqueue_style(
-        'marpa-translation-glossary-search',
-        get_template_directory_uri() . '/assets/css/glossary-search.css',
-        array(),
-        filemtime( get_template_directory() . '/assets/css/glossary-search.css' ) ?: wp_get_theme()->get( 'Version' )
-    );
 
 }
 add_action( 'wp_enqueue_scripts', 'marpa_translation_scripts' );

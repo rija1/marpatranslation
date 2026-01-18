@@ -229,6 +229,43 @@ body {
       }
     }
   }
+
+  // Dropdown submenu styling
+  .wp-block-navigation__submenu-container {
+    background: $white;
+    border: 1px solid $border-light;
+    border-radius: 4px;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+    padding: 8px 0;
+    min-width: 180px;
+    
+    .wp-block-navigation-item a {
+      display: block;
+      width: 100%;
+      padding: 14px 20px;
+      font-size: 0.95rem;
+      font-weight: 500;
+      color: $royal-blue;
+      font-family: $font-sans;
+      text-decoration: none;
+      @include transition(all, 0.3s, ease);
+      box-sizing: border-box;
+      position: relative;
+      border-left: 3px solid transparent;
+      
+      &::after {
+        display: none; // Remove underline for dropdown items
+      }
+      
+      &:hover {
+        color: $burgundy;
+        border-left-color: $gold;
+        font-weight: 600;
+        letter-spacing: 0.5px;
+        background: rgba($gold, 0.05);
+      }
+    }
+  }
 }
 
 // Hero Section Styling
@@ -1134,7 +1171,7 @@ $status-forthcoming: (#d1ecf1, #0c5460);
           text-align: center;
         }
       }
-
+ 
       .wp-block-video.intro-video {
         order: 1;
         flex: 0 0 auto;
@@ -1142,6 +1179,360 @@ $status-forthcoming: (#d1ecf1, #0c5460);
       }
     }
   }
+}
+
+// ====================================
+// GLOSSARY STYLES
+// ====================================
+
+// Glossary Search
+.glossary-search {
+  position: relative;
+  max-width: 600px;
+  margin-bottom: $spacing-md;
+  padding: 20px;
+  background: $white;
+  border: 1px solid $border-light;
+  border-radius: 8px;
+  @include shadow(light);
+  
+  @media (max-width: $breakpoint-mobile) {
+    max-width: 100%;
+  }
+}
+
+#glossary-autocomplete {
+  width: 100%;
+  padding: 15px 20px;
+  font-size: 16px;
+  font-family: $font-sans;
+  border: 2px solid $border-light;
+  border-radius: 8px;
+  background: $white;
+  color: $text-primary;
+  @include transition(border-color);
+  
+  &:focus {
+    outline: none;
+    border-color: $royal-blue;
+    box-shadow: 0 0 0 3px rgba(20, 55, 93, 0.1);
+  }
+  
+  &::placeholder {
+    color: $text-muted;
+    font-style: italic;
+  }
+}
+
+// Autocomplete Results 
+.glossary-autocomplete-results {
+  position: absolute;
+  top: calc(100% - 20px);
+  left: 20px;
+  right: 20px;
+  z-index: 1000; 
+  background: $white;
+  border: 1px solid $border-light;
+  border-top: none;
+  border-radius: 0 0 8px 8px;
+  @include shadow(medium);
+  max-height: 320px;
+  overflow-y: auto;
+   
+  @media (max-width: $breakpoint-mobile) {
+    max-height: 200px;
+  }
+}
+
+.autocomplete-list {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.autocomplete-item {
+  padding: 15px 20px;
+  cursor: pointer;
+  border-bottom: 1px solid $border-light;
+  @include transition(background-color);
+  font-family: $font-sans;
+  color: $text-primary;
+  
+  @media (max-width: $breakpoint-mobile) {
+    padding: 10px 12px;
+  }
+  
+  &:last-child {
+    border-bottom: none;
+  }
+  
+  &:hover {
+    background-color: $cream;
+    color: $royal-blue;
+  }
+  
+  &:active {
+    background-color: $border-light;
+  }
+  
+  &:focus {
+    outline: 2px solid $royal-blue;
+    outline-offset: -2px;
+    background-color: $cream;
+  }
+}
+
+// Autocomplete States
+.autocomplete-loading,
+.autocomplete-no-results,
+.autocomplete-error {
+  padding: 12px 16px;
+  font-style: italic;
+  text-align: center;
+}
+
+.autocomplete-loading {
+  color: $text-light;
+}
+
+.autocomplete-no-results {
+  color: $text-muted;
+}
+
+.autocomplete-error {
+  color: #dc2626;
+}
+
+// Alphabet Filter
+.alphabet-filter {
+  max-width: 100%;
+  margin: $spacing-sm 0 $spacing-md;
+  padding: 0;
+  background: none;
+  border: none;
+  text-align: center;
+}
+
+.alphabet-navigation {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  justify-content: center;
+  align-items: center;
+  
+  @media (max-width: $breakpoint-mobile) {
+    gap: 4px;
+  }
+  
+  @media (max-width: 480px) {
+    gap: 2px;
+  }
+}
+
+.alphabet-letter {
+  display: inline;
+  margin: 0 8px;
+  padding: 0;
+  border: none;
+  background: none;
+  color: $text-primary;
+  font-family: $font-sans;
+  font-size: 16px;
+  font-weight: 400;
+  text-decoration: none;
+  cursor: pointer;
+  line-height: 1;
+  
+  @media (max-width: $breakpoint-mobile) {
+    margin: 0 6px;
+    font-size: 15px;
+  }
+  
+  @media (max-width: 480px) {
+    margin: 0 4px;
+    font-size: 14px;
+  }
+  
+  &.active {
+    color: $text-primary;
+    font-weight: 600;
+  }
+  
+  &.disabled {
+    color: $text-muted;
+    cursor: not-allowed;
+    opacity: 0.5;
+  }
+  
+  &.all-button {
+    margin-right: 16px;
+    font-size: 14px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    color: $text-primary;
+    
+    @media (max-width: $breakpoint-mobile) {
+      font-size: 13px;
+      margin-right: 12px;
+    }
+    
+    @media (max-width: 480px) {
+      font-size: 12px;
+      margin-right: 8px;
+    }
+    
+    &.active {
+      color: $text-primary;
+      font-weight: 600;
+    }
+  }
+  
+  &:focus {
+    outline: 1px dotted $text-primary;
+    outline-offset: 2px;
+  }
+}
+
+// Glossary Entries
+.glossary-entry {
+  border: 1px solid $border-light;
+  border-radius: 8px;
+  padding: 25px;
+  margin: 15px 0;
+  @include transition(box-shadow, border-color);
+  background: $white;
+  
+  &:hover {
+    @include shadow(medium);
+    border-color: $gold;
+  }
+  
+  &.highlighted {
+    background: linear-gradient(90deg, rgba(212, 175, 55, 0.05), transparent);
+    border: 1px solid $gold;
+    box-shadow: 0 3px 12px rgba(212, 175, 55, 0.15);
+  }
+}
+
+// Term name styling
+.glossary-entry .glossary-term,
+.glossary-entry h3 {
+  color: $royal-blue;
+  font-size: 1.4rem;
+  font-weight: 600;
+  margin-bottom: 8px;
+  font-family: $font-serif-secondary;
+}
+
+// Glossary Languages
+.glossary-entry .glossary-languages {
+  display: flex;
+  gap: 20px;
+  margin: 10px 0;
+  flex-wrap: nowrap;
+  align-items: baseline;
+  list-style: none;
+  padding: 0;
+  
+  li {
+    display: inline-flex;
+    align-items: baseline;
+    gap: 5px;
+    font-style: italic;
+    font-size: 0.9rem;
+    color: $text-secondary;
+    margin: 0;
+    
+    strong {
+      font-weight: 600;
+      color: $burgundy;
+      font-style: normal;
+      margin-right: 5px;
+    }
+    
+    &.tibetan {
+      font-weight: 500;
+    }
+    
+    &.sanskrit {
+      font-weight: normal;
+    }
+  }
+}
+
+// Definition styling
+.glossary-entry .glossary-definition {
+  color: $text-primary;
+  line-height: 1.6;
+  margin-top: 12px;
+  font-family: $font-sans;
+}
+
+// Search Messages
+.glossary-search-message {
+  margin-top: $spacing-xs;
+  padding: 8px 12px;
+  border-radius: 4px;
+  font-size: 14px;
+  font-weight: 500;
+  border: 1px solid;
+  
+  &.loading {
+    background-color: rgba(20, 55, 93, 0.05);
+    color: $royal-blue;
+    border-color: $royal-blue;
+  }
+  
+  &.error {
+    background-color: rgba(220, 38, 38, 0.05);
+    color: #dc2626;
+    border-color: #dc2626;
+  }
+  
+  &.success {
+    background-color: rgba(46, 125, 50, 0.05);
+    color: #2e7d32;
+    border-color: #2e7d32;
+  }
+}
+
+// Clear Filter Button
+.clear-filter-btn {
+  display: block;
+  margin: $spacing-sm auto;
+  padding: 12px 24px;
+  background-color: $royal-blue;
+  color: $white;
+  border: none;
+  border-radius: 6px;
+  font-size: 14px;
+  font-weight: 600;
+  font-family: $font-sans;
+  cursor: pointer;
+  @include transition(background-color, transform, box-shadow);
+  box-shadow: 0 2px 6px rgba(20, 55, 93, 0.2);
+  text-align: center;
+  
+  &:hover {
+    background-color: $burgundy;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(139, 21, 56, 0.3);
+  }
+  
+  &:active {
+    transform: translateY(0);
+    box-shadow: 0 2px 6px rgba(20, 55, 93, 0.2);
+  }
+  
+  &:focus {
+    outline: 2px solid $gold;
+    outline-offset: 2px;
+  }
+}
+
+// Filtered State
+.glossary-filtered .glossary-entry:not(:visible) {
+  display: none !important;
 }
 
 // ====================================

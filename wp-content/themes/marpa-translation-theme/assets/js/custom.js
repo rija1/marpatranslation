@@ -145,7 +145,7 @@
             let termText = '';
             
             // Try different selectors for the term text
-            const $termElement = $entry.find('.term-name, .glossary-term, h3, h4').first();
+            const $termElement = $entry.find('.term-name, .glossary-term, .entry-title, h3, h4, h2, h1').first();
             if ($termElement.length) {
                 termText = $termElement.text().trim();
             } else {
@@ -241,16 +241,14 @@
                     $('.glossary-entry').hide();
                     $('.pods-pagination').hide();
                     
-                    // Insert the loaded term
-                    $('.entry-content').append(response.data.html);
+                    // Insert the loaded term with class marker
+                    const $loadedTerm = $(response.data.html).addClass('loaded-term highlighted');
+                    $('.entry-content').append($loadedTerm);
                     
-                    // Highlight and scroll to new entry
-                    const newEntry = $('.glossary-entry').last();
-                    newEntry.addClass('highlighted');
+                    // Reference the new entry
+                    const newEntry = $loadedTerm;
                     
-                    $('html, body').animate({
-                        scrollTop: newEntry.offset().top - 100
-                    }, 300);
+                    // Removed auto-scrolling as per user feedback
                     
                     addClearFilterButton();
                 } else {
@@ -419,9 +417,12 @@
             let termText = '';
             
             // Try different selectors for the term text
-            const $termElement = $entry.find('.term-name, .glossary-term, h3, h4').first();
+            const $termElement = $entry.find('.term-name, .glossary-term, .entry-title, h3, h4, h2, h1').first();
             if ($termElement.length) {
                 termText = $termElement.text().trim();
+            } else {
+                // Fallback: try to get any text from the entry
+                termText = $entry.text().trim().split('\n')[0];
             }
             
             if (termText) {
@@ -504,10 +505,11 @@
                     $('.glossary-entry-item, .glossary-entry').hide();
                     $('.pods-pagination').hide();
                     
-                    // Insert the loaded terms
-                    const container = $('.entry-content, .glossary-entries, main').first();
+                    // Insert the loaded terms with class marker into the entry-content div
+                    const container = $('.entry-content').length ? $('.entry-content') : $('main').first();
                     response.data.forEach(function(termHtml) {
-                        container.append(termHtml);
+                        const $loadedTerm = $(termHtml).addClass('loaded-term');
+                        container.append($loadedTerm);
                     });
                     
                     addClearFilterButton();
