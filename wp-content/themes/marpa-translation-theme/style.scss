@@ -1244,7 +1244,7 @@ $status-forthcoming: (#d1ecf1, #0c5460);
   }
 }
 
-.autocomplete-list {
+.autocomplete-list { 
   margin: 0;
   padding: 0;
   list-style: none;
@@ -1533,6 +1533,49 @@ $status-forthcoming: (#d1ecf1, #0c5460);
 // Filtered State
 .glossary-filtered .glossary-entry:not(:visible) {
   display: none !important;
+}
+
+// Loading Overlay
+.glossary-loading-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(255, 255, 255, 0.9);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 9999;
+  backdrop-filter: blur(2px);
+  
+  .loading-spinner {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 15px;
+    
+    .spinner {
+      width: 40px;
+      height: 40px;
+      border: 4px solid $border-light;
+      border-top: 4px solid $royal-blue;
+      border-radius: 50%;
+      animation: spin 1s linear infinite;
+    }
+    
+    .loading-text {
+      color: $royal-blue;
+      font-family: $font-sans;
+      font-size: 1rem;
+      font-weight: 500;
+    }
+  }
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
 }
 
 // ====================================

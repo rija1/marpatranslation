@@ -1881,5 +1881,38 @@ function marpa_translation_force_shop_template( $template ) {
 }
 add_filter( 'template_include', 'marpa_translation_force_shop_template', 99 );
 
+/**
+ * Redirect glossary entry URLs to main glossary page with term parameter
+ * 
+ * Intercepts URLs like /glossary-entry/1200/ and redirects to /glossary/?term=TERM_NAME
+ * This enables inter-glossary linking from WYSIWYG editor links.
+ *
+ * @since 1.0.0
+ */
+function mts_redirect_glossary_entries() {
+    if ( is_singular( 'glossary_entry' ) ) {
+        $post_id = get_the_ID();
+        
+        // Get the glossary term name for this entry
+        $glossary_term = get_post_meta( $post_id, 'glossary_term', true );
+        
+        if ( ! empty( $glossary_term ) ) {
+            // Find the main glossary page URL (assuming page slug is 'glossary')
+            $glossary_page = get_page_by_path( 'glossary' );
+            
+            if ( $glossary_page ) {
+                $glossary_url = get_permalink( $glossary_page->ID );
+                // Clean the URL and add only the term parameter
+                $redirect_url = add_query_arg( 'term', urlencode( $glossary_term ), $glossary_url );
+                
+                // Perform 301 redirect
+                wp_redirect( $redirect_url, 301 );
+                exit;
+            }
+        }
+    }
+}
+add_action( 'template_redirect', 'mts_redirect_glossary_entries' );
+
 
 

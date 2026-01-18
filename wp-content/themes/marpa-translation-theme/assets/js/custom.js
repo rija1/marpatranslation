@@ -251,7 +251,7 @@
      * Load a specific term from database
      */
     function loadSpecificTerm(searchTerm) {
-        showSearchMessage('Loading term...', 'loading');
+        showLoadingOverlay('Loading term...');
         
         $.ajax({
             url: '/wp-admin/admin-ajax.php',
@@ -261,7 +261,7 @@
                 term: searchTerm
             },
             success: function(response) {
-                $('.glossary-search-message').remove();
+                hideLoadingOverlay();
                 
                 if (response.success && response.data.html) {
                     // Hide all current entries and pagination
@@ -283,7 +283,7 @@
                 }
             },
             error: function() {
-                $('.glossary-search-message').remove();
+                hideLoadingOverlay();
                 showSearchMessage('Error loading term', 'error');
             }
         });
@@ -351,9 +351,51 @@
     }
     
     /**
-     * Handle term anchor on page load (for direct links to terms)
+     * Show loading overlay with spinner
+     */
+    function showLoadingOverlay(message) {
+        hideLoadingOverlay(); // Remove any existing overlay
+        
+        const overlay = $(`
+            <div class="glossary-loading-overlay">
+                <div class="loading-spinner">
+                    <div class="spinner"></div>
+                    <div class="loading-text">${message}</div>
+                </div>
+            </div>
+        `);
+        
+        $('body').append(overlay);
+        
+        // Prevent body scrolling while loading
+        $('body').css('overflow', 'hidden');
+    }
+    
+    /**
+     * Hide loading overlay
+     */
+    function hideLoadingOverlay() {
+        $('.glossary-loading-overlay').remove();
+        $('body').css('overflow', '');
+    }
+    
+    /**
+     * Handle term anchor and URL parameters on page load (for direct links to terms)
      */
     function handleTermAnchor() {
+        // Check for URL parameter first (from glossary entry redirects)
+        const urlParams = new URLSearchParams(window.location.search);
+        const termParam = urlParams.get('term');
+        
+        if (termParam) {
+            // Load specific term from URL parameter
+            setTimeout(function() {
+                loadSpecificTerm(termParam);
+            }, 500);
+            return;
+        }
+        
+        // Fallback to hash anchor
         const hash = window.location.hash;
         if (hash && hash.startsWith('#term-')) {
             const termName = decodeURIComponent(hash.replace('#term-', '')).replace(/-/g, ' ');
@@ -523,7 +565,7 @@
      * Load all terms starting with a specific letter from the database
      */
     function loadTermsByLetter(letter) {
-        showSearchMessage('Loading terms starting with ' + letter + '...', 'loading');
+        showLoadingOverlay('Loading terms starting with ' + letter + '...');
         
         $.ajax({
             url: '/wp-admin/admin-ajax.php',
@@ -533,7 +575,7 @@
                 letter: letter
             },
             success: function(response) {
-                $('.glossary-search-message').remove();
+                hideLoadingOverlay();
                 
                 if (response.success && response.data.length > 0) {
                     // Hide all current entries and pagination
@@ -553,7 +595,7 @@
                 }
             },
             error: function() {
-                $('.glossary-search-message').remove();
+                hideLoadingOverlay();
                 showSearchMessage('Error loading terms for letter ' + letter, 'error');
             }
         });
