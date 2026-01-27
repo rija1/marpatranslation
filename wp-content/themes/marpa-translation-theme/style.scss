@@ -47,13 +47,14 @@ $royal-blue-dark: #1a4a75;
 $footer-bg: #1a1a1a;
 
 // Shadows
-$shadow-light: 0 2px 10px rgba(0,0,0,0.05);
+$shadow-light: 0 2px 10px rgba(0,0,0,0.05); 
 $shadow-medium: 0 4px 15px rgba(0,0,0,0.1);
-$shadow-heavy: 0 8px 25px rgba(0,0,0,0.15);
+$shadow-heavy: 0 8px 25px rgba(0,0,0,0.15); 
 
 // Typography
 $font-serif-primary: 'DM Serif Text', serif;
-$font-serif-secondary: 'Libre Baskerville', serif;
+// $font-serif-secondary: 'Libre Baskerville', serif;
+$font-serif-secondary: 'DM Serif Text', serif;
 $font-sans: 'Lato', sans-serif;
 
 // Breakpoints
@@ -1576,6 +1577,119 @@ $status-forthcoming: (#d1ecf1, #0c5460);
 @keyframes spin {
   0% { transform: rotate(0deg); }
   100% { transform: rotate(360deg); }
+}
+
+// ====================================
+// GLOSSARY PAGINATION STYLES
+// ====================================
+
+.pods-pagination {
+  text-align: center;
+  margin: $spacing-lg 0;
+  padding: $spacing-md 0;
+  border-top: 2px solid $border-light;
+  
+  .pods-pagination-advanced {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    flex-wrap: wrap;
+  }
+  
+  .pods-pagination-number,
+  .pods-pagination-label {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 10px 15px;
+    min-width: 44px;
+    min-height: 44px;
+    border: 1px solid $border-medium;
+    border-radius: 8px;
+    text-decoration: none;
+    font-weight: 500;
+    font-size: 0.95rem;
+    color: $royal-blue;
+    background: $white;
+    @include transition(all);
+    
+    // Remove browser button styles
+    appearance: none;
+    -webkit-appearance: none;
+    
+    &:hover {
+      background: $royal-blue;
+      color: $white;
+      border-color: $royal-blue;
+      transform: translateY(-2px);
+      @include shadow(medium);
+    }
+    
+    &:focus {
+      outline: 2px solid $gold;
+      outline-offset: 2px;
+    }
+  }
+  
+  // Current page styling
+  .pods-pagination-current {
+    background: $royal-blue;
+    color: $white;
+    border-color: $royal-blue;
+    font-weight: 600;
+    cursor: default;
+    
+    &:hover {
+      transform: none;
+      box-shadow: none;
+    }
+  }
+  
+  // Navigation labels (Next, Last, etc.)
+  .pods-pagination-label {
+    font-weight: 600;
+    background: $cream;
+    color: $royal-blue;
+    border-color: $border-medium;
+    
+    &:hover {
+      background: $royal-blue;
+      color: $white;
+      border-color: $royal-blue;
+    }
+  }
+  
+  // Responsive design
+  @media (max-width: $breakpoint-mobile) {
+    .pods-pagination-advanced {
+      gap: 6px;
+    }
+    
+    .pods-pagination-number,
+    .pods-pagination-label {
+      padding: 8px 12px;
+      min-width: 40px;
+      min-height: 40px;
+      font-size: 0.9rem;
+    }
+  }
+  
+  // Extra small screens - stack navigation
+  @media (max-width: 480px) {
+    .pods-pagination-advanced {
+      flex-direction: column;
+      gap: 10px;
+      align-items: stretch;
+    }
+    
+    .pods-pagination-number,
+    .pods-pagination-label {
+      width: 100%;
+      max-width: 200px;
+      margin: 0 auto;
+    }
+  }
 }
 
 // ====================================

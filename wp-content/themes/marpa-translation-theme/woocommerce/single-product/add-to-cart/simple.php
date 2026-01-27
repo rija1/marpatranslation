@@ -15,9 +15,9 @@ if (!$product->is_in_stock()) {
 // Check if user is logged in
 if (!is_user_logged_in()) {
     echo '<div class="woocommerce-info wc-nonpurchasable-message">';
-    echo '<p><strong>Book Request Required</strong></p>';
+    echo '<p><strong>Request Your Free Copy</strong></p>';
     echo '<p>To request this book, please <a href="' . wp_login_url(get_permalink()) . '">login</a> or <a href="' . wp_registration_url() . '">register</a> for an account.</p>';
-    echo '<p><em>Note: Books are provided free of charge. You will only pay for delivery costs.</em></p>';
+    echo '<p>Books are provided free of charge. You will only pay for delivery costs.</p>';
     echo '</div>';
     return;
 }

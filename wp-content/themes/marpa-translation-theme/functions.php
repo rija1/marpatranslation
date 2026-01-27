@@ -200,11 +200,21 @@ mts_register_title_generator('text_author', 'mts_generate_text_author_title_cb')
  * Text title generator
  */
 function mts_generate_text_title_cb($post_id, $post) {
-    $text_title = get_post_meta($post_id, 'text_full_title', true);
+    $text_title = get_post_meta($post_id, 'text_title', true);
     return !empty($text_title) ? trim($text_title) : 'Text';
 }
 
 mts_register_title_generator('text', 'mts_generate_text_title_cb');
+
+/**
+ * Short Text title generator
+ */
+function mts_generate_short_text_title_cb($post_id, $post) {
+    $text_title = get_post_meta($post_id, 'short_text_title', true);
+    return !empty($text_title) ? trim($text_title) : 'Short Text';
+}
+
+mts_register_title_generator('short_text', 'mts_generate_short_text_title_cb');
 
 /**
  * Tibetan Term title generator
@@ -290,81 +300,53 @@ function find_glossary_term_page() {
 add_action( 'wp_ajax_load_glossary_term', 'load_glossary_term' );
 add_action( 'wp_ajax_nopriv_load_glossary_term', 'load_glossary_term' );
 
-function load_glossary_term() {
-    global $wpdb;
+// Load glossary term by ID AJAX handler  
+add_action( 'wp_ajax_load_glossary_term_by_id', 'load_glossary_term_by_id' );
+add_action( 'wp_ajax_nopriv_load_glossary_term_by_id', 'load_glossary_term_by_id' );
 
+function load_glossary_term() {
     $term = sanitize_text_field( $_GET['term'] ?? '' );
 
     if ( empty( $term ) ) {
         wp_send_json_error( 'No term provided' );
     }
 
-    // Find the glossary entry with this term
-    $post_id = $wpdb->get_var( $wpdb->prepare( "
-        SELECT p.ID
-        FROM {$wpdb->postmeta} pm
-        INNER JOIN {$wpdb->posts} p ON p.ID = pm.post_id
-        WHERE pm.meta_key = 'glossary_term'
-        AND pm.meta_value LIKE %s
-        AND p.post_type = 'glossary_entry'
-        AND p.post_status = 'publish'
-        LIMIT 1
-    ", '%' . $wpdb->esc_like( $term ) . '%' ) );
+    // Use the shared helper function
+    $html = mts_generate_glossary_term_html( $term );
 
-    if ( !$post_id ) {
+    if ( ! $html ) {
         wp_send_json_error( 'Term not found' );
     }
 
-    // Get the post data
-    $post = get_post( $post_id );
-    $glossary_term = get_post_meta( $post_id, 'glossary_term', true );
-    $definition = get_post_meta( $post_id, 'definition', true );
-    $sanskrit_terms = get_post_meta( $post_id, 'sanskrit_term', true );
-    $tibetan_terms = get_post_meta( $post_id, 'tibetan_term', true );
+    wp_send_json_success( array(
+        'html' => $html
+    ) );
+}
 
-    // Build HTML output matching the original structure
-    ob_start();
-    ?>
-    <article class="glossary-entry loaded-term">
-        <!-- English / main terms -->
-        <h3 class="glossary-term">
-            <?php echo esc_html( $glossary_term ); ?>
-        </h3>
+function load_glossary_term_by_id() {
+    $entry_id = absint( $_GET['entry_id'] ?? 0 );
 
-        <!-- Language terms -->
-        <?php if ( !empty( $sanskrit_terms ) || !empty( $tibetan_terms ) ): ?>
-            <ul class="glossary-languages">
-                <!-- Tibetan -->
-                <?php if ( !empty( $tibetan_terms ) ): ?>
-                    <li class="tibetan">
-                        <strong>Tibetan:</strong>
-                        <?php echo esc_html( $tibetan_terms ); ?>
-                    </li>
-                <?php endif; ?>
+    if ( empty( $entry_id ) ) {
+        wp_send_json_error( 'No entry ID provided' );
+    }
 
-                <!-- Sanskrit -->
-                <?php if ( !empty( $sanskrit_terms ) ): ?>
-                    <li class="sanskrit">
-                        <strong>Sanskrit:</strong>
-                        <?php echo esc_html( $sanskrit_terms ); ?>
-                    </li>
-                <?php endif; ?>
-            </ul>
-        <?php endif; ?>
+    // Get the glossary term name from the post meta
+    $glossary_term = get_post_meta( $entry_id, 'glossary_term', true );
+    
+    if ( empty( $glossary_term ) ) {
+        wp_send_json_error( 'Glossary term not found for this entry' );
+    }
 
-        <!-- Definition -->
-        <?php if ( !empty( $definition ) ): ?>
-            <div class="glossary-definition">
-                <p><?php echo wp_kses_post( $definition ); ?></p>
-            </div>
-        <?php endif; ?>
-    </article>
-    <?php
-    $html = ob_get_clean();
+    // Use the shared helper function with the term name
+    $html = mts_generate_glossary_term_html( $glossary_term );
+
+    if ( ! $html ) {
+        wp_send_json_error( 'Term not found' );
+    }
 
     wp_send_json_success( array(
         'html' => $html,
-        'post_id' => $post_id
+        'term' => $glossary_term
     ) );
 }
 
@@ -1882,6 +1864,116 @@ function marpa_translation_force_shop_template( $template ) {
 add_filter( 'template_include', 'marpa_translation_force_shop_template', 99 );
 
 /**
+ * Generate glossary term HTML (shared between AJAX and server-side rendering)
+ *
+ * @param string $term_name The glossary term to find and render
+ * @return string|false HTML content or false if term not found
+ */
+function mts_generate_glossary_term_html( $term_name ) {
+    global $wpdb;
+
+    if ( empty( $term_name ) ) {
+        return false;
+    }
+
+    // Find the glossary entry with this term
+    $post_id = $wpdb->get_var( $wpdb->prepare( "
+        SELECT p.ID
+        FROM {$wpdb->postmeta} pm
+        INNER JOIN {$wpdb->posts} p ON p.ID = pm.post_id
+        WHERE pm.meta_key = 'glossary_term'
+        AND pm.meta_value LIKE %s
+        AND p.post_type = 'glossary_entry'
+        AND p.post_status = 'publish'
+        LIMIT 1
+    ", '%' . $wpdb->esc_like( $term_name ) . '%' ) );
+
+    if ( ! $post_id ) {
+        return false;
+    }
+
+    // Get the post data
+    $glossary_term = get_post_meta( $post_id, 'glossary_term', true );
+    $definition = get_post_meta( $post_id, 'definition', true );
+    $sanskrit_terms = get_post_meta( $post_id, 'sanskrit_term', true );
+    $tibetan_terms = get_post_meta( $post_id, 'tibetan_term', true );
+
+    // Generate HTML
+    ob_start();
+    ?>
+    <article class="glossary-entry loaded-term">
+        <!-- English / main terms -->
+        <h3 class="glossary-term">
+            <?php echo esc_html( $glossary_term ); ?>
+        </h3>
+
+        <!-- Language terms -->
+        <?php if ( !empty( $sanskrit_terms ) || !empty( $tibetan_terms ) ): ?>
+            <ul class="glossary-languages">
+                <!-- Tibetan -->
+                <?php if ( !empty( $tibetan_terms ) ): ?>
+                    <li class="tibetan">
+                        <strong>Tibetan:</strong>
+                        <?php echo esc_html( $tibetan_terms ); ?>
+                    </li>
+                <?php endif; ?>
+
+                <!-- Sanskrit -->
+                <?php if ( !empty( $sanskrit_terms ) ): ?>
+                    <li class="sanskrit">
+                        <strong>Sanskrit:</strong>
+                        <?php echo esc_html( $sanskrit_terms ); ?>
+                    </li>
+                <?php endif; ?>
+            </ul>
+        <?php endif; ?>
+
+        <!-- Definition -->
+        <?php if ( !empty( $definition ) ): ?>
+            <div class="glossary-definition">
+                <p><?php echo wp_kses_post( $definition ); ?></p>
+            </div>
+        <?php endif; ?>
+    </article>
+    <?php
+    return ob_get_clean();
+}
+
+/**
+ * Server-side glossary term injection for direct display
+ * 
+ * When accessing /glossary/?term=TERM_NAME, this renders the term directly
+ * in the page content without requiring AJAX loading.
+ *
+ * @param string $content The page content
+ * @return string Modified content with glossary term prepended
+ */
+function mts_inject_glossary_term_content( $content ) {
+    // Disable server-side injection if we're using AJAX-only mode
+    // (User requested AJAX loading instead of direct server rendering)
+    return $content;
+    
+    // Only on glossary page with term parameter (currently disabled)
+    if ( is_page( 'glossary' ) && isset( $_GET['term'] ) ) {
+        $term_name = sanitize_text_field( $_GET['term'] );
+        
+        // Generate the glossary term HTML
+        $term_html = mts_generate_glossary_term_html( $term_name );
+        
+        if ( $term_html ) {
+            // Wrap in container and prepend to existing content
+            $injected_content = '<div class="glossary-direct-term">' . $term_html . '</div>';
+            
+            // Add some spacing and then original content
+            $content = $injected_content . '<div class="glossary-original-content" style="margin-top: 2rem;">' . $content . '</div>';
+        }
+    }
+    
+    return $content;
+}
+add_filter( 'the_content', 'mts_inject_glossary_term_content' );
+
+/**
  * Redirect glossary entry URLs to main glossary page with term parameter
  * 
  * Intercepts URLs like /glossary-entry/1200/ and redirects to /glossary/?term=TERM_NAME
@@ -1913,6 +2005,222 @@ function mts_redirect_glossary_entries() {
     }
 }
 add_action( 'template_redirect', 'mts_redirect_glossary_entries' );
+
+/**
+ * PODS TO WOOCOMMERCE ATTRIBUTE SYNC
+ * ============================================================================
+ */
+
+/**
+ * Sync Pods language field to WooCommerce product attribute
+ *
+ * @param int $post_id Product ID
+ * @param array $post Post data
+ * @param bool $update Whether this is an update
+ */
+function mts_sync_language_to_woocommerce_attribute($post_id, $post, $update) {
+    // Only process products
+    if ($post->post_type !== 'product') {
+        return;
+    }
+
+    // Skip revisions and autosaves
+    if (wp_is_post_revision($post_id) || wp_is_post_autosave($post_id)) {
+        return;
+    }
+
+    // Try different possible language field names
+    $language_id = null;
+    $possible_fields = ['translation_language', 'language'];
+    
+    foreach ($possible_fields as $field) {
+        $value = get_post_meta($post_id, $field, true);
+        if (!empty($value)) {
+            $language_id = $value;
+            break;
+        }
+    }
+    
+    if (empty($language_id)) {
+        return;
+    }
+
+    // Get the language name from the language post
+    $language_name = '';
+    if (is_numeric($language_id)) {
+        // It's a post ID
+        $language_post = get_post($language_id);
+        if ($language_post && $language_post->post_type === 'language') {
+            $language_name = $language_post->post_title;
+        }
+    } elseif (is_string($language_id)) {
+        // It's already a string
+        $language_name = $language_id;
+    }
+
+    if (empty($language_name)) {
+        return;
+    }
+
+    // Sync to WooCommerce attribute
+    mts_set_product_attribute($post_id, 'language', $language_name);
+}
+add_action('save_post', 'mts_sync_language_to_woocommerce_attribute', 20, 3);
+
+/**
+ * Set a product attribute value
+ *
+ * @param int $product_id Product ID
+ * @param string $attribute_name Attribute name (slug)
+ * @param string $attribute_value Attribute value
+ */
+function mts_set_product_attribute($product_id, $attribute_name, $attribute_value) {
+    $product = wc_get_product($product_id);
+    if (!$product) {
+        return;
+    }
+
+    // Get or create the attribute term
+    $term = mts_get_or_create_attribute_term($attribute_name, $attribute_value);
+    if (!$term) {
+        return;
+    }
+
+    // Get existing product attributes
+    $attributes = $product->get_attributes();
+    
+    // Create or update the attribute
+    $attribute_taxonomy = wc_attribute_taxonomy_name($attribute_name);
+    
+    if (isset($attributes[$attribute_taxonomy])) {
+        // Update existing attribute
+        $attribute = $attributes[$attribute_taxonomy];
+    } else {
+        // Create new attribute
+        $attribute = new WC_Product_Attribute();
+        $attribute->set_name($attribute_taxonomy);
+        $attribute->set_visible(true);
+        $attribute->set_variation(false);
+    }
+    
+    // Set the term
+    $attribute->set_options(array($term->term_id));
+    $attributes[$attribute_taxonomy] = $attribute;
+    
+    // Update product attributes
+    $product->set_attributes($attributes);
+    $product->save();
+    
+    // Set the term relationship
+    wp_set_object_terms($product_id, $term->term_id, $attribute_taxonomy);
+}
+
+/**
+ * Get or create an attribute term
+ *
+ * @param string $attribute_name Attribute name
+ * @param string $term_name Term name
+ * @return WP_Term|false Term object or false on failure
+ */
+function mts_get_or_create_attribute_term($attribute_name, $term_name) {
+    $attribute_taxonomy = wc_attribute_taxonomy_name($attribute_name);
+    
+    // Check if term exists
+    $term = get_term_by('name', $term_name, $attribute_taxonomy);
+    
+    if (!$term) {
+        // Create the term
+        $result = wp_insert_term($term_name, $attribute_taxonomy);
+        if (is_wp_error($result)) {
+            return false;
+        }
+        $term = get_term($result['term_id'], $attribute_taxonomy);
+    }
+    
+    return $term;
+}
+
+/**
+ * Bulk sync all existing products
+ */
+function mts_bulk_sync_language_attributes() {
+    $products = get_posts(array(
+        'post_type' => 'product',
+        'post_status' => 'publish',
+        'posts_per_page' => -1,
+    ));
+
+    $synced_count = 0;
+    foreach ($products as $product) {
+        // Try different possible language field names
+        $language_id = null;
+        $possible_fields = ['translation_language', 'language'];
+        
+        foreach ($possible_fields as $field) {
+            $value = get_post_meta($product->ID, $field, true);
+            if (!empty($value)) {
+                $language_id = $value;
+                break;
+            }
+        }
+        
+        if (!empty($language_id)) {
+            // Get the language name from the language post
+            $language_name = '';
+            if (is_numeric($language_id)) {
+                // It's a post ID
+                $language_post = get_post($language_id);
+                if ($language_post && $language_post->post_type === 'language') {
+                    $language_name = $language_post->post_title;
+                }
+            } elseif (is_string($language_id)) {
+                // It's already a string
+                $language_name = $language_id;
+            }
+            
+            if (!empty($language_name)) {
+                mts_set_product_attribute($product->ID, 'language', $language_name);
+                $synced_count++;
+            }
+        }
+    }
+    
+    return $synced_count;
+}
+
+/**
+ * Add admin notice with sync button
+ */
+function mts_language_sync_admin_notice() {
+    if (!current_user_can('manage_options')) {
+        return;
+    }
+    
+    // Handle sync request
+    if (isset($_GET['mts_sync_languages']) && wp_verify_nonce($_GET['_wpnonce'], 'mts_sync_languages')) {
+        $synced_count = mts_bulk_sync_language_attributes();
+        echo '<div class="notice notice-success is-dismissible">';
+        echo '<p><strong>Language Sync Complete:</strong> ' . $synced_count . ' products synced.</p>';
+        echo '</div>';
+        return;
+    }
+    
+    // Show sync button on product pages
+    $screen = get_current_screen();
+    if ($screen && ($screen->id === 'edit-product' || $screen->id === 'product')) {
+        $sync_url = add_query_arg(array(
+            'mts_sync_languages' => '1',
+            '_wpnonce' => wp_create_nonce('mts_sync_languages')
+        ), admin_url('edit.php?post_type=product'));
+        
+        echo '<div class="notice notice-info">';
+        echo '<p><strong>Sync Language Attributes:</strong> ';
+        echo 'Click to sync all Pods language fields to WooCommerce product attributes for filtering. ';
+        echo '<a href="' . esc_url($sync_url) . '" class="button button-primary">Sync Now</a></p>';
+        echo '</div>';
+    }
+}
+add_action('admin_notices', 'mts_language_sync_admin_notice');
 
 
 

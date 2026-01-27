@@ -56,6 +56,9 @@
         
         // Handle term anchor on page load
         handleTermAnchor();
+        
+        // Initialize term link interceptors
+        initTermLinkInterceptors();
     }
 
     // Add your custom functions below this line
@@ -268,9 +271,19 @@
                     $('.glossary-entry').hide();
                     $('.pods-pagination').hide();
                     
-                    // Insert the loaded term with class marker
+                    // Insert the loaded term with class marker where other entries are located
                     const $loadedTerm = $(response.data.html).addClass('loaded-term highlighted');
-                    $('.entry-content').append($loadedTerm);
+                    const container = $('.entry-content');
+                    
+                    // Find the first glossary entry to determine insertion point
+                    const firstEntry = container.find('.glossary-entry, .glossary-entry-item').first();
+                    if (firstEntry.length) {
+                        // Insert before the first entry
+                        firstEntry.before($loadedTerm);
+                    } else {
+                        // Fallback to append if no entries found
+                        container.append($loadedTerm);
+                    }
                     
                     // Reference the new entry
                     const newEntry = $loadedTerm;
@@ -388,7 +401,7 @@
         const termParam = urlParams.get('term');
         
         if (termParam) {
-            // Load specific term from URL parameter
+            // Load specific term from URL parameter via AJAX
             setTimeout(function() {
                 loadSpecificTerm(termParam);
             }, 500);
@@ -597,6 +610,108 @@
             error: function() {
                 hideLoadingOverlay();
                 showSearchMessage('Error loading terms for letter ' + letter, 'error');
+            }
+        });
+    }
+    
+    /**
+     * Clear search results and loaded terms
+     */
+    function clearSearchResults() {
+        console.log('Clearing search results...');
+        // Remove any dynamically loaded entries
+        $('.glossary-entry.loaded-term, .glossary-entry-item.loaded-term').remove();
+        // Remove search messages
+        $('.glossary-search-message').remove();
+        // Hide all original entries and pagination
+        $('.glossary-entry-item, .glossary-entry').hide();
+        $('.pods-pagination').hide();
+    }
+    
+    /**
+     * Initialize term link interceptors for AJAX loading
+     * 
+     * Intercepts clicks on links to glossary entries and loads them via AJAX
+     * instead of navigating to the URL
+     */
+    function initTermLinkInterceptors() {
+        // Intercept clicks on links that go to glossary terms
+        $(document).on('click', 'a[href*="glossary/?term="], a[href*="glossary-entry/"]', function(e) {
+            e.preventDefault();
+            
+            const href = $(this).attr('href');
+            let termName = '';
+            
+            // Extract term name from different URL formats
+            if (href.includes('glossary/?term=')) {
+                // Extract from ?term= parameter
+                const url = new URL(href, window.location.origin);
+                termName = url.searchParams.get('term');
+            } else if (href.includes('glossary-entry/')) {
+                // For glossary-entry URLs, we need to get the term name via AJAX first
+                const matches = href.match(/glossary-entry\/(\d+)/);
+                if (matches) {
+                    const entryId = matches[1];
+                    // Load by ID - we'll need to modify our backend to handle this
+                    loadGlossaryTermById(entryId);
+                    return;
+                }
+            }
+            
+            if (termName) {
+                // Clear current results and load the specific term
+                clearSearchResults();
+                loadSpecificTerm(decodeURIComponent(termName));
+            }
+        });
+    }
+    
+    /**
+     * Load glossary term by post ID (for glossary-entry URLs)
+     */
+    function loadGlossaryTermById(entryId) {
+        showLoadingOverlay('Loading term...');
+        
+        $.ajax({
+            url: '/wp-admin/admin-ajax.php',
+            type: 'GET',
+            data: {
+                action: 'load_glossary_term_by_id',
+                entry_id: entryId
+            },
+            success: function(response) {
+                hideLoadingOverlay();
+                
+                if (response.success && response.data.html) {
+                    clearSearchResults();
+                    
+                    // Insert the loaded content where the other glossary entries are
+                    const container = $('.entry-content').length ? $('.entry-content') : $('main').first();
+                    
+                    // Find the first glossary entry to determine insertion point
+                    const firstEntry = container.find('.glossary-entry, .glossary-entry-item').first();
+                    if (firstEntry.length) {
+                        // Insert before the first entry
+                        firstEntry.before(response.data.html);
+                    } else {
+                        // Fallback to append if no entries found
+                        container.append(response.data.html);
+                    }
+                    
+                    // Scroll to the loaded term
+                    const loadedTerm = $('.glossary-entry.loaded-term').last();
+                    if (loadedTerm.length) {
+                        $('html, body').animate({
+                            scrollTop: loadedTerm.offset().top - 100
+                        }, 500);
+                    }
+                } else {
+                    showSearchMessage(response.data || 'Term not found', 'error');
+                }
+            },
+            error: function() {
+                hideLoadingOverlay();
+                showSearchMessage('Error loading term', 'error');
             }
         });
     }
