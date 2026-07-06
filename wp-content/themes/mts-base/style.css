@@ -1,0 +1,11 @@
+/*
+Theme Name: MTS Base
+Theme URI: https://marpatranslation.org
+Description: Thème parent du réseau MTS — design system « Thangka Heritage » porté de mockup-new/mockup-1. Contenu piloté par CPT (mu-plugin mts-network). Ne pas activer directement : utiliser l'enfant mts-branch.
+Author: Marpa Translation Society
+Version: 0.1.0
+Requires PHP: 8.0
+Text Domain: mts-base
+*/
+
+/* Le CSS du design system est dans assets/css/base.css (enqueue.php). */

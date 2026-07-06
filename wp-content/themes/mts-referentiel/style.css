@@ -1,0 +1,26 @@
+/*
+Theme Name: MTS Referentiel
+Description: Thème du site 1 (référentiel technique NON PUBLIC — décision D13). Front neutralisé : page technique noindex. À activer sur le site 1 en Phase 3, jamais sur une branche.
+Author: Marpa Translation Society
+Version: 0.1.0
+Text Domain: mts-referentiel
+*/
+
+body.mts-referentiel {
+	font-family: Georgia, serif;
+	background: #f7f4ee;
+	color: #3a3630;
+	display: flex;
+	min-height: 100vh;
+	align-items: center;
+	justify-content: center;
+	margin: 0;
+}
+.mts-referentiel-card {
+	text-align: center;
+	padding: 48px;
+	max-width: 480px;
+}
+.mts-referentiel-card a {
+	color: #8b6f3e;
+}

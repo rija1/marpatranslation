@@ -1,0 +1,10 @@
+/*
+Theme Name: MTS Branch
+Template: mts-base
+Description: Thème enfant partagé des branches MTS (eu/hk/np) — branding par site via le Customizer (section « MTS Branding »), surcharges CSS ponctuelles ici.
+Author: Marpa Translation Society
+Version: 0.1.0
+Text Domain: mts-branch
+*/
+
+/* Surcharges par branche : préférer les variables :root de base.css. */

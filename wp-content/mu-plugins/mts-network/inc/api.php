@@ -65,7 +65,9 @@ function mts_with_hub( callable $callback ) {
 function mts_resolve_central_post( $id_or_slug, $post_type ) {
 	if ( is_numeric( $id_or_slug ) ) {
 		$post = get_post( (int) $id_or_slug );
-		return ( $post && $post->post_type === $post_type ) ? $post : null;
+		// publish uniquement : ces lectures alimentent un cache réseau
+		// partagé et des sorties publiques (audit Phase 2, constat critique).
+		return ( $post && $post->post_type === $post_type && 'publish' === $post->post_status ) ? $post : null;
 	}
 	$found = get_posts( array(
 		'post_type'      => $post_type,
@@ -274,44 +276,45 @@ function mts_get_term_translations( $tibetan_id ) {
 		$result[ $branch ] = array();
 
 		switch_to_blog( (int) $site->blog_id );
-
-		$terms = get_posts( array(
-			'post_type'      => 'translated_term',
-			'post_status'    => 'publish',
-			'posts_per_page' => 50,
-			'meta_query'     => array(
-				array(
-					'key'   => 'central_tibetan_term_id',
-					'value' => $tibetan_id,
-				),
-			),
-		) );
-
-		foreach ( $terms as $term_post ) {
-			$langs  = wp_get_post_terms( $term_post->ID, 'mts_language', array( 'fields' => 'slugs' ) );
-			$usages = get_posts( array(
-				'post_type'      => 'term_usage',
+		try {
+			$terms = get_posts( array(
+				'post_type'      => 'translated_term',
 				'post_status'    => 'publish',
-				'posts_per_page' => -1,
-				'fields'         => 'ids',
+				'posts_per_page' => 50,
 				'meta_query'     => array(
 					array(
-						'key'   => 'translated_term_id',
-						'value' => $term_post->ID,
+						'key'   => 'central_tibetan_term_id',
+						'value' => $tibetan_id,
 					),
 				),
 			) );
 
-			$result[ $branch ][] = array(
-				'translated_term_id' => (int) $term_post->ID,
-				'term'               => $term_post->post_title,
-				'lang'               => ( ! is_wp_error( $langs ) && $langs ) ? $langs[0] : '',
-				'usages_count'       => count( $usages ),
-				'blog_id'            => (int) $site->blog_id,
-			);
-		}
+			foreach ( $terms as $term_post ) {
+				$langs  = wp_get_post_terms( $term_post->ID, 'mts_language', array( 'fields' => 'slugs' ) );
+				$usages = get_posts( array(
+					'post_type'      => 'term_usage',
+					'post_status'    => 'publish',
+					'posts_per_page' => -1,
+					'fields'         => 'ids',
+					'meta_query'     => array(
+						array(
+							'key'   => 'translated_term_id',
+							'value' => $term_post->ID,
+						),
+					),
+				) );
 
-		restore_current_blog();
+				$result[ $branch ][] = array(
+					'translated_term_id' => (int) $term_post->ID,
+					'term'               => $term_post->post_title,
+					'lang'               => ( ! is_wp_error( $langs ) && $langs ) ? $langs[0] : '',
+					'usages_count'       => count( $usages ),
+					'blog_id'            => (int) $site->blog_id,
+				);
+			}
+		} finally {
+			restore_current_blog();
+		}
 	}
 
 	mts_cache_set( $key, $result );
@@ -335,19 +338,22 @@ function mts_get_book_shop_url( $book_ref, $branch ) {
 	}
 
 	switch_to_blog( $blog_id );
-	$products = get_posts( array(
-		'post_type'      => 'product',
-		'post_status'    => 'publish',
-		'posts_per_page' => 1,
-		'meta_query'     => array(
-			array(
-				'key'   => 'mts_book_ref',
-				'value' => $book_ref,
+	try {
+		$products = get_posts( array(
+			'post_type'      => 'product',
+			'post_status'    => 'publish',
+			'posts_per_page' => 1,
+			'meta_query'     => array(
+				array(
+					'key'   => 'mts_book_ref',
+					'value' => $book_ref,
+				),
 			),
-		),
-	) );
-	$url = $products ? get_permalink( $products[0] ) : '';
-	restore_current_blog();
+		) );
+		$url = $products ? get_permalink( $products[0] ) : '';
+	} finally {
+		restore_current_blog();
+	}
 
 	mts_cache_set( $key, $url );
 	return $url;
