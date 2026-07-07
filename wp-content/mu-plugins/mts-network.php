@@ -34,3 +34,8 @@ require $mts_network_inc . 'titles.php';
 require $mts_network_inc . 'content-types.php';
 require $mts_network_inc . 'seeds.php';
 require $mts_network_inc . 'cli.php';
+require $mts_network_inc . 'atelier/schema.php';
+require $mts_network_inc . 'atelier/engine.php';
+require $mts_network_inc . 'atelier/jobs.php';
+require $mts_network_inc . 'atelier/rest.php';
+require $mts_network_inc . 'atelier/admin.php';
