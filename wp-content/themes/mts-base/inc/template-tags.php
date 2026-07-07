@@ -155,6 +155,8 @@ function mts_get_branch_glossary_entries( $limit = 60 ) {
 			'sanskrit'        => $central ? $central['sanskrit'] : '',
 			'english'         => $term_post->post_title,
 			'explanation'     => $central && '' !== trim( $central['definition'] ) ? wp_strip_all_tags( $central['definition'] ) : (string) get_post_meta( $term_post->ID, 'term_notes', true ),
+			'url'             => get_permalink( $term_post ),
+			'central_id'      => $central_id,
 		);
 	}
 	return $entries;
