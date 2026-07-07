@@ -37,6 +37,12 @@ function mts_register_title_generator($post_type, callable $callback) {
     
     // Create a named function dynamically
     $GLOBALS[$hook_function_name] = function ($post_id, $post, $update) use ($post_type, $callback, $hook_function_name) {
+        // Multisite (MTS Network) : ce générateur appartient au hub — ne
+        // jamais réécrire les posts d'une branche via switch_to_blog()
+        // (les branches ont leur propre générateur dans mts-network).
+        if (is_multisite() && ms_is_switched()) {
+            return;
+        }
         if ($post->post_type !== $post_type) {
             return;
         }

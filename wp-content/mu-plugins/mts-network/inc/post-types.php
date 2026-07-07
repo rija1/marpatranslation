@@ -101,5 +101,10 @@ add_action( 'init', function () {
 		mts_register_language_taxonomy();
 	} else {
 		mts_register_branch_types();
+		// D15 : les produits Woo portent les traductions → taguables par langue
+		// (filtres du catalogue). No-op tant que Woo n'est pas actif.
+		if ( post_type_exists( 'product' ) ) {
+			register_taxonomy_for_object_type( 'mts_language', 'product' );
+		}
 	}
-} );
+}, 15 );

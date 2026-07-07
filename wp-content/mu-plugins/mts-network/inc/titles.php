@@ -53,7 +53,9 @@ function mts_generate_term_usage_title( $post_id ) {
 
 	if ( $translation_id ) {
 		$translation = get_post( $translation_id );
-		if ( $translation && 'translation' === $translation->post_type ) {
+		// D15 : sur les branches, le porteur de la traduction est le produit
+		// Woo (modèle historique conservé) ; le CPT translation reste accepté.
+		if ( $translation && in_array( $translation->post_type, array( 'translation', 'product' ), true ) ) {
 			$translation_title = $translation->post_title;
 
 			$central_ids = json_decode( (string) get_post_meta( $translation_id, 'central_translator_ids', true ), true );

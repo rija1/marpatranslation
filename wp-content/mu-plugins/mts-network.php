@@ -31,4 +31,6 @@ require $mts_network_inc . 'extract.php';
 require $mts_network_inc . 'api.php';
 require $mts_network_inc . 'rest.php';
 require $mts_network_inc . 'titles.php';
+require $mts_network_inc . 'content-types.php';
 require $mts_network_inc . 'seeds.php';
+require $mts_network_inc . 'cli.php';
