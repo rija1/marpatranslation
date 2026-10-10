@@ -36,7 +36,9 @@ export function ajvResolver(schema: JSONSchemaType<any>) {
             const valid = validate(transformedData);
 
             if (valid) {
-                return {values: transformedData, errors: {}};
+                // Use original form data to avoid mutating field values on each validation cycle
+                // (e.g., prevent repeated timezone normalization of date-time fields)
+                return {values: data, errors: {}};
             } else {
                 console.error('🔴 Validation failed, errors:', validate.errors);
                 const errors: any = {};
@@ -213,6 +215,20 @@ function transformWordPressSchemaToDraft7(schema: JSONSchemaType<any>, data?: an
                 return;
             }
 
+            // remove readonly/readOnly fields from nested properties
+            if (prop.properties) {
+                Object.keys(prop.properties).forEach((subKey) => {
+                    const subProp = prop.properties[subKey];
+                    if (subProp.readonly === true || subProp.readOnly === true) {
+                        delete prop.properties[subKey];
+                        if (Array.isArray(prop.required) && prop.required.includes(subKey)) {
+                            prop.required.splice(prop.required.indexOf(subKey), 1);
+                        }
+                        return;
+                    }
+                });
+            }
+
             // For WordPress Array type + enum (like honorific), conditionally remove enum based on current value
             // This prevents AJV conflicts when nullable fields have null values
             if (Array.isArray(prop.type) && prop.enum) {
@@ -363,6 +379,13 @@ function transformFormDataForValidation(data: any, schema: JSONSchemaType<any>):
 
                 // Only process fields that are present in the form OR are required
                 if (propSchema && (isFieldPresent || isRequired)) {
+                    // Coerce empty string to null for nullable fields to avoid format/type conflicts (e.g., uri, email)
+                    if (Array.isArray(propSchema.type) && propSchema.type.includes('null')) {
+                        if (['', null, undefined].includes(result[key])) {
+                            result[key] = null;
+                            return; // Skip further processing for this field
+                        }
+                    }
                     // Handle number types
                     if (propSchema.type === 'number' && typeof value === 'string') {
                         // Convert string to number

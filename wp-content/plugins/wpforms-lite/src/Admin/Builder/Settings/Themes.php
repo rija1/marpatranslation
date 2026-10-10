@@ -153,7 +153,7 @@ class Themes {
 
 		wp_enqueue_style(
 			'wpforms-full',
-			WPFORMS_PLUGIN_URL . 'assets/css/frontend/modern/wpforms-full.css',
+			WPFORMS_PLUGIN_URL . "assets/css/frontend/modern/wpforms-full{$min}.css",
 			[],
 			WPFORMS_VERSION
 		);
@@ -201,6 +201,7 @@ class Themes {
 	 * @param string $slug    Sidebar section slug.
 	 *
 	 * @return array
+	 * @noinspection PhpUnusedParameterInspection
 	 */
 	public function add_pro_class( array $classes, string $name, string $slug ): array {
 
@@ -252,7 +253,7 @@ class Themes {
 				],
 				'permission_modal'         => [
 					'title'   => esc_html__( 'Insufficient Permissions', 'wpforms-lite' ),
-					'content' => esc_html__( 'Sorry, your user role doesn\'t have permission to access this feature.', 'wpforms-lite' ),
+					'content' => esc_html__( "Sorry, your user role doesn't have permission to access this feature.", 'wpforms-lite' ),
 					'confirm' => esc_html__( 'OK', 'wpforms-lite' ),
 				],
 			],
@@ -1223,8 +1224,9 @@ class Themes {
 			return;
 		}
 
-		?>
-		<?php
+		$custom_css = $this->form_data['settings']['themes']['customCss'] ?? '';
+		$paste_json = $this->form_data['settings']['themes']['copyPasteJsonValue'] ?? '';
+
 		wpforms_panel_field(
 			'textarea',
 			'themes',
@@ -1233,7 +1235,7 @@ class Themes {
 			esc_html__( 'Custom CSS', 'wpforms-lite' ),
 			[
 				'parent' => 'settings',
-				'value'  => $this->form_data['settings']['themes']['customCss'] ?? '',
+				'value'  => is_string( $custom_css ) ? $custom_css : '', // Reset corrupted CSS, as it cannot be reconstructed.
 				'after'  => sprintf( '<span class="wpforms-panel-field-after">%s</span>', __( 'Further customize the look of this form without having to edit theme files.', 'wpforms-lite' ) ),
 			]
 		);
@@ -1246,11 +1248,9 @@ class Themes {
 			esc_html__( 'Copy / Paste Style Settings', 'wpforms-lite' ),
 			[
 				'parent' => 'settings',
-				'value'  => $this->form_data['settings']['themes']['copyPasteJsonValue'] ?? '',
+				'value'  => is_string( $paste_json ) ? $paste_json : (string) wp_json_encode( $paste_json ), // Re-encode corrupted JSON snapshot.
 				'after'  => sprintf( '<span class="wpforms-panel-field-after">%s</span>', __( 'If you\'ve copied style settings from another form, you can paste them here to add the same styling to this form. Any current style settings will be overwritten.', 'wpforms-lite' ) ),
 			]
 		);
-		?>
-		<?php
 	}
 }

@@ -4,50 +4,50 @@
 
 namespace Composer\Autoload;
 
-class ComposerStaticInitb823d780538a4de103f62cac887db88d
+class ComposerStaticInit4481bf0cd8326f6f2dda193aa9a5c782
 {
     public static $files = array (
         '16e4325dd9bdbbd2ce8c9530b088e50b' => __DIR__ . '/..' . '/codeinwp/themeisle-sdk/load.php',
     );
 
     public static $prefixLengthsPsr4 = array (
-        't' => 
+        't' =>
         array (
             'tubalmartin\\CssMin\\' => 19,
         ),
-        'e' => 
+        'e' =>
         array (
             'enshrined\\svgSanitize\\' => 22,
         ),
-        'S' => 
+        'S' =>
         array (
             'Stripe\\' => 7,
             'Sabberworm\\CSS\\' => 15,
         ),
-        'M' => 
+        'M' =>
         array (
             'Masterminds\\' => 12,
         ),
     );
 
     public static $prefixDirsPsr4 = array (
-        'tubalmartin\\CssMin\\' => 
+        'tubalmartin\\CssMin\\' =>
         array (
             0 => __DIR__ . '/..' . '/tubalmartin/cssmin/src',
         ),
-        'enshrined\\svgSanitize\\' => 
+        'enshrined\\svgSanitize\\' =>
         array (
             0 => __DIR__ . '/..' . '/enshrined/svg-sanitize/src',
         ),
-        'Stripe\\' => 
+        'Stripe\\' =>
         array (
             0 => __DIR__ . '/..' . '/stripe/stripe-php/lib',
         ),
-        'Sabberworm\\CSS\\' => 
+        'Sabberworm\\CSS\\' =>
         array (
             0 => __DIR__ . '/..' . '/sabberworm/php-css-parser/src',
         ),
-        'Masterminds\\' => 
+        'Masterminds\\' =>
         array (
             0 => __DIR__ . '/..' . '/masterminds/html5/src',
         ),
@@ -504,12 +504,22 @@ class ComposerStaticInitb823d780538a4de103f62cac887db88d
         'ThemeIsle\\GutenbergBlocks\\Integration\\Form_Utils' => __DIR__ . '/../..' . '/inc/integrations/class-form-utils.php',
         'ThemeIsle\\GutenbergBlocks\\Integration\\Mailchimp_Integration' => __DIR__ . '/../..' . '/inc/integrations/providers/class-mailchimp.php',
         'ThemeIsle\\GutenbergBlocks\\Integration\\Sendinblue_Integration' => __DIR__ . '/../..' . '/inc/integrations/providers/class-sendinblue.php',
+        'ThemeIsle\\GutenbergBlocks\\Loader' => __DIR__ . '/../..' . '/inc/class-loader.php',
         'ThemeIsle\\GutenbergBlocks\\Main' => __DIR__ . '/../..' . '/inc/class-main.php',
         'ThemeIsle\\GutenbergBlocks\\Patterns' => __DIR__ . '/../..' . '/inc/class-patterns.php',
+        'ThemeIsle\\GutenbergBlocks\\Plugins\\Abilities' => __DIR__ . '/../..' . '/inc/plugins/class-abilities.php',
+        'ThemeIsle\\GutenbergBlocks\\Plugins\\Atomic_Wind_Blocks' => __DIR__ . '/../..' . '/inc/plugins/class-atomic-wind-blocks.php',
         'ThemeIsle\\GutenbergBlocks\\Plugins\\Block_Conditions' => __DIR__ . '/../..' . '/inc/plugins/class-block-conditions.php',
         'ThemeIsle\\GutenbergBlocks\\Plugins\\Dashboard' => __DIR__ . '/../..' . '/inc/plugins/class-dashboard.php',
         'ThemeIsle\\GutenbergBlocks\\Plugins\\Dynamic_Content' => __DIR__ . '/../..' . '/inc/plugins/class-dynamic-content.php',
         'ThemeIsle\\GutenbergBlocks\\Plugins\\FSE_Onboarding' => __DIR__ . '/../..' . '/inc/plugins/class-fse-onboarding.php',
+        'ThemeIsle\\GutenbergBlocks\\Plugins\\Form_Records_Export' => __DIR__ . '/../..' . '/inc/plugins/class-form-records-export.php',
+        'ThemeIsle\\GutenbergBlocks\\Plugins\\Form_Records_Files' => __DIR__ . '/../..' . '/inc/plugins/class-form-records-files.php',
+        'ThemeIsle\\GutenbergBlocks\\Plugins\\Form_Records_Filters' => __DIR__ . '/../..' . '/inc/plugins/class-form-records-filters.php',
+        'ThemeIsle\\GutenbergBlocks\\Plugins\\Form_Records_List_Table' => __DIR__ . '/../..' . '/inc/plugins/class-form-records-list-table.php',
+        'ThemeIsle\\GutenbergBlocks\\Plugins\\Form_Records_Meta_Box' => __DIR__ . '/../..' . '/inc/plugins/class-form-records-meta-box.php',
+        'ThemeIsle\\GutenbergBlocks\\Plugins\\Form_Records_Post_Type' => __DIR__ . '/../..' . '/inc/plugins/class-form-records-post-type.php',
+        'ThemeIsle\\GutenbergBlocks\\Plugins\\Form_Submissions' => __DIR__ . '/../..' . '/inc/plugins/class-form-submissions.php',
         'ThemeIsle\\GutenbergBlocks\\Plugins\\LimitedOffers' => __DIR__ . '/../..' . '/inc/plugins/class-limited-offers.php',
         'ThemeIsle\\GutenbergBlocks\\Plugins\\Options_Settings' => __DIR__ . '/../..' . '/inc/plugins/class-options-settings.php',
         'ThemeIsle\\GutenbergBlocks\\Plugins\\Stripe_API' => __DIR__ . '/../..' . '/inc/plugins/class-stripe-api.php',
@@ -520,6 +530,7 @@ class ComposerStaticInitb823d780538a4de103f62cac887db88d
         'ThemeIsle\\GutenbergBlocks\\Render\\AMP\\Lottie_Block' => __DIR__ . '/../..' . '/inc/render/amp/class-lottie.block.php',
         'ThemeIsle\\GutenbergBlocks\\Render\\AMP\\Slider_Block' => __DIR__ . '/../..' . '/inc/render/amp/class-slider-block.php',
         'ThemeIsle\\GutenbergBlocks\\Render\\About_Author_Block' => __DIR__ . '/../..' . '/inc/render/class-about-author-block.php',
+        'ThemeIsle\\GutenbergBlocks\\Render\\Form_Captcha_Block' => __DIR__ . '/../..' . '/inc/render/class-form-captcha-block.php',
         'ThemeIsle\\GutenbergBlocks\\Render\\Form_Multiple_Choice_Block' => __DIR__ . '/../..' . '/inc/render/class-form-multiple-choice.php',
         'ThemeIsle\\GutenbergBlocks\\Render\\Form_Nonce_Block' => __DIR__ . '/../..' . '/inc/render/class-form-nonce-block.php',
         'ThemeIsle\\GutenbergBlocks\\Render\\Google_Map_Block' => __DIR__ . '/../..' . '/inc/render/class-google-map-block.php',
@@ -530,13 +541,20 @@ class ComposerStaticInitb823d780538a4de103f62cac887db88d
         'ThemeIsle\\GutenbergBlocks\\Render\\Review_Block' => __DIR__ . '/../..' . '/inc/render/class-review-block.php',
         'ThemeIsle\\GutenbergBlocks\\Render\\Sharing_Icons_Block' => __DIR__ . '/../..' . '/inc/render/class-sharing-icons-block.php',
         'ThemeIsle\\GutenbergBlocks\\Render\\Stripe_Checkout_Block' => __DIR__ . '/../..' . '/inc/render/class-stripe-checkout-block.php',
+        'ThemeIsle\\GutenbergBlocks\\Server\\AI_Backend' => __DIR__ . '/../..' . '/inc/server/interface-ai-backend.php',
+        'ThemeIsle\\GutenbergBlocks\\Server\\AI_Backend_Resolver' => __DIR__ . '/../..' . '/inc/server/class-ai-backend-resolver.php',
+        'ThemeIsle\\GutenbergBlocks\\Server\\AI_Client_Adaptor' => __DIR__ . '/../..' . '/inc/server/class-ai-client-adaptor.php',
+        'ThemeIsle\\GutenbergBlocks\\Server\\AI_Response' => __DIR__ . '/../..' . '/inc/server/class-ai-response.php',
+        'ThemeIsle\\GutenbergBlocks\\Server\\AI_Usage' => __DIR__ . '/../..' . '/inc/server/class-ai-usage.php',
         'ThemeIsle\\GutenbergBlocks\\Server\\Dashboard_Server' => __DIR__ . '/../..' . '/inc/server/class-dashboard-server.php',
         'ThemeIsle\\GutenbergBlocks\\Server\\Dynamic_Content_Server' => __DIR__ . '/../..' . '/inc/server/class-dynamic-content-server.php',
         'ThemeIsle\\GutenbergBlocks\\Server\\FSE_Onboarding_Server' => __DIR__ . '/../..' . '/inc/server/class-fse-onboarding-server.php',
         'ThemeIsle\\GutenbergBlocks\\Server\\Form_Server' => __DIR__ . '/../..' . '/inc/server/class-form-server.php',
+        'ThemeIsle\\GutenbergBlocks\\Server\\Otter_OpenAI_Backend' => __DIR__ . '/../..' . '/inc/server/class-otter-openai-backend.php',
         'ThemeIsle\\GutenbergBlocks\\Server\\Prompt_Server' => __DIR__ . '/../..' . '/inc/server/class-prompt-server.php',
         'ThemeIsle\\GutenbergBlocks\\Server\\Stripe_Server' => __DIR__ . '/../..' . '/inc/server/class-stripe-server.php',
         'ThemeIsle\\GutenbergBlocks\\Server\\Template_Cloud_Server' => __DIR__ . '/../..' . '/inc/server/class-template-cloud-server.php',
+        'ThemeIsle\\GutenbergBlocks\\Server\\WP_AI_Client_Backend' => __DIR__ . '/../..' . '/inc/server/class-wp-ai-client-backend.php',
         'ThemeIsle\\GutenbergBlocks\\Tracker' => __DIR__ . '/../..' . '/inc/Tracker.php',
         'enshrined\\svgSanitize\\ElementReference\\Resolver' => __DIR__ . '/..' . '/enshrined/svg-sanitize/src/ElementReference/Resolver.php',
         'enshrined\\svgSanitize\\ElementReference\\Subject' => __DIR__ . '/..' . '/enshrined/svg-sanitize/src/ElementReference/Subject.php',
@@ -558,9 +576,9 @@ class ComposerStaticInitb823d780538a4de103f62cac887db88d
     public static function getInitializer(ClassLoader $loader)
     {
         return \Closure::bind(function () use ($loader) {
-            $loader->prefixLengthsPsr4 = ComposerStaticInitb823d780538a4de103f62cac887db88d::$prefixLengthsPsr4;
-            $loader->prefixDirsPsr4 = ComposerStaticInitb823d780538a4de103f62cac887db88d::$prefixDirsPsr4;
-            $loader->classMap = ComposerStaticInitb823d780538a4de103f62cac887db88d::$classMap;
+            $loader->prefixLengthsPsr4 = ComposerStaticInit4481bf0cd8326f6f2dda193aa9a5c782::$prefixLengthsPsr4;
+            $loader->prefixDirsPsr4 = ComposerStaticInit4481bf0cd8326f6f2dda193aa9a5c782::$prefixDirsPsr4;
+            $loader->classMap = ComposerStaticInit4481bf0cd8326f6f2dda193aa9a5c782::$classMap;
 
         }, null, ClassLoader::class);
     }

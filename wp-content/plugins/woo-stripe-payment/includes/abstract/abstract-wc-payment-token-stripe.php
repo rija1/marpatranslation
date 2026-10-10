@@ -152,11 +152,27 @@ abstract class WC_Payment_Token_Stripe extends WC_Payment_Token {
 	public abstract function get_formats();
 
 	public function get_brand( $context = 'view' ) {
-		return wc_get_credit_card_type_label( $this->get_prop( 'brand', $context ) );
+		if ( $context == 'view' ) {
+			return wc_get_credit_card_type_label( $this->get_prop( 'brand', $context ) );
+		}
+
+		return $this->get_prop( 'brand', $context );
 	}
 
 	public function set_brand( $value ) {
 		$this->set_prop( 'brand', $value );
+	}
+
+	/**
+	 * Relative path, from the plugin's assets directory, to this token's icon file.
+	 * Subclasses whose brand value doesn't map to a real icon file (e.g. free-text bank
+	 * names) should override this to return a static icon instead.
+	 *
+	 * @return string
+	 * @since 4.0.8
+	 */
+	public function get_icon_file() {
+		return sprintf( 'img/%s.svg', strtolower( $this->get_brand( 'edit' ) ) );
 	}
 
 	public function get_html_classes() {
@@ -184,8 +200,8 @@ abstract class WC_Payment_Token_Stripe extends WC_Payment_Token {
 	}
 
 	/**
-	 * @since 3.2.12
 	 * @return string
+	 * @since 3.2.12
 	 */
 	public function get_basic_payment_method_title() {
 		return '';
@@ -194,5 +210,12 @@ abstract class WC_Payment_Token_Stripe extends WC_Payment_Token {
 	public function get_display_name( $deprecated = '' ) {
 		return $this->get_payment_method_title();
 	}
+
+	/**
+	 * @param array $item
+	 *
+	 * @return mixed
+	 */
+	public abstract function get_payment_token_item_format( $item );
 
 }

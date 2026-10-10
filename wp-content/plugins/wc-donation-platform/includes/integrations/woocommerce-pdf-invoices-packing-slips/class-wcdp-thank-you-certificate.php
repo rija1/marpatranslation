@@ -12,7 +12,7 @@ if (!defined('ABSPATH')) {
     exit; // Exit if accessed directly
 }
 
-if (!class_exists('WCDP_Thank_You_Certificate')) :
+if (!class_exists('WCDP_Thank_You_Certificate')):
 
     /**
      * Thank You Certificate
@@ -42,7 +42,7 @@ if (!class_exists('WCDP_Thank_You_Certificate')) :
          */
         public function __construct($order = 0)
         {
-            parent::__construct( $order );
+            parent::__construct($order);
 
             // set properties
             $this->type = $this->slug = 'thank-you-certificate';
@@ -63,7 +63,9 @@ if (!class_exists('WCDP_Thank_You_Certificate')) :
 
             $this->settings = $this->get_settings();
             $this->latest_settings = $this->get_settings(true);
+
             $this->enabled = $this->get_setting('enabled', false);
+
             $this->output_formats = array('pdf');
 
             //Setting of thank you certificate orientation
@@ -71,44 +73,55 @@ if (!class_exists('WCDP_Thank_You_Certificate')) :
 
             add_filter('wpo_wcpdf_attach_documents', array($this, 'attach_certificate'));
 
-            //Add My Account Download Button
-            add_filter('wpo_wcpdf_myaccount_actions', function ($actions, $order) {
-                $certificate = wcpdf_get_document('thank-you-certificate', $order);
-                if ($certificate && $certificate->is_enabled()) {
-                    $pdf_url = wp_nonce_url(admin_url('admin-ajax.php?action=generate_wpo_wcpdf&document_type=thank-you-certificate&order_ids=' . $order->get_id() . '&my-account'), 'generate_wpo_wcpdf');
+            // Add My Account Download Button
+            add_filter('wpo_wcpdf_myaccount_actions', array($this, 'handle_myaccount_actions'), 10, 2);
 
-                    // check my account button settings
-                    $button_setting = $certificate->get_setting('my_account_buttons', 'available');
-                    $certificate_allowed = false;
-                    switch ($button_setting) {
-                        case 'available':
-                            $certificate_allowed = $certificate->exists();
-                            break;
-                        case 'always':
-                            $certificate_allowed = true;
-                            break;
-                        case 'never':
-                            break;
-                        case 'custom':
-                            $allowed_statuses = $certificate->get_setting('my_account_restrict', array());
-                            if (!empty($allowed_statuses) && in_array($order->get_status($order), array_keys($allowed_statuses))) {
-                                $certificate_allowed = true;
+            // Ensure thank-you-certificate is only attached to mails
+            // when the order contains a donation product. This hook is applied by the
+            // PDF Invoices plugin while determining whether a document type should be
+            // attached to a given email (see Main::get_documents_for_email()).
+            add_filter('wpo_wcpdf_custom_attachment_condition', array($this, 'custom_attachment_condition'), 10, 5);
 
-                            }
-                            break;
-                    }
+        }
 
-                    // Check if invoice has been created already or if status allows download (filter your own array of allowed statuses)
-                    if ($certificate_allowed) {
-                        $actions['thank-you-certificate'] = array(
-                            'url' => $pdf_url,
-                            'name' => $this->get_title(),
-                        );
-                    }
+        /**
+         * Restrict email attachments for thank-you-certificate
+         * to orders that contain a donation product.
+         *
+         * @param bool         $condition     Existing condition value (true/false)
+         * @param WC_Order|int $order        Order object or ID
+         * @param string       $email_id     Email identifier
+         * @param string       $document_type Document type (e.g. 'invoice')
+         * @param string       $output_format Output format (e.g. 'pdf')
+         * @return bool
+         */
+        public function custom_attachment_condition($condition, $order, $email_id, $document_type, $output_format)
+        {
+            // Only apply for thank-you-certificate types
+            if ($document_type !== 'thank-you-certificate') {
+                return $condition;
+            }
+
+            // Normalize $order to WC_Order when possible
+            if (!$order instanceof WC_Order) {
+                try {
+                    $order = wc_get_order($order);
+                } catch (\Throwable $e) {
+                    $order = null;
                 }
+                if (!$order) {
+                    // Could not resolve order, fall back to provided condition
+                    return $condition;
+                }
+            }
 
-                return $actions;
-            }, 10, 2);
+            try {
+                // Allow attachment only when the order contains a donation
+                return (bool) \WCDP_Form::order_contains_donation($order);
+            } catch (\Throwable $e) {
+                // On error, fall back to original behavior
+                return $condition;
+            }
         }
 
         /**
@@ -123,7 +136,7 @@ if (!class_exists('WCDP_Thank_You_Certificate')) :
         {
             $order_ids = $args['order_ids'] ?? array($this->order_id);
             $filename = get_bloginfo('name') . '_' . implode('-', $order_ids);
-            return sanitize_title(apply_filters('wpo_wcpdf_filename', $filename, 'thank-you-certificate', $order_ids, $context )) . '.pdf';
+            return sanitize_title(apply_filters('wpo_wcpdf_filename', $filename, 'thank-you-certificate', $order_ids, $context)) . '.pdf';
         }
 
         public function init_settings()
@@ -260,10 +273,75 @@ if (!class_exists('WCDP_Thank_You_Certificate')) :
         public function attach_certificate(array $attach_documents): array
         {
             $is_enabled = $this->get_setting('enabled', false);
-            if (!$is_enabled) return $attach_documents;
+            if (!$is_enabled)
+                return $attach_documents;
 
-            $attach_documents[ 'pdf' ][ 'thank-you-certificate' ] = $this->get_attach_to_email_ids();
+            $attach_documents['pdf']['thank-you-certificate'] = $this->get_attach_to_email_ids();
             return $attach_documents;
+        }
+
+        /**
+         * Handle adding a download button to My Account actions for orders containing a donation.
+         *
+         * @param array $actions Existing my account actions
+         * @param WC_Order|int $order Order object or ID
+         * @return array Modified actions
+         */
+        public function handle_myaccount_actions(array $actions, $order): array
+        {
+            // Ensure we have a WC_Order instance
+            if (!$order instanceof WC_Order) {
+                $order = wc_get_order($order);
+                if (!$order) {
+                    return $actions;
+                }
+            }
+
+            // Only add the button for orders that contain a donation product
+            if (!\WCDP_Form::order_contains_donation($order)) {
+                return $actions;
+            }
+
+            $certificate = wcpdf_get_document('thank-you-certificate', $order);
+            if (!$certificate || !$certificate->is_enabled()) {
+                return $actions;
+            }
+
+            // Build the allowed flag based on settings
+            $button_setting = $certificate->get_setting('my_account_buttons', 'available');
+            $certificate_allowed = false;
+            switch ($button_setting) {
+                case 'available':
+                    $certificate_allowed = $certificate->exists();
+                    break;
+                case 'always':
+                    $certificate_allowed = true;
+                    break;
+                case 'never':
+                    $certificate_allowed = false;
+                    break;
+                case 'custom':
+                    $allowed_statuses = $certificate->get_setting('my_account_restrict', array());
+                    $order_status = $order->get_status();
+                    if (!empty($allowed_statuses) && array_key_exists($order_status, $allowed_statuses)) {
+                        $certificate_allowed = true;
+                    }
+                    break;
+            }
+
+            if ($certificate_allowed) {
+                $pdf_url = wp_nonce_url(
+                    admin_url('admin-ajax.php?action=generate_wpo_wcpdf&document_type=thank-you-certificate&order_ids=' . $order->get_id() . '&my-account'),
+                    'generate_wpo_wcpdf'
+                );
+
+                $actions['thank-you-certificate'] = array(
+                    'url' => $pdf_url,
+                    'name' => $this->get_title(),
+                );
+            }
+
+            return $actions;
         }
     }
 

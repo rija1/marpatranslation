@@ -13,10 +13,14 @@ if ( ! defined( 'ABSPATH' ) ) {
 }
 
 use WPForms\Admin\Builder\TemplatesCache;
+use WPForms\Db\Analytics\Forms;
+use WPForms\Db\Analytics\Snapshots;
 use WPForms\Db\Payments\Meta as PaymentsMeta;
 use WPForms\Db\Payments\Payment;
+use WPForms\Db\ProductEvents\Queue as ProductEventsQueue;
 use WPForms\Lite\Integrations\LiteConnect\Integration as LiteConnectIntegration;
 use WPForms\Lite\Integrations\LiteConnect\LiteConnect;
+use WPForms\Lite\Reports\EntriesWindow;
 use WPForms\Logger\Repository;
 use WPForms\Tasks\Meta as TasksMeta;
 
@@ -33,10 +37,13 @@ class WPForms_Lite {
 	 * @since 1.9.0
 	 */
 	public const CUSTOM_TABLES = [
-		'wpforms_payments'     => Payment::class,
-		'wpforms_payment_meta' => PaymentsMeta::class,
-		'wpforms_tasks_meta'   => TasksMeta::class,
-		'wpforms_logs'         => Repository::class,
+		'wpforms_payments'             => Payment::class,
+		'wpforms_payment_meta'         => PaymentsMeta::class,
+		'wpforms_tasks_meta'           => TasksMeta::class,
+		'wpforms_logs'                 => Repository::class,
+		'wpforms_analytics_snapshots'  => Snapshots::class,
+		'wpforms_analytics_forms'      => Forms::class,
+		'wpforms_product_events_queue' => ProductEventsQueue::class,
 	];
 
 	/**
@@ -216,7 +223,7 @@ class WPForms_Lite {
 						],
 						'parent'      => 'settings',
 						'subsection'  => $id,
-						'class'       => 'email-recipient',
+						'class'       => 'email-recipient js-wpforms-recipient-email-validation',
 						'input_class' => 'wpforms-smart-tags-enabled',
 					]
 				);
@@ -235,6 +242,7 @@ class WPForms_Lite {
 							],
 							'parent'      => 'settings',
 							'subsection'  => $id,
+							'class'       => 'js-wpforms-recipient-email-validation js-wpforms-copy-recipient',
 							'input_class' => 'wpforms-smart-tags-enabled',
 						]
 					);
@@ -583,6 +591,7 @@ class WPForms_Lite {
 						'input_class' => 'wpforms-panel-field-confirmations-page',
 						'parent'      => 'settings',
 						'subsection'  => $field_id,
+						'placeholder' => esc_html__( 'Search for a page', 'wpforms-lite' ),
 						'choicesjs'   => [
 							'use_ajax'    => true,
 							'callback_fn' => 'select_pages',
@@ -741,7 +750,7 @@ class WPForms_Lite {
 						<?php
 						printf( /* translators: %s - number of templates. */
 							esc_html__( '%s customizable form templates', 'wpforms-lite' ),
-							'2000+'
+							'2100+'
 						);
 						?>
 					</li>
@@ -752,7 +761,7 @@ class WPForms_Lite {
 					<li><?php esc_html_e( 'Accept user-submitted content with the Post Submissions addon', 'wpforms-lite' ); ?></li>
 				</ul>
 				<ul>
-					<li><?php esc_html_e( '7000+ integrations with marketing and payment services', 'wpforms-lite' ); ?></li>
+					<li><?php esc_html_e( '9000+ integrations with marketing and payment services', 'wpforms-lite' ); ?></li>
 					<li><?php esc_html_e( 'Let users save & resume submissions to prevent abandonment', 'wpforms-lite' ); ?></li>
 					<li><?php esc_html_e( 'Take payments with Stripe, PayPal, Square, & Authorize.Net', 'wpforms-lite' ); ?></li>
 					<li><?php esc_html_e( 'Export entries to Google Sheets, Excel, and CSV', 'wpforms-lite' ); ?></li>
@@ -923,6 +932,9 @@ class WPForms_Lite {
 			return;
 		}
 
+		// Must run before the lifetime meta increment below: the window seeds its start from the pre-submission count.
+		( new EntriesWindow() )->record();
+
 		if ( add_post_meta( $form_id, 'wpforms_entries_count', 1, true ) ) {
 			return;
 		}
@@ -1092,10 +1104,10 @@ class WPForms_Lite {
 	private function get_entries_utm(): array {
 
 		return [
-			'entries_list_button' => 'https://wpforms.com/lite-upgrade/?utm_campaign=liteplugin&utm_source=WordPress&utm_medium=entries&utm_content=Upgrade%20Now%20-%20Entries%20list',
-			'entries_list_link'   => 'https://wpforms.com/lite-upgrade/?utm_campaign=liteplugin&utm_source=WordPress&utm_medium=entries&utm_content=Upgrade%20to%20Pro%20-%20Entries%20list',
-			'entry_single_button' => 'https://wpforms.com/lite-upgrade/?utm_campaign=liteplugin&utm_source=WordPress&utm_medium=entries&utm_content=Upgrade%20to%20Pro%20-%20Single%20Entry',
-			'entry_single_link'   => 'https://wpforms.com/lite-upgrade/?utm_campaign=liteplugin&utm_source=WordPress&utm_medium=entries&utm_content=Upgrade%20to%20Pro%20-%20Single%20Entry',
+			'entries_list_button' => wpforms_admin_upgrade_link( 'entries', 'Upgrade Now - Entries list' ),
+			'entries_list_link'   => wpforms_admin_upgrade_link( 'entries', 'Upgrade to Pro - Entries list' ),
+			'entry_single_button' => wpforms_admin_upgrade_link( 'entries', 'Upgrade to Pro - Single Entry' ),
+			'entry_single_link'   => wpforms_admin_upgrade_link( 'entries', 'Upgrade to Pro - Single Entry' ),
 		];
 	}
 

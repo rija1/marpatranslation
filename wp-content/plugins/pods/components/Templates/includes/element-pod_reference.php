@@ -1,3 +1,12 @@
+<?php
+
+// Don't load directly.
+if ( ! defined( 'ABSPATH' ) ) {
+	die( '-1' );
+}
+
+// phpcs:ignoreFile WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedVariableFound
+?>
 <div class="pod-queries-tools"><?php
 
 	$defaults = array(
@@ -11,7 +20,7 @@
 
 	$api   = pods_api();
 	$_pods = $api->load_pods();
-	echo '<select name="pod_reference[pod]" id="pod-reference" class="pod-switch" data-template="#podref-tmpl" data-target="#pods-magic-tag-list" data-action="pq_loadpod" data-event="change" />';
+	echo '<select name="pod_reference[pod]" id="pod-reference" class="pod-switch" data-template="#podref-tmpl" data-target="#pods-magic-tag-list" data-action="pq_loadpod" data-nonce="' . esc_attr( wp_create_nonce( 'pods_pq_loadpod' ) ) . '" data-event="change" />';
 	echo '<option value="">' . esc_html__( 'Select Pod to use as reference', 'pods' ) . '</option>';
 	foreach ( $_pods as $pod ) {
 		echo '<option value="' . esc_attr( $pod['name'] ) . '" ' . ( $atts['pod'] == $pod['name'] ? 'selected="selected"' : '' ) . '>' . esc_html( $pod['label'] ) . '</option>';

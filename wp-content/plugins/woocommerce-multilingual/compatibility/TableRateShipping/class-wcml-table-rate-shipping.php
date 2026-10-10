@@ -5,44 +5,22 @@ use WPML\FP\Fns;
 use WPML\FP\Logic;
 use WPML\FP\Obj;
 
-/**
- * Class WCML_Table_Rate_Shipping
- */
 class WCML_Table_Rate_Shipping implements \IWPML_Action {
 
-	/**
-	 * @var SitePress
-	 */
 	public $sitepress;
 
-	/**
-	 * @var woocommerce_wpml
-	 */
 	public $woocommerce_wpml;
 
-	/**
-	 * @var wpdb
-	 */
 	private $wpdb;
 
 	const PRIORITY_BEFORE_DELETE = 5;
 
-	// Database saving for rates happens on woocommerce_settings_shipping:10.
 	const PRIORITY_REGISTER_RATE_LABELS = 11;
 
 	const RATE_SHIPPING_METHOD_ID = 'table_rate';
-	// The first placeholder is the instance ID and the second is the rate ID.
 	const RATE_LABEL_NAME_FORMAT = 'table_rate%1$s%2$s_shipping_method_title';
-	// The placeholder is the rate ID.
 	const RATE_ABORT_REASON_NAME_FORMAT = 'table_rate_shipping_abort_reason_%s';
 
-	/**
-	 * WCML_Table_Rate_Shipping constructor.
-	 *
-	 * @param SitePress        $sitepress
-	 * @param woocommerce_wpml $woocommerce_wpml
-	 * @param wpdb             $wpdb
-	 */
 	public function __construct( SitePress $sitepress, woocommerce_wpml $woocommerce_wpml, wpdb $wpdb ) {
 		$this->sitepress        = $sitepress;
 		$this->woocommerce_wpml = $woocommerce_wpml;
@@ -58,7 +36,7 @@ class WCML_Table_Rate_Shipping implements \IWPML_Action {
 
 		if ( is_admin() ) {
 			add_action( 'woocommerce_settings_shipping', [ $this, 'registerShippingRatesStrings' ], self::PRIORITY_REGISTER_RATE_LABELS );
-			add_action( 'wp_ajax_woocommerce_table_rate_delete', [ $this, 'unregister_abort_messages_ajax' ], self::PRIORITY_BEFORE_DELETE );
+			\WCML\Request\Ajax::listen( 'woocommerce_table_rate_delete', [ $this, 'unregister_abort_messages_ajax' ], 'WooCommerce Table Rate delete: unregisters the rate strings; verifies the WooCommerce nonce and manage_woocommerce itself', self::PRIORITY_BEFORE_DELETE );
 			add_action( 'delete_product_shipping_class', [ $this, 'unregister_abort_messages_shipping_class' ], self::PRIORITY_BEFORE_DELETE );
 		}
 		add_filter( 'woocommerce_table_rate_query_rates', [ $this, 'translate_abort_messages' ] );
@@ -66,12 +44,7 @@ class WCML_Table_Rate_Shipping implements \IWPML_Action {
 		add_filter( 'wcml_order_item_shipping_method_translators', [ $this, 'registerOrderShippingMethodTranslator' ] );
 	}
 
-	/**
-	 * @todo We have a mechanism to unregister abort messages when deleting a rate; we could also unregister the label.
-	 * @todo Note that the RATE_LABEL_NAME_FORMAT can produce non unique names: instanceId = 11, rateId = 1 versus instanceId = 1, rateId = 11.
-	 */
 	public function registerShippingRatesStrings() {
-		// phpcs:ignore WordPress.VIP.SuperGlobalInputUsage.AccessDetected
 		$isEditingShippingInstance         = WcAdminPages::isShippingSettings() && isset( $_GET['instance_id'] );
 		$isSavingTRSInstanceWithTableRates = isset( $_POST['rate_id'] );
 		$canGetStoredTableRates            = class_exists( '\WooCommerce\Shipping\Table_Rate\Helpers' );
@@ -91,7 +64,6 @@ class WCML_Table_Rate_Shipping implements \IWPML_Action {
 			return;
 		}
 
-		/** @var callable(array):void $registerLabel */
 		$registerLabel = function( $rate ) use ( $instanceId ) {
 			do_action(
 				'wpml_register_single_string',
@@ -105,7 +77,6 @@ class WCML_Table_Rate_Shipping implements \IWPML_Action {
 			->filter( Obj::prop( 'rate_label' ) )
 			->each( $registerLabel );
 
-		/** @var callable $registerAbortReason */
 		$registerAbortReason = function( $rate ) {
 			do_action(
 				'wpml_register_single_string',
@@ -120,13 +91,6 @@ class WCML_Table_Rate_Shipping implements \IWPML_Action {
 			->each( $registerAbortReason );
 	}
 
-	/**
-	 * @param WP_Term[] $terms
-	 * @param int       $post_id
-	 * @param string    $taxonomy
-	 *
-	 * @return WP_Term[]
-	 */
 	public function shipping_class_id_in_default_language( $terms, $post_id, $taxonomy ) {
 		global $icl_adjust_id_url_filter_off;
 
@@ -198,44 +162,29 @@ class WCML_Table_Rate_Shipping implements \IWPML_Action {
 			->show();
 	}
 
-	/**
-	 * Unregister the deleted rate's shipping abort reasons when deleted via AJAX.
-	 */
 	public function unregister_abort_messages_ajax() {
 		check_ajax_referer( 'delete-rate', 'security' );
+
+		if ( ! current_user_can( 'manage_woocommerce' ) ) {
+			return;
+		}
 
 		wpml_collect( (array) Obj::prop( 'rate_id', $_POST ) )
 			->map( Fns::unary( 'intval' ) )
 			->map( [ $this, 'unregister_abort_messages' ] );
 	}
 
-	/**
-	 * Unregister the deleted rate's shipping abort reasons when the shipping class it's for is deleted.
-	 *
-	 * @param int $term_id
-	 */
 	public function unregister_abort_messages_shipping_class( $term_id ) {
-		// phpcs:disable WordPress.DB.PreparedSQL.InterpolatedNotPrepared
 		$table = $this->wpdb->prefix . 'woocommerce_shipping_table_rates';
 		$query = $this->wpdb->prepare(
 			"SELECT rate_id FROM $table WHERE rate_class=%d",
 			[ $term_id ]
 		);
-		// phpcs:enable WordPress.DB.PreparedSQL.InterpolatedNotPrepared
-		// phpcs:disable WordPress.DB.PreparedSQL.NotPrepared
 		wpml_collect( $this->wpdb->get_col( $query ) )
 			->map( [ $this, 'unregister_abort_messages' ] );
-		// phpcs:enable WordPress.DB.PreparedSQL.NotPrepared
 	}
 
-	/**
-	 * Translate the rate's shipping abort reasons
-	 *
-	 * @param stdClass[] $rates
-	 * @return stdClass[]
-	 */
 	public function translate_abort_messages( $rates ) {
-		// translateAbortReason :: stdClass -> stdClass
 		$translateAbortReason = function( $rate ) {
 			return Obj::assoc(
 				'rate_abort_reason',
@@ -254,11 +203,6 @@ class WCML_Table_Rate_Shipping implements \IWPML_Action {
 			->toArray();
 	}
 
-	/**
-	 * Unregister the deleted rate's shipping abort reasons for list of ids
-	 *
-	 * @param int $rate_id
-	 */
 	public function unregister_abort_messages( $rate_id ) {
 		icl_unregister_string(
 			WCML_WC_Shipping::STRINGS_CONTEXT,
@@ -266,13 +210,6 @@ class WCML_Table_Rate_Shipping implements \IWPML_Action {
 		);
 	}
 
-	/**
-	 * @param bool               $available
-	 * @param array              $package
-	 * @param WC_Shipping_Method $object
-	 *
-	 * @return bool
-	 */
 	public function shipping_table_rate_is_available( $available, $package, $object ) {
 
 		add_filter(
@@ -297,11 +234,6 @@ class WCML_Table_Rate_Shipping implements \IWPML_Action {
 		return $available;
 	}
 
-	/**
-	 * @param array $priorities
-	 *
-	 * @return array
-	 */
 	public function filter_table_rate_priorities( $priorities ) {
 
 		foreach ( $priorities as $slug => $priority ) {
@@ -316,13 +248,6 @@ class WCML_Table_Rate_Shipping implements \IWPML_Action {
 		return $priorities;
 	}
 
-	/**
-	 * Register the translator for shipping order items coming from table rates.
-	 *
-	 * @param array $translators
-	 *
-	 * @return array
-	 */
 	public function registerOrderShippingMethodTranslator( $translators ) {
 		$translators[ self::RATE_SHIPPING_METHOD_ID ] = \WCML\Compatibility\TableRateShipping\OrderItems\ShippingRate::class;
 		return $translators;

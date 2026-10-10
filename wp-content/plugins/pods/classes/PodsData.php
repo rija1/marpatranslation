@@ -1,5 +1,10 @@
 <?php
 
+// Don't load directly.
+if ( ! defined( 'ABSPATH' ) ) {
+	die( '-1' );
+}
+
 use Pods\Whatsit\Pod;
 use Pods\Whatsit\Field;
 use Pods\Whatsit\Object_Field;
@@ -486,6 +491,7 @@ class PodsData {
 		global $wpdb;
 
 		$columns = array_keys( $data );
+		$prepared = $data;
 
 		$update = array();
 		$values = array();
@@ -505,7 +511,7 @@ class PodsData {
 
 		$sql = "INSERT INTO `{$table}` ( `{$columns_data}` ) VALUES ( {$formats} ) ON DUPLICATE KEY UPDATE {$update}";
 
-		return $wpdb->prepare( $sql, $data );
+		return $wpdb->prepare( $sql, $prepared ); // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared
 	}
 
 	/**
@@ -672,7 +678,7 @@ class PodsData {
 		 *
 		 * @since unknown
 		 */
-		$params = apply_filters( 'pods_data_pre_select_params', $params, $instance );
+		$params = (object) apply_filters( 'pods_data_pre_select_params', $params, $instance );
 
 		// Debug purposes.
 		if ( 1 === (int) pods_v( 'pods_debug_params', 'get', 0 ) && pods_is_admin( array( 'pods' ) ) ) {
@@ -687,6 +693,58 @@ class PodsData {
 		$total_found_cached = false;
 
 		$is_search = pods_v( $this->search_var );
+
+		if ( empty( $params->bypass_fragment_checks ) ) {
+			$fragments_to_check = [
+				'select'  => 'SELECT',
+				'join'    => 'JOIN',
+				'where'   => 'WHERE',
+				'groupby' => 'GROUP BY',
+				'having'  => 'HAVING',
+				'orderby' => 'ORDER BY',
+				'sql'     => 'FULL SQL',
+			];
+
+			$fragment_info = ! empty( $params->fragment_info ) ? $params->fragment_info : [];
+
+			foreach ( $fragments_to_check as $fragment => $fragment_context ) {
+				if ( ! empty( $params->{$fragment} ) ) {
+					$sql_fragment = (array) $params->{$fragment};
+
+					if ( ! isset( $sql_fragment[0] ) ) {
+						continue;
+					}
+
+					foreach ( $sql_fragment as $sql_fragment_to_check ) {
+						if (
+							! is_string( $sql_fragment_to_check )
+							|| empty( $params->from )
+							|| 'dynamic-embed' !== $params->from
+							|| pods_access_sql_fragment_is_allowed( $sql_fragment_to_check, $fragment_context, $fragment_info, $params )
+						) {
+							continue;
+						}
+
+						if ( pods_is_admin() ) {
+							// phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- Notice HTML is escaped within pods_get_access_admin_notice().
+							echo pods_get_access_admin_notice(
+								$fragment_info,
+								true,
+								esc_html( sprintf(
+									/* translators: %s is the fragment SQL clause that was not allowed */
+									__( 'This query contains disallowed SQL fragments. It has been disabled for security purposes. The disallowed fragment was for %1$s: %2$s', 'pods' ),
+									$fragment,
+									$sql_fragment_to_check
+								) )
+							) ?: '';
+						}
+
+						// Stop processing the query.
+						return [];
+					}
+				}
+			}
+		}
 
 		// Disable caching for searches.
 		if ( null !== $is_search ) {
@@ -860,7 +918,7 @@ class PodsData {
 
 		// Set totals.
 		if ( false !== $this->total_sql ) {
-			$total = @current( $wpdb->get_col( $this->get_sql( $this->total_sql ) ) );
+			$total = @current( $wpdb->get_col( $this->get_sql( $this->total_sql ) ) ); // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared,PluginCheck.Security.DirectDB.UnescapedDBParameter
 		} else {
 			$total = @current( $wpdb->get_col( 'SELECT FOUND_ROWS()' ) );
 		}
@@ -877,7 +935,7 @@ class PodsData {
 	/**
 	 * Build/Rewrite dynamic SQL and handle search/filter/sort
 	 *
-	 * @param array $params
+	 * @param array|object $params
 	 *
 	 * @return bool|mixed|string
 	 * @since 2.0.0
@@ -1071,7 +1129,7 @@ class PodsData {
 			return false;
 		}
 
-		if ( false === strpos( $params->table, '(' ) && false === strpos( $params->table, '`' ) ) {
+		if ( false === strpos( (string) $params->table, '(' ) && false === strpos( (string) $params->table, '`' ) ) {
 			$params->table = '`' . $params->table . '`';
 		}
 
@@ -1132,6 +1190,8 @@ class PodsData {
 		if ( ! empty( $params->orderby ) ) {
 			if ( $is_pod_meta_storage && is_array( $params->orderby ) ) {
 				foreach ( $params->orderby as $i => $orderby ) {
+					$orderby = (string) $orderby;
+
 					if ( strpos( $orderby, '.meta_value_num' ) ) {
 						$params->orderby[ $i ] = 'CAST(' . str_replace( '.meta_value_num', '.meta_value', $orderby ) . ' AS DECIMAL)';
 					} elseif ( strpos( $orderby, '.meta_value_date' ) ) {
@@ -1917,7 +1977,7 @@ class PodsData {
 		} elseif ( 'odd' === $nth ) {
 			$negative = true;
 			$nth      = 2;
-		} elseif ( false !== strpos( $nth, '+' ) ) {
+		} elseif ( false !== strpos( (string) $nth, '+' ) ) {
 			$nth = explode( '+', $nth );
 
 			if ( isset( $nth[1] ) ) {
@@ -1925,7 +1985,7 @@ class PodsData {
 			}
 
 			$nth = (int) trim( $nth[0], ' n' );
-		} elseif ( false !== strpos( $nth, '-' ) ) {
+		} elseif ( false !== strpos( (string) $nth, '-' ) ) {
 			$nth = explode( '-', $nth );
 
 			if ( isset( $nth[1] ) ) {
@@ -2190,8 +2250,8 @@ class PodsData {
 				&& null !== $row
 				&& (
 					! is_numeric( $row )
-					|| 0 === strpos( $row, '0' )
-					|| (string) $row !== (string) preg_replace( '/[^0-9]/', '', $row )
+					|| 0 === strpos( (string) $row, '0' )
+					|| (string) $row !== (string) preg_replace( '/[^0-9]/', '', (string) $row )
 				)
 			) {
 				$mode = 'slug';
@@ -2288,15 +2348,15 @@ class PodsData {
 					$_term = wp_cache_get( $term, $taxonomy );
 
 					if ( 'id' !== $mode || ! $_term ) {
-						$_term = $wpdb->get_row( $wpdb->prepare( "SELECT t.*, tt.* FROM $wpdb->terms AS t INNER JOIN $wpdb->term_taxonomy AS tt ON t.term_id = tt.term_id WHERE tt.taxonomy = %s AND {$term_where} LIMIT 1", $taxonomy, $term ) );
+						$_term = $wpdb->get_row( $wpdb->prepare( "SELECT t.*, tt.* FROM $wpdb->terms AS t INNER JOIN $wpdb->term_taxonomy AS tt ON t.term_id = tt.term_id WHERE tt.taxonomy = %s AND {$term_where} LIMIT 1", $taxonomy, $term ) ); // phpcs:ignore PluginCheck.Security.DirectDB.UnescapedDBParameter,WordPress.DB.PreparedSQLPlaceholders.ReplacementsWrongNumber,WordPress.DB.PreparedSQL.InterpolatedNotPrepared
 
 						if ( $_term ) {
 							wp_cache_add( $term, $_term, $taxonomy );
 						}
 					}
 
-					$_term = apply_filters( 'get_term', $_term, $taxonomy );
-					$_term = apply_filters( "get_$taxonomy", $_term, $taxonomy );
+					$_term = apply_filters( 'get_term', $_term, $taxonomy ); // phpcs:ignore WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedHooknameFound
+					$_term = apply_filters( "get_$taxonomy", $_term, $taxonomy ); // phpcs:ignore WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedHooknameFound
 					$_term = sanitize_term( $_term, $taxonomy, $filter );
 
 					$this->row = [];
@@ -2537,7 +2597,7 @@ class PodsData {
 		if ( 1 === (int) pods_v( 'pods_debug_backtrace' ) && pods_is_admin() ) {
 			ob_start();
 			echo '<pre>';
-			var_dump( debug_backtrace( DEBUG_BACKTRACE_IGNORE_ARGS, 11 ) );
+			var_dump( debug_backtrace( DEBUG_BACKTRACE_IGNORE_ARGS, 11 ) ); // phpcs:ignore WordPress.PHP.DevelopmentFunctions.error_log_var_dump,WordPress.PHP.DevelopmentFunctions.error_log_debug_backtrace
 			echo '</pre>';
 			$error = ob_get_clean() . $error;
 		}
@@ -2595,7 +2655,7 @@ class PodsData {
 			$wpdb->show_errors( false );
 		}
 
-		$result = $wpdb->query( $params->sql );
+		$result = $wpdb->query( $params->sql ); // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared,PluginCheck.Security.DirectDB.UnescapedDBParameter
 
 		// Maybe show wpdb errors.
 		if ( $wpdb_show_errors ) {
@@ -2658,7 +2718,7 @@ class PodsData {
 			$wpdb->term_relationships,
 		);
 
-		$showTables = $wpdb->get_results( 'SHOW TABLES in ' . DB_NAME, ARRAY_A );
+		$showTables = $wpdb->get_results( 'SHOW TABLES in ' . DB_NAME, ARRAY_A ); // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared
 
 		$finalTables = array();
 
@@ -2723,7 +2783,7 @@ class PodsData {
 
 		global $wpdb;
 
-		$column_data = $wpdb->get_results( 'DESCRIBE ' . $table, ARRAY_A );
+		$column_data = $wpdb->get_results( "DESCRIBE `{$table}`", ARRAY_A ); // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared,PluginCheck.Security.DirectDB.UnescapedDBParameter,WordPress.DB.PreparedSQL.InterpolatedNotPrepared
 
 		foreach ( $column_data as $single_column ) {
 			if ( $column_name === $single_column['Field'] ) {
@@ -2752,7 +2812,7 @@ class PodsData {
 		global $wpdb;
 		[ $sql, $data ] = apply_filters( 'pods_data_prepare', array( $sql, $data ) );
 
-		return $wpdb->prepare( $sql, $data );
+		return $wpdb->prepare( $sql, $data ); // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared
 	}
 
 	/**
@@ -2985,7 +3045,7 @@ class PodsData {
 					$tableless_field_types = PodsForm::tableless_field_types();
 
 					if ( $the_field ) {
-						$field_name = $the_field->get_name();
+						$field_name = sanitize_key( $the_field->get_name() );
 
 						// @todo Implement get_db_field here in the future.
 
@@ -3005,10 +3065,10 @@ class PodsData {
 
 								if ( ! empty( $table ) ) {
 									if ( is_int( $field_value ) ) {
-										$field_cast = "`{$field_name}`.`" . $table['field_id'] . '`';
+										$field_cast = "`{$field_name}`.`" . sanitize_key( $table['field_id'] ) . '`';
 									} else {
 										// Prior to 2.8 this was the default query, retain backwards compatibility
-										$field_cast = "`{$field_name}`.`" . $table['field_index'] . '`';
+										$field_cast = "`{$field_name}`.`" . sanitize_key( $table['field_index'] ) . '`';
 									}
 								}
 							}
@@ -3042,9 +3102,37 @@ class PodsData {
 
 			// Cast field if needed.
 			if ( 'CHAR' !== $field_type ) {
-				$field_cast = 'CAST( ' . $field_cast . ' AS ' . $field_type . ' )';
+				$field_cast = 'CAST( ' . $field_cast . ' AS ' . strtoupper( sanitize_key( $field_type ) ) . ' )';
 			}
 		}//end if
+
+		// Validate this expression before it is used, to help prevent security issues.
+		if (
+			! empty( $params->from )
+			&& 'dynamic-embed' === $params->from
+			&& ! pods_access_sql_fragment_is_allowed( (string) $field_cast, 'FIELD', ! empty( $params->fragment_info ) ? $params->fragment_info : [
+				'pod' => $pod,
+			], $params )
+		) {
+			if ( pods_is_admin() ) {
+				// phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- Notice HTML is escaped within pods_get_access_admin_notice().
+				echo pods_get_access_admin_notice(
+					! empty( $params->fragment_info ) ? $params->fragment_info : [
+						'pod' => $pod,
+					],
+					true,
+					esc_html( sprintf(
+						/* translators: %s is the fragment SQL clause that was not allowed */
+						__( 'This query contains disallowed SQL fragments. It has been disabled for security purposes. The disallowed fragment was for %1$s: %2$s', 'pods' ),
+						'query_field',
+						(string) $field_cast
+					) )
+				) ?: '';
+			}
+
+			// Fragment not allowed.
+			return null;
+		}
 
 		// Setup string sanitizing for $wpdb->prepare().
 		if ( empty( $field_sanitize_format ) ) {
@@ -3185,7 +3273,7 @@ class PodsData {
 		], true ) ) {
 			if ( $field_sanitize ) {
 				$field_query = "{$field_cast} {$field_compare} {$field_sanitize_format}";
-				$field_query = $wpdb->prepare( $field_query, $field_value );
+				$field_query = $wpdb->prepare( $field_query, $field_value ); // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared
 			} else {
 				$field_query = "{$field_cast} {$field_compare} '{$field_value}'";
 			}
@@ -3220,14 +3308,14 @@ class PodsData {
 							&& ! in_array( "t.{$pod['field_id']}", $params->groupby, true )
 						)
 					) {
-						$params->groupby[] = "`t`.`{$pod['field_id']}`";
+						$params->groupby[] = '`t`.`' . sanitize_key( $pod['field_id'] ) . '`';
 					}
 				}
 			}
 
 			if ( $field_sanitize ) {
 				$field_query = "{$field_cast} {$field_compare} ( " . substr( str_repeat( ', ' . $field_sanitize_format, count( $field_value ) ), 1 ) . " )";
-				$field_query = $wpdb->prepare( $field_query, $field_value );
+				$field_query = $wpdb->prepare( $field_query, $field_value ); // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared
 			} else {
 				$field_query = "{$field_cast} {$field_compare} ( '" . implode( "', '", $field_value ) . "' )";
 			}
@@ -3237,7 +3325,7 @@ class PodsData {
 		], true ) ) {
 			if ( $field_sanitize ) {
 				$field_query = "{$field_cast} {$field_compare} {$field_sanitize_format} AND {$field_sanitize_format}";
-				$field_query = $wpdb->prepare( $field_query, $field_value );
+				$field_query = $wpdb->prepare( $field_query, $field_value ); // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared
 			} else {
 				$field_query = "{$field_cast} {$field_compare} '{$field_value[0]}' AND '{$field_value[1]}'";
 			}
@@ -3901,7 +3989,31 @@ class PodsData {
 		 */
 		$sql = apply_filters( 'pods_data_get_sql', $sql, $this );
 
-		$sql = str_replace( array( '@wp_users', '@wp_' ), array( $wpdb->users, $wpdb->prefix ), $sql );
+		$sql = str_replace(
+			[
+				'@wp_blogs',
+				'@wp_blogmeta',
+				'@wp_registration_log',
+				'@wp_signups',
+				'@wp_site',
+				'@wp_sitemeta',
+				'@wp_users',
+				'@wp_usermeta',
+				'@wp_',
+			],
+			[
+				$wpdb->blogs,
+				$wpdb->blogmeta,
+				$wpdb->registration_log,
+				$wpdb->signups,
+				$wpdb->site,
+				$wpdb->sitemeta,
+				$wpdb->users,
+				$wpdb->usermeta,
+				$wpdb->prefix,
+			],
+			$sql
+		);
 
 		$sql = str_replace( '{prefix}', '@wp_', $sql );
 		$sql = str_replace( '{/prefix/}', '{prefix}', $sql );

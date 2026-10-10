@@ -1,4 +1,5 @@
 <?php
+
 /**
  * The public-facing functionality of the plugin.
  *
@@ -14,6 +15,11 @@ namespace CookieYes\Lite\Frontend;
 use CookieYes\Lite\Admin\Modules\Banners\Includes\Controller;
 use CookieYes\Lite\Admin\Modules\Settings\Includes\Settings;
 use CookieYes\Lite\Admin\Modules\Gcm\Includes\Gcm_Settings;
+
+if ( ! defined( 'ABSPATH' ) ) {
+	exit;
+}
+
 /**
  * The public-facing functionality of the plugin.
  *

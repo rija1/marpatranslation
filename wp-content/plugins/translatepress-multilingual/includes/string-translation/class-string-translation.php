@@ -137,7 +137,6 @@ class TRP_String_Translation {
         wp_localize_script( 'trp-string-translation-editor', 'trp_editor_data', $this->translation_manager->get_trp_editor_data() );
         wp_localize_script( 'trp-string-translation-editor', 'trp_string_translation_data', $this->get_string_translation_data() );
 
-
         // Show upload media dialog in default language
         switch_to_locale( $this->settings['default-language'] );
         // Necessary for add media button
@@ -176,6 +175,7 @@ class TRP_String_Translation {
             'translation_status' => array(
                 'human_reviewed'     => esc_html__( 'Manually translated', 'translatepress-multilingual' ),
                 'machine_translated' => esc_html__( 'Automatically translated', 'translatepress-multilingual' ),
+                'gettext_translated_in_language_file' => esc_html__( 'Gettext file translation', 'translatepress-multilingual' ),
                 'not_translated'     => esc_html__( 'Not translated', 'translatepress-multilingual' )
             )
 
@@ -260,11 +260,12 @@ class TRP_String_Translation {
 	        'last_page'                  => esc_html__( 'Navigate to last page', 'translatepress-multilingual' ),
 	        'navigate_to_page'           => esc_html__( 'Type a page number to navigate to', 'translatepress-multilingual' ),
 	        'wrong_page'                 => esc_html__( 'Incorrect page number. Type a page number between 1 and total number of pages', 'translatepress-multilingual' ),
-	        'search_tooltip'             => esc_html__( 'Search original strings containing typed keywords while also matching selected filters', 'translatepress-multilingual' ),
+	        'search_tooltip'             => html_entity_decode(esc_html__( 'Search original and translated strings containing typed keywords while also matching selected filters. Place string in quotes for exact match: "string"', 'translatepress-multilingual' )),
 	        'filter_tooltip'             => esc_html__( 'Filter strings according to selected translation status, filters and keywords and selected filters', 'translatepress-multilingual' ),
 	        'clear_filter_tooltip'       => esc_html__( 'Removes selected filters', 'translatepress-multilingual' ),
 	        'select_all_tooltip'         => esc_html__( 'See options for selecting all strings', 'translatepress-multilingual' ),
 	        'sort_by_column'             => esc_html__( 'Click to sort strings by this column', 'translatepress-multilingual' ),
+	        'post_id_column_tooltip'     => esc_html__( 'The ID of the WordPress post where this string was detected. Empty if the string is not associated with a specific post.', 'translatepress-multilingual' ),
 	        'filter_by_language_tooltip' => esc_html__( 'Language in which the translation status filter applies. Leave unselected for the translation status to apply to ANY language', 'translatepress-multilingual' ),
             'search_placeholder'         => esc_html__('Search', 'translatepress-multilingual'),
             'other_slugs_tooltip'        => esc_html__( 'Slugs that are not found in either one of the other categories.', 'translatepress-multilingual')
@@ -289,7 +290,7 @@ class TRP_String_Translation {
                     'plugin_path'            => TRP_PLUGIN_DIR,
                     'nonces'                 => $this->get_nonces_for_type( 'gettext' ),
                     'table_columns'          => array(
-                        'id'         => esc_html__( 'ID', 'translatepress-multilingual' ),
+                        'id'         => esc_html__( 'Post ID', 'translatepress-multilingual' ),
                         'original'   => esc_html__( 'Original String', 'translatepress-multilingual' ),
                         'translated' => esc_html__( 'Translation', 'translatepress-multilingual' ),
                         'domain'     => esc_html__( 'Domain', 'translatepress-multilingual' ),
@@ -319,7 +320,7 @@ class TRP_String_Translation {
                     'plugin_path'            => TRP_PLUGIN_DIR,
                     'nonces'                 => $this->get_nonces_for_type( 'gettext' ),
                     'table_columns'          => array(
-                        'id'         => esc_html__( 'ID', 'translatepress-multilingual' ),
+                        'id'         => esc_html__( 'Post ID', 'translatepress-multilingual' ),
                         'original'   => esc_html__( 'Original String', 'translatepress-multilingual' ),
                         'translated' => esc_html__( 'Translation', 'translatepress-multilingual' ),
                         'domain'     => esc_html__( 'Domain', 'translatepress-multilingual' ),
@@ -344,7 +345,7 @@ class TRP_String_Translation {
                     'plugin_path'            => TRP_PLUGIN_DIR,
                     'nonces'                 => $this->get_nonces_for_type( 'regular' ),
                     'table_columns'          => array(
-                        'id'         => esc_html__( 'ID', 'translatepress-multilingual' ),
+                        'id'         => esc_html__( 'Post ID', 'translatepress-multilingual' ),
                         'original'   => esc_html__( 'Original String', 'translatepress-multilingual' ),
                         'translated' => esc_html__( 'Translation', 'translatepress-multilingual' )
                     ),
@@ -361,7 +362,7 @@ class TRP_String_Translation {
         );
 
 
-        if ( !apply_filters('trp_show_regular_strings_string_translation', false ) ){
+        if ( !apply_filters('trp_show_regular_strings_string_translation', true ) ){
             unset($string_types_config['regular']);
         }
         $seo_pack_active = class_exists( 'TRP_IN_Seo_Pack');

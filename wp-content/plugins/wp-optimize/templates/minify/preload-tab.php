@@ -1,8 +1,8 @@
-<?php if (!defined('WPO_VERSION')) die('No direct access allowed'); ?>
+<?php if (!defined('ABSPATH')) die('No direct access allowed'); ?>
 <div class="wpo_section wpo_group">
 	<form>
 	<?php if ($is_cache_enabled) : ?>
-		<div id="minify-preload" class="notice notice-warning wpo-warning below-h2 wp-optimize-minify-status-information-notice wpo-show">
+		<div id="minify-preload" class="notice notice-warning wpo-warning below-h2 wpo-show">
 			<p>
 				<span class="dashicons dashicons-info"></span>
 				<?php

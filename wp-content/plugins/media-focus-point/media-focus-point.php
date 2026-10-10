@@ -2,17 +2,30 @@
 /**
  * Plugin Name: Media Focus Point
  * Description: Ensures that your selected focus area of an image or video remains centered and visible, even when resized.
- * Version: 2.0.4
+ * Version: 2.1.3
  * Author: WP Company
  * Author URI: https://www.wpcompany.nl
  * Text Domain: media-focus-point
  * Domain Path: /languages
- * Tested up to: 6.9
+ * Tested up to: 7.1
  * License: GPLv3 or later
  * License URI: http://www.gnu.org/licenses/gpl-3.0.html
  */
 
 if ( ! defined( 'ABSPATH' ) ) exit; // Exit if accessed directly
+
+/**
+ * Check whether Blocksy (or a Blocksy child theme) is active.
+ *
+ * Keeping the compatibility layer behind this check prevents it from changing
+ * the output or loading assets for other themes.
+ */
+function wpcmfp_is_blocksy_theme() {
+    $theme = wp_get_theme();
+
+    return 'blocksy' === strtolower( $theme->get_template() )
+        || 'blocksy' === strtolower( $theme->get_stylesheet() );
+}
 
 // Add custom media field to image/video attachments
 function wpcmfp_media_add_media_custom_field( $form_fields, $post ) {
@@ -107,7 +120,15 @@ add_filter( 'attachment_fields_to_edit', 'wpcmfp_media_add_media_custom_field', 
 function wpcmfp_media_save_attachment( $attachment_id ) {
     if ( isset( $_REQUEST['attachments'][ $attachment_id ]['bg_pos_desktop'] ) ) {
         $bg_pos_desktop = sanitize_text_field( wp_unslash( $_REQUEST['attachments'][ $attachment_id ]['bg_pos_desktop'] ) );
-        update_post_meta( $attachment_id, 'bg_pos_desktop', $bg_pos_desktop );
+
+        // A centered image is the default state. Do not store it as a focus
+        // point, otherwise it is indistinguishable from an explicitly focused
+        // image in the block editor and on the frontend.
+        if ( '50% 50%' === $bg_pos_desktop ) {
+            delete_post_meta( $attachment_id, 'bg_pos_desktop' );
+        } else {
+            update_post_meta( $attachment_id, 'bg_pos_desktop', $bg_pos_desktop );
+        }
     }
 }
 
@@ -118,14 +139,111 @@ add_action( 'edit_attachment', 'wpcmfp_media_save_attachment' );
 function wpcmfp_filter_gallery_img_attributes( $atts, $attachment ) {
     $bg_pos_desktop = get_post_meta( $attachment->ID, 'bg_pos_desktop', true );
 
-    if ( ! empty( $bg_pos_desktop ) ) {
-        $style = "object-position: " . esc_attr( $bg_pos_desktop ) . ';';
+    if ( wpcmfp_has_focus_point( $bg_pos_desktop ) ) {
+        $style = 'object-position: ' . esc_attr( $bg_pos_desktop ) . ';';
         $atts['style'] = isset( $atts['style'] ) ? $atts['style'] . ' ' . $style : $style;
+        $atts['class'] = isset( $atts['class'] ) ? $atts['class'] . ' media-focus-point' : 'media-focus-point';
+
+        /*
+         * Blocksy adds its aspect-ratio styles after this WordPress filter has
+         * run, replacing the complete style attribute in the process. Preserve
+         * the focus point separately so the small Blocksy compatibility script
+         * can restore object-position after Blocksy has finished rendering.
+         */
+        if ( wpcmfp_is_blocksy_theme() ) {
+            $atts['data-wpcmfp-focus-point'] = esc_attr( $bg_pos_desktop );
+        }
     }
 
     return $atts;
 }
 add_filter( 'wp_get_attachment_image_attributes', 'wpcmfp_filter_gallery_img_attributes', 10, 2 );
+
+/**
+ * Keep the focus point on the actual image when Imagify wraps it in <picture>.
+ *
+ * Imagify copies the original image attributes to the <picture> element, but
+ * deliberately removes `style` and `class` from the generated <img>. CSS
+ * `object-position` only applies to the replaced element that renders the
+ * image, so a value on <picture> has no effect. Copy just the focus-point
+ * declaration back to the generated <img> through Imagify's public filter.
+ *
+ * @param array $attributes Attributes for the generated <img>.
+ * @param array $image      Imagify's parsed image data.
+ * @return array
+ */
+function wpcmfp_filter_imagify_picture_img_attributes( $attributes, $image ) {
+    if ( empty( $image['attributes'] ) || ! is_array( $image['attributes'] ) ) {
+        return $attributes;
+    }
+
+    $original_style = isset( $image['attributes']['style'] )
+        ? (string) $image['attributes']['style']
+        : '';
+
+    if ( ! preg_match( '/(?:^|;)\s*object-position\s*:\s*([^;]+)\s*;?/i', $original_style, $match ) ) {
+        return $attributes;
+    }
+
+    $focus_style = 'object-position: ' . trim( $match[1] ) . ';';
+    $existing_style = isset( $attributes['style'] ) ? trim( (string) $attributes['style'] ) : '';
+
+    if ( '' !== $existing_style && ';' !== substr( $existing_style, -1 ) ) {
+        $existing_style .= ';';
+    }
+
+    $attributes['style'] = trim( $existing_style . ' ' . $focus_style );
+
+    // Imagify also removes the original class from its generated <img>.
+    // Restore only our marker, so focus-point-specific CSS keeps working.
+    if ( ! empty( $image['attributes']['class'] ) && preg_match( '/(?:^|\s)media-focus-point(?:\s|$)/', (string) $image['attributes']['class'] ) ) {
+        $existing_class = isset( $attributes['class'] ) ? trim( (string) $attributes['class'] ) : '';
+        if ( ! preg_match( '/(?:^|\s)media-focus-point(?:\s|$)/', $existing_class ) ) {
+            $attributes['class'] = trim( $existing_class . ' media-focus-point' );
+        }
+    }
+
+    return $attributes;
+}
+add_filter( 'imagify_picture_img_attributes', 'wpcmfp_filter_imagify_picture_img_attributes', 10, 2 );
+
+/**
+ * Return true only for an actual, non-default focus point.
+ *
+ * @param string $position Stored position.
+ * @return bool
+ */
+function wpcmfp_has_focus_point( $position ) {
+    return ! empty( $position ) && '50% 50%' !== trim( $position );
+}
+
+/**
+ * Convert a core/image block focal point to the CSS object-position format.
+ *
+ * A block-specific focal point takes precedence over the attachment-wide
+ * focus point on the frontend as well as in the editor.
+ *
+ * @param array $block Block data.
+ * @return string|false CSS position or false when no custom block position exists.
+ */
+function wpcmfp_get_block_focal_point_position( $block ) {
+    if ( empty( $block['attrs']['focalPoint'] ) || ! is_array( $block['attrs']['focalPoint'] ) ) {
+        return false;
+    }
+
+    $focal_point = $block['attrs']['focalPoint'];
+    if ( ! isset( $focal_point['x'], $focal_point['y'] ) ) {
+        return false;
+    }
+
+    $x = (float) $focal_point['x'];
+    $y = (float) $focal_point['y'];
+    if ( 0.5 === $x && 0.5 === $y ) {
+        return false;
+    }
+
+    return round( max( 0, min( 1, $x ) ) * 100 ) . '% ' . round( max( 0, min( 1, $y ) ) * 100 ) . '%';
+}
 
 
 // Function that is called when a video block is rendered
@@ -151,17 +269,30 @@ add_filter('render_block', function ($block_content, $block) {
         $media_id = $block['attrs']['id']; // Get the video or photo ID
         $object_position = get_post_meta($media_id, 'bg_pos_desktop', true);
 
-        // If a background position is defined, apply it
-        if (!empty($object_position)) {
-            $style = 'object-position: ' . esc_attr($object_position) . ';';
-            if ($block['blockName'] === 'core/video') {
-                $style .= 'object-fit: cover;'; // Initialize style variable
+        // A focus point selected on this block is more specific than the
+        // attachment-wide value and must win on the frontend too.
+        if ( 'core/image' === $block['blockName'] ) {
+            $block_position = wpcmfp_get_block_focal_point_position( $block );
+            if ( false !== $block_position ) {
+                $object_position = $block_position;
             }
+        }
+
+        // If a background position is defined, apply it
+        if (wpcmfp_has_focus_point($object_position)) {
+            $style = 'object-position: ' . esc_attr($object_position) . ';';
             $tag = $block['blockName'] === 'core/video' ? 'video' : 'img';
             $block_content = preg_replace_callback(
                 '#<' . $tag . '([^>]*)>#',
                 function ($matches) use ($style, $tag) {
                     $attrs = $matches[1];
+                    // Scope the override to this image only.
+                    if (preg_match('/\sclass=("|\')(.*?)\1/i', $attrs, $class_match)) {
+                        $classes = trim($class_match[2] . ' media-focus-point');
+                        $attrs = str_replace($class_match[0], ' class="' . esc_attr($classes) . '"', $attrs);
+                    } else {
+                        $attrs .= ' class="media-focus-point"';
+                    }
                     // Append the new style to the existing style attribute
                     if (strpos($attrs, 'style=') !== false) {
                         $attrs = preg_replace_callback(
@@ -191,12 +322,88 @@ add_filter('render_block', function ($block_content, $block) {
     return $block_content;
 }, 10, 2);
 
+// The editor renders core/image in React, so render_block is not involved in
+// its live preview. Expose the attachment meta and apply the same marker.
+function wpcmfp_register_attachment_meta() {
+    register_post_meta( 'attachment', 'bg_pos_desktop', array(
+        'type'              => 'string',
+        'single'            => true,
+        'show_in_rest'      => true,
+        'sanitize_callback' => 'sanitize_text_field',
+        'auth_callback'     => function () { return current_user_can( 'upload_files' ); },
+    ) );
+
+    // Attachments do not always expose registered custom fields in the REST
+    // response. Provide an explicit field for the block editor as a fallback.
+    register_rest_field( 'attachment', 'wpcmfp_focus_point', array(
+        'get_callback' => function ( $attachment ) {
+            return get_post_meta( $attachment['id'], 'bg_pos_desktop', true );
+        },
+        'schema' => array(
+            'type' => 'string',
+            'context' => array( 'view', 'edit' ),
+        ),
+    ) );
+}
+add_action( 'init', 'wpcmfp_register_attachment_meta' );
+
+function wpcmfp_enqueue_block_editor_assets() {
+    wp_enqueue_style( 'wpc-mfp-blocks', plugin_dir_url( __FILE__ ) . 'focus-point.css', array(), filemtime( plugin_dir_path( __FILE__ ) . 'focus-point.css' ) );
+    wp_enqueue_script( 'wpc-mfp-block-editor', plugin_dir_url( __FILE__ ) . 'block-editor.js', array( 'wp-api-fetch', 'wp-data', 'wp-dom-ready' ), filemtime( plugin_dir_path( __FILE__ ) . 'block-editor.js' ), true );
+
+    $focus_points = array();
+    $post_id = isset( $_GET['post'] ) ? absint( $_GET['post'] ) : 0;
+    $post = $post_id ? get_post( $post_id ) : null;
+    if ( $post ) {
+        wpcmfp_collect_block_focus_points( parse_blocks( $post->post_content ), $focus_points );
+    }
+    wp_localize_script( 'wpc-mfp-block-editor', 'wpcmfpEditorData', array( 'positions' => $focus_points ) );
+}
+add_action( 'enqueue_block_editor_assets', 'wpcmfp_enqueue_block_editor_assets' );
+
+function wpcmfp_collect_block_focus_points( $blocks, &$focus_points ) {
+    foreach ( $blocks as $block ) {
+        if ( ! empty( $block['innerBlocks'] ) ) {
+            wpcmfp_collect_block_focus_points( $block['innerBlocks'], $focus_points );
+        }
+        if ( 'core/image' === $block['blockName'] && ! empty( $block['attrs']['id'] ) ) {
+            $position = get_post_meta( absint( $block['attrs']['id'] ), 'bg_pos_desktop', true );
+            if ( wpcmfp_has_focus_point( $position ) ) {
+                $focus_points[ (string) absint( $block['attrs']['id'] ) ] = $position;
+            }
+        }
+    }
+}
+
+function wpcmfp_enqueue_frontend_assets() {
+    wp_enqueue_style( 'wpc-mfp-blocks', plugin_dir_url( __FILE__ ) . 'focus-point.css', array(), filemtime( plugin_dir_path( __FILE__ ) . 'focus-point.css' ) );
+}
+add_action( 'wp_enqueue_scripts', 'wpcmfp_enqueue_frontend_assets' );
+
 // Enqueue admin styles/scripts
 function wpcmfp_media_focus_point_admin_scripts() {
     wp_enqueue_style( 'wpc-mfp-css', plugin_dir_url( __FILE__ ) . 'admin.css', [], filemtime( __FILE__ ) );
     wp_enqueue_script( 'wpc-mfp-js', plugin_dir_url( __FILE__ ) . 'script.js', [], filemtime( __FILE__ ), ['in_footer' => true] );
 }
 add_action( 'admin_enqueue_scripts', 'wpcmfp_media_focus_point_admin_scripts' );
+
+// Restore focus points that Blocksy's image renderer overwrites.
+function wpcmfp_blocksy_frontend_scripts() {
+    if ( ! wpcmfp_is_blocksy_theme() ) {
+        return;
+    }
+
+    $script_path = plugin_dir_path( __FILE__ ) . 'blocksy.js';
+
+    wp_enqueue_script(
+        'wpc-mfp-blocksy',
+        plugin_dir_url( __FILE__ ) . 'blocksy.js',
+        [],
+        filemtime( $script_path ),
+        true
+    );
+}
+add_action( 'wp_enqueue_scripts', 'wpcmfp_blocksy_frontend_scripts' );
 
 
 // Helper: Get background style for images (and optionally videos)

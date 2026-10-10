@@ -9,7 +9,6 @@ abstract class Export implements \IWPML_Backend_Action, \IWPML_REST_Action, \IWP
 	const COL_LANGUAGE = 'language';
 	const COL_CURRENCY = 'currency';
 
-	/** @var \wpdb $wpdb */
 	protected $wpdb;
 
 	public function __construct( \wpdb $wpdb ) {
@@ -22,49 +21,28 @@ abstract class Export implements \IWPML_Backend_Action, \IWPML_REST_Action, \IWP
 		add_filter( 'woocommerce_analytics_clauses_join_products_subquery', [ $this, 'addJoinClauses' ] );
 		add_filter( 'woocommerce_analytics_clauses_select_products_subquery', [ $this, 'addSelectClauses' ] );
 
+		/* translators: Column heading for the language of an order or a product, in the WooCommerce analytics reports and their exported files. Noun. */
 		add_filter( 'woocommerce_report_orders_export_columns', $this->addColumnTitle( self::COL_LANGUAGE, __( 'Language', 'woocommerce-multilingual' ) ) );
 		add_filter( 'woocommerce_report_orders_prepare_export_item', $this->copyProp( self::COL_LANGUAGE ), 10, 2 );
 
 		if ( wcml_is_multi_currency_on() ) {
+			/* translators: Column heading and field label for the currency of an order, in the WooCommerce analytics reports, the payment-gateway settings and the plugin's multicurrency screen. Noun, singular. */
 			add_filter( 'woocommerce_report_orders_export_columns', $this->addColumnTitle( self::COL_CURRENCY, __( 'Currency', 'woocommerce-multilingual' ) ) );
 			add_filter( 'woocommerce_report_orders_prepare_export_item', $this->copyProp( self::COL_CURRENCY ), 10, 2 );
+			/* translators: Column heading and field label for the currency of an order, in the WooCommerce analytics reports, the payment-gateway settings and the plugin's multicurrency screen. Noun, singular. */
 			add_filter( 'woocommerce_report_products_export_columns', $this->addColumnTitle( self::COL_CURRENCY, __( 'Currency', 'woocommerce-multilingual' ) ) );
 			add_filter( 'woocommerce_report_products_prepare_export_item', $this->copyProp( self::COL_CURRENCY ), 10, 2 );
 		}
 	}
 
-	/**
-	 * @param string $column
-	 * @param string $title
-	 *
-	 * @return callable(array):array
-	 */
 	private function addColumnTitle( $column, $title ) {
 		return Obj::assoc( $column, $title );
 	}
 
-	/**
-	 * @param string[] $clauses
-	 *
-	 * @return string[]
-	 */
 	abstract public function addJoinClauses( $clauses );
 
-	/**
-	 * @param string[] $clauses
-	 *
-	 * @return string[]
-	 */
 	abstract public function addSelectClauses( $clauses );
 
-	/**
-	 * This filter is required for case when the exported file
-	 * is generated with the action-scheduler (report sent by email).
-	 *
-	 * @param string $column
-	 *
-	 * @return callable(array,array):array
-	 */
 	public function copyProp( $column ) {
 		return function ( $export_item, $item ) use ( $column ) {
 			return Obj::assoc( $column, Obj::prop( $column, $item ), $export_item );

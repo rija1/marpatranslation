@@ -2,25 +2,24 @@
 
 // File generated from our OpenAPI spec
 
-namespace Stripe\Service\Billing;
+namespace PaymentPlugins\Vendor\Stripe\Service\Billing;
 
 /**
  * @phpstan-import-type RequestOptionsArray from \Stripe\Util\RequestOptions
- */
-/**
+ *
  * @psalm-import-type RequestOptionsArray from \Stripe\Util\RequestOptions
  */
-class MeterEventService extends \Stripe\Service\AbstractService
+class MeterEventService extends \PaymentPlugins\Vendor\Stripe\Service\AbstractService
 {
     /**
      * Creates a billing meter event.
      *
-     * @param null|array $params
-     * @param null|RequestOptionsArray|\Stripe\Util\RequestOptions $opts
+     * @param null|array{event_name: string, expand?: string[], identifier?: string, payload: array<string, string>, timestamp?: int} $params
+     * @param null|RequestOptionsArray|\PaymentPlugins\Vendor\Stripe\Util\RequestOptions $opts
      *
-     * @throws \Stripe\Exception\ApiErrorException if the request fails
+     * @return \PaymentPlugins\Vendor\Stripe\Billing\MeterEvent
      *
-     * @return \Stripe\Billing\MeterEvent
+     * @throws \PaymentPlugins\Vendor\Stripe\Exception\ApiErrorException if the request fails
      */
     public function create($params = null, $opts = null)
     {

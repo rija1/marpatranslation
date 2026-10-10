@@ -2,15 +2,11 @@
 
 class WCML_Status_Media_UI extends WCML_Templates_Factory {
 
-	/**
-	 * @var \SitePress
-	 */
 	private $sitepress;
 
 	public function __construct( \WPML\Core\ISitePress $sitepress ) {
 		parent::__construct();
 
-		/** @phpstan-ignore assign.propertyType */
 		$this->sitepress = $sitepress;
 	}
 
@@ -19,6 +15,7 @@ class WCML_Status_Media_UI extends WCML_Templates_Factory {
 		$media_plugin_name = 'WPML Media';
 		$model             = [
 			'strings'                  => [
+				/* translators: Heading of the block on the Status screen about product images. Noun. */
 				'heading'                     => __( 'Media', 'woocommerce-multilingual' ),
 				'media_tip'                   => $media_plugin_name,
 				/* translators: %s is a plugin name */

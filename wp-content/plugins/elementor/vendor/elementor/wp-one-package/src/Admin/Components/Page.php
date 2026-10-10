@@ -59,7 +59,6 @@ class Page {
 			remove_all_actions( 'user_admin_notices' );
 			remove_all_actions( 'all_admin_notices' );
 			remove_all_actions( 'admin_notices' );
-			remove_all_actions( 'in_admin_header' );
 		}
 	}
 
@@ -105,8 +104,10 @@ class Page {
 	 * @return void
 	 */
 	public function upgrade_menu_item() {
-		// If connected, don't add upgrade menu item
-		if ( Utils::get_one_connect()->utils()->is_connected() ) {
+		$is_one_connected = Utils::get_one_connect()->utils()->is_connected();
+		$upgrade_available = apply_filters( 'elementor_one/upgrade_available', ! $is_one_connected );
+
+		if ( ! $upgrade_available ) {
 			return;
 		}
 

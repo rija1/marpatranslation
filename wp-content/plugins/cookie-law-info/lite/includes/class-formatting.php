@@ -85,6 +85,8 @@ if ( ! function_exists( 'cky_allowed_html' ) ) {
 			'aria-label'       => true,
 			'aria-labelledby'  => true,
 			'aria-hidden'      => true,
+			'aria-haspopup'    => true,
+			'aria-controls'    => true,
 			'class'            => true,
 			'id'               => true,
 			'style'            => true,

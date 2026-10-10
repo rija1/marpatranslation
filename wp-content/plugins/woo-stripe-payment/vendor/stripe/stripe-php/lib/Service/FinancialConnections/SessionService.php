@@ -2,27 +2,26 @@
 
 // File generated from our OpenAPI spec
 
-namespace Stripe\Service\FinancialConnections;
+namespace PaymentPlugins\Vendor\Stripe\Service\FinancialConnections;
 
 /**
  * @phpstan-import-type RequestOptionsArray from \Stripe\Util\RequestOptions
- */
-/**
+ *
  * @psalm-import-type RequestOptionsArray from \Stripe\Util\RequestOptions
  */
-class SessionService extends \Stripe\Service\AbstractService
+class SessionService extends \PaymentPlugins\Vendor\Stripe\Service\AbstractService
 {
     /**
      * To launch the Financial Connections authorization flow, create a
      * <code>Session</code>. The session’s <code>client_secret</code> can be used to
      * launch the flow using Stripe.js.
      *
-     * @param null|array $params
-     * @param null|RequestOptionsArray|\Stripe\Util\RequestOptions $opts
+     * @param null|array{account_holder: array{account?: string, customer?: string, customer_account?: string, type: string}, expand?: string[], filters?: array{account_subcategories?: string[], countries?: string[]}, permissions: string[], prefetch?: string[], return_url?: string} $params
+     * @param null|RequestOptionsArray|\PaymentPlugins\Vendor\Stripe\Util\RequestOptions $opts
      *
-     * @throws \Stripe\Exception\ApiErrorException if the request fails
+     * @return \PaymentPlugins\Vendor\Stripe\FinancialConnections\Session
      *
-     * @return \Stripe\FinancialConnections\Session
+     * @throws \PaymentPlugins\Vendor\Stripe\Exception\ApiErrorException if the request fails
      */
     public function create($params = null, $opts = null)
     {
@@ -33,12 +32,12 @@ class SessionService extends \Stripe\Service\AbstractService
      * Retrieves the details of a Financial Connections <code>Session</code>.
      *
      * @param string $id
-     * @param null|array $params
-     * @param null|RequestOptionsArray|\Stripe\Util\RequestOptions $opts
+     * @param null|array{expand?: string[]} $params
+     * @param null|RequestOptionsArray|\PaymentPlugins\Vendor\Stripe\Util\RequestOptions $opts
      *
-     * @throws \Stripe\Exception\ApiErrorException if the request fails
+     * @return \PaymentPlugins\Vendor\Stripe\FinancialConnections\Session
      *
-     * @return \Stripe\FinancialConnections\Session
+     * @throws \PaymentPlugins\Vendor\Stripe\Exception\ApiErrorException if the request fails
      */
     public function retrieve($id, $params = null, $opts = null)
     {

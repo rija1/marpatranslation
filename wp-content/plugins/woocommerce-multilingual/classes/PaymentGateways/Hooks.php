@@ -21,7 +21,6 @@ use WPML\FP\Type;
 class Hooks implements IWPML_Backend_Action, IWPML_Frontend_Action, IWPML_DIC_Action, IStandAloneAction {
 
 	const OPTION_KEY = 'wcml_payment_gateways';
-	/* took this priority from wcgcl but we could not recall the reason of this number.*/
 	const PRIORITY = 1000;
 
 	public function add_hooks() {
@@ -38,7 +37,7 @@ class Hooks implements IWPML_Backend_Action, IWPML_Frontend_Action, IWPML_DIC_Ac
 				}
 			}
 			add_action( 'admin_notices', [ $this, 'maybeAddNotice' ] );
-			add_action( 'wp_ajax_wcml_save_payment_gateways', [ $this, 'updateSettingsOnAjaxSave' ] );
+			\WCML\Request\Ajax::register( 'wcml_save_payment_gateways', [ 'authorize' => [ 'WCML_Capabilities', 'canManageWcml' ], 'description' => 'WCML manager (shop manager or administrator role, WCML_Capabilities::canManageWcml)', 'nonce' => [ 'wcml_payment_gateways', 'nonce' ] ], [ $this, 'updateSettingsOnAjaxSave' ] );
 		} else {
 			add_filter( 'woocommerce_available_payment_gateways', [ $this, 'filterByCountry' ], self::PRIORITY );
 		}
@@ -46,7 +45,6 @@ class Hooks implements IWPML_Backend_Action, IWPML_Frontend_Action, IWPML_DIC_Ac
 
 	public function updateSettingsOnSave() {
 
-		/* phpcs:ignore WordPress.VIP.SuperGlobalInputUsage.AccessDetected */
 		if ( isset( $_POST[ self::OPTION_KEY ] ) ) {
 
 			$gatewaySettings = $_POST[ self::OPTION_KEY ];
@@ -62,6 +60,8 @@ class Hooks implements IWPML_Backend_Action, IWPML_Frontend_Action, IWPML_DIC_Ac
 			wp_send_json_error();
 		}
 
+		\WCML_Capabilities::requireCanManageWcmlForAjax();
+
 		$data            = json_decode( stripslashes( Obj::propOr( '{}', 'data', $_POST ) ), true );
 		$gatewayId       = Obj::prop( 'gatewayId', $data );
 		$gatewaySettings = Obj::prop( 'settings', $data );
@@ -76,12 +76,6 @@ class Hooks implements IWPML_Backend_Action, IWPML_Frontend_Action, IWPML_DIC_Ac
 
 	}
 
-	/**
-	 * @param string $gatewayId
-	 * @param array  $gatewaySettings
-	 *
-	 * @return bool
-	 */
 	private function updateGatewaySettings( $gatewayId, $gatewaySettings ) {
 		$settings          = $this->getSettings();
 		$settingsSignature = maybe_serialize( $settings );
@@ -94,9 +88,7 @@ class Hooks implements IWPML_Backend_Action, IWPML_Frontend_Action, IWPML_DIC_Ac
 
 		$countries = Logic::ifElse(
 			Type::isString(),
-			// updateSettingsOnSave passes countries as a comma-separated list.
 			Str::split( ',' ),
-			// updateSettingsOnAjaxSave passes countries as an array.
 			Fns::identity(),
 			Obj::propOr( [], 'countries', $gatewaySettings )
 		);
@@ -115,7 +107,6 @@ class Hooks implements IWPML_Backend_Action, IWPML_Frontend_Action, IWPML_DIC_Ac
 		$updatedSettingsSignature = maybe_serialize( $settings );
 
 		if ( $settingsSignature === $updatedSettingsSignature ) {
-			// Nothing to update, so let's call it a day and save a database call.
 			return true;
 		}
 
@@ -162,29 +153,32 @@ class Hooks implements IWPML_Backend_Action, IWPML_Frontend_Action, IWPML_DIC_Ac
 		wp_enqueue_style( 'wcml-payment-gateways' );
 	}
 
-	/**
-	 * @return array
-	 */
 	private function getStrings() {
 		return [
 			'translationInstructions'     => Strings::getTranslationInstructions(),
+			/* translators: Heading of the dialog that limits a payment method to certain countries. */
 			'labelAvailability'           => __( 'Country availability', 'woocommerce-multilingual' ),
+			/* translators: Option of the availability dropdown of a currency or a payment method: no country limit. */
 			'labelAllCountries'           => __( 'All countries', 'woocommerce-multilingual' ),
+			/* translators: Label that introduces the list of countries excluded for a payment method; the country list follows. */
 			'labelAllCountriesExcept'     => __( 'All countries except', 'woocommerce-multilingual' ),
+			/* translators: Option of the availability dropdown of a currency or a payment method; the three dots say that countries have to be picked next. */
 			'labelAllCountriesExceptDots' => __( 'All countries except...', 'woocommerce-multilingual' ),
+			/* translators: Option of the availability dropdown of a currency or a payment method: only the countries picked next. */
 			'labelSpecificCountries'      => __( 'Specific countries', 'woocommerce-multilingual' ),
+			/* translators: Tooltip of the icon that opens the country-availability dialog of a payment method. */
 			'tooltip'                     => __( 'Configure per country availability for this payment gateway', 'woocommerce-multilingual' ),
 			'submitButton'                => [
+				/* translators: Button label that stores the settings of the screen. Verb phrase, imperative. */
 				'label'   => __( 'Save changes', 'woocommerce-multilingual' ),
+				/* translators: Confirmation shown next to the save button after the settings were stored. */
 				'success' => __( 'Settings saved.', 'woocommerce-multilingual' ),
+				/* translators: Error shown next to the save button when the settings could not be stored. */
 				'error'   => __( 'Error saving settings.', 'woocommerce-multilingual' ),
 			],
 		];
 	}
 
-	/**
-	 * @return array
-	 */
 	private function getAllCountries() {
 
 		$buildCountry = function ( $label, $code ) {
@@ -197,14 +191,6 @@ class Hooks implements IWPML_Backend_Action, IWPML_Frontend_Action, IWPML_DIC_Ac
 		return wpml_collect( WC()->countries->get_countries() )->map( $buildCountry )->values()->toArray();
 	}
 
-	/**
-	 * Checks whether the payment gateway disabled the natural submit button.
-	 *
-	 * Note that this is usually defined at payment gateway options page render time, not before.
-	 * Used by WooCommerce in its settings page template, at /includes/admin/views/html-admin-settings.php.
-	 *
-	 * @return bool
-	 */
 	private function isSubmitButtonHidden() {
 		return ! empty( $GLOBALS['hide_save_button'] );
 	}
@@ -231,11 +217,6 @@ class Hooks implements IWPML_Backend_Action, IWPML_Frontend_Action, IWPML_DIC_Ac
 		?><h2>WPML Multilingual & Multicurrency for WooCommerce</h2><div id="wcml-payment-gateways"></div><?php
 	}
 
-	/**
-	 * @param array $payment_gateways
-	 *
-	 * @return array
-	 */
 	public function filterByCountry( $payment_gateways ) {
 
 		$customer_country = Geolocation::getUserCountry();
@@ -269,13 +250,11 @@ class Hooks implements IWPML_Backend_Action, IWPML_Frontend_Action, IWPML_DIC_Ac
 		}
 	}
 
-	/**
-	 * @return string
-	 */
 	private function getNoticeText(){
 
 		$text = '<div id="message" class="updated error">';
 		$text .= '<p>';
+		/* translators: Admin notice asking the shop owner to delete a plugin whose feature is now built in. Both names are product names and stay in English. */
 		$text .= __( 'We noticed that you\'re using WooCommerce Gateways Country Limiter plugin which is now integrated into WPML Multilingual & Multicurrency for WooCommerce. Please remove it!', 'woocommerce-multilingual' );
 		$text .= '</p>';
 		$text .= '</div>';
@@ -283,36 +262,20 @@ class Hooks implements IWPML_Backend_Action, IWPML_Frontend_Action, IWPML_DIC_Ac
 		return $text;
 	}
 
-	/**
-	 * @param string $gatewayId
-	 *
-	 * @return array
-	 */
 	private function getGatewaySettings( $gatewayId ) {
 		return Maybe::fromNullable( get_option( self::OPTION_KEY, false ) )
 			->map( Obj::prop( $gatewayId ) )
 			->getOrElse( [ 'mode' => 'all', 'countries' => [] ] );
 	}
 
-	/**
-	 * @return array
-	 */
 	private function getSettings() {
 		return get_option( self::OPTION_KEY, [] );
 	}
 
-	/**
-	 * @param array $settings
-	 *
-	 * @return bool
-	 */
 	private function updateSettings( $settings ) {
 		return update_option( self::OPTION_KEY, $settings );
 	}
 
-	/**
-	 * @return bool
-	 */
 	private function isWCGatewaysSettingsScreen() {
 		if ( $this->isWooC10_1_Spa() ) {
 			return $this->isWCGatewaysSettingsScreenSPA();

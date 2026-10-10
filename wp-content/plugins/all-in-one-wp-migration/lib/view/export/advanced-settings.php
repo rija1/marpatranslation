@@ -38,7 +38,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 			<small><?php esc_html_e( '(click to expand)', 'all-in-one-wp-migration' ); ?></small>
 		</h4>
 		<ul>
-			<li><strong><?php esc_html_e( 'Security Options' ); ?></strong></li>
+			<li><strong><?php esc_html_e( 'Security Options', 'all-in-one-wp-migration' ); ?></strong></li>
 			<?php if ( ai1wm_can_encrypt() ) : ?>
 				<li class="ai1wm-encrypt-backups-container">
 					<label for="ai1wm-encrypt-backups">
@@ -68,7 +68,9 @@ if ( ! defined( 'ABSPATH' ) ) {
 				</li>
 			<?php endif; ?>
 
-			<li><strong><?php esc_html_e( 'Database Options' ); ?></strong></li>
+			<?php do_action( 'ai1wm_export_compression_types' ); ?>
+
+			<li><strong><?php esc_html_e( 'Database Options', 'all-in-one-wp-migration' ); ?></strong></li>
 			<li>
 				<label for="ai1wm-no-spam-comments">
 					<input type="checkbox" id="ai1wm-no-spam-comments" name="options[no_spam_comments]" />
@@ -103,7 +105,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 
 			<?php do_action( 'ai1wm_export_include_db_tables' ); ?>
 
-			<li><strong><?php esc_html_e( 'File Options' ); ?></strong></li>
+			<li><strong><?php esc_html_e( 'File Options', 'all-in-one-wp-migration' ); ?></strong></li>
 			<li>
 				<label for="ai1wm-no-media">
 					<input type="checkbox" id="ai1wm-no-media" name="options[no_media]" />

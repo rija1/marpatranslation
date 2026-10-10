@@ -4,9 +4,6 @@ use WPML\FP\Obj;
 use WPML\FP\Fns;
 use function WCML\functions\getClientCurrency;
 
-/**
- * @see https://wordpress.org/plugins/woocommerce-paypal-payments/
- */
 class WCML_Payment_Gateway_PayPal_V2 extends WCML_Payment_Gateway_PayPal {
 
 	const ID = 'ppcp-gateway';
@@ -29,10 +26,15 @@ class WCML_Payment_Gateway_PayPal_V2 extends WCML_Payment_Gateway_PayPal {
 			'settings'    => $this->get_currencies_details(),
 			'tooltip'     => '',
 			'strings'     => [
+				/* translators: Column heading and field label for the currency of an order, in the WooCommerce analytics reports, the payment-gateway settings and the plugin's multicurrency screen. Noun, singular. */
 				'labelCurrency'       => __( 'Currency', 'woocommerce-multilingual' ),
+				/* translators: Label of the field holding the PayPal address that receives payments in this currency. */
 				'labelPayPalEmail'    => __( 'PayPal Email', 'woocommerce-multilingual' ),
+				/* translators: Label of the field holding the PayPal merchant identifier used for this currency. */
 				'labelMerchantId'     => __( 'Merchant ID', 'woocommerce-multilingual' ),
+				/* translators: Label of the field holding the PayPal client identifier used for this currency. */
 				'labelClientId'       => __( 'Client ID', 'woocommerce-multilingual' ),
+				/* translators: Label of the field holding the PayPal secret key used for this currency. */
 				'labelSecretKey'      => __( 'Secret Key', 'woocommerce-multilingual' ),
 				// translators: %s is currency code.
 				'tooltipNotSupported' => __( 'This gateway does not support %s. To show this gateway please select another currency.', 'woocommerce-multilingual' ),
@@ -40,9 +42,6 @@ class WCML_Payment_Gateway_PayPal_V2 extends WCML_Payment_Gateway_PayPal {
 		];
 	}
 
-	/**
-	 * @return array
-	 */
 	public function get_currencies_details() {
 		$currencies_details     = [];
 		$default_currency       = wcml_get_woocommerce_currency_option();
@@ -63,6 +62,12 @@ class WCML_Payment_Gateway_PayPal_V2 extends WCML_Payment_Gateway_PayPal {
 		}
 
 		return $currencies_details;
+	}
+
+	public function add_order_hooks() {
+		$notice = new WCML_PayPal_Refund_Notice( $this, $this->woocommerce_wpml );
+
+		$notice->add_hooks();
 	}
 
 	public function add_hooks() {
@@ -86,11 +91,6 @@ class WCML_Payment_Gateway_PayPal_V2 extends WCML_Payment_Gateway_PayPal {
 		}
 	}
 
-	/**
-	 * @param array $settings
-	 *
-	 * @return array
-	 */
 	public static function filter_ppcp_args( $settings ) {
 		if ( is_admin() ) {
 			return $settings;
@@ -109,13 +109,6 @@ class WCML_Payment_Gateway_PayPal_V2 extends WCML_Payment_Gateway_PayPal {
 		return $settings;
 	}
 
-	/**
-	 * Sets the PayPal JS API to use the changed currency
-	 *
-	 * @param array $localize
-	 *
-	 * @return array
-	 */
 	public function paypal_express_checkout_convert_to_supported_currency( $localize ) {
 		if ( ! is_array( $localize ) ) {
 			return $localize;
@@ -127,9 +120,7 @@ class WCML_Payment_Gateway_PayPal_V2 extends WCML_Payment_Gateway_PayPal {
 			return $localize;
 		}
 
-		$gateway_setting = $this->get_setting( $client_currency );
-
-		if ( $gateway_setting['isValid'] ) {
+		if ( $this->is_valid_for_use( $client_currency ) ) {
 			return $localize;
 		}
 
@@ -154,11 +145,6 @@ class WCML_Payment_Gateway_PayPal_V2 extends WCML_Payment_Gateway_PayPal {
 		return $localize;
 	}
 
-	/**
-	 * @param string $convert_to_currency
-	 *
-	 * @return callable(array):array
-	 */
 	private function get_convert_price_callable( $convert_to_currency ): callable {
 		return function ( array $price_params ) use ( $convert_to_currency ): array {
 			$value    = $price_params['value'];
@@ -174,18 +160,10 @@ class WCML_Payment_Gateway_PayPal_V2 extends WCML_Payment_Gateway_PayPal {
 		};
 	}
 
-	/**
-	 * Converts the data that will be transferred to PayPal to use the changed currency - at this stage the user confirms the payment (by logging into their account)
-	 *
-	 * @param array $data
-	 *
-	 * @return array
-	 */
 	public function paypal_checkout_convert_to_supported_currency( $data ) {
 		$client_currency = Obj::path( [ 'purchase_units', 0, 'amount', 'currency_code' ], $data );
-		$gateway_setting = $this->get_setting( $client_currency );
 
-		if ( $gateway_setting['isValid'] ) {
+		if ( $this->is_valid_for_use( $client_currency ) ) {
 			return $data;
 		}
 
@@ -231,22 +209,14 @@ class WCML_Payment_Gateway_PayPal_V2 extends WCML_Payment_Gateway_PayPal {
 		return $data;
 	}
 
-	/**
-	 * Converts the data that will be compared with the one returned from PayPal to use the changed currency - on this basis, our order will know whether PayPal confirmed its payment
-	 *
-	 * @param array $patches_array
-	 *
-	 * @return array
-	 */
 	public function paypal_order_patches_convert_to_supported_currency( $patches_array ) {
 		if ( ! is_array( $patches_array ) ) {
 			return $patches_array;
 		}
 
 		$client_currency = Obj::path( [ 0, 'value', 'amount', 'currency_code' ], $patches_array );
-		$gateway_setting = $this->get_setting( $client_currency );
 
-		if ( $gateway_setting['isValid'] ) {
+		if ( $this->is_valid_for_use( $client_currency ) ) {
 			return $patches_array;
 		}
 
@@ -278,17 +248,18 @@ class WCML_Payment_Gateway_PayPal_V2 extends WCML_Payment_Gateway_PayPal {
 		return $patches_array;
 	}
 
-	/**
-	 * @return false|string false when not found
-	 */
 	private function try_convert_client_currency_using_gateway_to_supported_by_paypal( string $client_currency ) {
-		$gateway_setting = $this->get_setting( $client_currency );
-
-		if ( false === $gateway_setting['isValid'] ) {
-			return $gateway_setting['currency'];
+		if ( $this->is_valid_for_use( $client_currency ) ) {
+			return false;
 		}
 
-		return false;
+		$gateway_setting = $this->get_setting( $client_currency );
+
+		if ( ! is_array( $gateway_setting ) || empty( $gateway_setting['currency'] ) ) {
+			return false;
+		}
+
+		return $gateway_setting['currency'];
 	}
 
 	private function is_payment_in_currency_not_supported_by_paypal( string $client_currency ): bool {

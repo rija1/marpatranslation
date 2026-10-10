@@ -15,7 +15,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 }
 
 /**
- * Handles Cookies Operation
+ * Handles Languages Operation
  *
  * @class       Languages
  * @version     3.0.0
@@ -75,3 +75,4 @@ class Languages extends Modules {
 		echo '<div id="cky-app"></div>';
 	}
 }
+

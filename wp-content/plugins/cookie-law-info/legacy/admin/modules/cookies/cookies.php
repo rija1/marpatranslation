@@ -655,14 +655,14 @@ class Cookie_Law_Info_Cookies {
 			<p>	
 				<label><b><?php echo esc_html__( 'Head scripts', 'cookie-law-info' ); ?></b></label>
 				<label>Script: eg:-  &lt;script&gt; enableGoogleAnalytics(); &lt;/script&gt; </label><br />
-				<textarea id="_cli_cookie_head_scripts" rows=5 name="_cli_cookie_head_scripts" class="wt-cli-code-editor"></textarea>
+				<textarea rows=5 name="_cli_cookie_head_scripts" class="wt-cli-code-editor"></textarea>
 			</p>
 		</div>
 		<div class="form-field term-body-scripts-field">
 			<p>	
 				<label><b><?php echo esc_html__( 'Body scripts', 'cookie-law-info' ); ?></b></label>
 				<label>Script: eg:-  &lt;script&gt; enableGoogleAnalytics(); &lt;/script&gt; </label><br />
-				<textarea id="_cli_cookie_body_scripts" rows="5" name="_cli_cookie_body_scripts" class="wt-cli-code-editor" ></textarea>
+				<textarea rows="5" name="_cli_cookie_body_scripts" class="wt-cli-code-editor"></textarea>
 			</p>
 		</div>
 		<?php

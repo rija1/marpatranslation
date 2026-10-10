@@ -1,7 +1,8 @@
 <?php
 /**
- * @var \Stripe\Charge $charge
+ * @var \PaymentPlugins\Vendor\Stripe\Charge $charge
  */
+defined( 'ABSPATH' ) || exit;
 ?>
 <?php if ( ! $order->has_status( 'cancelled' ) ) : ?>
 	<?php if ( ( $charge->status === 'pending' && ! $charge->captured ) || ( $charge->status === 'succeeded' && ! $charge->captured ) ) : ?>

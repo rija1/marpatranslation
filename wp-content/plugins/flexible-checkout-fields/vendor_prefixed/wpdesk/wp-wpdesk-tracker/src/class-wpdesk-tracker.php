@@ -33,6 +33,13 @@ if (!\class_exists('FcfVendor\WPDesk_Tracker')) {
         public const WPDESK_TRACKER_DEACTIVATION = 'wpdesk-tracker-deactivation';
         private const WPDESK_TRACKER_ACTION = 'wpdesk_tracker_action';
         private const WPDESK_TRACKER_NONCE = 'nonce';
+        private const LEGACY_TRACKER_BUCKET = 'wpdesk';
+        /**
+         * Whether the global tracking notice has already been rendered for this request.
+         *
+         * @var bool
+         */
+        private static $global_notice_rendered = \false;
         /**
          * @var string
          */
@@ -41,6 +48,10 @@ if (!\class_exists('FcfVendor\WPDesk_Tracker')) {
          * @var string
          */
         private $plugin_basename = '';
+        /**
+         * @var string
+         */
+        private $tracker_bucket;
         /**
          * @var string
          */
@@ -59,9 +70,10 @@ if (!\class_exists('FcfVendor\WPDesk_Tracker')) {
         public static function init($foo = null)
         {
         }
-        public function __construct($plugin_basename, \WPDesk_Tracker_Sender $sender)
+        public function __construct($plugin_basename, \WPDesk_Tracker_Sender $sender, ?string $tracker_bucket = self::LEGACY_TRACKER_BUCKET)
         {
             $this->plugin_basename = $plugin_basename;
+            $this->tracker_bucket = $tracker_bucket ?: self::LEGACY_TRACKER_BUCKET;
             $this->set_sender($sender);
         }
         /**
@@ -91,8 +103,17 @@ if (!\class_exists('FcfVendor\WPDesk_Tracker')) {
             \add_action('update_option_wpdesk_helper_options', [$this, 'update_option_wpdesk_helper_options'], 10, 3);
             \add_filter('option_wpdesk_helper_options', [$this, 'option_wpdesk_helper_options'], 10, 2);
             \add_filter('default_option_wpdesk_helper_options', [$this, 'default_option_wpdesk_helper_options'], 10, 3);
-            \add_filter('wpdesk_tracker_data', [$this, 'wpdesk_tracker_message_version']);
+            $this->init_payload_hooks();
             \add_action('admin_bar_menu', [$this, 'admin_bar_menu'], 999);
+        }
+        /**
+         * Registers hooks required to format the tracking payload.
+         *
+         * @return void
+         */
+        public function init_payload_hooks()
+        {
+            \add_filter('wpdesk_tracker_data', [$this, 'wpdesk_tracker_message_version']);
         }
         public function add_data_provider(\WPDesk_Tracker_Data_Provider $provider)
         {
@@ -109,6 +130,15 @@ if (!\class_exists('FcfVendor\WPDesk_Tracker')) {
             }
         }
         public function init_schedule()
+        {
+            self::schedule();
+        }
+        /**
+         * Register or remove the global tracker schedule based on consent.
+         *
+         * @return void
+         */
+        public static function schedule()
         {
             $options = \get_option('wpdesk_helper_options');
             if (!\is_array($options)) {
@@ -286,7 +316,8 @@ if (!\class_exists('FcfVendor\WPDesk_Tracker')) {
         }
         public function admin_notices()
         {
-            if ($this->is_notices_enabled()) {
+            if ($this->is_notices_enabled() && !self::$global_notice_rendered) {
+                self::$global_notice_rendered = \true;
                 $user = \wp_get_current_user();
                 $username = $user->first_name ? $user->first_name : $user->user_login;
                 $terms_url = \get_locale() === 'pl_PL' ? 'https://www.wpdesk.pl/dane-uzytkowania/' : 'https://www.wpdesk.net/usage-tracking/';
@@ -319,7 +350,8 @@ if (!\class_exists('FcfVendor\WPDesk_Tracker')) {
         }
         public function wpdesk_tracker_deactivate()
         {
-            if (!\current_user_can('activate_plugins') || \false === \check_ajax_referer(self::WPDESK_TRACKER_ACTION, self::WPDESK_TRACKER_NONCE)) {
+            \check_ajax_referer(self::WPDESK_TRACKER_ACTION, self::WPDESK_TRACKER_NONCE);
+            if (!\current_user_can('activate_plugins')) {
                 die;
             }
             if (!$this->applies_to_current_plugin()) {
@@ -334,37 +366,40 @@ if (!\class_exists('FcfVendor\WPDesk_Tracker')) {
         }
         public function admin_init()
         {
-            if (isset($_GET['page']) && $_GET['page'] === 'wpdesk_tracker') {
-                if (isset($_GET['plugin']) && isset($_GET['allow'])) {
-                    if (!\current_user_can('activate_plugins') || \false === \check_ajax_referer(self::WPDESK_TRACKER_ACTION, self::WPDESK_TRACKER_NONCE)) {
-                        die;
-                    }
-                    $options = \get_option('wpdesk_helper_options', []);
-                    if (!\is_array($options)) {
-                        $options = [];
-                    }
-                    if ($_GET['allow'] == '0') {
-                        \remove_action('update_option_wpdesk_helper_options', [$this, 'update_option_wpdesk_helper_options'], 10, 3);
-                        unset($options['wpdesk_tracker_agree']);
-                        \update_option('wpdesk_helper_options', $options);
-                        \add_action('update_option_wpdesk_helper_options', [$this, 'update_option_wpdesk_helper_options'], 10, 3);
-                        $options['wpdesk_tracker_agree'] = '0';
-                        \update_option('wpdesk_helper_options', $options);
-                        \update_option('wpdesk_tracker_notice', '1');
-                    } else {
-                        \remove_action('update_option_wpdesk_helper_options', [$this, 'update_option_wpdesk_helper_options'], 10, 3);
-                        unset($options['wpdesk_tracker_agree']);
-                        \update_option('wpdesk_helper_options', $options);
-                        \add_action('update_option_wpdesk_helper_options', [$this, 'update_option_wpdesk_helper_options'], 10, 3);
-                        \delete_option('wpdesk_tracker_notice');
-                        \update_option('wpdesk_tracker_agree', '1');
-                        $options['wpdesk_tracker_agree'] = '1';
-                        \update_option('wpdesk_helper_options', $options);
-                    }
-                    \wp_safe_redirect(\admin_url('plugins.php'));
-                    exit;
-                }
+            if (!isset($_GET['page'], $_GET['plugin'], $_GET['allow'])) {
+                return;
             }
+            if ($_GET['page'] !== 'wpdesk_tracker') {
+                return;
+            }
+            \check_ajax_referer(self::WPDESK_TRACKER_ACTION, self::WPDESK_TRACKER_NONCE);
+            if (!\current_user_can('activate_plugins')) {
+                die;
+            }
+            $options = \get_option('wpdesk_helper_options', []);
+            if (!\is_array($options)) {
+                $options = [];
+            }
+            if (\absint(\wp_unslash($_GET['allow'])) === 0) {
+                \remove_action('update_option_wpdesk_helper_options', [$this, 'update_option_wpdesk_helper_options'], 10);
+                unset($options['wpdesk_tracker_agree']);
+                \update_option('wpdesk_helper_options', $options);
+                \add_action('update_option_wpdesk_helper_options', [$this, 'update_option_wpdesk_helper_options'], 10, 3);
+                $options['wpdesk_tracker_agree'] = '0';
+                \update_option('wpdesk_helper_options', $options);
+                \update_option('wpdesk_tracker_notice', '1');
+            } else {
+                \remove_action('update_option_wpdesk_helper_options', [$this, 'update_option_wpdesk_helper_options'], 10);
+                unset($options['wpdesk_tracker_agree']);
+                \update_option('wpdesk_helper_options', $options);
+                \add_action('update_option_wpdesk_helper_options', [$this, 'update_option_wpdesk_helper_options'], 10, 3);
+                \delete_option('wpdesk_tracker_notice');
+                \update_option('wpdesk_tracker_agree', '1');
+                $options['wpdesk_tracker_agree'] = '1';
+                \update_option('wpdesk_helper_options', $options);
+            }
+            \wp_safe_redirect(\admin_url('plugins.php'));
+            exit;
         }
         public function wpdesk_tracker_message_version($data)
         {
@@ -420,7 +455,7 @@ if (!\class_exists('FcfVendor\WPDesk_Tracker')) {
                 }
             }
             // Update time first before sending to ensure it is set.
-            \update_option('wpdesk_tracker_last_send', \time());
+            \update_option($this->get_last_send_option_name(), \time());
             if (empty($click_action) || $click_action === 'agree') {
                 $params = $this->get_tracking_data();
                 if (isset($params['active_plugins'])) {
@@ -428,7 +463,7 @@ if (!\class_exists('FcfVendor\WPDesk_Tracker')) {
                         $option_name = 'activation_plugin_' . $plugin;
                         $activation_date = \get_option($option_name, '');
                         if ($activation_date != '') {
-                            $params['active_plugins'][$plugin]['activation_date'] = $activation_date;
+                            $params['active_plugins'][$plugin]['activation_date'] = \get_gmt_from_date($activation_date, 'Y-m-d\TH:i:s\Z');
                         }
                     }
                 }
@@ -468,7 +503,18 @@ if (!\class_exists('FcfVendor\WPDesk_Tracker')) {
          */
         private function get_last_send_time()
         {
-            return \apply_filters('wpdesk_tracker_last_send_time', \get_option('wpdesk_tracker_last_send', \false));
+            $last_send = \get_option($this->get_last_send_option_name(), \false);
+            if (self::LEGACY_TRACKER_BUCKET === $this->tracker_bucket) {
+                return \apply_filters('wpdesk_tracker_last_send_time', $last_send);
+            }
+            return $last_send;
+        }
+        private function get_last_send_option_name(): string
+        {
+            if (self::LEGACY_TRACKER_BUCKET === $this->tracker_bucket) {
+                return 'wpdesk_tracker_last_send';
+            }
+            return 'wpdesk_tracker_last_send_' . $this->tracker_bucket;
         }
         /**
          * @return array

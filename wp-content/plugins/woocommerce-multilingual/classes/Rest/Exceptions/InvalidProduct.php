@@ -6,13 +6,10 @@ use WC_REST_Exception;
 
 class InvalidProduct extends WC_REST_Exception {
 
-	/**
-	 * @param int $product_id
-	 */
 	public function __construct( $product_id ) {
 		parent::__construct(
 			"422",
-			/* translators: $s is a product ID */
+			/* translators: Error returned by the WooCommerce REST API when no product has the requested identifier. %d: the product's numeric ID. */
 			sprintf( __( 'Product not found: %d', 'woocommerce-multilingual' ),
 				$product_id ),
 			422

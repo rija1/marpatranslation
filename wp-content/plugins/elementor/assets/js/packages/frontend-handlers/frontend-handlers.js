@@ -1,3 +1,265 @@
-/*! For license information please see frontend-handlers.js.LICENSE.txt */
-!function(){"use strict";var e={"./packages/packages/core/frontend-handlers/src/handlers-registry.ts":function(e,t,n){n.r(t),n.d(t,{handlers:function(){return r},register:function(){return register},unregister:function(){return unregister}});const r=new Map,register=({elementType:e,id:t,callback:n})=>{r.has(e)||r.set(e,new Map),r.get(e)?.has(t)||r.get(e)?.set(t,n)},unregister=({elementType:e,id:t})=>{r.has(e)&&(t?(r.get(e)?.delete(t),0===r.get(e)?.size&&r.delete(e)):r.delete(e))}},"./packages/packages/core/frontend-handlers/src/init.ts":function(e,t,n){n.r(t),n.d(t,{init:function(){return init}});var r=n("./packages/packages/core/frontend-handlers/src/lifecycle-events.ts");function init(){window.addEventListener("elementor/element/render",e=>{const t=e,{id:n,type:s,element:a}=t.detail;(0,r.onElementDestroy)({elementType:s,elementId:n}),(0,r.onElementRender)({element:a,elementType:s,elementId:n})}),window.addEventListener("elementor/element/destroy",e=>{const t=e,{id:n,type:s,element:a}=t.detail;(0,r.onElementDestroy)({elementType:s,elementId:n,element:a})}),document.addEventListener("DOMContentLoaded",()=>{document.querySelectorAll("[data-e-type]").forEach(e=>{const t=e,{eType:n,id:r}=t.dataset;n&&r&&window.dispatchEvent(new CustomEvent("elementor/element/render",{detail:{id:r,type:n,element:e}}))})})}},"./packages/packages/core/frontend-handlers/src/lifecycle-events.ts":function(e,t,n){n.r(t),n.d(t,{onElementDestroy:function(){return onElementDestroy},onElementRender:function(){return onElementRender}});var r=n("./packages/packages/core/frontend-handlers/src/handlers-registry.ts");const s=new Map,a="elementor/element/rendered",o="elementor/element/destroyed",onElementRender=({element:e,elementType:t,elementId:n})=>{const i=new AbortController,l=[],dispatchRenderedEvent=()=>{e.dispatchEvent(new CustomEvent(a,{bubbles:!0,detail:{element:e,elementType:t,elementId:n}}))};e.isConnected?dispatchRenderedEvent():requestAnimationFrame(()=>{dispatchRenderedEvent()}),r.handlers.has(t)&&(Array.from(r.handlers.get(t)?.values()??[]).forEach(t=>{const n=e.getAttribute("data-e-settings"),r=t({element:e,signal:i.signal,settings:n?JSON.parse(n):{},listenToChildren:t=>({render:n=>{const listener=e=>{const{elementType:r}=e.detail;t.includes(r)&&n()};e.addEventListener(a,listener,{signal:i.signal}),e.addEventListener(o,listener,{signal:i.signal})}})});"function"==typeof r&&l.push(r)}),s.has(t)||s.set(t,new Map),s.get(t)?.set(n,()=>{i.abort(),l.forEach(e=>e())}))},onElementDestroy=({elementType:e,elementId:t,element:n})=>{const r=s.get(e)?.get(t);var a;n&&(a={element:n,elementType:e,elementId:t}).element.dispatchEvent(new CustomEvent(o,{bubbles:!0,detail:a})),r&&(r(),s.get(e)?.delete(t),0===s.get(e)?.size&&s.delete(e))}}},t={};function __webpack_require__(n){var r=t[n];if(void 0!==r)return r.exports;var s=t[n]={exports:{}};return e[n](s,s.exports,__webpack_require__),s.exports}__webpack_require__.d=function(e,t){for(var n in t)__webpack_require__.o(t,n)&&!__webpack_require__.o(e,n)&&Object.defineProperty(e,n,{enumerable:!0,get:t[n]})},__webpack_require__.o=function(e,t){return Object.prototype.hasOwnProperty.call(e,t)},__webpack_require__.r=function(e){"undefined"!=typeof Symbol&&Symbol.toStringTag&&Object.defineProperty(e,Symbol.toStringTag,{value:"Module"}),Object.defineProperty(e,"__esModule",{value:!0})};var n={};!function(){__webpack_require__.r(n),__webpack_require__.d(n,{init:function(){return t.init},register:function(){return e.register},unregister:function(){return e.unregister}});var e=__webpack_require__("./packages/packages/core/frontend-handlers/src/handlers-registry.ts"),t=__webpack_require__("./packages/packages/core/frontend-handlers/src/init.ts")}(),(window.elementorV2=window.elementorV2||{}).frontendHandlers=n}(),window.elementorV2.frontendHandlers?.init?.();
+(function() {
+
+//#region \0rolldown/runtime.js
+	var __defProp = Object.defineProperty;
+	var __name = (target, value) => __defProp(target, "name", {
+		value,
+		configurable: true
+	});
+	var __exportAll = (all, no_symbols) => {
+		let target = {};
+		for (var name in all) {
+			__defProp(target, name, {
+				get: all[name],
+				enumerable: true
+			});
+		}
+		if (!no_symbols) {
+			__defProp(target, Symbol.toStringTag, { value: "Module" });
+		}
+		return target;
+	};
+
+//#endregion
+
+//#region packages/packages/core/frontend-handlers/src/handlers-registry.ts
+	var elementTypeHandlers = /* @__PURE__ */ new Map();
+	var elementSelectorHandlers = /* @__PURE__ */ new Map();
+	var register = ({ elementType, id, callback }) => {
+		if (!elementTypeHandlers.has(elementType)) elementTypeHandlers.set(elementType, /* @__PURE__ */ new Map());
+		if (!elementTypeHandlers.get(elementType)?.has(id)) elementTypeHandlers.get(elementType)?.set(id, callback);
+	};
+	Object.defineProperty(window, "registerElementorElement", {
+		value: register,
+		enumerable: true
+	});
+	var unregister = ({ elementType, id }) => {
+		if (!elementTypeHandlers.has(elementType)) return;
+		if (id) {
+			elementTypeHandlers.get(elementType)?.delete(id);
+			if (elementTypeHandlers.get(elementType)?.size === 0) elementTypeHandlers.delete(elementType);
+		} else elementTypeHandlers.delete(elementType);
+	};
+	var registerBySelector = ({ id, selector, callback }) => {
+		if (!elementSelectorHandlers.has(selector)) elementSelectorHandlers.set(selector, /* @__PURE__ */ new Map());
+		if (!elementSelectorHandlers.get(selector)?.has(id)) elementSelectorHandlers.get(selector)?.set(id, callback);
+	};
+	var unregisterBySelector = ({ selector, id }) => {
+		if (!elementSelectorHandlers.has(selector)) return;
+		if (id) {
+			elementSelectorHandlers.get(selector)?.delete(id);
+			if (elementSelectorHandlers.get(selector)?.size === 0) elementSelectorHandlers.delete(selector);
+		} else elementSelectorHandlers.delete(selector);
+	};
+
+//#endregion
+//#region packages/packages/core/frontend-handlers/src/lifecycle-events.ts
+	var unmountCallbacks = /* @__PURE__ */ new WeakMap();
+	var ELEMENT_RENDERED_EVENT_NAME = "elementor/element/rendered";
+	var ELEMENT_DESTROYED_EVENT_NAME = "elementor/element/destroyed";
+	var dispatchDestroyedEvent = (params) => {
+		params.element.dispatchEvent(new CustomEvent(ELEMENT_DESTROYED_EVENT_NAME, {
+			bubbles: true,
+			detail: params
+		}));
+	};
+	var onElementRender = ({ element, elementType, elementId }) => {
+		cleanupOnUnmount(element);
+		const controller = new AbortController();
+		const manualUnmount = [];
+		const dispatchRenderedEvent = () => {
+			onElementSelectorRender({
+				element,
+				controller
+			});
+			element.dispatchEvent(new CustomEvent(ELEMENT_RENDERED_EVENT_NAME, {
+				bubbles: true,
+				detail: {
+					element,
+					elementType,
+					elementId
+				}
+			}));
+		};
+		if (!element.isConnected) requestAnimationFrame(() => {
+			dispatchRenderedEvent();
+		});
+		else dispatchRenderedEvent();
+		if (!elementTypeHandlers.has(elementType)) return;
+		setUnmountEntry({
+			element,
+			controller,
+			manualUnmount
+		});
+		Array.from(elementTypeHandlers.get(elementType)?.values() ?? []).forEach((handler) => {
+			const settings = element.getAttribute("data-e-settings");
+			const listenToChildren = (elementTypes) => ({ render: (callback) => {
+				const listener = (event) => {
+					const { elementType: childType } = event.detail;
+					if (!elementTypes.includes(childType)) return;
+					callback(event);
+				};
+				element.addEventListener(ELEMENT_RENDERED_EVENT_NAME, listener, { signal: controller.signal });
+				element.addEventListener(ELEMENT_DESTROYED_EVENT_NAME, listener, { signal: controller.signal });
+			} });
+			const unmount = handler({
+				element,
+				signal: controller.signal,
+				settings: settings ? JSON.parse(settings) : {},
+				listenToChildren
+			});
+			if (typeof unmount === "function") manualUnmount.push(unmount);
+		});
+	};
+	var onElementSelectorRender = ({ element, controller }) => {
+		let requiresCleanup = false;
+		const manualUnmount = [];
+		Array.from(elementSelectorHandlers.entries() ?? []).forEach(([selector, handlers]) => {
+			if (!element.matches(selector)) return;
+			requiresCleanup = true;
+			Array.from(handlers.values() ?? []).forEach((handler) => {
+				const settings = element.getAttribute("data-e-settings");
+				const unmount = handler({
+					element,
+					signal: controller.signal,
+					settings: settings ? JSON.parse(settings) : {}
+				});
+				if (typeof unmount === "function") manualUnmount.push(unmount);
+			});
+		});
+		if (requiresCleanup) setUnmountEntry({
+			element,
+			controller,
+			manualUnmount
+		});
+	};
+	var onElementDestroy = ({ elementType, elementId, element }) => {
+		if (!element) return;
+		cleanupOnUnmount(element);
+		dispatchDestroyedEvent({
+			element,
+			elementType,
+			elementId
+		});
+	};
+	var setUnmountEntry = ({ element, controller, manualUnmount }) => {
+		const existingEntry = unmountCallbacks.get(element);
+		if (existingEntry) existingEntry.manualUnmount.push(...manualUnmount);
+		else unmountCallbacks.set(element, {
+			controller,
+			manualUnmount
+		});
+	};
+	var cleanupOnUnmount = (element) => {
+		const entry = unmountCallbacks.get(element);
+		if (entry) {
+			entry.controller.abort();
+			entry.manualUnmount.forEach((callback) => callback());
+			unmountCallbacks.delete(element);
+		}
+	};
+
+//#endregion
+//#region packages/packages/core/frontend-handlers/src/init.ts
+	var ATOMIC_SELECTOR = "[data-e-type]";
+	var domMutationObserverStarted = false;
+	var pendingMutationNodes = /* @__PURE__ */ new Set();
+	var pendingMutationsRafId = 0;
+	function init() {
+		window.addEventListener("elementor/element/render", (_event) => {
+			const { id, type, element } = _event.detail;
+			onElementRender({
+				element,
+				elementType: type,
+				elementId: id
+			});
+		});
+		window.addEventListener("elementor/element/destroy", (_event) => {
+			const { id, type, element } = _event.detail;
+			onElementDestroy({
+				elementType: type,
+				elementId: id,
+				element
+			});
+		});
+		const bootDomHandlers = () => {
+			scanDocumentForAtomicElements();
+			startObservingDomForNewAtomicElements();
+		};
+		document.addEventListener("DOMContentLoaded", bootDomHandlers);
+		if ("loading" !== document.readyState) bootDomHandlers();
+	}
+	function triggerAtomicRender(atom) {
+		const eType = atom.dataset.eType;
+		const id = atom.dataset.id;
+		if (!eType || !id) return;
+		onElementRender({
+			element: atom,
+			elementType: eType,
+			elementId: id
+		});
+	}
+	function collectAtomicElementsInSubtree(root) {
+		const found = [];
+		if (root.matches(ATOMIC_SELECTOR)) found.push(root);
+		root.querySelectorAll(ATOMIC_SELECTOR).forEach((el) => {
+			found.push(el);
+		});
+		return found;
+	}
+	function scanDocumentForAtomicElements() {
+		document.querySelectorAll(ATOMIC_SELECTOR).forEach((el) => {
+			const atom = el;
+			const { eType, id } = atom.dataset;
+			if (!eType || !id) return;
+			triggerAtomicRender(atom);
+		});
+	}
+	function startObservingDomForNewAtomicElements() {
+		if (domMutationObserverStarted || "undefined" === typeof MutationObserver) return;
+		domMutationObserverStarted = true;
+		new MutationObserver((mutations) => {
+			for (const mutation of mutations) mutation.addedNodes.forEach((node) => {
+				pendingMutationNodes.add(node);
+			});
+			queueProcessPendingMutationNodes();
+		}).observe(document.documentElement, {
+			childList: true,
+			subtree: true
+		});
+	}
+	function queueProcessPendingMutationNodes() {
+		if (pendingMutationsRafId || !pendingMutationNodes.size) return;
+		pendingMutationsRafId = requestAnimationFrame(() => {
+			pendingMutationsRafId = 0;
+			const roots = Array.from(pendingMutationNodes);
+			pendingMutationNodes.clear();
+			const atoms = /* @__PURE__ */ new Set();
+			for (const node of roots) {
+				if (Node.ELEMENT_NODE !== node.nodeType) continue;
+				collectAtomicElementsInSubtree(node).forEach((atom) => {
+					atoms.add(atom);
+				});
+			}
+			atoms.forEach((atom) => triggerAtomicRender(atom));
+		});
+	}
+
+//#endregion
+//#region packages/packages/core/frontend-handlers/src/index.ts
+	var src_exports = /* @__PURE__ */ __exportAll({
+		init: () => init,
+		register: () => register,
+		registerBySelector: () => registerBySelector,
+		unregister: () => unregister,
+		unregisterBySelector: () => unregisterBySelector
+	});
+
+//#endregion
+//#region \0elementor-package-library-entry
+	(window.elementorV2 = window.elementorV2 || {}).frontendHandlers = src_exports;
+
+//#endregion
+})();
+window.elementorV2.frontendHandlers?.init?.();
 //# sourceMappingURL=frontend-handlers.js.map

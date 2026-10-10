@@ -1,6 +1,6 @@
 <?php
 
-if (!defined('WPO_VERSION')) die('No direct access allowed');
+if (!defined('ABSPATH')) die('No direct access allowed');
 
 class WP_Optimization_transient extends WP_Optimization {
 
@@ -474,15 +474,6 @@ class WP_Optimization_transient extends WP_Optimization {
 	 * @return string
 	 */
 	public function settings_label() {
-		return __('Remove expired transient options', 'wp-optimize');
-	}
-
-	/**
-	 * Returns description
-	 *
-	 * @return string
-	 */
-	public function get_auto_option_description() {
 		return __('Remove expired transient options', 'wp-optimize');
 	}
 

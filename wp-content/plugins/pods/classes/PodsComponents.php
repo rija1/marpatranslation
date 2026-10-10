@@ -1,5 +1,10 @@
 <?php
 
+// Don't load directly.
+if ( ! defined( 'ABSPATH' ) ) {
+	die( '-1' );
+}
+
 /**
  * Component managing class
  *
@@ -93,7 +98,6 @@ class PodsComponents {
 		// AJAX handling
 		if ( is_admin() ) {
 			add_action( 'wp_ajax_pods_admin_components', array( $this, 'admin_ajax' ) );
-			add_action( 'wp_ajax_nopriv_pods_admin_components', array( $this, 'admin_ajax' ) );
 
 			// Add the Pods Components capabilities
 			add_filter( 'members_get_capabilities', array( $this, 'admin_capabilities' ) );
@@ -217,14 +221,14 @@ class PodsComponents {
 			if (
 				(
 					'' !== $menu_data['callback']
-					|| false === strpos( $menu_data['menu_page'], '.php' )
+					|| false === strpos( (string) $menu_data['menu_page'], '.php' )
 				)
 				&& ! is_callable( $menu_data['callback'] )
 			) {
 				continue;
 			}
 
-			$page = add_submenu_page( $parent, strip_tags( $menu_data['page_title'] ), '- ' . strip_tags( $menu_title ), pods_v( 'capability', $menu_data, 'read', true ), $menu_data['menu_page'], $menu_data['callback'] );
+			$page = add_submenu_page( $parent, wp_strip_all_tags( $menu_data['page_title'] ), '- ' . wp_strip_all_tags( $menu_title ), pods_v( 'capability', $menu_data, 'read', true ), $menu_data['menu_page'], $menu_data['callback'] );
 
 			if ( isset( $menu_data['assets'] ) && is_callable( $menu_data['assets'] ) ) {
 				add_action( 'admin_print_styles-' . $page, $menu_data['assets'] );
@@ -728,7 +732,7 @@ class PodsComponents {
 				continue;
 			}
 
-			$capability = 'pods_component_' . str_replace( '-', '_', sanitize_title( str_replace( ' and ', ' ', strip_tags( $component_data['Name'] ) ) ) );
+			$capability = 'pods_component_' . str_replace( '-', '_', sanitize_title( str_replace( ' and ', ' ', wp_strip_all_tags( $component_data['Name'] ) ) ) );
 
 			if ( 0 < strlen( (string) $component_data['Capability'] ) ) {
 				$capability = $component_data['Capability'];
@@ -774,11 +778,15 @@ class PodsComponents {
 		$method    = $params->method;
 
 		if ( ! isset( $component ) || ! isset( $this->components[ $component ] ) || ! isset( $this->settings['components'][ $component ] ) ) {
-			pods_error( __( 'Invalid AJAX request', 'pods' ), $this );
+			return pods_error( __( 'Invalid AJAX request', 'pods' ), $this );
+		}
+
+		if ( ! is_user_logged_in() || ! pods_is_admin( 'pods_components' ) ) {
+			return pods_error( __( 'Unauthorized request', 'pods' ), $this );
 		}
 
 		if ( ! isset( $params->_wpnonce ) || false === wp_verify_nonce( $params->_wpnonce, 'pods-component-' . $component . '-' . $method ) ) {
-			pods_error( __( 'Unauthorized request', 'pods' ), $this );
+			return pods_error( __( 'Unauthorized request', 'pods' ), $this );
 		}
 
 		// Cleaning up $params
@@ -798,7 +806,7 @@ class PodsComponents {
 			$output = call_user_func( array( $this, 'admin_ajax_' . $method ), $component, $params );
 		} elseif ( ! isset( $this->components[ $component ]['object'] ) || ! method_exists( $this->components[ $component ]['object'], 'ajax_' . $method ) ) {
 			// Make sure method exists
-			pods_error( __( 'API method does not exist', 'pods' ), $this );
+			return pods_error( __( 'API method does not exist', 'pods' ), $this );
 		} else {
 			// Dynamically call the component method
 			$output = call_user_func( array( $this->components[ $component ]['object'], 'ajax_' . $method ), $params );
@@ -826,7 +834,7 @@ class PodsComponents {
 		if ( ! isset( $this->components[ $component ] ) ) {
 			wp_die( 'Invalid Component', '', array( 'back_link' => true ) );
 		} elseif ( ! method_exists( $this->components[ $component ]['object'], 'options' ) ) {
-			pods_error( __( 'Component options method does not exist', 'pods' ), $this );
+			return pods_error( __( 'Component options method does not exist', 'pods' ), $this );
 		}
 
 		$options = $this->components[ $component ]['object']->options( $this->settings['components'][ $component ] );

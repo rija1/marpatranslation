@@ -356,6 +356,17 @@ class WP_Optimize_Minify_Functions {
 	}
 
 	/**
+	 * Check if the JS code contains import statements
+	 *
+	 * @param string $js
+	 * @return boolean
+	 */
+	public static function has_js_import_statements($js) {
+		$js = preg_replace('/\/\/.*|\/\*[\s\S]*?\*\//', '', $js); // Remove comments to avoid false positives
+		return 1 === preg_match('/\bimport\b/', $js);
+	}
+
+	/**
 	 * Functions, minify html
 	 *
 	 * @param string $html
@@ -734,10 +745,20 @@ class WP_Optimize_Minify_Functions {
 	 * @return string
 	 */
 	public static function remove_cssjs_ver($src) {
-		if (stripos($src, '?ver=')) {
+		if (stripos($src, '?ver=') && self::is_already_minified($src)) {
 			$src = remove_query_arg('ver', $src);
 		}
 		return $src;
+	}
+
+	/**
+	 * Determine if the source is already minified (served from minify cache)
+	 *
+	 * @param string $src
+	 * @return boolean
+	 */
+	public static function is_already_minified($src) {
+		return false !== strpos($src, 'cache/wpo-minify');
 	}
 
 	/**
@@ -1026,7 +1047,7 @@ class WP_Optimize_Minify_Functions {
 		
 		$args = array(
 			// info (needed for Google fonts woff files + hinted fonts) as well as to bypass some security filters
-			'user-agent' => WP_Optimize_Utils::get_user_agent(),
+			'user-agent' => WP_Optimize_Utils::get_user_agent('gfont'),
 			'timeout' => 7
 		);
 
@@ -1076,7 +1097,7 @@ class WP_Optimize_Minify_Functions {
 	 * @return boolean
 	 */
 	public static function is_font_awesome($href) {
-		return (boolean) preg_match('/font[-_]?awesome/i', $href);
+		return (bool) preg_match('/font[-_]?awesome/i', $href);
 	}
 
 	/**
@@ -1144,7 +1165,7 @@ class WP_Optimize_Minify_Functions {
 	public static function get_remote_file_size($url) {
 		$args = array(
 			// info (needed for Google fonts woff files + hinted fonts) as well as to bypass some security filters
-			'user-agent' => WP_Optimize_Utils::get_user_agent(),
+			'user-agent' => WP_Optimize_Utils::get_user_agent('gfont'),
 			'timeout' => 7
 		);
 

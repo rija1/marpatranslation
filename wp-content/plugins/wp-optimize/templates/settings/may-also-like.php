@@ -1,4 +1,4 @@
-<?php if (!defined('WPO_VERSION')) die('No direct access allowed'); ?>
+<?php if (!defined('ABSPATH')) die('No direct access allowed'); ?>
 <div class="wpo_col wpo_half_width wpo_feature_cont">
 	<header>
 		<h2><?php esc_html_e("WP-Optimize free / premium comparison", 'wp-optimize');?></h2>
@@ -248,6 +248,18 @@
 				<!-- <img src="<?php echo esc_url(WPO_PLUGIN_URL.'images/features/advanced.png');?>" alt="<?php esc_attr_e('Power tweaks', 'wp-optimize');?>" class="wpo-premium-image"> -->
 				<h4><?php esc_html_e('Power tweaks', 'wp-optimize');?></h4>
 				<p><?php esc_html_e('Catered towards more advanced users, the power tweaks will enable you to improve performance by targeting specific weak points, either in WordPress Core, or in popular plugins', 'wp-optimize');?></p>
+			</td>
+			<td>
+				<p><span class="dashicons dashicons-no-alt" aria-label="<?php esc_attr_e('No', 'wp-optimize');?>"></span></p>
+			</td>
+			<td>
+				<p><span class="dashicons dashicons-yes" aria-label="<?php esc_attr_e('Yes', 'wp-optimize');?>"></span></p>
+			</td>
+		</tr>
+		<tr>
+			<td>
+				<h4><?php esc_html_e('Speed up visible content (LCP)', 'wp-optimize');?></h4>
+				<p><?php esc_html_e('Optimize how large elements load, so users see content faster.', 'wp-optimize');?></p>
 			</td>
 			<td>
 				<p><span class="dashicons dashicons-no-alt" aria-label="<?php esc_attr_e('No', 'wp-optimize');?>"></span></p>

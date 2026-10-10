@@ -1,10 +1,10 @@
 === WooCommerce ===
 Contributors: automattic, woocommerce, mikejolley, jameskoster, claudiosanches, rodrigosprimo, peterfabian1000, vedjain, jamosova, obliviousharmony, konamiman, sadowski, wpmuguru, royho, barryhughes-1, claudiulodro, tiagonoronha, ryelle, levinmedia, aljullu, nerrad, joshuawold, assassinateur, haszari, mppfeiffer, nielslange, opr18, ralucastn, tjcafferkey, danielwrobert, patriciahillebrandt, albarin, dinhtungdu, imanish003, karolmanijak, sunyatasattva, alexandrelara, gigitux, danieldudzic, samueljseay, alexflorisca, opr18, tarunvijwani, pauloarromba, saadtarhi, bor0, kloon, coreymckrill, jorgeatorres, leifsinger, neosinner
 Tags: online store, ecommerce, shop, shopping cart, sell online
-Requires at least: 6.7
-Tested up to: 6.8
+Requires at least: 7.0
+Tested up to: 7.1
 Requires PHP: 7.4
-Stable tag: 10.3.7
+Stable tag: 11.1.2
 License: GPLv3
 License URI: https://www.gnu.org/licenses/gpl-3.0.html
 
@@ -128,11 +128,11 @@ Request new features and extensions and vote on existing suggestions on our offi
 
 = WooCommerce is awesome! Can I contribute? =
 
-Yes, you can! Join in on our [GitHub repository](https://github.com/woocommerce/woocommerce/?utm_medium=referral&utm_source=wordpress.org&utm_campaign=wp_org_repo_listing) and follow the [development blog](https://woocommerce.wordpress.com/?utm_medium=referral&utm_source=wordpress.org&utm_campaign=wp_org_repo_listing) to stay up-to-date with everything happening in the project.
+Yes, you can! Join in on our [GitHub repository](https://github.com/woocommerce/woocommerce/?utm_medium=referral&utm_source=wordpress.org&utm_campaign=wp_org_repo_listing) and follow the [development blog](https://developer.woocommerce.com/?utm_medium=referral&utm_source=wordpress.org&utm_campaign=wp_org_repo_listing) to stay up-to-date with everything happening in the project.
 
 = Where can I find REST API documentation? =
 
-Extensive [WooCommerce REST API Documentation](https://woocommerce.github.io/woocommerce-rest-api-docs/?utm_medium=referral&utm_source=wordpress.org&utm_campaign=wp_org_repo_listing) is available on GitHub.
+Extensive [WooCommerce REST API Documentation](https://developer.woocommerce.com/docs/apis/rest-api/?utm_medium=referral&utm_source=wordpress.org&utm_campaign=wp_org_repo_listing) is available.
 
 = My question is not listed here. Where can I find more answers? =
 
@@ -144,7 +144,7 @@ Check out [Frequently Asked Questions](https://woocommerce.com/document/frequent
 
 * PHP 7.4 or greater is required (PHP 8.0 or greater is recommended)
 * MySQL 5.5.5 or greater, OR MariaDB version 10.1 or greater, is required
-* WordPress 6.7 or greater
+* WordPress 7.0 or greater
 * (Recommended) WordPress [memory limit](https://woocommerce.com/document/increasing-the-wordpress-memory-limit/) of 256 MB or greater.
 * (Recommended) [HTTPS](https://woocommerce.com/document/ssl-and-https/) support.
 
@@ -170,19 +170,23 @@ WooCommerce comes with some sample data you can use to see how products look; im
 
 == Changelog ==
 
-= 10.3.7 2025-12-18 =
-
-* Security - Fixed an authorization bypass vulnerability in the Store API order endpoint
-
-= 10.3.6 2025-12-02 =
+= 11.2.0 2026-10-07 =
 
 **WooCommerce**
 
-* Fix - Fix Abilities API integration tests for WordPress 6.9+ compatibility with backward compatibility for earlier versions. [#62105](https://github.com/woocommerce/woocommerce/pull/62105)
-* Fix - Fix fatal error in needs_shipping() when order contains permanently deleted product [#62102](https://github.com/woocommerce/woocommerce/pull/62102)
-* Fix - Fix PHP 8.4 fatal error in WooCommerce Helper updater when transient contains malformed data [#62095](https://github.com/woocommerce/woocommerce/pull/62095)
-* Fix - Support both WordPress 6.9+ and pre-6.9 action hook names for Abilities API registration to ensure compatibility across WordPress versions. [#62089](https://github.com/woocommerce/woocommerce/pull/62089)
-* Update - Updated MCP adapter to v0.3.0 and refactored initialization process. [#62090](https://github.com/woocommerce/woocommerce/pull/62090)
+* Fix - Fixed a fatal error in persistent product status counters during background revision save in the admin when a null value was dispatched instead of a post object. [#69234](https://github.com/woocommerce/woocommerce/pull/69234)
+* Fix - Keep enforcing a coupon's minimum spend when its saved maximum spend is lower, as earlier versions did. [#69242](https://github.com/woocommerce/woocommerce/pull/69242)
+* Fix - Keep price separators as plain text in the Store API and block settings. [#69244](https://github.com/woocommerce/woocommerce/pull/69244)
+* Fix - Show each KOMOJU payment method's own name and description on the Payments settings page, instead of identical rows. [#69175](https://github.com/woocommerce/woocommerce/pull/69175)
+* Fix - Update the classic checkout totals after an address change when an extension hides a required address field. [#69333](https://github.com/woocommerce/woocommerce/pull/69333)
+* Fix - Ensure fulfillments REST API item requests operate on the fulfillment identified in the request URL. [#69534](https://github.com/woocommerce/woocommerce/pull/69534)
+* Fix - Prevent Cc/Bcc recipients from being configured for emails that carry a password reset key or a one-time verification link. [#69537](https://github.com/woocommerce/woocommerce/pull/69537)
+* Fix - Prevent fatal errors in the batch processing controller when another plugin loads an Action Scheduler older than 3.3.0, by falling back to `as_next_scheduled_action()` when `as_has_scheduled_action()` is missing. [#69415](https://github.com/woocommerce/woocommerce/pull/69415)
+* Fix - Prevent shop managers from editing users who have additional roles that cannot be edited by shop managers. [#69533](https://github.com/woocommerce/woocommerce/pull/69533)
+* Fix - Remove non-allowlisted query parameters and fragments from analytics document location and referrer properties. [#69536](https://github.com/woocommerce/woocommerce/pull/69536)
+* Fix - Require network super admin rights to import Blueprints on multisite. [#69529](https://github.com/woocommerce/woocommerce/pull/69529)
+* Fix - Revert recent changes to how conditional checkout field rules handle missing values. [#69530](https://github.com/woocommerce/woocommerce/pull/69530)
+* Fix - Update REST API key nonce handling. [#69532](https://github.com/woocommerce/woocommerce/pull/69532)
 
 
 [See changelog for all versions](https://raw.githubusercontent.com/woocommerce/woocommerce/trunk/changelog.txt).

@@ -1,6 +1,6 @@
 <?php
 
-if (!defined('WPO_VERSION')) die('No direct access allowed');
+if (!defined('ABSPATH')) die('No direct access allowed');
 
 /**
  * Parent class for all optimizations.
@@ -413,15 +413,6 @@ abstract class WP_Optimization {
 	 */
 	public function get_run_sort_order() {
 		return empty($this->run_sort_order) ? 0 : $this->run_sort_order;
-	}
-	
-	/**
-	 * Only used if $available_for_auto is true, in which case this function should be over-ridden
-	 *
-	 * @return string Error message.
-	 */
-	public function get_auto_option_description() {
-		return 'Error: missing scheduled option description ('.$this->id.')';
 	}
 	
 	/**

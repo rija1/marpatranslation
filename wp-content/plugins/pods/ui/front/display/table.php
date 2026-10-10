@@ -1,8 +1,11 @@
 <?php
+
 // Don't load directly.
 if ( ! defined( 'ABSPATH' ) ) {
 	die( '-1' );
 }
+
+// phpcs:ignoreFile WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedVariableFound
 
 /**
  * @var \Pods\Whatsit\Field[] $display_fields
@@ -18,7 +21,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 		<tr class="pods-all-fields-row pods-all-fields-row-name-<?php echo esc_attr( PodsForm::clean( $field_path, true ) ); ?>">
 			<th scope="row">
 				<strong>
-					<?php echo $field_label; // @codingStandardsIgnoreLine ?>
+					<?php echo esc_html( $field_label ); ?>
 				</strong>
 			</th>
 			<td>

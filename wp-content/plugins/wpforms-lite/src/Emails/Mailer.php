@@ -36,7 +36,7 @@ class Mailer {
 	 *
 	 * @var string
 	 */
-	private $from_address;
+	private $from_address = '';
 
 	/**
 	 * From name.
@@ -217,10 +217,11 @@ class Mailer {
 	 */
 	public function get_from_address() {
 
-		$this->from_address = $this->from_address ? $this->sanitize( $this->from_address, 'notification-from' ) : get_option( 'admin_email' );
+		$from_address = $this->sanitize( $this->from_address, 'notification-from' );
+		$from_address = $from_address ? $from_address : get_option( 'admin_email' );
 
 		// phpcs:ignore WPForms.Comments.PHPDocHooks.RequiredHookDocumentation
-		return apply_filters( 'wpforms_emails_mailer_get_from_address', $this->from_address, $this );
+		return apply_filters( 'wpforms_emails_mailer_get_from_address', $from_address, $this );
 	}
 
 	/**
@@ -361,18 +362,16 @@ class Mailer {
 	 */
 	public function get_headers() {
 
-		if ( $this->headers ) {
-			// phpcs:ignore WPForms.Comments.PHPDocHooks.RequiredHookDocumentation
-			return apply_filters( 'wpforms_emails_mailer_get_headers', $this->headers, $this );
+		$from_name    = $this->sanitize_email_header_name( (string) $this->get_from_name() );
+		$from_address = $this->sanitize_email_header( (string) $this->get_from_address() );
+		$reply_to     = $this->sanitize_email_header( (string) $this->get_reply_to_address() );
+		$cc           = $this->sanitize_email_header( (string) $this->get_cc_address() );
+
+		$this->headers = "From: {$from_name} <{$from_address}>\r\n";
+
+		if ( $reply_to ) {
+			$this->headers .= "Reply-To: {$reply_to}\r\n";
 		}
-
-		$this->headers = "From: {$this->get_from_name()} <{$this->get_from_address()}>\r\n";
-
-		if ( $this->get_reply_to_address() ) {
-			$this->headers .= "Reply-To: {$this->get_reply_to_address()}\r\n";
-		}
-
-		$cc = $this->get_cc_address();
 
 		if ( $cc ) {
 			$this->headers .= "Cc: {$cc}\r\n";
@@ -388,7 +387,46 @@ class Mailer {
 		 * @param string $headers Email headers.
 		 * @param Mailer $this    Mailer instance.
 		 */
-		return apply_filters( 'wpforms_emails_mailer_get_headers', $this->headers, $this );
+		return (string) apply_filters( 'wpforms_emails_mailer_get_headers', $this->headers, $this );
+	}
+
+	/**
+	 * Sanitize a value for safe use as an email header.
+	 *
+	 * Replaces line breaks with a space to prevent email header (CRLF) injection,
+	 * using the same strategy as the email subject. Address and CC slots use this
+	 * method so their commas (recipient separators) are preserved.
+	 *
+	 * @since 1.10.2.1
+	 *
+	 * @param string $value Header value to sanitize.
+	 *
+	 * @return string Header value with line breaks replaced by spaces.
+	 */
+	private function sanitize_email_header( string $value ): string {
+
+		return trim( str_replace( [ "\r\n", "\r", "\n" ], ' ', $value ) );
+	}
+
+	/**
+	 * Sanitize a value for safe use as an email header display name.
+	 *
+	 * On top of neutralizing line breaks, this strips the characters wp_mail()
+	 * treats as address-list delimiters when it re-parses the assembled header:
+	 * commas (it splits Reply-To/Cc/Bcc on them) and angle brackets (address
+	 * delimiters). RFC quoting is not enough because wp_mail() ignores it, so a
+	 * comma left in a display name would inject an extra recipient. Declared
+	 * protected because the Notifications subclass sanitizes the Reply-To name.
+	 *
+	 * @since 1.10.2.1
+	 *
+	 * @param string $name Display name to sanitize.
+	 *
+	 * @return string Display name safe to embed in a From/Reply-To header.
+	 */
+	protected function sanitize_email_header_name( string $name ): string {
+
+		return trim( str_replace( [ ',', '<', '>' ], '', $this->sanitize_email_header( $name ) ) );
 	}
 
 	/**

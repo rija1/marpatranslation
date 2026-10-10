@@ -344,8 +344,8 @@ class Api extends Rest_Controller {
 	 */
 	public function get_configs() {
 		$configs = array(
-			'gdpr' => $this->controller->get_default_configs(),
-			'ccpa' => $this->controller->get_default_configs( 'ccpa' ),
+			'gdpr' => $this->controller->get_default_configs( 'gdpr', '6.2.0' ),
+			'ccpa' => $this->controller->get_default_configs( 'ccpa', '6.2.0' ),
 		);
 		return rest_ensure_response( $configs );
 	}

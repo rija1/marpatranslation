@@ -12,11 +12,6 @@ class Attributes extends SynchronizerForMeta {
 	const DEFAULT_ATTRIBUTES_META_KEY = '_default_attributes';
 	const PRODUCT_ATTRIBUTES_META_KEY = '_product_attributes';
 
-	/**
-	 * @param \WP_Post          $product
-	 * @param int[]             $translationsIds
-	 * @param array<int,string> $translationsLanguages
-	 */
 	public function run( $product, $translationsIds, $translationsLanguages ) {
 		$productsIds      = array_merge( [ $product->ID ], $translationsIds );
 		$storedAttributes = $this->getMeta( self::PRODUCT_ATTRIBUTES_META_KEY, $productsIds );
@@ -48,7 +43,6 @@ class Attributes extends SynchronizerForMeta {
 
 		$duplicationsIds = [];
 		if ( $hasLocalAttributes ) {
-			// phpcs:disable WordPress.WP.PreparedSQL.NotPrepared
 			$duplicationsIds = $this->wpdb->get_col(
 				$this->wpdb->prepare(
 					"
@@ -62,7 +56,6 @@ class Attributes extends SynchronizerForMeta {
 					count( $translationsIds )
 				)
 			);
-			// phpcs:enable
 		}
 
 		$sanitizedAttributeNames = [];
@@ -109,12 +102,6 @@ class Attributes extends SynchronizerForMeta {
 		$this->updateMeta( self::PRODUCT_ATTRIBUTES_META_KEY, $translationsIdsToUpdate );
 	}
 
-	/**
-	 * @param int               $productId
-	 * @param int[]             $translationsIds
-	 * @param array<int,string> $translationsLanguages
-	 * @param array<int,array>  $storedAttributes
-	 */
 	private function runForDefaultAttributes( $productId, $translationsIds, $translationsLanguages, $storedAttributes ) {
 		$productsIds             = array_merge( [ $productId ], $translationsIds );
 		$storedDefaultAttributes = $this->getMeta( self::DEFAULT_ATTRIBUTES_META_KEY, $productsIds );
@@ -138,7 +125,7 @@ class Attributes extends SynchronizerForMeta {
 					$sanitizedAttributeName  = wc_sanitize_taxonomy_name( $attribute );
 					$defaultTerm             = $this->woocommerceWpml->terms->wcml_get_term_by_slug( $defaultAttributeValue, $sanitizedAttributeName );
 					$defaultTermTranslations = $defaultTerm
-						? $this->elementTranslations->get_element_translations( $defaultTerm->term_taxonomy_id, false, true )
+						? $this->elementTranslations->get_element_translations( $defaultTerm->term_taxonomy_id, false, false )
 						: [];
 
 					foreach ( $translationsLanguages as $translationId => $language ) {

@@ -8,6 +8,7 @@ if (!defined('ABSPATH')) exit;
 use MailPoet\Config\Renderer;
 use MailPoet\Config\ServicesChecker;
 use MailPoet\Cron\CronHelper;
+use MailPoet\EmailEditor\Integrations\MailPoet\PersonalizationTags\PersonalizationTagLinkResolver;
 use MailPoet\Entities\NewsletterEntity;
 use MailPoet\Entities\NewsletterLinkEntity;
 use MailPoet\Entities\ScheduledTaskEntity;
@@ -20,6 +21,7 @@ use MailPoet\Settings\SettingsController;
 use MailPoet\Subscribers\SubscribersRepository;
 use MailPoet\Util\License\Features\Subscribers as SubscribersFeature;
 use MailPoet\WP\Functions as WPFunctions;
+use MailPoet\WPCOM\DotcomHelperFunctions;
 use MailPoetVendor\Carbon\Carbon;
 use MailPoetVendor\Doctrine\ORM\EntityManager;
 
@@ -65,6 +67,11 @@ class Worker {
   /** @var ServicesChecker */
   private $servicesChecker;
 
+  /** @var DotcomHelperFunctions */
+  private $dotcomHelperFunctions;
+
+  private PersonalizationTagLinkResolver $personalizationTagLinkResolver;
+
   public function __construct(
     MailerFactory $mailerFactory,
     Renderer $renderer,
@@ -77,7 +84,9 @@ class Worker {
     EntityManager $entityManager,
     SubscribersFeature $subscribersFeature,
     SubscribersRepository $subscribersRepository,
-    ServicesChecker $servicesChecker
+    ServicesChecker $servicesChecker,
+    DotcomHelperFunctions $dotcomHelperFunctions,
+    PersonalizationTagLinkResolver $personalizationTagLinkResolver
   ) {
     $this->renderer = $renderer;
     $this->mailerFactory = $mailerFactory;
@@ -91,6 +100,8 @@ class Worker {
     $this->subscribersFeature = $subscribersFeature;
     $this->subscribersRepository = $subscribersRepository;
     $this->servicesChecker = $servicesChecker;
+    $this->dotcomHelperFunctions = $dotcomHelperFunctions;
+    $this->personalizationTagLinkResolver = $personalizationTagLinkResolver;
   }
 
   /** @throws \Exception */
@@ -104,7 +115,7 @@ class Worker {
         $extraParams = [
           'meta' => $this->mailerMetaInfo->getStatsNotificationMetaInfo(),
         ];
-        $this->mailerFactory->getDefaultMailer()->send($this->constructNewsletter($statsNotificationEntity), $settings['address'], $extraParams);
+        $this->mailerFactory->getDefaultMailer()->send($this->constructNewsletter($statsNotificationEntity, $settings), $settings['address'], $extraParams);
       } catch (\Exception $e) {
         if (WP_DEBUG) {
           throw $e;
@@ -119,7 +130,7 @@ class Worker {
     }
   }
 
-  private function constructNewsletter(StatsNotificationEntity $statsNotificationEntity) {
+  private function constructNewsletter(StatsNotificationEntity $statsNotificationEntity, array $settings) {
     $newsletter = $statsNotificationEntity->getNewsletter();
     if (!$newsletter instanceof NewsletterEntity) {
       throw new \RuntimeException('Missing newsletter entity for statistic notification.');
@@ -129,11 +140,17 @@ class Worker {
     if (!$sendingQueue instanceof SendingQueueEntity) {
       throw new \RuntimeException('Missing sending queue entity for statistic notification.');
     }
-    $context = $this->prepareContext($newsletter, $sendingQueue, $link);
+    $context = $this->prepareContext($newsletter, $sendingQueue, $link, $settings);
     $subject = $sendingQueue->getNewsletterRenderedSubject();
-    return [
+    if ($this->dotcomHelperFunctions->isGarden()) {
+      // translators: %s is the name of the email campaign.
+      $emailSubject = sprintf(__('Campaign performance summary: %s', 'mailpoet'), $subject);
+    } else {
       // translators: %s is the subject of the email.
-      'subject' => sprintf(_x('Stats for email %s', 'title of an automatic email containing statistics (newsletter open rate, click rate, etc)', 'mailpoet'), $subject),
+      $emailSubject = sprintf(_x('Stats for email %s', 'title of an automatic email containing statistics (newsletter open rate, click rate, etc)', 'mailpoet'), $subject);
+    }
+    return [
+      'subject' => $emailSubject,
       'body' => [
         'html' => $this->renderer->render('emails/statsNotification.html', $context),
         'text' => $this->renderer->render('emails/statsNotification.txt', $context),
@@ -141,13 +158,17 @@ class Worker {
     ];
   }
 
-  private function prepareContext(NewsletterEntity $newsletter, SendingQueueEntity $sendingQueue, ?NewsletterLinkEntity $link = null) {
+  private function prepareContext(NewsletterEntity $newsletter, SendingQueueEntity $sendingQueue, ?NewsletterLinkEntity $link = null, array $settings = []) {
     $statistics = $this->newsletterStatisticsRepository->getStatistics($newsletter);
-    $clicked = ($statistics->getClickCount() * 100) / $statistics->getTotalSentCount();
-    $opened = ($statistics->getOpenCount() * 100) / $statistics->getTotalSentCount();
-    $machineOpened = ($statistics->getMachineOpenCount() * 100) / $statistics->getTotalSentCount();
-    $unsubscribed = ($statistics->getUnsubscribeCount() * 100) / $statistics->getTotalSentCount();
-    $bounced = ($statistics->getBounceCount() * 100) / $statistics->getTotalSentCount();
+    $totalSentCount = $statistics->getTotalSentCount() ?: 1;
+    // Opens and clicks over the recipients sent with tracking; unsubscribes and bounces over
+    // everyone. With nobody tracked the rate is 0, not a count divided by 1.
+    $trackedSentCount = $statistics->getTrackedSentCount();
+    $clicked = $trackedSentCount > 0 ? ($statistics->getClickCount() * 100) / $trackedSentCount : 0;
+    $opened = $trackedSentCount > 0 ? ($statistics->getOpenCount() * 100) / $trackedSentCount : 0;
+    $machineOpened = $trackedSentCount > 0 ? ($statistics->getMachineOpenCount() * 100) / $trackedSentCount : 0;
+    $unsubscribed = ($statistics->getUnsubscribeCount() * 100) / $totalSentCount;
+    $bounced = ($statistics->getBounceCount() * 100) / $totalSentCount;
     $subject = $sendingQueue->getNewsletterRenderedSubject();
     $subscribersCount = $this->subscribersRepository->getTotalSubscribers();
     $hasValidApiKey = $this->subscribersFeature->hasValidApiKey();
@@ -165,13 +186,24 @@ class Worker {
         number_format($unsubscribed, 2)
       ),
       'topLinkClicks' => 0,
-      'linkSettings' => WPFunctions::get()->getSiteUrl(null, '/wp-admin/admin.php?page=mailpoet-settings#basics'),
-      'linkStats' => WPFunctions::get()->getSiteUrl(null, '/wp-admin/admin.php?page=mailpoet-newsletters&stats=' . $newsletter->getId()),
+      'linkSettings' => WPFunctions::get()->applyFilters(
+        'mailpoet_stats_notification_link_settings',
+        WPFunctions::get()->getSiteUrl(null, '/wp-admin/admin.php?page=mailpoet-settings#basics')
+      ),
+      'linkStats' => WPFunctions::get()->applyFilters(
+        'mailpoet_stats_notification_link_stats',
+        WPFunctions::get()->getSiteUrl(null, '/wp-admin/admin.php?page=mailpoet-newsletters&stats=' . $newsletter->getId()),
+        $newsletter->getId()
+      ),
       'clicked' => $clicked,
       'opened' => $opened,
       'machineOpened' => $machineOpened,
       'unsubscribed' => $unsubscribed,
       'bounced' => $bounced,
+      // The digest is a push: for many merchants this is the first place they
+      // see the higher open rate, so the coverage line matters most here.
+      'notTracked' => $statistics->getNotTrackedCount(),
+      'trackedSent' => $statistics->getTrackedSentCount(),
       'subscribersLimitReached' => $this->subscribersFeature->check(),
       'hasValidApiKey' => $hasValidApiKey,
       'subscribersLimit' => $this->subscribersFeature->getSubscribersLimit(),
@@ -182,9 +214,29 @@ class Worker {
     if ($link) {
       $context['topLinkClicks'] = $link->getTotalClicksCount();
       $mappings = self::getShortcodeLinksMapping();
-      $context['topLink'] = isset($mappings[$link->getUrl()]) ? $mappings[$link->getUrl()] : $link->getUrl();
+      $context['topLink'] = $mappings[$link->getUrl()]
+        ?? $this->personalizationTagLinkResolver->getDisplayName($link->getUrl())
+        ?? $link->getUrl();
     }
+    $context['blogName'] = WPFunctions::get()->getBloginfo('name');
+    $context['recipientFirstName'] = $this->getRecipientFirstName($settings['address'] ?? '');
     return $context;
+  }
+
+  private function getRecipientFirstName(string $email): string {
+    if (empty($email)) {
+      return '';
+    }
+    $user = WPFunctions::get()->getUserBy('email', $email);
+    if (!$user) {
+      return '';
+    }
+    $firstName = $user->first_name; // phpcs:ignore Squiz.NamingConventions.ValidVariableName.MemberNotCamelCaps
+    if (!empty($firstName)) {
+      return $firstName;
+    }
+    $displayName = $user->display_name; // phpcs:ignore Squiz.NamingConventions.ValidVariableName.MemberNotCamelCaps
+    return !empty($displayName) ? $displayName : '';
   }
 
   private function markTaskAsFinished(ScheduledTaskEntity $task) {
@@ -194,6 +246,10 @@ class Worker {
     $this->entityManager->flush();
   }
 
+  /**
+   * Labels for legacy shortcode system links. Block-email system links are stored as
+   * personalization tag tokens and labelled with the tag name instead.
+   */
   public static function getShortcodeLinksMapping() {
     return [
       NewsletterLinkEntity::UNSUBSCRIBE_LINK_SHORT_CODE => __('Unsubscribe link', 'mailpoet'),

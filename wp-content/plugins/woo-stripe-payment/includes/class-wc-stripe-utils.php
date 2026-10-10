@@ -43,8 +43,8 @@ class WC_Stripe_Utils {
 	}
 
 	/**
-	 * @param \Stripe\BalanceTransaction $balance_transaction
-	 * @param \WC_Order                  $order
+	 * @param \PaymentPlugins\Vendor\Stripe\BalanceTransaction $balance_transaction
+	 * @param \WC_Order                                        $order
 	 *
 	 * @return void
 	 */
@@ -63,9 +63,9 @@ class WC_Stripe_Utils {
 	}
 
 	/**
-	 * @param \Stripe\Charge $charge
-	 * @param \WC_Order      $order
-	 * @param bool           $save
+	 * @param \PaymentPlugins\Vendor\Stripe\Charge $charge
+	 * @param \WC_Order                            $order
+	 * @param bool                                 $save
 	 */
 	public static function add_balance_transaction_to_order( $charge, $order, $save = false ) {
 		if ( isset( $charge->balance_transaction ) && is_object( $charge->balance_transaction ) ) {
@@ -86,7 +86,7 @@ class WC_Stripe_Utils {
 			if ( $charge->refunds->count() > 0 ) {
 				foreach ( $charge->refunds->data as $refund ) {
 					/**
-					 * @var \Stripe\Refund $refund
+					 * @var \PaymentPlugins\Vendor\Stripe\Refund $refund
 					 */
 					if ( is_object( $refund->balance_transaction ) ) {
 						self::update_balance_transaction( $refund->balance_transaction, $order, false, $payment_balance );
@@ -100,8 +100,8 @@ class WC_Stripe_Utils {
 	}
 
 	/**
-	 * @param \Stripe\BalanceTransaction $balance_transaction
-	 * @param \WC_Order                  $order
+	 * @param \PaymentPlugins\Vendor\Stripe\BalanceTransaction $balance_transaction
+	 * @param \WC_Order                                        $order
 	 */
 	public static function update_balance_transaction( $balance_transaction, $order, $save = false, $payment_balance = null ) {
 		if ( $balance_transaction->reporting_category === 'partial_capture_reversal' ) {
@@ -132,17 +132,38 @@ class WC_Stripe_Utils {
 	/**
 	 * @param $value
 	 *
-	 * @since 3.3.14
 	 * @return string
+	 * @since 3.3.14
 	 */
 	public static function sanitize_statement_descriptor( $value ) {
 		return trim( str_replace( array( '<', '>', '\\', '\'', '"', '*' ), '', $value ) );
 	}
 
 	/**
+	 * @param string   $value
+	 * @param WC_Order $order
+	 *
+	 * @return string
+	 */
+	public static function format_statement_descriptor( $value, $order ) {
+		$data  = [
+			'{order_id}'     => $order->get_id(),
+			'{order_number}' => $order->get_order_number(),
+			'{email}'        => $order->get_billing_email(),
+			'{currency}'     => $order->get_currency(),
+			'{customer_id}'  => $order->get_customer_id(),
+			'{name}'         => sprintf( '%s %s', $order->get_billing_first_name(), $order->get_billing_last_name() ),
+		];
+		$value = str_replace( array_keys( $data ), $data, $value );
+
+		return substr( $value, 0, 22 );
+	}
+
+
+	/**
 	 * Sanitizes intent data before it's stored.
 	 *
-	 * @param \Stripe\PaymentIntent|\Stripe\SetupIntent $intent
+	 * @param \PaymentPlugins\Vendor\Stripe\PaymentIntent|\PaymentPlugins\Vendor\Stripe\SetupIntent|array $intent
 	 */
 	public static function sanitize_intent( $intent ) {
 		return $intent;
@@ -264,8 +285,16 @@ class WC_Stripe_Utils {
 
 		if ( isset( $payment_intent->metadata->order_id ) ) {
 			$order = wc_get_order( wc_stripe_filter_order_id( $payment_intent->metadata->order_id, $payment_intent ) );
-			if ( $order && $order->get_meta( WC_Stripe_Constants::PAYMENT_INTENT_ID ) === $payment_intent->id ) {
-				return $order;
+			if ( $order ) {
+				$order_intent_id = $order->get_meta( WC_Stripe_Constants::PAYMENT_INTENT_ID );
+				// Empty means nothing has claimed this order's intent yet (e.g. a checkout-session
+				// created PaymentIntent whose webhook can arrive before our own completion flow has
+				// set this meta) - trust the intent's own metadata in that case. A non-empty value
+				// that doesn't match is a real conflict (a stale/abandoned attempt vs. this order's
+				// current one) and should still fall through to the stricter lookup below.
+				if ( $order_intent_id === $payment_intent->id || empty( $order_intent_id ) ) {
+					return $order;
+				}
 			}
 		}
 
@@ -307,6 +336,22 @@ class WC_Stripe_Utils {
 		}
 
 		return $order;
+	}
+
+	/**
+	 * Returns false if the order is in a status that a webhook (immediate or deferred) should never complete
+	 * payment on, e.g. an order a merchant has already cancelled or refunded should not be reactivated by a
+	 * delayed or out-of-order payment_intent.succeeded webhook. Deliberately a blocklist, not an allowlist -
+	 * merchants and 3rd party plugins commonly add custom "awaiting payment" statuses, and an allowlist would
+	 * silently stop completing orders sitting in any status we didn't think to include.
+	 *
+	 * @param WC_Order $order
+	 *
+	 * @return bool
+	 * @since 4.0.10
+	 */
+	public static function can_process_webhook_payment( $order ) {
+		return ! $order->has_status( apply_filters( 'wc_stripe_webhook_blocked_order_statuses', array( 'cancelled', 'refunded' ), $order ) );
 	}
 
 }

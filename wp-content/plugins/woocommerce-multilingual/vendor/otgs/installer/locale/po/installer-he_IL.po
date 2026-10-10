@@ -7,15 +7,17 @@ msgstr ""
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"POT-Creation-Date: 2025-07-21T14:15:01+00:00\n"
+"POT-Creation-Date: 2026-01-22T11:52:08+00:00\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "X-Generator: WP-CLI 2.11.0\n"
 "X-Domain: installer\n"
+"Language: he_IL\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
 
 #. translators: %1$s and %2$s are opening and closing link tags.
 #: includes/admin-notices/notices/Account.php:107
 msgid "This site is registered on wpml.org as a development site. %1$sLearn more%2$s"
-msgstr "אתר זה רשום ב-wpml.org כאתר פיתוח. %1$sלמידע נוסף%2$s"
+msgstr "אתר זה רשום ב-wpml.org כאתר פיתוח. %1$sלמד עוד%2$s"
 
 #: includes/admin-notices/notices/Account.php:111
 msgid "Development Site"
@@ -29,23 +31,23 @@ msgstr "אתה משתמש בגרסה לא רשומה של %s ואינך מקבל
 #. translators: %s Product name
 #: includes/admin-notices/notices/Texts.php:20
 msgid "%s plugin must be registered in order to receive stability and security updates. Without these updates, the plugin may become incompatible with new versions of WordPress, which include security patches."
-msgstr "יש לרשום את הפלאגין %s כדי לקבל עדכוני יציבות ואבטחה. ללא עדכונים אלו, התוסף עלול להפוך לבלתי תואם לגרסאות חדשות של וורדפרס, הכוללות תיקוני אבטחה."
+msgstr "יש לרשום את התוסף %s כדי לקבל עדכוני יציבות ואבטחה. ללא עדכונים אלה, התוסף עלול להפוך ללא תואם לגרסאות חדשות של וורדפרס, הכוללות תיקוני אבטחה."
 
 #. translators: %s Product name
 #: includes/admin-notices/notices/Texts.php:29
 #: includes/admin-notices/notices/Texts.php:40
 msgid "Your %s account has expired."
-msgstr "פג תוקף חשבון %s שלך."
+msgstr "חשבון %s שלך פג תוקף."
 
 #. translators: %s Product name
 #: includes/admin-notices/notices/Texts.php:31
 msgid "Your site is vulnerable to breaking changes in future WordPress releases. Purchase a new account to protect your site with the latest %s releases."
-msgstr "האתר שלך חשוף לשבירת שינויים במהדורות עתידיות של וורדפרס. רכוש חשבון חדש כדי להגן על האתר שלך עם המהדורות האחרונות של %s."
+msgstr "האתר שלך חשוף לשינויים שעלולים לשבור אותו בגרסאות וורדפרס עתידיות. רכוש חשבון חדש כדי להגן על האתר שלך עם הגרסאות האחרונות של %s."
 
 #. translators: %s Product name
 #: includes/admin-notices/notices/Texts.php:42
 msgid "Your site is vulnerable to breaking changes in future WordPress releases. Renew your account to protect your site with the latest %s releases."
-msgstr "האתר שלך חשוף לשבירת שינויים במהדורות עתידיות של וורדפרס. חדש את חשבונך כדי להגן על האתר שלך עם המהדורות האחרונות של %s."
+msgstr "האתר שלך חשוף לשינויים שעלולים לשבור אותו בגרסאות וורדפרס עתידיות. חדש את חשבונך כדי להגן על האתר שלך עם הגרסאות האחרונות של %s."
 
 #. translators: %s Product url
 #: includes/admin-notices/notices/Texts.php:52
@@ -55,7 +57,7 @@ msgstr "אתר זה רשום ב-%s כאתר פיתוח."
 #. translators: %1$s is the text "update the site key" inside a link and %2$s is the text "Learn more" inside a link
 #: includes/admin-notices/notices/Texts.php:54
 msgid "When this site goes live, remember to %1$s from \"development\" to \"production\" to remove this message. %2$s"
-msgstr "כאשר אתר זה יעלה לאוויר, זכור %1$s מ\"פיתוח\" ל\"הפקה\" כדי להסיר הודעה זו. %2$s"
+msgstr "כאשר אתר זה יעלה לאוויר, זכור %1$s מ-\"פיתוח\" ל-\"ייצור\" כדי להסיר הודעה זו. %2$s"
 
 #: includes/admin-notices/notices/Texts.php:57
 msgid "update the site key"
@@ -73,26 +75,26 @@ msgstr "זכור להסיר את %s מאתר זה"
 #. translators: %s Product name
 #: includes/admin-notices/notices/Texts.php:68
 msgid "This site is using the %s plugin, which has not been paid for. After receiving a refund, you should remove this plugin from your sites. Using unregistered plugins means you are not receiving stability and security updates and will ultimately lead to problems running the site."
-msgstr "אתר זה משתמש בתוסף %s, שלא שולם עבורו. לאחר קבלת החזר, עליך להסיר את התוסף הזה מהאתרים שלך. שימוש בתוספים לא רשומים פירושו שאינך מקבל עדכוני יציבות ואבטחה ובסופו של דבר יוביל לבעיות בהפעלת האתר."
+msgstr "אתר זה משתמש בתוסף %s, שלא שולם עבורו. לאחר קבלת החזר כספי, עליך להסיר תוסף זה מהאתרים שלך. שימוש בתוספים לא רשומים פירושו שאינך מקבל עדכוני יציבות ואבטחה ובסופו של דבר יוביל לבעיות בהפעלת האתר."
 
 #. translators: %1$s Product name %2$s host name (ex. wpml.org)
 #: includes/admin-notices/notices/Texts.php:76
 msgid "%1$s plugin cannot connect to %2$s"
-msgstr "התוסף %1$s לא יכול להתחבר ל-%2$s"
+msgstr "התוסף %1$s אינו יכול להתחבר ל-%2$s"
 
 #. translators: %1$s Product name %2$s host name (ex. wpml.org)
 #: includes/admin-notices/notices/Texts.php:79
 msgid "%1$s needs to connect to its server to check for new releases and security updates. Something in the network or security settings is preventing this. Please allow outgoing communication to %2$s to remove this notice."
-msgstr "%1$s צריך להתחבר לשרת שלו כדי לחפש מהדורות חדשות ועדכוני אבטחה. משהו ברשת או בהגדרות האבטחה מונע זאת. אנא אפשר תקשורת יוצאת אל %2$s כדי להסיר הודעה זו."
+msgstr "על %1$s להתחבר לשרת שלו כדי לבדוק אם קיימות גרסאות חדשות ועדכוני אבטחה. משהו בהגדרות הרשת או האבטחה מונע זאת. אנא אפשר תקשורת יוצאת ל-%2$s כדי להסיר הודעה זו."
 
 #: includes/admin-notices/notices/Texts.php:81
 msgid "Need help?"
-msgstr "צריך עזרה?"
+msgstr "זקוק לעזרה?"
 
 #. translators: %1$s is `communication error details` %2$s is ex. wpml.org technical support
 #: includes/admin-notices/notices/Texts.php:83
 msgid "See the %1$s and let us know in %2$s."
-msgstr "עיין ב-%1$s ודווח לנו ב-%2$s."
+msgstr "ראה את %1$s ויידע אותנו ב-%2$s."
 
 #. translators: %1$s is `communication error details` %2$s is ex. wpml.org technical support
 #: includes/admin-notices/notices/Texts.php:84
@@ -102,7 +104,7 @@ msgstr "פרטי שגיאת תקשורת"
 #. translators: %s is host name (ex. wpml.org)
 #: includes/admin-notices/notices/Texts.php:86
 msgid "%s technical support"
-msgstr "%s תמיכה טכנית"
+msgstr "תמיכה טכנית של %s"
 
 #: includes/admin-notices/notices/Texts.php:96
 msgid "Please install %s to allow translating %s."
@@ -114,34 +116,34 @@ msgstr "התקן והפעל"
 
 #: includes/admin-notices/notices/Texts.php:136
 msgid "Ignore and don't ask me again"
-msgstr "תתעלם ואל תשאל אותי שוב"
+msgstr "התעלם ואל תשאל אותי שוב"
 
 #: includes/admin-notices/notices/Texts.php:147
-#: includes/class-wp-installer.php:525
-#: includes/upgrade/AutoUpgrade.php:114
+#: includes/class-wp-installer.php:501
+#: includes/upgrade/AutoUpgrade.php:115
 #: templates/repository-register.php:49
 msgid "Register"
 msgstr "הירשם"
 
 #: includes/admin-notices/notices/Texts.php:148
 msgid "This is a development / staging site"
-msgstr "זהו אתר פיתוח/סטינג"
+msgstr "זהו אתר פיתוח / ביניים"
 
 #: includes/admin-notices/notices/Texts.php:159
 msgid "Purchase %s"
-msgstr "קנה %s"
+msgstr "רכוש את %s"
 
 #: includes/admin-notices/notices/Texts.php:160
 #: includes/admin-notices/notices/Texts.php:175
 #: includes/admin-notices/notices/Texts.php:189
 #: templates/repository-refunded.php:15
 msgid "Check my order status"
-msgstr "בדוק את מצב ההזמנה שלי"
+msgstr "בדוק את סטטוס ההזמנה שלי"
 
 #: includes/admin-notices/notices/Texts.php:161
 #: includes/admin-notices/notices/Texts.php:176
 msgid "Got renewal already?"
-msgstr "יש לך כבר חידוש?"
+msgstr "כבר חידשת?"
 
 #: includes/admin-notices/notices/Texts.php:174
 msgid "Renew your account"
@@ -150,49 +152,49 @@ msgstr "חדש את חשבונך"
 #: includes/admin-notices/notices/Texts.php:190
 #: templates/repository-refunded.php:14
 msgid "Bought again?"
-msgstr "קנה שוב?"
+msgstr "קנית שוב?"
 
 #: includes/admin-notices/notices/Texts.php:203
 msgid "Dismiss"
-msgstr "שחרר"
+msgstr "בטל"
 
-#: includes/class-installer-dependencies.php:98
+#: includes/class-installer-dependencies.php:99
 msgid ""
 "Downloading is not possible. WordPress cannot create required folders because of the\n"
 "                                        256 characters limitation of the current Windows environment."
-msgstr "הורדה אינה אפשרית. וורדפרס לא יכול ליצור תיקיות נדרשות בגלל מגבלת 256 תווים בסביבת ווינדוס הנוכחית."
+msgstr "ההורדה אינה אפשרית. WordPress אינו יכול ליצור את התיקיות הנדרשות בגלל מגבלת \n 256 תווים בסביבת Windows הנוכחית."
 
-#: includes/class-installer-dependencies.php:257
+#: includes/class-installer-dependencies.php:264
 msgid "Return to the updates page"
 msgstr "חזור לדף העדכונים"
 
-#: includes/class-installer-dependencies.php:293
+#: includes/class-installer-dependencies.php:300
 msgid "OTGS Installer"
-msgstr "מתקין OTGS"
-
-#: includes/class-installer-dependencies.php:298
-msgid "%s, responsible for receiving automated updates for WPML and Toolset, requires the following PHP component(s) in order to function:"
-msgstr "%s, האחראי על קבלת עדכונים אוטומטיים עבור WPML ו- Toolset, דורש את רכיבי ה-PHP הבאים כדי לתפקד:"
+msgstr "OTGS Installer"
 
 #: includes/class-installer-dependencies.php:305
+msgid "%s, responsible for receiving automated updates for WPML and Toolset, requires the following PHP component(s) in order to function:"
+msgstr "התוסף %s, האחראי על קבלת עדכונים אוטומטיים עבור WPML ו-Toolset, דורש את רכיבי ה-PHP הבאים כדי לתפקד:"
+
+#: includes/class-installer-dependencies.php:312
 msgid "Learn more: %s"
 msgstr "למידע נוסף: %s"
 
 #: includes/class-installer-theme.php:890
 msgid "To install and update %s, please %sregister%s %s for this site."
-msgstr "כדי להתקין ולעדכן את %s, אנא %sregister%s %s עבור אתר זה."
+msgstr "כדי להתקין ולעדכן את %s, אנא %sרשום%s את %s עבור אתר זה."
 
 #: includes/class-installer-upgrader-skins.php:47
 msgid "We were not able to copy some plugin files. This is usually due to issues with permissions for WordPress content or plugins folder."
-msgstr "לא הצלחנו להעתיק חלק מקובצי הפלאגין. זה נובע בדרך כלל מבעיות עם הרשאות עבור תוכן וורדפרס או תיקיית תוספים."
+msgstr "לא הצלחנו להעתיק קבצי תוסף מסוימים. זה נובע בדרך כלל מבעיות הרשאות עבור תיקיית התוכן או התוספים של וורדפרס."
 
 #: includes/class-otgs-installer-plugins-page-notice.php:93
 msgid "Your %s account has expired. %sPurchase today%s to protect your site from breaking changes in future WordPress releases."
-msgstr "פג תוקף חשבון %s שלך. %sקנה היום%s כדי להגן על האתר שלך מפני שבירה של שינויים במהדורות עתידיות של WordPress."
+msgstr "החשבון שלך ב-%s פג. %sרכוש היום%s כדי להגן על האתר שלך משינויים שעלולים לשבור אותו בגרסאות עתידיות של WordPress."
 
 #: includes/class-otgs-installer-plugins-page-notice.php:101
 msgid "Your %s account has expired. %sRenew today%s to protect your site from breaking changes in future WordPress releases."
-msgstr "פג תוקף חשבון %s שלך. %sחדש היום%s כדי להגן על האתר שלך מפני שבירה של שינויים במהדורות עתידיות של WordPress."
+msgstr "החשבון שלך ב-%s פג. %sחדש היום%s כדי להגן על האתר שלך משינויים שעלולים לשבור אותו בגרסאות עתידיות של WordPress."
 
 #: includes/class-otgs-installer-plugins-page-notice.php:109
 msgid "Remember to remove %s from this website. %sCheck my order status%s"
@@ -200,7 +202,7 @@ msgstr "זכור להסיר את %s מאתר זה. %sבדוק את סטטוס ה
 
 #: includes/class-otgs-installer-plugins-page-notice.php:119
 msgid "You have an old, free subscription for Toolset Types which doesn't provide automatic updates. %sUpgrade your account%s"
-msgstr "יש לך מנוי ישן וחינמי ל-Toolset Types שאינו מספק עדכונים אוטומטיים. %sשדרג את החשבון שלך%s"
+msgstr "יש לך מנוי ישן וחינמי של Toolset Types שאינו מספק עדכונים אוטומטיים. %sשדרג את החשבון שלך%s"
 
 #: includes/class-otgs-installer-plugins-page-notice.php:129
 msgid "You are using an unregistered version of %s and are not receiving compatibility and security updates. %sRegister now%s"
@@ -208,11 +210,11 @@ msgstr "אתה משתמש בגרסה לא רשומה של %s ואינך מקבל
 
 #: includes/class-otgs-installer-plugins-page-notice.php:156
 msgid "You are using the complementary %1$s. For the %2$s, %3$s."
-msgstr "אתה משתמש ב-%1$s המשלים. עבור %2$s, %3$s."
+msgstr "אתה משתמש ב-%1$s המשלימים. עבור %2$s, %3$s."
 
 #: includes/class-otgs-installer-plugins-page-notice.php:157
 msgid "complete set of features"
-msgstr "סט שלם של תכונות"
+msgstr "סט תכונות מלא"
 
 #: includes/class-otgs-installer-plugins-page-notice.php:157
 msgid "upgrade to Toolset"
@@ -220,29 +222,29 @@ msgstr "שדרג ל-Toolset"
 
 #: includes/class-otgs-installer-subscription-warning-message.php:65
 msgid "Renew today"
-msgstr "תתחדש היום"
+msgstr "חדש היום"
 
 #: includes/class-otgs-installer-subscription-warning-message.php:65
 msgid "to protect your site from breaking changes in future WordPress releases."
-msgstr "כדי להגן על האתר שלך מפני שבירת שינויים במהדורות עתידיות של וורדפרס."
+msgstr "כדי להגן על האתר שלך משינויים שעלולים לשבור אותו בגרסאות וורדפרס עתידיות."
 
 #: includes/class-otgs-installer-subscription-warning-message.php:72
 msgid "Your %s account expires in %d day."
 msgid_plural "Your %s account expires in %d days."
-msgstr[0] "תוקף חשבון %s שלך יפוג בעוד %d יום."
-msgstr[1] "תוקף החשבון %s שלך יפוג בעוד %d ימים."
+msgstr[0] "חשבון %s שלך יפוג בעוד %d יום."
+msgstr[1] "חשבון %s שלך יפוג בעוד %d ימים."
 
 #: includes/class-otgs-installer-wp-share-local-components-setting-hooks.php:110
 msgid "Reporting to"
-msgstr "מדווח ל"
+msgstr "מדווח ל-"
 
 #: includes/class-otgs-installer-wp-share-local-components-setting-hooks.php:111
 msgid "Report to"
-msgstr "דווח ל"
+msgstr "דווח ל-"
 
 #: includes/class-otgs-installer-wp-share-local-components-setting-hooks.php:112
 msgid "Send theme and plugins information, in order to get faster support and compatibility alerts"
-msgstr "שלח מידע על נושאים ותוספים, על מנת לקבל התראות תמיכה ותאימות מהירות יותר"
+msgstr "שלח מידע על ערכות נושא ותוספים, כדי לקבל תמיכה מהירה יותר והתראות תאימות"
 
 #: includes/class-otgs-installer-wp-share-local-components-setting-hooks.php:114
 msgid "Don't send this information and skip compatibility alerts"
@@ -250,121 +252,121 @@ msgstr "אל תשלח מידע זה ודלג על התראות תאימות"
 
 #: includes/class-otgs-installer-wp-share-local-components-setting-hooks.php:116
 msgid "which theme and plugins you are using."
-msgstr "באיזה ערכת נושא ותוספים אתה משתמש."
+msgstr "באיזו ערכת נושא ובאילו תוספים אתה משתמש."
 
 #: includes/class-otgs-installer-wp-share-local-components-setting-hooks.php:160
 msgid "Privacy and data usage policy"
 msgstr "מדיניות פרטיות ושימוש בנתונים"
 
-#: includes/class-wp-installer-channels.php:40
-msgid "Development"
-msgstr "התפתחות"
-
 #: includes/class-wp-installer-channels.php:42
+msgid "Development"
+msgstr "פיתוח"
+
+#: includes/class-wp-installer-channels.php:44
 msgid "Beta"
 msgstr "בטא"
 
-#: includes/class-wp-installer-channels.php:44
+#: includes/class-wp-installer-channels.php:46
 msgid "Production"
-msgstr "הֲפָקָה"
+msgstr "ייצור"
 
-#: includes/class-wp-installer.php:190
+#: includes/class-wp-installer.php:188
 msgid "Installing %s"
 msgstr "מתקין את %s"
 
-#: includes/class-wp-installer.php:191
+#: includes/class-wp-installer.php:189
 msgid "Updating %s"
 msgstr "מעדכן את %s"
 
-#: includes/class-wp-installer.php:192
+#: includes/class-wp-installer.php:190
 msgid "Activating %s"
 msgstr "מפעיל את %s"
 
-#: includes/class-wp-installer.php:358
-#: includes/class-wp-installer.php:359
-#: includes/class-wp-installer.php:1127
+#: includes/class-wp-installer.php:355
+#: includes/class-wp-installer.php:356
+#: includes/class-wp-installer.php:1046
 msgid "Installer"
 msgstr "מתקין"
 
-#: includes/class-wp-installer.php:513
+#: includes/class-wp-installer.php:489
 msgid "Upgrade"
-msgstr "שדרג"
+msgstr "שדרוג"
 
-#: includes/class-wp-installer.php:519
+#: includes/class-wp-installer.php:495
 msgid "Registered"
-msgstr "רָשׁוּם"
+msgstr "רשום"
 
-#: includes/class-wp-installer.php:701
+#: includes/class-wp-installer.php:677
 msgid ""
 "You are using an invalid site key defined as the constant %s (most likely in wp-config.php).\n"
-"                                                Please remove it or use the correct value in order to be able to register correctly."
-msgstr "אתה משתמש במפתח אתר לא חוקי המוגדר כקבוע %s. אנא הסר אותו או השתמש בערך הנכון כדי להירשם כראוי."
+"\t\t\t\t\t\t\t\t\t\t\tPlease remove it or use the correct value in order to be able to register correctly."
+msgstr "אתה משתמש במפתח אתר לא חוקי המוגדר כקבוע %s (ככל הנראה ב-wp-config.php).\n\t\t\t\t\t\t\t\t\t\t\tאנא הסר אותו או השתמש בערך הנכון כדי שתוכל להירשם כראוי."
 
-#: includes/class-wp-installer.php:827
+#: includes/class-wp-installer.php:748
 msgid "Commercial"
-msgstr "מִסְחָרִי"
+msgstr "מסחרי"
 
-#: includes/class-wp-installer.php:1017
+#: includes/class-wp-installer.php:939
 msgid "Installer cannot display the products information because the automatic updating for %s was explicitly disabled with the configuration below (usually in wp-config.php):"
 msgstr "המתקין אינו יכול להציג את פרטי המוצרים מכיוון שהעדכון האוטומטי עבור %s הושבת במפורש עם התצורה שלהלן (בדרך כלל ב-wp-config.php):"
 
-#: includes/class-wp-installer.php:1019
+#: includes/class-wp-installer.php:941
 msgid "In order to see the products information, please run the %smanual updates check%s to initialize the products list or (temporarily) remove the above code."
-msgstr "על מנת לראות את מידע המוצרים, הפעל את %sבדיקת העדכונים הידנית%s כדי לאתחל את רשימת המוצרים או (זמני) להסיר את הקוד שלמעלה."
+msgstr "כדי לראות את מידע המוצרים, אנא הפעל את %sבדיקת העדכונים הידנית%s כדי לאתחל את רשימת המוצרים או הסר (זמנית) את הקוד לעיל."
 
-#: includes/class-wp-installer.php:1047
+#: includes/class-wp-installer.php:969
 msgid "Installer cannot contact our updates server to get information about the available products and check for new versions. If you are seeing this message for the first time, you can ignore it, as it may be a temporary communication problem. If the problem persists and your WordPress admin is slowing down, you can disable automated version checks. Add the following line to your wp-config.php file:"
-msgstr "המתקין לא יכול ליצור קשר עם שרת העדכונים שלנו כדי לקבל מידע על המוצרים הזמינים ולבדוק אם יש גרסאות חדשות. אם אתה רואה הודעה זו בפעם הראשונה, אתה יכול להתעלם ממנה, מכיוון שזו עשויה להיות בעיית תקשורת זמנית. אם הבעיה נמשכת ומנהל מערכת הוורדפרס שלך מאט, אתה יכול להשבית בדיקות גרסאות אוטומטיות. הוסף את השורה הבאה לקובץ wp-config.php שלך:"
+msgstr "המתקין אינו יכול ליצור קשר עם שרת העדכונים שלנו כדי לקבל מידע על המוצרים הזמינים ולבדוק אם קיימות גרסאות חדשות. אם אתה רואה הודעה זו בפעם הראשונה, תוכל להתעלם ממנה, מכיוון שזו עשויה להיות בעיית תקשורת זמנית. אם הבעיה נמשכת ומנהל הוורדפרס שלך מאט, תוכל להשבית בדיקות גרסאות אוטומטיות. הוסף את השורה הבאה לקובץ wp-config.php שלך:"
 
-#: includes/class-wp-installer.php:1074
-#: includes/class-wp-installer.php:1078
+#: includes/class-wp-installer.php:994
+#: includes/class-wp-installer.php:998
 msgid "Information about new versions is invalid. It may be a temporary communication problem, please check for updates again."
-msgstr "מידע על גרסאות חדשות אינו חוקי. ייתכן שזו בעיית תקשורת זמנית, אנא בדוק שוב אם יש עדכונים."
+msgstr "מידע על גרסאות חדשות אינו חוקי. זו עשויה להיות בעיית תקשורת זמנית, אנא בדוק שוב אם קיימים עדכונים."
 
-#: includes/class-wp-installer.php:1118
+#: includes/class-wp-installer.php:1037
 msgid "Sorry, you are not allowed to manage Installer for this site."
-msgstr "מצטערים, אינך רשאי לנהל את Installer עבור אתר זה."
+msgstr "מצטערים, אינך מורשה לנהל את המתקין עבור אתר זה."
 
-#: includes/class-wp-installer.php:1157
+#: includes/class-wp-installer.php:1076
 msgid "No repositories defined."
 msgstr "לא הוגדרו מאגרים."
 
-#: includes/class-wp-installer.php:1379
+#: includes/class-wp-installer.php:1298
 msgid "We have preselected the plugins your site needs to be fully multilingual."
-msgstr "בחרנו מראש את התוספים שהאתר שלך זקוק להם כדי להיות רב-לשוני באופן מלא."
+msgstr "בחרנו מראש את התוספים שהאתר שלך צריך כדי להיות רב לשוני לחלוטין."
 
-#: includes/class-wp-installer.php:1615
-#: includes/site-key/class-otgs-installer-site-key-ajax.php:71
+#: includes/class-wp-installer.php:1538
+#: includes/site-key/class-otgs-installer-site-key-ajax.php:74
 msgid "Invalid site key for the current site."
 msgstr "מפתח אתר לא חוקי עבור האתר הנוכחי."
 
-#: includes/class-wp-installer.php:1616
-#: includes/site-key/class-otgs-installer-site-key-ajax.php:71
+#: includes/class-wp-installer.php:1539
+#: includes/site-key/class-otgs-installer-site-key-ajax.php:74
 msgid "Please note that the site key is case sensitive."
-msgstr "שימו לב שמפתח האתר הוא תלוי רישיות."
+msgstr "שים לב שמפתח האתר רגיש לאותיות רישיות/קטנות."
 
-#: includes/class-wp-installer.php:1621
+#: includes/class-wp-installer.php:1544
 msgid "%s cannot access %s to register. Try again to see if it's a temporary problem. If the problem continues, make sure that this site has access to the Internet."
-msgstr "%s לא יכול לגשת ל-%s כדי להירשם. נסה שוב לראות אם זו בעיה זמנית. אם הבעיה נמשכת, ודא שלאתר זה יש גישה לאינטרנט."
+msgstr "המתקין %s אינו יכול לגשת ל-%s כדי להירשם. נסה שוב כדי לראות אם זו בעיה זמנית. אם הבעיה נמשכת, ודא שלאתר זה יש גישה לאינטרנט."
 
-#: includes/class-wp-installer.php:2262
+#: includes/class-wp-installer.php:2195
 msgid "Connection failed! Please refresh the page and try again. (%s)"
 msgstr "החיבור נכשל! אנא רענן את הדף ונסה שוב. (%s)"
 
-#: includes/class-wp-installer.php:2265
+#: includes/class-wp-installer.php:2198
 msgid "Your subscription appears to no longer be valid. Please try to register again using a valid site key."
-msgstr "נראה שהמינוי שלך אינו תקף עוד. אנא נסה להירשם שוב באמצעות מפתח אתר חוקי."
+msgstr "נראה שהמנוי שלך אינו תקף עוד. אנא נסה להירשם שוב באמצעות מפתח אתר תקף."
 
-#: includes/class-wp-installer.php:2894
-#: includes/class-wp-installer.php:2956
+#: includes/class-wp-installer.php:2831
+#: includes/class-wp-installer.php:2893
 msgid "%s cannot update because your site's registration is not valid. Please %sregister %s%s again for this site first."
-msgstr "%s לא יכול לעדכן כי הרישום של האתר שלך אינו חוקי. אנא %sרשום תחילה את %s%s עבור אתר זה."
+msgstr "%s אינו יכול להתעדכן כי רישום האתר שלך אינו תקף. אנא %sרשום את %s%s שוב עבור אתר זה תחילה."
 
-#: includes/class-wp-installer.php:2979
+#: includes/class-wp-installer.php:2916
 msgid "Update Plugin"
-msgstr "עדכון תוסף"
+msgstr "עדכן תוסף"
 
-#: includes/class-wp-installer.php:2980
+#: includes/class-wp-installer.php:2917
 msgid "Return to the plugins page"
 msgstr "חזור לדף התוספים"
 
@@ -374,11 +376,11 @@ msgstr "(מוטבע)"
 
 #: includes/products/commercial-tab/DownloadsList.php:42
 msgid "Release notes"
-msgstr "הערות שחרור"
+msgstr "הערות מהדורה"
 
 #: includes/products/OTGS_Installer_Products_Parser.php:101
 msgid "Information about versions of %s are invalid. It may be a temporary communication problem, please check for updates again."
-msgstr "מידע על גרסאות של %s אינו חוקי. ייתכן שזו בעיית תקשורת זמנית, אנא בדוק שוב אם יש עדכונים."
+msgstr "מידע על גרסאות של %s אינו חוקי. זו עשויה להיות בעיית תקשורת זמנית, אנא בדוק שוב אם קיימים עדכונים."
 
 #: includes/site-key/class-otgs-installer-site-key-ajax.php:44
 msgid "Empty site key!"
@@ -388,13 +390,13 @@ msgstr "מפתח אתר ריק!"
 msgid "Invalid request!"
 msgstr "בקשה לא חוקית!"
 
-#: includes/site-key/class-otgs-installer-site-key-ajax.php:123
+#: includes/site-key/class-otgs-installer-site-key-ajax.php:129
 msgid "Invalid site key for the current site. If the error persists, try to un-register first and then register again with the same site key."
-msgstr "מפתח אתר לא חוקי עבור האתר הנוכחי. אם השגיאה נמשכת, נסה קודם לבטל את הרישום ולאחר מכן להירשם שוב עם אותו מפתח אתר."
+msgstr "מפתח אתר לא חוקי עבור האתר הנוכחי. אם השגיאה נמשכת, נסה לבטל את הרישום תחילה ולאחר מכן להירשם שוב עם אותו מפתח אתר."
 
-#: includes/site-key/class-otgs-installer-site-key-ajax.php:177
+#: includes/site-key/class-otgs-installer-site-key-ajax.php:183
 msgid "%s cannot access %s to register. Try again to see if it's a temporary problem. If the problem continues, make sure that this site has access to the Internet. You can still use the plugin without registration, but you will not receive automated updates."
-msgstr "%s לא יכול לגשת ל-%s כדי להירשם. נסה שוב לראות אם זו בעיה זמנית. אם הבעיה נמשכת, ודא שלאתר זה יש גישה לאינטרנט. אתה עדיין יכול להשתמש בתוסף ללא הרשמה, אך לא תקבל עדכונים אוטומטיים."
+msgstr "המתקין %s אינו יכול לגשת ל-%s כדי להירשם. נסה שוב כדי לראות אם זו בעיה זמנית. אם הבעיה נמשכת, ודא שלאתר זה יש גישה לאינטרנט. עדיין תוכל להשתמש בתוסף ללא רישום, אך לא תקבל עדכונים אוטומטיים."
 
 #: includes/support/class-otgs-installer-support-hooks.php:20
 #: includes/support/class-otgs-installer-support-template.php:39
@@ -405,7 +407,7 @@ msgstr "תמיכה במתקין"
 
 #: includes/support/class-otgs-installer-support-template.php:40
 msgid "For retrieving Installer debug information use the %s page."
-msgstr "לאחזור מידע על ניפוי באגים של מתקין השתמש בדף %s."
+msgstr "לאחזור מידע ניפוי באגים של המתקין השתמש בדף %s."
 
 #: includes/support/class-otgs-installer-support-template.php:58
 msgid "Installer Log"
@@ -413,11 +415,11 @@ msgstr "יומן מתקין"
 
 #: includes/support/class-otgs-installer-support-template.php:59
 msgid "Request URL"
-msgstr "כתובת בקשה"
+msgstr "כתובת URL של בקשה"
 
 #: includes/support/class-otgs-installer-support-template.php:60
 msgid "Request Arguments"
-msgstr "בקש טיעונים"
+msgstr "ארגומנטים של בקשה"
 
 #: includes/support/class-otgs-installer-support-template.php:61
 msgid "Response"
@@ -425,11 +427,11 @@ msgstr "תגובה"
 
 #: includes/support/class-otgs-installer-support-template.php:62
 msgid "Component"
-msgstr "רְכִיב"
+msgstr "רכיב"
 
 #: includes/support/class-otgs-installer-support-template.php:63
 msgid "Time"
-msgstr "שעה"
+msgstr "זמן"
 
 #: includes/support/class-otgs-installer-support-template.php:64
 msgid "Log is empty"
@@ -437,7 +439,7 @@ msgstr "היומן ריק"
 
 #: includes/support/class-otgs-installer-support-template.php:67
 msgid "Installer System Status"
-msgstr "מצב מערכת המתקין"
+msgstr "סטטוס מערכת המתקין"
 
 #: includes/support/class-otgs-installer-support-template.php:68
 msgid "Check Now"
@@ -445,11 +447,11 @@ msgstr "בדוק עכשיו"
 
 #: includes/support/class-otgs-installer-support-template.php:71
 msgid "Required PHP Libraries"
-msgstr "חובות ספריות php"
+msgstr "ספריות PHP נדרשות"
 
 #: includes/support/class-otgs-installer-support-template.php:74
 msgid "All Installer Instances"
-msgstr "כל מופעי ההתקנה"
+msgstr "כל מופעי המתקין"
 
 #: includes/support/class-otgs-installer-support-template.php:75
 msgid "Path"
@@ -465,23 +467,23 @@ msgstr "עדיפות גבוהה"
 
 #: includes/support/class-otgs-installer-support-template.php:78
 msgid "Delegated"
-msgstr "האצלה"
+msgstr "הועבר"
 
 #: includes/support/class-otgs-installer-support-template.php:86
 msgid "WPML API server"
-msgstr "שרת WPML API"
+msgstr "שרת API של WPML"
 
 #: includes/support/class-otgs-installer-support-template.php:91
 msgid "Toolset API server"
-msgstr "שרת API של הכלים"
+msgstr "שרת API של Toolset"
 
-#: includes/upgrade/AutoUpgrade.php:115
+#: includes/upgrade/AutoUpgrade.php:116
 msgid " to use auto-updates"
 msgstr " כדי להשתמש בעדכונים אוטומטיים"
 
 #: loader.php:72
 msgid "This site is registered on %s as a development site. Switch to a production site key to %s."
-msgstr "אתר זה רשום ב-%s כאתר פיתוח. עבור אל מפתח אתר ייצור אל %s."
+msgstr "אתר זה רשום ב-%s כאתר פיתוח. עבור למפתח אתר ייצור כדי %s."
 
 #: loader.php:77
 msgid "This site is registered on Toolset.com as a development site."
@@ -493,15 +495,15 @@ msgstr "ערוץ עדכונים:"
 
 #: templates/channel-selector.php:12
 msgid "To select different update channels (beta, development) you must update your existing products to their most recent stable versions."
-msgstr "כדי לבחור ערוצי עדכון שונים (ביטא, פיתוח) עליך לעדכן את המוצרים הקיימים שלך לגרסאות היציבות העדכניות ביותר שלהם."
+msgstr "כדי לבחור ערוצי עדכון שונים (בטא, פיתוח) עליך לעדכן את המוצרים הקיימים שלך לגרסאות היציבות האחרונות שלהם."
 
 #: templates/channel-selector.php:15
 msgid "Updating the plugins on your site. Please don't close this page or navigate away."
-msgstr "עדכון התוספים באתר שלך. נא לא לסגור דף זה או לנווט משם."
+msgstr "מעדכן את התוספים באתר שלך. אנא אל תסגור דף זה או תנווט ממנו."
 
 #: templates/channel-selector.php:25
 msgid "Something went wrong and we could not install all updates from the %s channel. Click here to %stry again%s. If the errors persist, please switch back to the Production channel and contact the %s%s support%s."
-msgstr "משהו השתבש ולא הצלחנו להתקין את כל העדכונים מהערוץ %s. לחץ כאן כדי %sלנסות שוב%s. אם השגיאות נמשכות, אנא חזור לערוץ ההפקה ופנה לתמיכה %s%s%s."
+msgstr "משהו השתבש ולא הצלחנו להתקין את כל העדכונים מערוץ %s. לחץ כאן כדי %sלנסות שוב%s. אם השגיאות נמשכות, אנא חזור לערוץ הייצור וצור קשר עם %sהתמיכה של %s%s."
 
 #: templates/channel-selector.php:33
 msgid "There was a problem switching to the %s channel. You can %sretry%s. If the problem continues, please %sdownload %s%s and install again manually"
@@ -513,19 +515,19 @@ msgstr "בטל"
 
 #: templates/channel-selector.php:48
 msgid "Switch"
-msgstr "מֶתֶג"
+msgstr "החלף"
 
 #: templates/channel-selector.php:51
 msgid "The plugins will update to the most recent version in the channel that you selected."
-msgstr "התוספים יתעדכנו לגרסה העדכנית ביותר בערוץ שבחרת."
+msgstr "התוספים יתעדכנו לגרסה האחרונה בערוץ שבחרת."
 
 #: templates/channel-selector.php:55
 msgid "Remember my preference."
-msgstr "זכור את ההעדפה שלי."
+msgstr "זכור את העדפה שלי."
 
 #: templates/channel-selector.php:62
 msgid "You are using a potentially less stable channel for %s. If you didn't enable this on purpose, you should switch to the 'Production' channel."
-msgstr "אתה משתמש בערוץ שעלול להיות פחות יציב עבור %s. אם לא הפעלת זאת בכוונה, עליך לעבור לערוץ 'הפקה'."
+msgstr "אתה משתמש בערוץ פחות יציב עבור %s. אם לא הפעלת זאת בכוונה, עליך לעבור לערוץ \"ייצור\"."
 
 #: templates/downloads-list-compact.php:8
 #: templates/downloads-list.php:29
@@ -534,12 +536,12 @@ msgstr "תוסף"
 
 #: templates/downloads-list-compact.php:9
 msgid "Available"
-msgstr "זָמִין"
+msgstr "זמין"
 
 #: templates/downloads-list-compact.php:10
 #: templates/downloads-list.php:30
 msgid "Installed"
-msgstr "מוּתקָן"
+msgstr "מותקן"
 
 #: templates/downloads-list-compact.php:11
 msgid "Downloading"
@@ -572,7 +574,7 @@ msgstr "הופעל"
 #: templates/downloads-list-compact.php:65
 #: templates/downloads-list.php:55
 msgid "Downloading is not possible because WordPress cannot write into the plugins folder. %sHow to fix%s."
-msgstr "ההורדה אינה אפשרית כי וורדפרס לא יכולה לכתוב לתיקיית התוספים. %sכיצד לתקן%s."
+msgstr "ההורדה אינה אפשרית מכיוון ש-WordPress אינו יכול לכתוב לתיקיית התוספים. %sכיצד לתקן%s."
 
 #: templates/downloads-list-compact.php:72
 #: templates/downloads-list.php:62
@@ -582,7 +584,7 @@ msgstr "הורד"
 #: templates/downloads-list-compact.php:74
 #: templates/downloads-list.php:66
 msgid "Activate after download"
-msgstr "הפעל לאחר ההורדה"
+msgstr "הפעל לאחר הורדה"
 
 #: templates/downloads-list-compact.php:77
 #: templates/downloads-list.php:70
@@ -594,7 +596,7 @@ msgid ""
 "Download failed!\n"
 "\n"
 "Click OK to revalidate your subscription or CANCEL to try again."
-msgstr "ההורדה נכשלה! לחץ אישור לאימות מחדש של המנוי או ביטול לניסיון נוסף."
+msgstr "ההורדה נכשלה!\n\nלחץ על אישור כדי לאמת מחדש את המנוי שלך או על ביטול כדי לנסות שוב."
 
 #: templates/downloads-list.php:31
 msgid "Current"
@@ -602,14 +604,14 @@ msgstr "נוכחי"
 
 #: templates/downloads-list.php:32
 msgid "Released"
-msgstr "משוחרר"
+msgstr "שוחרר"
 
 #: templates/downloads-list.php:72
 msgid ""
 "Download failed!\n"
 "\n"
 "Please refresh the page and try again."
-msgstr "ההורדה נכשלה! אנא רענן את הדף ונסה שוב."
+msgstr "ההורדה נכשלה!\n\nאנא רענן את הדף ונסה שוב."
 
 #: templates/products-compact.php:5
 msgid "Incorrect setup"
@@ -629,7 +631,7 @@ msgstr " מפתח האתר הנוכחי שלך (%s) אינו תואם למוצר
 
 #: templates/products-compact.php:65
 msgid "Buy %s"
-msgstr "קנה %s"
+msgstr "קנה את %s"
 
 #: templates/products-compact.php:69
 msgid "Already bought %s?"
@@ -650,11 +652,11 @@ msgstr "הוסף"
 
 #: templates/products-compact.php:94
 msgid "Subscription is expired."
-msgstr "פג תוקף המנוי."
+msgstr "המנוי פג תוקף."
 
 #: templates/products-compact.php:103
 msgid "Renew %s"
-msgstr "חידוש %s"
+msgstr "חדש את %s"
 
 #: templates/products-compact.php:114
 msgid "Are you sure you want to remove this site key?"
@@ -671,17 +673,17 @@ msgstr "הסר את מפתח האתר הנוכחי (%s)"
 
 #: templates/products-compact.php:138
 msgid "%s support on wpml.org"
-msgstr "%s תמיכה ב-wpml.org"
+msgstr "תמיכת %s ב-wpml.org"
 
 #. translators: %s replaced with wpml.org or toolset.com
 #: templates/repository-end-users.php:17
 msgid "Do you have an account on %s?"
-msgstr "יש לך חשבון ב-%s?"
+msgstr "האם יש לך חשבון ב-%s?"
 
 #. translators: %s replaced with wpml.org or toolset.com
 #: templates/repository-end-users.php:18
 msgid "Great! You just need to extend your subscription."
-msgstr "גָדוֹל! אתה רק צריך להאריך את המנוי שלך."
+msgstr "נהדר! אתה רק צריך להאריך את המנוי שלך."
 
 #. translators: %s replaced with wpml.org or toolset.com
 #: templates/repository-end-users.php:20
@@ -691,7 +693,7 @@ msgstr "יש לך חשבון %s. אתה רק צריך להאריך את המנו
 #. translators: %s replaced with wpml.org or toolset.com
 #: templates/repository-end-users.php:21
 msgid "Extend Subscription"
-msgstr "הארכת המנוי"
+msgstr "הארך מנוי"
 
 #. translators: %s replaced with wpml.org or toolset.com
 #: templates/repository-end-users.php:23
@@ -711,15 +713,15 @@ msgstr "הגדר חידוש עבור %s"
 #. translators: %s replaced with wpml.org or toolset.com
 #: templates/repository-end-users.php:28
 msgid "No worries. We can check that for you."
-msgstr "אין דאגות. אנחנו יכולים לבדוק את זה בשבילך."
+msgstr "אל דאגה. אנחנו יכולים לבדוק זאת עבורך."
 
 #: templates/repository-end-users.php:29
 msgid "Check"
-msgstr "לבדוק"
+msgstr "בדוק"
 
 #: templates/repository-end-users.php:30
 msgid "Your Email Address"
-msgstr "כתובת המייל שלך"
+msgstr "כתובת הדוא\"ל שלך"
 
 #: templates/repository-end-users.php:37
 msgid "Yes"
@@ -739,19 +741,19 @@ msgstr "אתה משתמש בחשבון שפג תוקפו של %s."
 
 #: templates/repository-expired.php:13
 msgid "It means you will not receive updates. This can lead to stability and even security issues."
-msgstr "זה אומר שלא תקבל עדכונים. זה יכול להוביל ליציבות ואפילו לבעיות אבטחה."
+msgstr "זה אומר שלא תקבל עדכונים. זה עלול להוביל לבעיות יציבות ואף אבטחה."
 
 #: templates/repository-expired.php:14
 msgid "Have you already renewed your license?"
-msgstr "כבר חידשת את הרישיון?"
+msgstr "האם כבר חידשת את הרישיון שלך?"
 
 #: templates/repository-expired.php:15
 msgid "Refresh account status"
-msgstr "רענן את סטטוס החשבון"
+msgstr "רענן סטטוס חשבון"
 
 #: templates/repository-legacy-free.php:9
 msgid "Upgrade your account"
-msgstr "שדרג את החשבון שלך"
+msgstr "שדרג את חשבונך"
 
 #: templates/repository-legacy-free.php:11
 msgid "You have an old, free subscription for Toolset Types which doesn't provide automatic updates. %s"
@@ -767,7 +769,7 @@ msgstr "רכיבים בודדים"
 
 #: templates/repository-listing.php:147
 msgid "This page lets you install plugins and update existing plugins. To remove any of these plugins, go to the %splugins%s page and if you have the permission to remove plugins you should be able to do this."
-msgstr "דף זה מאפשר לך להתקין תוספים ולעדכן תוספים קיימים. כדי להסיר כל אחד מהתוספים הללו, עבור אל הדף %sתוספים%s ואם יש לך הרשאה להסיר תוספים, אתה אמור להיות מסוגל לעשות זאת."
+msgstr "דף זה מאפשר לך להתקין תוספים ולעדכן תוספים קיימים. כדי להסיר אחד מהתוספים האלה, עבור לדף %sתוספים%s ואם יש לך הרשאה להסיר תוספים, תוכל לעשות זאת."
 
 #: templates/repository-refunded.php:12
 msgid "Remember to remove %s from this website."
@@ -775,7 +777,7 @@ msgstr "זכור להסיר את %s מאתר זה."
 
 #: templates/repository-refunded.php:13
 msgid "This site is using %s plugin, which is not paid for. After receiving a refund, you should remove this plugin from your sites. Using unregistered plugins means that you are not receiving stability and security updates and will ultimately lead to problems running the site."
-msgstr "אתר זה משתמש בתוסף %s, שאינו בתשלום. לאחר קבלת החזר, עליך להסיר תוסף זה מהאתרים שלך. שימוש בתוספים לא רשומים פירושו שאינך מקבל עדכוני יציבות ואבטחה ובסופו של דבר יוביל לבעיות בהפעלת האתר."
+msgstr "אתר זה משתמש בתוסף %s, שלא שולם עבורו. לאחר קבלת החזר כספי, עליך להסיר תוסף זה מהאתרים שלך. שימוש בתוספים לא רשומים פירושו שאינך מקבל עדכוני יציבות ואבטחה ובסופו של דבר יוביל לבעיות בהפעלת האתר."
 
 #: templates/repository-register.php:14
 msgid "Already purchased %s?"
@@ -783,7 +785,7 @@ msgstr "כבר רכשת את %s?"
 
 #: templates/repository-register.php:23
 msgid "Register %s"
-msgstr "הרשמה %s"
+msgstr "רשום את %s"
 
 #: templates/repository-register.php:35
 msgid "Enter the site key, from your %1$s account, to receive automatic updates for %2$s."
@@ -803,16 +805,16 @@ msgstr "האם אתה בטוח שברצונך לבטל את הרישום?"
 
 #: templates/repository-registered-buttons.php:22
 msgid "Unregister %s from this site"
-msgstr "בטל את הרישום של %s מאתר זה"
+msgstr "בטל רישום %s מאתר זה"
 
 #: templates/repository-registered-buttons.php:30
 msgid "Check for updates"
-msgstr "בדוק אם יש עדכונים"
+msgstr "בדוק אם קיימים עדכונים"
 
 #: templates/repository-registered.php:13
 msgid "%s is registered on this site using the following sitekey: <strong>%s</strong>. You will receive automatic updates until %s"
-msgstr "%s רשום באתר זה באמצעות מפתח האתר הבא: <strong>%s</strong>. תקבל עדכונים אוטומטיים עד %s"
+msgstr "התוסף %s רשום באתר זה באמצעות מפתח האתר הבא: <strong>%s</strong>. תקבל עדכונים אוטומטיים עד %s"
 
 #: templates/repository-registered.php:19
 msgid "%s is registered on this site using the following sitekey: <strong>%s</strong>. Your Lifetime account gives you updates for life."
-msgstr "%s רשום באתר זה באמצעות מפתח האתר הבא: <strong>%s</strong>. חשבון הלייפטיים שלך מעניק לך עדכונים לכל החיים."
+msgstr "התוסף %s רשום באתר זה באמצעות מפתח האתר הבא: <strong>%s</strong>. חשבון ה-Lifetime שלך מעניק לך עדכונים לכל החיים."

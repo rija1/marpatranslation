@@ -17,6 +17,16 @@ class Meow_WR2X_Core {
 	public $admin = null;
 	private $engine;
 
+	// The settings for this request, so a get_option() does not rebuild everything each time.
+	// Two rules, both learned the hard way:
+	//   1. Nothing that reads the options may write them. The reader and the writer calling
+	//      each other is what filled the memory in 7.2.0 (get_options never writes, only
+	//      update_options does, and get_options() is the only way in).
+	//   2. Only stored settings belong in here. Anything computed from the state of WordPress
+	//      (the image sizes above all) has to be recomputed on each read: this cache is filled
+	//      on plugins_loaded, and themes register their sizes later, on after_setup_theme.
+	private $options = null;
+
 	public function __construct() {
 		global $wr2x_core;
 		global $wr2x_engine;
@@ -30,7 +40,6 @@ class Meow_WR2X_Core {
 		$this->engine = new Meow_WR2X_Engine( $this );
 		$wr2x_engine = $this->engine;
 
-		$this->set_defaults();
 		//$this->init();
 		add_action( 'plugins_loaded', array( $this, 'init' ) );
 		include( trailingslashit( WR2X_PATH ) . 'classes/api.php' );
@@ -40,12 +49,11 @@ class Meow_WR2X_Core {
 	}
 
 	function init() {
-		$options = $this->get_all_options();
-		$this->method = $options["method"];
-		$this->retina_sizes = $options['retina_sizes'] ?? array();
-		$this->disabled_sizes = $options['disabled_sizes'] ?? array();
-		$this->webp_sizes = $options['webp_sizes'] ?? array();
-		$this->webp_retina_sizes = $options['webp_retina_sizes'] ?? array();
+		$options = $this->get_options();
+
+		// The options are kept in memory for the request, but they belong to one site: on
+		// multisite, switching blogs has to start from the other site's settings.
+		add_action( 'switch_blog', array( $this, 'reset_options_cache' ) );
 
 		add_action( 'wp_enqueue_scripts', array( $this, 'wp_enqueue_scripts' ) );
 		add_filter( 'generate_rewrite_rules', array( 'Meow_WR2X_Admin', 'generate_rewrite_rules' ) );
@@ -54,6 +62,16 @@ class Meow_WR2X_Core {
 
 		add_filter( 'wp_calculate_image_srcset', array( $this, 'replace_with_webp_in_srcset' ), 1000, 5 );
 		add_filter( 'wp_get_attachment_image_src', array( $this,'replace_with_webp_in_src' ), 1000, 4 );
+
+		// By default the CDN is only applied to the srcset candidates, so the plain src of
+		// an image, og:image, download links and anything built from wp_get_attachment_url()
+		// keeps hitting the origin. This opt-in extends it to those URLs. Priority 1001 so
+		// replace_with_webp_in_src() still receives an origin URL it can map to a file.
+		$has_cdn = !empty( $options['easyio_domain'] ) || !empty( $options['cdn_domain'] );
+		if ( $has_cdn && ( $options['cdn_all_urls'] ?? false ) ) {
+			add_filter( 'wp_get_attachment_url', array( $this, 'cdn_attachment_url' ), 1001, 2 );
+			add_filter( 'wp_get_attachment_image_src', array( $this, 'cdn_attachment_image_src' ), 1001, 2 );
+		}
 
 		add_action( 'after_setup_theme', array( $this, 'add_image_sizes' ) );
 
@@ -68,8 +86,24 @@ class Meow_WR2X_Core {
 			add_filter( 'big_image_size_threshold', array( $this, 'big_image_size_threshold' ) );
 		}
 
+		// WP 7.1 client-side media processing builds sub-sizes in the browser from the list
+		// returned by wp_get_missing_image_subsizes(), and forces intermediate_image_sizes_advanced
+		// to an empty array during that upload. Our size suppression has to be declared on both
+		// filters or it is silently ignored. They share the ( $sizes, $image_meta ) signature,
+		// so the same callbacks work for both.
 		if ( $options['gif_thumbnails_disabled'] ?? false ) {
-			add_filter( 'intermediate_image_sizes_advanced', array( $this, 'disable_upload_sizes' ), 10, 2);
+			add_filter( 'intermediate_image_sizes_advanced', array( $this, 'disable_upload_sizes_gif' ), 10, 2);
+			add_filter( 'wp_get_missing_image_subsizes', array( $this, 'disable_upload_sizes_gif' ), 10, 2);
+		}
+
+		if( $options['avif_thumbnails_disabled'] ?? false ) {
+			add_filter( 'intermediate_image_sizes_advanced', array( $this, 'disable_upload_sizes_avif' ), 10, 2);
+			add_filter( 'wp_get_missing_image_subsizes', array( $this, 'disable_upload_sizes_avif' ), 10, 2);
+		}
+
+		if ( $options['webp_thumbnails_disabled'] ?? false ) {
+			add_filter( 'intermediate_image_sizes_advanced', array( $this, 'disable_upload_sizes_webp' ), 10, 2);
+			add_filter( 'wp_get_missing_image_subsizes', array( $this, 'disable_upload_sizes_webp' ), 10, 2);
 		}
 
 		// Disable Image-Sizes based on Settings.
@@ -100,52 +134,14 @@ class Meow_WR2X_Core {
 		// Admin Screens
 		if ( is_admin() ) {
 			$this->admin = new Meow_WR2X_Admin( $this );
-			if ( !$options["hide_retina_dashboard"] ) {
+			$dashboard_enabled = $options['module_dashboard_enabled'] ?? !$options['hide_retina_dashboard'];
+			if ( $dashboard_enabled ) {
 				new Meow_WR2X_Dashboard( $this );
 			}
 			if ( !$options["hide_retina_column"] ) {
 				new Meow_WR2X_Library( $this );
 			}
 		}
-	}
-
-	function set_defaults() {
-		$options = $this->get_all_options();
-		$wr2x_retina_sizes = $options['retina_sizes'] ?? null;
-		$wr2x_disabled_sizes = $options['disabled_sizes'] ?? null;
-		$wr2x_auto_generate = $options['auto_generate'] ?? null;
-		if ( is_null( $this->method ) ) {
-			$options['method'] = 'Responsive';
-			$this->method = 'Responsive';
-		}
-		if ( is_null( $wr2x_auto_generate ) ) {
-			$options['auto_generate'] = true;
-		}
-		if ( is_null( $wr2x_retina_sizes ) ) {
-			$wr2x_retina_sizes = array();
-			// Let's try to get this data from the old option first
-			$wr2x_ignore_sizes = $options['ignore_sizes'];
-			$sizes = $this->get_image_sizes();
-			$large_w = 1024;
-			$large_h = 1024;
-			foreach ( $sizes as $name => $details ) {
-				$w = isset( $details['width'] ) ? $details['width'] : 0;
-				$h = isset( $details['height'] ) ? $details['height'] : 0;
-				if ( ( $w <= $large_w || $w === 9999 ) && ( $h <= $large_h || $h === 9999 ) ) { 
-					array_push( $wr2x_retina_sizes, $name );
-				}
-			}
-			if ( !empty( $wr2x_ignore_sizes ) ) {
-				$wr2x_retina_sizes = array_diff( $wr2x_retina_sizes, array_keys( $wr2x_ignore_sizes ) );
-				$options['ignore_sizes'] = [];
-			}
-			$options['retina_sizes'] = $wr2x_retina_sizes;
-		}
-
-		if ( is_null( $wr2x_disabled_sizes ) ) {
-			$options['disabled_sizes'] = [ 'medium_large' ];
-		}
-		update_option( $this->option_name, $options );
 	}
 
 	function big_image_size_threshold() {
@@ -217,9 +213,14 @@ class Meow_WR2X_Core {
 		$wr2x_disabled_sizes = $this->get_option( 'disabled_sizes', array() );
 		foreach ( $wr2x_disabled_sizes as $size ) {
 			remove_image_size( $size );
-			add_filter( 'image_size_names_choose', array( $this, 'unset_image_sizes' ) );
-			add_filter( 'intermediate_image_sizes_advanced', array( $this, 'unset_image_sizes' ) );
 		}
+		add_filter( 'image_size_names_choose', array( $this, 'unset_image_sizes' ) );
+		add_filter( 'intermediate_image_sizes_advanced', array( $this, 'unset_image_sizes' ) );
+		// remove_image_size() only works for sizes added via add_image_size(), never for the
+		// built-in ones (thumbnail, medium, medium_large, large). Those are suppressed by the
+		// filters alone, so wp_get_missing_image_subsizes() must be covered too: it is what
+		// WP 7.1 client-side processing reads to decide which sub-sizes the browser generates.
+		add_filter( 'wp_get_missing_image_subsizes', array( $this, 'unset_image_sizes' ) );
 	}
 
 	function unset_image_sizes( $sizes ) {
@@ -230,7 +231,13 @@ class Meow_WR2X_Core {
 		return $sizes;
 	}
 
-	function disable_upload_sizes( $sizes, $metadata ) {
+	function disable_upload_sizes_gif( $sizes, $metadata ) {
+		// wp_get_missing_image_subsizes() can pass metadata without a file (meta error),
+		// and wp_check_filetype( null ) is deprecated in PHP 8.1+.
+		if ( empty( $metadata['file'] ) ) {
+			return $sizes;
+		}
+
 		// Get filetype data.
 		$filetype = wp_check_filetype( $metadata['file'] );
 
@@ -241,6 +248,42 @@ class Meow_WR2X_Core {
 		}
 
 		// Return sizes you want to create from image (None if image is gif.)
+		return $sizes;
+	}
+
+	function disable_upload_sizes_avif( $sizes, $metadata ) {
+		if ( empty( $metadata['file'] ) ) {
+			return $sizes;
+		}
+
+		// Get filetype data.
+		$filetype = wp_check_filetype( $metadata['file'] );
+
+		// Check if is avif.
+		if( $filetype['type'] == 'image/avif' ) {
+			// Unset sizes if file is avif.
+			$sizes = array();
+		}
+
+		// Return sizes you want to create from image (None if image is avif.)
+		return $sizes;
+	}
+
+	function disable_upload_sizes_webp( $sizes, $metadata ) {
+		if ( empty( $metadata['file'] ) ) {
+			return $sizes;
+		}
+
+		// Get filetype data.
+		$filetype = wp_check_filetype( $metadata['file'] );
+
+		// Check if is webp.
+		if( $filetype['type'] == 'image/webp' ) {
+			// Unset sizes if file is webp.
+			$sizes = array();
+		}
+
+		// Return sizes you want to create from image (None if image is webp.)
 		return $sizes;
 	}
 
@@ -498,15 +541,10 @@ class Meow_WR2X_Core {
 			return $image;
 		}
 
-		$upload_dir = wp_upload_dir();
-		$pathinfo = pathinfo( $image[0] );
-		$filename = $pathinfo['basename'];
-		$webp_filename = $filename . $this->webp_avif_extension();
-		
-		$webp_path = trailingslashit( $upload_dir['path'] ) . $webp_filename;
+		$webp_url = $image[0] . $this->webp_avif_extension();
 
-		if ( file_exists( $webp_path ) ) {
-			$image[0] =  trailingslashit( $pathinfo['dirname'] ) . $webp_filename;
+		if ( $this->from_url_to_system( $webp_url ) ) {
+			$image[0] = $webp_url;
 		}
 
 		return $image;
@@ -694,53 +732,32 @@ class Meow_WR2X_Core {
 
 	// IGNORE
 
-	function calculate_ignores_by_search( $search ) {
-		$ids = get_transient( 'wr2x_ignores' );
-		if ( !$ids || !is_array( $ids ) ) {
-			return [];
-		}
-		global $wpdb;
-		$placeholders = implode( ',', array_fill( 0, count( $ids ), '%s' ) );
-		$ignores = $wpdb->get_col( $wpdb->prepare( "
-			SELECT p.ID FROM $wpdb->posts p
-			WHERE ID IN ($placeholders)
-			AND p.post_title LIKE %s
-		", array_merge( $ids, ['%' . $search . '%'] ) ) );
-		return $ignores;
-	}
-
 	function get_ignores( $search = '' ) {
+		global $wpdb;
+		$query = "SELECT DISTINCT pm.post_id FROM $wpdb->postmeta pm
+			INNER JOIN $wpdb->posts p ON pm.post_id = p.ID
+			WHERE pm.meta_key = '_wr2x_ignored'
+			AND pm.meta_value = '1'
+			AND p.post_type = 'attachment'";
 		if ( $search ) {
-			return $this->calculate_ignores_by_search( $search );
+			$query .= $wpdb->prepare( " AND p.post_title LIKE %s", '%' . $search . '%' );
 		}
-		$ignores = get_transient( 'wr2x_ignores' );
-		if ( !$ignores || !is_array( $ignores ) ) {
-			$ignores = array();
-			set_transient( 'wr2x_ignores', $ignores );
-		}
-		return $ignores;
+		return $wpdb->get_col( $query );
 	}
 
 	function is_ignore( $attachmentId ) {
-		$ignores = $this->get_ignores();
-		return in_array( $attachmentId, $ignores );
+		return (bool) get_post_meta( $attachmentId, '_wr2x_ignored', true );
 	}
 
 	function remove_ignore( $attachmentId ) {
-		$ignores = $this->get_ignores();
-		$ignores = array_diff( $ignores, array( $attachmentId ) );
-		set_transient( 'wr2x_ignores', $ignores );
-		return $ignores;
+		delete_post_meta( $attachmentId, '_wr2x_ignored' );
+		return $this->get_ignores();
 	}
 
 	function add_ignore( $attachmentId ) {
-		$ignores = $this->get_ignores();
-		if ( !in_array( $attachmentId, $ignores ) ) {
-			array_push( $ignores, $attachmentId );
-			set_transient( 'wr2x_ignores', $ignores );
-		}
+		update_post_meta( $attachmentId, '_wr2x_ignored', '1' );
 		$this->remove_issue( $attachmentId, true );
-		return $ignores;
+		return $this->get_ignores();
 	}
 
 	// OPTIMIZE ISSUES
@@ -1237,6 +1254,52 @@ class Meow_WR2X_Core {
 		return '/' . str_replace( $current_blog, '', $path );
 	}
 
+	// Front-end only: editors, REST clients and cron jobs keep the origin URLs, otherwise
+	// the media library, the block editor and third-party APIs would receive CDN URLs and
+	// could store them. REST_REQUEST is only defined once the request is parsed, which is
+	// why this is checked at call time rather than when the filters are registered.
+	function is_frontend_request() {
+		if ( is_admin() || wp_doing_ajax() || wp_doing_cron() ) {
+			return false;
+		}
+		if ( defined( 'REST_REQUEST' ) && REST_REQUEST ) {
+			return false;
+		}
+		if ( defined( 'WP_CLI' ) && WP_CLI ) {
+			return false;
+		}
+		return true;
+	}
+
+	function cdn_attachment_url( $url, $attachment_id ) {
+		if ( !$this->is_frontend_request() || !$this->is_cdn_url_allowed( $url, $attachment_id ) ) {
+			return $url;
+		}
+		return $this->cdn_this( $url, $attachment_id );
+	}
+
+	function cdn_attachment_image_src( $image, $attachment_id ) {
+		if ( is_array( $image ) && !empty( $image[0] ) && $this->is_frontend_request()
+			&& $this->is_cdn_url_allowed( $image[0], $attachment_id ) ) {
+			$image[0] = $this->cdn_this( $image[0], $attachment_id );
+		}
+		return $image;
+	}
+
+	// wp_get_attachment_url() is used for every attachment, not only images: PDFs, zips,
+	// audio, files sold through EDD or WooCommerce... An image CDN like Easy IO either
+	// 404s on those or proxies them for nothing, so only images are rewritten.
+	function is_cdn_url_allowed( $url, $attachment_id = null ) {
+		$mime = !empty( $attachment_id ) ? get_post_mime_type( $attachment_id ) : false;
+		if ( empty( $mime ) ) {
+			$path = parse_url( $url, PHP_URL_PATH );
+			$filetype = wp_check_filetype( $path ? basename( $path ) : '' );
+			$mime = $filetype['type'];
+		}
+		$allowed = !empty( $mime ) && strpos( $mime, 'image/' ) === 0;
+		return apply_filters( 'wr2x_cdn_url_allowed', $allowed, $url, $attachment_id, $mime );
+	}
+
 	// Rename this filename with CDN
 	function cdn_this( $url, $mediaId = null ) {
 
@@ -1267,19 +1330,29 @@ class Meow_WR2X_Core {
 			}
 		}
 
-		$home_url = parse_url( home_url() );
-		$uploads_url = trailingslashit( $this->get_upload_root_url() );
-		$uploads_url_cdn = str_replace( $home_url['host'], $cdn_domain, $uploads_url );
+		// Parse the incoming URL to extract its host
+		$parsed_url = parse_url( $url );
+		if ( empty( $parsed_url['host'] ) ) {
+			return $url;
+		}
 
 		// Perform additional CDN check (Issue #1631 by Martin)
-		if ( strpos( $url, $uploads_url_cdn ) === 0 ) {
+		if ( $parsed_url['host'] === $cdn_domain ) {
 			$this->log( "URL already has CDN: $url" );
 			return $url;
 		}
+
+		// Only rewrite URLs that point to the uploads directory
+		$uploads_path = parse_url( $this->get_upload_root_url(), PHP_URL_PATH );
+		if ( empty( $uploads_path ) || strpos( $parsed_url['path'] ?? '', $uploads_path ) === false ) {
+			return $url;
+		}
+
 		$this->log( "URL before CDN: $url" );
-		$queryUrl = !empty( $cdn_params ) ? ( '?' . http_build_query( $cdn_params ) ) : '';
-		$site_url = preg_replace( '#^https?://#', '', rtrim( get_site_url(), '/' ) );
-		$new_url = str_replace( $site_url, $cdn_domain, $url ) . $queryUrl;
+		$separator = empty( $parsed_url['query'] ) ? '?' : '&';
+		$queryUrl = !empty( $cdn_params ) ? ( $separator . http_build_query( $cdn_params ) ) : '';
+		$url_host = $parsed_url['host'];
+		$new_url = str_replace( '//' . $url_host, '//' . $cdn_domain, $url ) . $queryUrl;
 		$this->log( "URL with CDN: $new_url" );
 		return $new_url;
 	}
@@ -1290,15 +1363,14 @@ class Meow_WR2X_Core {
 
 	function get_image_sizes( $output_type = OBJECT, $options = null ) {
 		$sizes = array();
-		$options = $options ?? [];
-		$needs_update = false;
-
-		if ( $options == [] ) {
-			$options = $this->get_all_options();
-		}
+		$options = empty( $options ) ? $this->get_options() : $options;
 
 		$webp_enabled = $options['module_webp_enabled'];
 		$retina_enabled = $options['module_retina_enabled'];
+		$disabled_sizes = $options['disabled_sizes'] ?? array();
+		$retina_sizes = $options['retina_sizes'] ?? array();
+		$webp_sizes = $options['webp_sizes'] ?? array();
+		$webp_retina_sizes = $options['webp_retina_sizes'] ?? array();
 
 		global $_wp_additional_image_sizes;
 		foreach ( get_intermediate_image_sizes() as $s ) {
@@ -1316,45 +1388,18 @@ class Meow_WR2X_Core {
 				$crop = intval( get_option( $s . '_crop' ) );
 			}
 
-			// Retina shouldn't be active if the size is disabled
-			$enabled = !in_array( $s, $this->disabled_sizes );
-			$retina = in_array( $s, $this->retina_sizes );
-			if ( !$enabled && $retina ) {
-				$this->retina_sizes = array_diff( $this->retina_sizes, array( $s ) );
-				$options['retina_sizes'] = $this->retina_sizes;
-				$needs_update = true;
-				$retina = false;
-			}
-
-			$webp = false;
-			$webp_retina = false;
-
-			if ( $webp_enabled ) {
-				$webp = in_array( $s, $this->webp_sizes );
-			
-				if ( !$enabled && $webp ) {
-					$this->webp_sizes = array_diff( $this->webp_sizes, array( $s ) );
-					$options['webp_sizes'] = $this->webp_sizes;
-					$needs_update = true;
-					$webp = false;
-				}
-				$webp_retina = in_array( $s, $this->webp_retina_sizes );
-				if ( (!$enabled || !$retina) && $webp_retina ) {
-					$this->webp_retina_sizes = array_diff( $this->webp_retina_sizes, array( $s ) );
-					$options['webp_retina_sizes'] = $this->webp_retina_sizes;
-					$needs_update = true;
-					$webp_retina = false;
-				}
-			}
-
-			
+			// A disabled size has no retina and no webp (sanitize_options keeps the lists clean).
+			$enabled = !in_array( $s, $disabled_sizes );
+			$retina = $enabled && in_array( $s, $retina_sizes );
+			$webp = $webp_enabled && $enabled && in_array( $s, $webp_sizes );
+			$webp_retina = $webp_enabled && $retina && in_array( $s, $webp_retina_sizes );
 
 			$sizes[$s] = array( 
 				'width' => $width, 
 				'height' => $height, 
 				'crop' => $crop,
 				'enabled' => $enabled,
-				'retina_enabled' => $enabled && $retina && $retina_enabled,
+				'retina_enabled' => $retina && $retina_enabled,
 				'retina' => $retina,
 				'webp' => $webp,
 				'webp_retina' => $webp_retina,
@@ -1365,25 +1410,7 @@ class Meow_WR2X_Core {
 
 		// Let's re-add the disabled sizes
 		$disabled_to_add = array();
-		foreach ( $this->disabled_sizes as $size ) {
-			$retina = in_array( $size, $this->retina_sizes );
-			$webp = in_array( $size, $this->webp_sizes );
-			$webp_retina = in_array( $size, $this->webp_retina_sizes );
-			if ( $retina ) {
-				$retina_sizes = array_diff( $this->retina_sizes, array( $size ) );
-				$options['retina_sizes'] = $retina_sizes;
-				$needs_update = true;
-			}
-			if ( $webp ) {
-				$webp_sizes = array_diff( $this->webp_sizes, array( $size ) );
-				$options['webp_sizes'] = $webp_sizes;
-				$needs_update = true;
-			}
-			if ( $webp_retina ) {
-				$webp_retina_sizes = array_diff( $this->webp_retina_sizes, array( $size ) );
-				$options['webp_retina_sizes'] = $webp_retina_sizes;
-				$needs_update = true;
-			}
+		foreach ( $disabled_sizes as $size ) {
 			if ( !array_key_exists( $size, $sizes ) ) {
 				$disabled_to_add[$size] = array( 
 					'enabled' => false,
@@ -1393,9 +1420,6 @@ class Meow_WR2X_Core {
 					'shortname' => Meow_WR2X_Core::size_shortname( $size )
 				);
 			}
-		}
-		if ( $needs_update ) {
-			update_option( $this->option_name, $options );
 		}
 
 		usort( $disabled_to_add, array( $this, 'sizes_sort_func' ) );
@@ -1601,8 +1625,7 @@ class Meow_WR2X_Core {
 
 	function regenerate_thumbnails_optimized( $media_id ) {
 		require_once ABSPATH . 'wp-admin/includes/image.php';
-		//do_action( 'wr2x_before_generate_thumbnails', $media_id );
-		
+
 		$file = get_attached_file( $media_id );
 		$meta = wp_get_attachment_metadata( $media_id );
 
@@ -1610,31 +1633,36 @@ class Meow_WR2X_Core {
 			$meta = array( 'sizes' => array() );
 		}
 
-		// Get the current registered image sizes
 		$needed_sizes = wp_get_registered_image_subsizes();
-		$option_sizes = $this->get_option( 'sizes' );
-		// Re-index the $option_sizes array by size name for easier access
-		$option_sizes = array_column( $option_sizes, null, 'name' );
-		$needed_sizes = array_merge( $needed_sizes, $option_sizes );
-		
-		foreach ( $needed_sizes as $size => $size_data ) {
-			$image_path = path_join( dirname( $file ), $meta['sizes'][ $size ]['file'] ?? '' );
-			$is_disabled = $option_sizes[ $size ]['enabled'] == false;
-			$file_exists = isset( $meta['sizes'][ $size ] ) && file_exists( $image_path ) && filesize( $image_path ) > 0;
+		$disabled_sizes = $this->get_option( 'disabled_sizes', array() );
+		$dir = dirname( $file );
 
-			if( $is_disabled ) {
-				if ( $file_exists ) {
-					// If the size is disabled, we delete the file and remove it from metadata
+		// Remove disabled sizes from needed list (remove_image_size doesn't
+		// work for WP built-in sizes, so they may still be in the list)
+		foreach ( $disabled_sizes as $size ) {
+			unset( $needed_sizes[ $size ] );
+		}
+
+		// Clean up thumbnails for disabled or unregistered sizes (ghost sizes
+		// from old themes/plugins that are no longer active)
+		foreach ( array_keys( $meta['sizes'] ) as $size ) {
+			if ( in_array( $size, $disabled_sizes ) || !isset( $needed_sizes[ $size ] ) ) {
+				$image_path = path_join( $dir, $meta['sizes'][ $size ]['file'] );
+				if ( file_exists( $image_path ) ) {
 					@unlink( $image_path );
-					unset( $meta['sizes'][ $size ] );
 				}
+				unset( $meta['sizes'][ $size ] );
+			}
+		}
+
+		// Regenerate only missing enabled sizes
+		foreach ( $needed_sizes as $size => $size_data ) {
+			$existing_file = $meta['sizes'][ $size ]['file'] ?? '';
+			$existing_path = $existing_file ? path_join( $dir, $existing_file ) : '';
+			if ( $existing_path && file_exists( $existing_path ) && filesize( $existing_path ) > 0 ) {
 				continue;
 			}
-
-
-			// Generate the thumbnail size.
 			$resized = image_make_intermediate_size( $file, $size_data['width'], $size_data['height'], $size_data['crop'] ?? true );
-
 			if ( $resized ) {
 				$meta['sizes'][ $size ] = $resized;
 			}
@@ -1861,7 +1889,7 @@ class Meow_WR2X_Core {
 			unlink( $logPath );
 		}
 
-		$options = $this->get_all_options();
+		$options = $this->get_options();
 		$options['logs_path'] = null;
 		$this->update_options( $options );
 	}
@@ -1886,7 +1914,7 @@ class Meow_WR2X_Core {
 			if ( !file_exists( $path ) ) {
 				touch( $path );
 			}
-			$options = $this->get_all_options();
+			$options = $this->get_options();
 			$options['logs_path'] = $path;
 			$this->update_options( $options );
 		}
@@ -1894,6 +1922,8 @@ class Meow_WR2X_Core {
 		return $path;
 	}
 
+	// Careful: this reads the plugin options, so it must never be called from get_options(),
+	// sanitize_options() or anything they call, otherwise the two keep calling each other.
 	function log( $data = null ) {
 		if ( !$this->get_option( 'logs' ) ) { return false; }
 		$log_file_path = $this->get_logs_path();
@@ -1989,6 +2019,10 @@ class Meow_WR2X_Core {
 					$result[$name] = 'IGNORED';
 					continue;
 				}
+				if ( isset( $attr['enabled'] ) && !$attr['enabled'] ) {
+					$result[$name] = 'IGNORED';
+					continue;
+				}
 				// Check if the file related to this size is present
 				$pathinfo = null;
 				$retina_file = null;
@@ -2024,7 +2058,7 @@ class Meow_WR2X_Core {
 
 		// Full-Size (if required in the settings)
 		$fullsize_required = $this->get_option( "full_size" ) && class_exists( 'MeowPro_WR2X_Core' );
-		$retina_file = trailingslashit( $pathinfo_fullsize['dirname'] ) . $pathinfo_fullsize['filename'] . 
+		$retina_file = trailingslashit( $pathinfo_fullsize['dirname'] ) . $pathinfo_fullsize['filename'] .
 			$this->retina_extension() . $pathinfo_fullsize['extension'];
 		if ( $retina_file && file_exists( $retina_file ) )
 			$result['full-size'] = 'EXISTS';
@@ -2034,16 +2068,16 @@ class Meow_WR2X_Core {
 		if ( $output_type === ARRAY_A ) {
 			$new_results = array();
 			foreach ( $result as $key => $value ) {
-				array_push( $new_results, array( 
+				array_push( $new_results, array(
 					'name' => $key,
 					'shortname' => self::size_shortname( $key ),
 					'status' => is_array( $value ) ? 'CANNOT' : $value,
 					'required' => is_array( $value ) ? $value : null
-					) 
+					)
 				);
 			}
 			return $new_results;
-		} 
+		}
 
 		return $result;
 	}
@@ -2065,6 +2099,10 @@ class Meow_WR2X_Core {
 			foreach ( $sizes as $name => $attr ) {
 				$validSize = !empty( $attr['width'] ) || !empty( $attr['height'] );
 				if ( !$validSize ) {
+					$result[$name] = 'IGNORED';
+					continue;
+				}
+				if ( isset( $attr['enabled'] ) && !$attr['enabled'] ) {
 					$result[$name] = 'IGNORED';
 					continue;
 				}
@@ -2151,6 +2189,10 @@ class Meow_WR2X_Core {
 			foreach ( $sizes as $name => $attr ) {
 				$validSize = !empty( $attr['width'] ) || !empty( $attr['height'] );
 				if ( !$validSize ) {
+					$result[$name] = 'IGNORED';
+					continue;
+				}
+				if ( isset( $attr['enabled'] ) && !$attr['enabled'] ) {
 					$result[$name] = 'IGNORED';
 					continue;
 				}
@@ -2306,8 +2348,14 @@ class Meow_WR2X_Core {
 	}
 
 	function get_option( $option, $default = null ) {
-		$options = $this->get_all_options();
+		$options = $this->get_options();
 		return $options[$option] ?? $default;
+	}
+
+	function update_option( $option, $value ) {
+		$options = $this->get_options();
+		$options[$option] = $value;
+		return $this->update_options( $options );
 	}
 
 	function list_options() {
@@ -2317,6 +2365,7 @@ class Meow_WR2X_Core {
 			'disabled_sizes' => [],
 			'big_image_size_threshold' => false,
 			'hide_retina_dashboard' => false,
+			'module_dashboard_enabled' => true,
 			'hide_retina_column' => true,
 			'hide_optimize' => true,
 			'auto_generate' => false,
@@ -2329,31 +2378,38 @@ class Meow_WR2X_Core {
 			'over_http_check' => false,
 			'easyio_domain' => '',
 			'cdn_domain' => '',
+			'cdn_all_urls' => false,
 			'easyio_lossless' => '',
 			'debug' => false,
 			'logs' => false,
 			'picturefill_noscript' => false,
 			'image_replace' => false,
 			'sizes' => [],
-			'module_retina_enabled' => true,
+			'module_imagesizes_enabled' => true,
+			'module_retina_enabled' => false,
 			'module_optimize_enabled' => true,
 			'module_ui_enabled' => true,
-			'gif_thumbnails_disabled' => false,
+			'gif_thumbnails_disabled' => true,
+			'avif_thumbnails_disabled' => false,
+			'webp_thumbnails_disabled' => false,
 			'hide_admin_messages' => false,
 			'logs_path' => null,
 			'custom_image_sizes' => [],
 			'legacy_build_thumbnails' => false,
+			'module_devtools' => false,
 
 
 
 			//Modern Image Formats
 			'module_webp_enabled' => true,
+			'webp_force_with_easyio' => false,
 			'webp_full_size' => false,
 			'generate_avif' => false,
 			'webp_auto_generate' => false,
 			'webp_retina_sizes' => [],
 			'webp_sizes' => [],
 			'webp_method' => 'none',
+			'webp_ignored_extensions' => ['gif', 'svg', 'bmp', 'tiff'],
 
 			// AI
 			'module_ai_enabled' => false,
@@ -2379,196 +2435,178 @@ class Meow_WR2X_Core {
 		);
 	}
 
-	function get_all_options() {
-		//delete_option( $this->option_name );
-		$options = get_option( $this->option_name, null );
-		$options = $this->check_options( $options );
+	function reset_options_cache() {
+		$this->options = null;
+	}
 
-		$needs_update = false;
-
-		foreach ( $options as $option => $value ) {
-			if ($option === 'retina_sizes' || $option === 'disabled_sizes'
-				|| $option === 'webp_sizes' || $option === 'webp_retina_sizes'
-			) {
-				
-				if ( !is_array( $value ) ) {
-					$this->log( "⚠️ Option $option is not an array. Resetting it." );
-
-					if ( strpos( $value, ',' ) !== false ) {
-						$this->log( "⚠️ Option $option is a string with commas. Splitting it into an array." );
-						$options[$option] = explode( ',', $value );
-					} else {
-						$options[$option] = array( $value );
+	// Reads the options: what is stored, completed with the defaults and the runtime values.
+	// It never writes, so anything can call it (including update_options) without looping.
+	function get_options() {
+		if ( $this->options === null ) {
+			$options = get_option( $this->option_name, null );
+			if ( !is_array( $options ) ) {
+				// Old installs stored one row per option (wr2x_method, wr2x_quality, etc). Import them once.
+				$options = [];
+				foreach ( array_keys( $this->list_options() ) as $option ) {
+					$legacy = get_option( 'wr2x_' . $option, null );
+					if ( $legacy !== null ) {
+						$options[$option] = $legacy;
+						delete_option( 'wr2x_' . $option );
 					}
-
-					$needs_update = true;
-					continue;
 				}
+				$this->options = $this->sanitize_options( $options );
+				update_option( $this->option_name, $this->options, false );
+			}
+			else {
+				$this->options = $this->sanitize_options( $options );
+			}
+		}
+		// Recomputed on every read, never cached: see rule 2 on the $options property. Moving
+		// this line into the cache leaves the settings screen listing only the core sizes.
+		$options = $this->options;
+		$options['sizes'] = $this->get_image_sizes( ARRAY_A, $options );
+		return $options;
+	}
 
-				$options[$option] = array_values( $value );
-				continue;
+	// Completes the options with the defaults, fixes the types and keeps them logical.
+	// Pure: it only reads WP (image sizes, lazy loading), it never writes the options.
+	function sanitize_options( $options ) {
+		$options = is_array( $options ) ? $options : [];
+
+		// hide_retina_dashboard is the old name of module_dashboard_enabled.
+		if ( !array_key_exists( 'module_dashboard_enabled', $options ) && array_key_exists( 'hide_retina_dashboard', $options ) ) {
+			$options['module_dashboard_enabled'] = !$options['hide_retina_dashboard'];
+		}
+		$options = array_merge( $this->list_options(), $options );
+
+		// Those are arrays, but older versions could store them as a comma-separated string.
+		foreach ( ['retina_sizes', 'disabled_sizes', 'webp_sizes', 'webp_retina_sizes'] as $option ) {
+			$value = $options[$option];
+			$options[$option] = is_array( $value ) ? array_values( $value )
+				: ( $value === '' || $value === null ? [] : explode( ',', (string)$value ) );
+		}
+
+		// A disabled size has no retina, and a size without retina has no retina webp.
+		$options['retina_sizes'] = array_values( array_diff( $options['retina_sizes'], $options['disabled_sizes'] ) );
+		if ( $options['module_webp_enabled'] ) {
+			$options['webp_sizes'] = array_values( array_diff( $options['webp_sizes'], $options['disabled_sizes'] ) );
+			$options['webp_retina_sizes'] = array_values( array_intersect( $options['webp_retina_sizes'], $options['retina_sizes'] ) );
+		}
+
+		// Both Easy IO and Modern Formats should not be enabled at the same time
+		if ( $options['module_optimize_enabled'] && $options['module_webp_enabled'] ) {
+			if ( !empty( $options['easyio_domain'] ) ) {
+				$options['module_webp_enabled'] = false;
+			} else {
+				$options['module_optimize_enabled'] = false;
 			}
 		}
 
-		$options['sizes'] = $this->get_image_sizes( ARRAY_A, $options );
+		// Easy IO auto-disables Modern Formats unless user explicitly forces it
+		if ( !empty( $options['easyio_domain'] ) && !$options['webp_force_with_easyio'] ) {
+			$options['module_webp_enabled'] = false;
+		}
 
-		// Update the wp_lazy_loading and wp_auto_sizes options
-		$wp_lazy_loading = [
+		if ( !$options['module_webp_enabled'] ) {
+			$options['webp_full_size'] = false;
+			$options['generate_avif'] = false;
+			$options['webp_auto_generate'] = false;
+			$options['webp_method'] = 'none';
+			// Let's keep the sizes so we can restore them if the module is enabled again
+		}
+
+		// If the AI features are disabled, reset the AI options
+		if ( !$options['module_ai_enabled'] ) {
+			$options['ai_upscale'] = false;
+			$options['ai_retina_full_size'] = false;
+		}
+
+		$options['hide_retina_dashboard'] = !$options['module_dashboard_enabled'];
+
+		// Those are not settings, they are the current state of WordPress, refreshed on every read.
+		$options['wp_lazy_loading'] = [
 			'img' => wp_lazy_loading_enabled( 'img', 'wr2x' ),
 			'iframe' => wp_lazy_loading_enabled( 'iframe', 'wr2x' ),
 			'video' => wp_lazy_loading_enabled( 'video', 'wr2x' ),
 			'picture' => wp_lazy_loading_enabled( 'picture', 'wr2x' ),
 		];
+		$options['wp_auto_sizes'] = function_exists( 'wp_img_tag_add_auto_sizes' ) && function_exists( 'wp_sizes_attribute_includes_valid_auto' );
 
-		$wp_auto_sizes = function_exists( 'wp_img_tag_add_auto_sizes' ) && function_exists( 'wp_sizes_attribute_includes_valid_auto' );
+		// Member variables used all over the plugin.
+		$this->method = $options['method'];
+		$this->retina_sizes = $options['retina_sizes'];
+		$this->disabled_sizes = $options['disabled_sizes'];
+		$this->webp_sizes = $options['webp_sizes'];
+		$this->webp_retina_sizes = $options['webp_retina_sizes'];
 
-		if ( $options['wp_lazy_loading'] !== $wp_lazy_loading ) {
-			$options['wp_lazy_loading'] = $wp_lazy_loading;
-			$needs_update = true;
-		}
+		$options['sizes'] = $this->get_image_sizes( ARRAY_A, $options );
 
-		if ( $options['wp_auto_sizes'] !== $wp_auto_sizes ) {
-			$options['wp_auto_sizes'] = $wp_auto_sizes;
-			$needs_update = true;
-		}
-
-
-		// Update the options if needed
-		if( $needs_update ) { $this->update_options( $options ); }
-
-		return $options;
-	}
-
-	// Upgrade from the old way of storing options to the new way.
-	function check_options( $options = [] ) {
-		$plugin_options = $this->list_options();
-		$options = empty( $options ) ? [] : $options;
-		$hasChanges = false;
-		foreach ( $plugin_options as $option => $default ) {
-			// The option already exists
-			if ( array_key_exists( $option, $options ) ) {
-					continue;
-			}
-			//$this->log( '⚙️ Option does not exist: ' . $option . '. Adding it.' );
-			// The option does not exist, so we need to add it.
-			// Let's use the old value if any, or the default value.
-			$options[ $option ] = get_option( 'wr2x_' . $option, $default );
-			delete_option( 'wr2x_' . $option );
-			$hasChanges = true;
-		}
-		if ( empty( $options['sizes'] ) ) {
-			$options['sizes'] = $this->get_image_sizes( ARRAY_A, $options );
-			$hasChanges = true;
-		}
-		if ( $hasChanges ) {
-			update_option( $this->option_name , $options );
-		}
 		return $options;
 	}
 
 	function update_options( $options ) {
-		if ( !update_option( $this->option_name, $options, false ) ) {
-			return false;
-		}
-		$options = $this->sanitize_options();
-		return $options;
-	}
-
-	function update_option( $option, $value ) {
-		$options = $this->get_all_options();
-		$options[$option] = $value;
-		return $this->update_options( $options );
-	}
-
-	// Validate and keep the options clean and logical.
-	function sanitize_options() {
-		$options = $this->get_all_options();
-
-		// Update member variables.
-		$this->method = $options["method"];
-		$this->retina_sizes = $options['retina_sizes'] ?? array();
-		$this->disabled_sizes = $options['disabled_sizes'] ?? array();
-		$this->webp_sizes = $options['webp_sizes'] ?? array();
-		$this->webp_retina_sizes = $options['webp_retina_sizes'] ?? array();
-
-		$options['sizes'] = $this->get_image_sizes( ARRAY_A, $options );
-
-		if( !$options['module_webp_enabled'] ) {
-
-			$options['webp_full_size'] = false;
-			$options['generate_avif'] = false;
-			$options['webp_auto_generate'] = false;
-			$options['webp_method'] = 'none';
-
-			// Let's keep the sizes so we can restore them if the module is enabled again
-			//$options['webp_retina_sizes'] = [];
-			//$options['webp_sizes'] = [];
-
-		}
-
-		// If the AI features are disabled, reset the AI options
-		if( !$options['module_ai_enabled'] ) {
-			$options['ai_upscale'] = false;
-			$options['ai_retina_full_size'] = false;
-		}
-
-
+		$old_options = $this->get_options();
+		$options = $this->sanitize_options( $options );
 		update_option( $this->option_name, $options, false );
-
+		$this->options = $options;
+		$this->notify_cdn_settings_changed( $old_options, $options );
 		return $options;
+	}
+
+	// Other plugins cache image URLs (Meow Lightbox keeps them in transients for a day),
+	// so they need to know when the CDN goes on, off or changes domain.
+	function notify_cdn_settings_changed( $old_options, $new_options ) {
+		$keys = array( 'easyio_domain', 'cdn_domain', 'cdn_all_urls' );
+		$changed = array();
+		foreach ( $keys as $key ) {
+			$old = $old_options[$key] ?? null;
+			$new = $new_options[$key] ?? null;
+			if ( (string)$old !== (string)$new && !( empty( $old ) && empty( $new ) ) ) {
+				$changed[$key] = array( 'old' => $old, 'new' => $new );
+			}
+		}
+		if ( !empty( $changed ) ) {
+			do_action( 'wr2x_cdn_settings_changed', $changed, $new_options );
+		}
 	}
 
 	// #endregion
 
 	// Custom Image Sizes
+	// Compare the sizes by name. Comparing the values alone used to miss changes (two sizes
+	// swapping their widths looked identical), and only the first change was ever returned.
 	function get_custom_image_size_changes ( $old_options, $new_options ) {
-		$get_diff_one = function ( $name, $options ) {
-			return array_slice( array_filter( $options, function( $option ) use ( $name ) {
-				return $option['name'] === $name;
-			}), 0, 1 )[0];
-		};
+		$old_by_name = array_column( is_array( $old_options ) ? $old_options : [], null, 'name' );
+		$new_by_name = array_column( is_array( $new_options ) ? $new_options : [], null, 'name' );
+		$changes = [];
 
-		// Add or delete
-		if ( count( $new_options ) !== count( $old_options ) ) {
-			$old_option_names = array_column( $old_options, 'name' );
-			$new_option_names = array_column( $new_options, 'name' );
-			return ( count( $new_option_names ) > count( $old_option_names ) )
-				? [
-					'type' => 'add',
-					'value' => $get_diff_one(
-						array_slice( array_diff( $new_option_names, $old_option_names ), 0, 1 )[0],
-						$new_options
-					)
-				]
-				:  [
-					'type' => 'delete',
-					'value' => $get_diff_one(
-						array_slice( array_diff( $old_option_names, $new_option_names ), 0, 1 )[0],
-						$old_options
-					)
-				];
-		}
-		// Update or no change
-		$diff_keys = ['width', 'height', 'crop'];
-		foreach ( $diff_keys as $diff_key ) {
-			$new_values = array_column( $new_options, $diff_key, 'name' );
-			$old_values = array_column( $old_options, $diff_key, 'name' );
-			$diff_values = array_diff( $new_values, $old_values );
-			if ( !empty( $diff_values ) ) {
-				return [
-					'type' => 'update',
-					'value' => $get_diff_one( array_keys( $diff_values )[0], $new_options )
-				];
+		foreach ( $new_by_name as $name => $size ) {
+			if ( !array_key_exists( $name, $old_by_name ) ) {
+				$changes[] = [ 'type' => 'add', 'value' => $size ];
+				continue;
+			}
+			foreach ( [ 'width', 'height', 'crop' ] as $key ) {
+				if ( ( $old_by_name[$name][$key] ?? null ) !== ( $size[$key] ?? null ) ) {
+					$changes[] = [ 'type' => 'update', 'value' => $size ];
+					break;
+				}
 			}
 		}
-		return null;
+
+		foreach ( $old_by_name as $name => $size ) {
+			if ( !array_key_exists( $name, $new_by_name ) ) {
+				$changes[] = [ 'type' => 'delete', 'value' => $size ];
+			}
+		}
+
+		return $changes;
 	}
 
 	function register_custom_image_size ( $type, $name, $width, $height, $crop ) {
 		if ( $type === 'delete' ) {
-			if ( !remove_image_size( $name ) ) {
-				throw new Exception( "Could not remove image size '{$name}'." );
-			}
+			// A failed unregistration is not worth rolling back the whole settings save: the
+			// sizes are registered again from the options on the next request anyway.
+			remove_image_size( $name );
 			return;
 		}
 
@@ -2578,7 +2616,7 @@ class Meow_WR2X_Core {
 			$crop = explode( '-', $crop );
 		}
 
-		add_image_size( $name, $width, $height, false );
+		add_image_size( $name, $width, $height, $crop );
 	}
 
 	private function random_ascii_chars( $length = 8 ) {

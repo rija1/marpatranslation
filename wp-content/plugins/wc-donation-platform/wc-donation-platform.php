@@ -4,7 +4,7 @@
  * Plugin URI: https://www.wc-donation.com/
  * Description: Donation Platform for WooCommerce unlocks the power of WooCommerce for your online fundraising & crowdfunding.
  * Author: Jonas Höbenreich
- * Version: 1.3.4.1
+ * Version: 1.4.0
  * Author URI: https://www.jonh.eu/
  * Plugin URI:  https://www.wc-donation.com/
  * License: GNU General Public License v2.0
@@ -12,7 +12,7 @@
  * Text Domain: wc-donation-platform
  * Domain Path: /languages
  * WC requires at least: 4.0.0
- * WC tested up to: 9.8.5
+ * WC tested up to: 10.4.3
  * Requires at least: 5.8
  */
 
@@ -21,7 +21,7 @@ if (!defined('ABSPATH'))
 
 define('WCDP_DIR', dirname(__FILE__) . '/');
 define('WCDP_DIR_URL', plugin_dir_url(__FILE__));
-const WCDP_VERSION = '1.3.4.1';
+const WCDP_VERSION = '1.4.0';
 
 /**
  * Check if WooCommerce is active
@@ -114,7 +114,7 @@ if (!class_exists('WCDP')) {
                     $admin_notice_content = __('Donation Platform for WooCommerce requires WooCommerce to be installed & activated.', 'wc-donation-platform');
                 } elseif (version_compare(get_option('woocommerce_db_version'), self::$wc_minimum_supported_version, '<')) {
                     // translators: %s required WC version
-                    $admin_notice_content = sprintf(__('Donation Platform for WooCommerce is inactive. This version of Donation Platform for WooCommerce requires WooCommerce %s or newer. Please update WooCommerce and run all database migrations.', 'wc-donation-platform'), self::$wc_minimum_supported_version);
+                    $admin_notice_content = sprintf(esc_html__('Donation Platform for WooCommerce is inactive. This version of Donation Platform for WooCommerce requires WooCommerce %s or newer. Please update WooCommerce and run all database migrations.', 'wc-donation-platform'), self::$wc_minimum_supported_version);
                 }
 
                 if ($admin_notice_content) {
@@ -193,28 +193,32 @@ add_action('before_woocommerce_init', function () {
  *
  * @since 1.3.3
  */
-register_activation_hook( __FILE__,
+register_activation_hook(
+    __FILE__,
     /**
      * @throws Exception
      */ function () {
-    //Disable new Product editor
-    update_option('woocommerce_feature_product_block_editor_enabled', 'no');
+        //Disable new Product editor
+        update_option('woocommerce_feature_product_block_editor_enabled', 'no');
 
-    if (!class_exists('WC_Admin_Notices') || !current_user_can('activate_plugins') || get_option('wcdp_compatibility_mode', false)) return;
+        if (!class_exists('WC_Admin_Notices') || !current_user_can('activate_plugins') || get_option('wcdp_compatibility_mode', false))
+            return;
 
-    // Check if there are at least 4 WooCommerce orders
-    $order_query = new WC_Order_Query(array(
-        'status' => array('wc-completed'),
-        'type' => 'shop_order',
-        'limit' => 4,
-        'return' => 'ids',
-    ));
-    $orders = $order_query->get_orders();
-    if (count($orders) < 4) return;
+        // Check if there are at least 4 WooCommerce orders
+        $order_query = new WC_Order_Query(array(
+            'status' => array('wc-completed'),
+            'type' => 'shop_order',
+            'limit' => 4,
+            'return' => 'ids',
+        ));
+        $orders = $order_query->get_orders();
+        if (count($orders) < 4)
+            return;
 
-    //enable compatibility mode
-    add_option('wcdp_compatibility_mode', 'yes');
-});
+        //enable compatibility mode
+        add_option('wcdp_compatibility_mode', 'yes');
+    }
+);
 
 if (!function_exists('wcdp_clear_cache')) {
     /**
@@ -223,7 +227,8 @@ if (!function_exists('wcdp_clear_cache')) {
      * @return void
      * @since v1.3.3
      */
-    function wcdp_clear_cache() {
+    function wcdp_clear_cache()
+    {
         if (class_exists('WCDP_General_Settings')) {
             WCDP_General_Settings::clear_cached_data();
         } else {

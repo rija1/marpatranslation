@@ -2,22 +2,24 @@
 
 // File generated from our OpenAPI spec
 
-namespace Stripe\Service\Tax;
+namespace PaymentPlugins\Vendor\Stripe\Service\Tax;
 
 /**
  * Service factory class for API resources in the Tax namespace.
  *
+ * @property AssociationService $associations
  * @property CalculationService $calculations
  * @property RegistrationService $registrations
  * @property SettingsService $settings
  * @property TransactionService $transactions
  */
-class TaxServiceFactory extends \Stripe\Service\AbstractServiceFactory
+class TaxServiceFactory extends \PaymentPlugins\Vendor\Stripe\Service\AbstractServiceFactory
 {
     /**
      * @var array<string, string>
      */
     private static $classMap = [
+        'associations' => AssociationService::class,
         'calculations' => CalculationService::class,
         'registrations' => RegistrationService::class,
         'settings' => SettingsService::class,

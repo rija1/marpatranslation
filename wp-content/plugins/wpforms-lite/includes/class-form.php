@@ -211,7 +211,7 @@ class WPForms_Form_Handler {
 	 * @param mixed $id   Form ID.
 	 * @param array $args Additional arguments array.
 	 *
-	 * @return array|bool|null|WP_Post
+	 * @return array|false|WP_Post
 	 */
 	public function get( $id = '', array $args = [] ) {
 
@@ -253,7 +253,7 @@ class WPForms_Form_Handler {
 	 * @param string|int $id   Form ID.
 	 * @param array      $args Additional arguments array.
 	 *
-	 * @return array|bool|null|WP_Post
+	 * @return array|false|WP_Post
 	 */
 	protected function get_single( $id = '', array $args = [] ) {
 
@@ -777,10 +777,12 @@ class WPForms_Form_Handler {
 			remove_action( 'post_updated', 'wp_save_post_revision' );
 		}
 
-		$_form_id = wp_update_post( $form );
-
-		if ( ! empty( $args['skip_revision'] ) ) {
-			add_action( 'post_updated', 'wp_save_post_revision' );
+		try {
+			$_form_id = wp_update_post( $form );
+		} finally {
+			if ( ! empty( $args['skip_revision'] ) ) {
+				add_action( 'post_updated', 'wp_save_post_revision' );
+			}
 		}
 
 		if ( is_wp_error( $_form_id ) ) {
@@ -1309,14 +1311,16 @@ class WPForms_Form_Handler {
 			remove_action( 'post_updated', 'wp_save_post_revision' );
 		}
 
-		$result = wp_update_post( $form );
+		try {
+			$result = wp_update_post( $form );
+		} finally {
+			if ( ! empty( $args['skip_revision'] ) ) {
+				add_action( 'post_updated', 'wp_save_post_revision' );
+			}
+		}
 
 		if ( is_wp_error( $result ) ) {
 			return $result;
-		}
-
-		if ( ! empty( $args['skip_revision'] ) ) {
-			add_action( 'post_updated', 'wp_save_post_revision' );
 		}
 
 		/**

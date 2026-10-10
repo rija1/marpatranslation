@@ -10,11 +10,13 @@
 namespace WCPay\Payment_Methods;
 
 use WC_Payments_Utils;
+use WCPay\PaymentMethods\Configs\Constants\PaymentMethodCapability;
 use WP_User;
 use WC_Payments_Token_Service;
 use WC_Payment_Token_CC;
 use WC_Payment_Token_WCPay_SEPA;
 use WC_Payments_Subscriptions_Utilities;
+use WCPay\PaymentMethods\Configs\Utils\PaymentMethodUtils;
 
 /**
  * Extendable class for payment methods.
@@ -125,13 +127,26 @@ class UPE_Payment_Method {
 		if ( null !== $this->definition ) {
 			// Cache values that don't require context.
 			$this->stripe_id                    = $this->definition::get_id();
-			$this->is_reusable                  = $this->definition::is_reusable();
+			$this->is_reusable                  = PaymentMethodUtils::is_reusable( $this->definition );
 			$this->currencies                   = $this->definition::get_supported_currencies();
-			$this->accept_only_domestic_payment = $this->definition::accepts_only_domestic_payments();
+			$this->accept_only_domestic_payment = PaymentMethodUtils::accepts_only_domestic_payments( $this->definition );
 			$this->limits_per_currency          = $this->definition::get_limits_per_currency();
-			$this->is_bnpl                      = $this->definition::is_bnpl();
+			$this->is_bnpl                      = PaymentMethodUtils::is_bnpl( $this->definition );
 			$this->countries                    = $this->definition::get_supported_countries();
 		}
+	}
+
+	/**
+	 * Returns payment method ID
+	 *
+	 * @return string
+	 */
+	public function is_express_checkout() {
+		if ( null !== $this->definition ) {
+			return in_array( PaymentMethodCapability::EXPRESS_CHECKOUT, $this->definition::get_capabilities(), true );
+		}
+
+		return false;
 	}
 
 	/**
@@ -158,6 +173,12 @@ class UPE_Payment_Method {
 	 */
 	public function get_title( ?string $account_country = null, $payment_details = false ) {
 		if ( null !== $this->definition ) {
+			if ( is_array( $payment_details ) && ! empty( $payment_details ) ) {
+				$dynamic_title = $this->definition::get_title_from_charge_details( $account_country ?? '', $payment_details );
+				if ( null !== $dynamic_title ) {
+					return $dynamic_title;
+				}
+			}
 			return $this->definition::get_title( $account_country );
 		}
 		return $this->title;
@@ -358,24 +379,6 @@ class UPE_Payment_Method {
 	}
 
 	/**
-	 * Gets the theme appropriate icon for the payment method for a given location and context.
-	 *
-	 * @param string  $location The location to get the icon for.
-	 * @param boolean $is_blocks Whether the icon is for blocks.
-	 * @param string  $account_country Optional account country.
-	 * @return string
-	 */
-	public function get_payment_method_icon_for_location( string $location = 'checkout', bool $is_blocks = true, ?string $account_country = null ) {
-		$appearance_theme = WC_Payments_Utils::get_active_upe_theme_transient_for_location( $location, $is_blocks ? 'blocks' : 'classic' );
-
-		if ( 'night' === $appearance_theme ) {
-			return $this->get_dark_icon( $account_country );
-		}
-
-		return $this->get_icon( $account_country );
-	}
-
-	/**
 	 * Returns payment method supported countries
 	 *
 	 * @return array
@@ -383,6 +386,12 @@ class UPE_Payment_Method {
 	public function get_countries() {
 		$account         = \WC_Payments::get_account_service()->get_cached_account_data();
 		$account_country = isset( $account['country'] ) ? strtoupper( $account['country'] ) : '';
+
+		// For definition-based payment methods, call get_supported_countries with account_country.
+		// The definition handles any domestic/regional restrictions (e.g., Klarna's EEA cross-border logic).
+		if ( ! empty( $this->definition ) ) {
+			return $this->definition::get_supported_countries( $account_country );
+		}
 
 		return $this->has_domestic_transactions_restrictions() ? [ $account_country ] : $this->countries;
 	}
@@ -434,7 +443,7 @@ class UPE_Payment_Method {
 	 */
 	public function allows_manual_capture() {
 		if ( null !== $this->definition ) {
-			return $this->definition::allows_manual_capture();
+			return PaymentMethodUtils::allows_manual_capture( $this->definition );
 		}
 
 		return false;

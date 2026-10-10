@@ -1,4 +1,9 @@
 <?php
+
+if ( ! defined( 'ABSPATH' ) ) {
+	exit;
+}
+
 /**
  * The file that defines the core plugin class
  *
@@ -73,7 +78,7 @@ class Cookie_Law_Info {
 		if ( defined( 'CLI_VERSION' ) ) {
 			$this->version = CLI_VERSION;
 		} else {
-			$this->version = '3.3.6';
+			$this->version = '3.5.6';
 		}
 		$this->plugin_name = 'cookie-law-info';
 
@@ -191,6 +196,8 @@ class Cookie_Law_Info {
 
 		$this->loader->add_action( 'admin_enqueue_scripts', $plugin_admin, 'enqueue_styles' );
 		$this->loader->add_action( 'admin_enqueue_scripts', $plugin_admin, 'enqueue_scripts' );
+		$this->loader->add_action( 'admin_notices', $plugin_admin, 'render_update_banner', 1 );
+		$this->loader->add_action( 'admin_footer', $plugin_admin, 'render_update_modals' );
 
 		/*
 		.

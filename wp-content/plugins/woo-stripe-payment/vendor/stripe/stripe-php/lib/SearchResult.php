@@ -1,6 +1,6 @@
 <?php
 
-namespace Stripe;
+namespace PaymentPlugins\Vendor\Stripe;
 
 /**
  * Search results for an API resource.
@@ -16,6 +16,7 @@ namespace Stripe;
  * the `expand` parameter contains `total_count`.
  *
  * @template TStripeObject of StripeObject
+ *
  * @template-implements \IteratorAggregate<TStripeObject>
  *
  * @property string $object
@@ -28,12 +29,9 @@ namespace Stripe;
 class SearchResult extends StripeObject implements \Countable, \IteratorAggregate
 {
     const OBJECT_NAME = 'search_result';
-
-    use ApiOperations\Request;
-
+    use \PaymentPlugins\Vendor\Stripe\ApiOperations\Request;
     /** @var array */
     protected $filters = [];
-
     /**
      * @return string the base URL for the given class
      */
@@ -41,7 +39,6 @@ class SearchResult extends StripeObject implements \Countable, \IteratorAggregat
     {
         return Stripe::$apiBase;
     }
-
     /**
      * Returns the filters.
      *
@@ -51,7 +48,6 @@ class SearchResult extends StripeObject implements \Countable, \IteratorAggregat
     {
         return $this->filters;
     }
-
     /**
      * Sets the filters, removing paging options.
      *
@@ -61,7 +57,6 @@ class SearchResult extends StripeObject implements \Countable, \IteratorAggregat
     {
         $this->filters = $filters;
     }
-
     /**
      * @return mixed
      */
@@ -71,39 +66,29 @@ class SearchResult extends StripeObject implements \Countable, \IteratorAggregat
         if (\is_string($k)) {
             return parent::offsetGet($k);
         }
-        $msg = "You tried to access the {$k} index, but SearchResult " .
-                   'types only support string keys. (HINT: Search calls ' .
-                   'return an object with a `data` (which is the data ' .
-                   "array). You likely want to call ->data[{$k}])";
-
+        $msg = "You tried to access the {$k} index, but SearchResult " . 'types only support string keys. (HINT: Search calls ' . 'return an object with a `data` (which is the data ' . "array). You likely want to call ->data[{$k}])";
         throw new Exception\InvalidArgumentException($msg);
     }
-
     /**
      * @param null|array $params
      * @param null|array|string $opts
      *
-     * @throws Exception\ApiErrorException
-     *
      * @return SearchResult<TStripeObject>
+     *
+     * @throws Exception\ApiErrorException
      */
     public function all($params = null, $opts = null)
     {
         self::_validateParams($params);
         list($url, $params) = $this->extractPathAndUpdateParams($params);
-
         list($response, $opts) = $this->_request('get', $url, $params, $opts);
-        $obj = Util\Util::convertToStripeObject($response, $opts);
-        if (!($obj instanceof \Stripe\SearchResult)) {
-            throw new \Stripe\Exception\UnexpectedValueException(
-                'Expected type ' . \Stripe\SearchResult::class . ', got "' . \get_class($obj) . '" instead.'
-            );
+        $obj = \PaymentPlugins\Vendor\Stripe\Util\Util::convertToStripeObject($response, $opts);
+        if (!$obj instanceof SearchResult) {
+            throw new Exception\UnexpectedValueException('Expected type ' . SearchResult::class . ', got "' . \get_class($obj) . '" instead.');
         }
         $obj->setFilters($params);
-
         return $obj;
     }
-
     /**
      * @return int the number of objects in the current page
      */
@@ -112,7 +97,6 @@ class SearchResult extends StripeObject implements \Countable, \IteratorAggregat
     {
         return \count($this->data);
     }
-
     /**
      * @return \ArrayIterator an iterator that can be used to iterate
      *    across objects in the current page
@@ -122,29 +106,27 @@ class SearchResult extends StripeObject implements \Countable, \IteratorAggregat
     {
         return new \ArrayIterator($this->data);
     }
-
     /**
      * @return \Generator|TStripeObject[] A generator that can be used to
      *    iterate across all objects across all pages. As page boundaries are
      *    encountered, the next page will be fetched automatically for
      *    continued iteration.
+     *
+     * @throws Exception\ApiErrorException
      */
     public function autoPagingIterator()
     {
         $page = $this;
-
         while (true) {
             foreach ($page as $item) {
                 yield $item;
             }
             $page = $page->nextPage();
-
             if ($page->isEmpty()) {
                 break;
             }
         }
     }
-
     /**
      * Returns an empty set of search results. This is returned from
      * {@see nextPage()} when we know that there isn't a next page in order to
@@ -159,7 +141,6 @@ class SearchResult extends StripeObject implements \Countable, \IteratorAggregat
     {
         return SearchResult::constructFrom(['data' => []], $opts);
     }
-
     /**
      * Returns true if the page object contains no element.
      *
@@ -169,7 +150,6 @@ class SearchResult extends StripeObject implements \Countable, \IteratorAggregat
     {
         return empty($this->data);
     }
-
     /**
      * Fetches the next page in the resource list (if there is one).
      *
@@ -180,22 +160,17 @@ class SearchResult extends StripeObject implements \Countable, \IteratorAggregat
      * @param null|array|string $opts
      *
      * @return SearchResult<TStripeObject>
+     *
+     * @throws Exception\ApiErrorException
      */
     public function nextPage($params = null, $opts = null)
     {
         if (!$this->has_more) {
             return static::emptySearchResult($opts);
         }
-
-        $params = \array_merge(
-            $this->filters ?: [],
-            ['page' => $this->next_page],
-            $params ?: []
-        );
-
+        $params = \array_merge($this->filters ?: [], ['page' => $this->next_page], $params ?: []);
         return $this->all($params, $opts);
     }
-
     /**
      * Gets the first item from the current page. Returns `null` if the current page is empty.
      *
@@ -205,7 +180,6 @@ class SearchResult extends StripeObject implements \Countable, \IteratorAggregat
     {
         return \count($this->data) > 0 ? $this->data[0] : null;
     }
-
     /**
      * Gets the last item from the current page. Returns `null` if the current page is empty.
      *
@@ -215,15 +189,12 @@ class SearchResult extends StripeObject implements \Countable, \IteratorAggregat
     {
         return \count($this->data) > 0 ? $this->data[\count($this->data) - 1] : null;
     }
-
     private function extractPathAndUpdateParams($params)
     {
         $url = \parse_url($this->url);
-
         if (!isset($url['path'])) {
             throw new Exception\UnexpectedValueException("Could not parse list url into parts: {$url}");
         }
-
         if (isset($url['query'])) {
             // If the URL contains a query param, parse it out into $params so they
             // don't interact weirdly with each other.
@@ -231,7 +202,6 @@ class SearchResult extends StripeObject implements \Countable, \IteratorAggregat
             \parse_str($url['query'], $query);
             $params = \array_merge($params ?: [], $query);
         }
-
         return [$url['path'], $params];
     }
 }

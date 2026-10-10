@@ -117,6 +117,34 @@ class Helpers {
 	}
 
 	/**
+	 * Determine whether card-testing protections should run.
+	 *
+	 * Returns true on live mode. In test mode, returns the value of the
+	 * `wpforms_stripe_run_protections_in_test_mode` filter (default false).
+	 *
+	 * @since 2.0.0
+	 *
+	 * @return bool
+	 */
+	public static function should_apply_protections(): bool {
+
+		if ( self::get_stripe_mode() !== 'test' ) {
+			return true;
+		}
+
+		/**
+		 * Filter whether card-testing protections run in test mode.
+		 *
+		 * Defaults to false.
+		 *
+		 * @since 2.0.0
+		 *
+		 * @param bool $run_in_test_mode Whether to run protections in test mode.
+		 */
+		return (bool) apply_filters( 'wpforms_stripe_run_protections_in_test_mode', false ); // phpcs:ignore WPForms.PHP.ValidateHooks.InvalidHookName
+	}
+
+	/**
 	 * Get Stripe key from the WPForms settings.
 	 *
 	 * @since 1.8.2
@@ -176,14 +204,9 @@ class Helpers {
 	 *
 	 * @return bool
 	 */
-	public static function is_license_active() {
+	public static function is_license_active(): bool {
 
-		$license = (array) get_option( 'wpforms_license', [] );
-
-		return ! empty( wpforms_get_license_key() ) &&
-			empty( $license['is_expired'] ) &&
-			empty( $license['is_disabled'] ) &&
-			empty( $license['is_invalid'] );
+		return wpforms_is_license_valid();
 	}
 
 	/**
@@ -382,6 +405,67 @@ class Helpers {
 	}
 
 	/**
+	 * Get the minimum charge amount of a currency, in major units.
+	 *
+	 * The documented Stripe minimums, see https://docs.stripe.com/currencies#minimum-and-maximum-charge-amounts.
+	 *
+	 * @since 2.0.2.2
+	 *
+	 * @param string $currency Currency code.
+	 *
+	 * @return float
+	 */
+	public static function get_currency_minimum( string $currency ): float {
+
+		$minimums = [
+			'USD' => 0.50,
+			'AED' => 2.00,
+			'ARS' => 0.50,
+			'AUD' => 0.50,
+			'BRL' => 0.50,
+			'CAD' => 0.50,
+			'CHF' => 0.50,
+			'COP' => 0.50,
+			'CZK' => 15.00,
+			'DKK' => 2.50,
+			'EUR' => 0.50,
+			'GBP' => 0.30,
+			'HKD' => 4.00,
+			'HUF' => 175.00,
+			'IDR' => 0.50,
+			'ILS' => 0.50,
+			'INR' => 0.50,
+			'JPY' => 50.00,
+			'KRW' => 50.00,
+			'MXN' => 10.00,
+			'MYR' => 2.00,
+			'NOK' => 3.00,
+			'NZD' => 0.50,
+			'PHP' => 0.50,
+			'PLN' => 2.00,
+			'RON' => 2.00,
+			'RUB' => 0.50,
+			'SEK' => 3.00,
+			'SGD' => 0.50,
+			'THB' => 10.00,
+			'ZAR' => 0.50,
+			'KES' => 1000.00,
+			'NGN' => 5000.00,
+		];
+
+		/**
+		 * Filter the Stripe minimum charge amounts per currency, in major units.
+		 *
+		 * @since 2.0.2.2
+		 *
+		 * @param array $minimums Minimum charge amounts keyed by the currency code.
+		 */
+		$minimums = (array) apply_filters( 'wpforms_integrations_stripe_helpers_get_currency_minimum', $minimums );
+
+		return (float) ( $minimums[ strtoupper( $currency ) ] ?? 0.50 );
+	}
+
+	/**
 	 * Get Stripe webhook endpoint URL.
 	 *
 	 * If the constant WPFORMS_STRIPE_WHURL is defined, it will be used as the webhook URL.
@@ -518,5 +602,23 @@ class Helpers {
 		$mode = self::get_stripe_mode();
 
 		return get_option( "wpforms_stripe_{$mode}_account_country", '' );
+	}
+
+	/**
+	 * Get the WPForms Payments settings page URL.
+	 *
+	 * @since 1.10.1.1
+	 *
+	 * @return string
+	 */
+	public static function get_settings_page_url(): string {
+
+		return add_query_arg(
+			[
+				'page' => 'wpforms-settings',
+				'view' => 'payments',
+			],
+			admin_url( 'admin.php' )
+		);
 	}
 }

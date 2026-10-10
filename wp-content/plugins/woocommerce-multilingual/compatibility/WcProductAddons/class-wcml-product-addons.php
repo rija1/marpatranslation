@@ -6,9 +6,6 @@ use WCML\PointerUi\Factory;
 use WPML\FP\Obj;
 use WPML\FP\Str;
 
-/**
- * Class WCML_Product_Addons
- */
 class WCML_Product_Addons implements IWPML_Action {
 
 	const ADDONS_OPTION_KEY = SharedHooks::ADDONS_OPTION_KEY;
@@ -16,20 +13,10 @@ class WCML_Product_Addons implements IWPML_Action {
 
 	const TRANSLATION_DOMAIN = 'wc_product_addons_strings';
 
-	/**
-	 * @var SitePress
-	 */
 	public $sitepress;
 
-	/** @var Factory */
 	protected $pointerFactory;
 
-	/**
-	 * WCML_Product_Addons constructor.
-	 *
-	 * @param SitePress $sitepress
-	 * @param Factory   $pointerFactory
-	 */
 	public function __construct( SitePress $sitepress, Factory $pointerFactory ) {
 		$this->sitepress      = $sitepress;
 		$this->pointerFactory = $pointerFactory;
@@ -47,8 +34,6 @@ class WCML_Product_Addons implements IWPML_Action {
 		if ( is_admin() ) {
 
 			if ( SharedHooks::isGlobalAddonEditPage() ) {
-				/* phpcs:ignore WordPress.Security.NonceVerification.Recommended */
-				/* phpcs:ignore WordPress.VIP.SuperGlobalInputUsage.AccessDetected */
 				if ( ! isset( $_GET['edit'] ) ) {
 					add_action( 'admin_notices', [ $this, 'inf_translate_strings' ] );
 				}
@@ -76,12 +61,6 @@ class WCML_Product_Addons implements IWPML_Action {
 		);
 	}
 
-	/**
-	 * @param int      $meta_id
-	 * @param int      $id
-	 * @param string   $meta_key
-	 * @param string[] $addons
-	 */
 	public function register_addons_strings( $meta_id, $id, $meta_key, $addons ) {
 		if ( self::ADDONS_OPTION_KEY === $meta_key && 'global_product_addon' === get_post_type( $id ) ) {
 			foreach ( $addons as $addon ) {
@@ -105,14 +84,6 @@ class WCML_Product_Addons implements IWPML_Action {
 		}
 	}
 
-	/**
-	 * @param null   $check
-	 * @param int    $object_id
-	 * @param string $meta_key
-	 * @param bool   $single
-	 *
-	 * @return array|null
-	 */
 	public function translate_addons_strings( $check, $object_id, $meta_key, $single ) {
 
 		if ( self::ADDONS_OPTION_KEY === $meta_key && 'global_product_addon' === get_post_type( $object_id ) ) {
@@ -148,11 +119,6 @@ class WCML_Product_Addons implements IWPML_Action {
 		return $check;
 	}
 
-	/**
-	 * @param array $product_terms
-	 *
-	 * @return array
-	 */
 	public function addons_product_terms( $product_terms ) {
 		foreach ( $product_terms as $key => $product_term ) {
 			$product_terms[ $key ] = apply_filters( 'wpml_object_id', $product_term, 'product_cat', true, $this->sitepress->get_default_language() );
@@ -177,19 +143,13 @@ class WCML_Product_Addons implements IWPML_Action {
 			->show();
 	}
 
-	/**
-	 * @param array   $package
-	 * @param WP_Post $post
-	 *
-	 * @return array
-	 */
 	public function append_addons_to_translation_package( $package, $post ) {
 		if ( 'product' === $post->post_type ) {
 			$add_field = function ( $name, $value ) use ( &$package ) {
 				if ( $value ) {
 					$package['contents'][ $name ] = [
 						'translate' => 1,
-						'data'      => base64_encode( $value ), /* phpcs:ignore WordPress.PHP.DiscouragedPHPFunctions.obfuscation_base64_encode */
+						'data'      => base64_encode( $value ),  
 						'format'    => 'base64',
 					];
 				}
@@ -209,11 +169,6 @@ class WCML_Product_Addons implements IWPML_Action {
 		return $package;
 	}
 
-	/**
-	 * @param int    $post_id
-	 * @param array  $fields
-	 * @param object $job
-	 */
 	public function save_addons_to_translation( $post_id, $fields, $job ) {
 		if (
 			Str::startsWith( 'post_', $job->original_post_type )
@@ -243,25 +198,12 @@ class WCML_Product_Addons implements IWPML_Action {
 		}
 	}
 
-	/**
-	 * @param int        $addon_id
-	 * @param int|string $name_or_id
-	 *
-	 * @return string
-	 */
 	private static function get_job_field_name( $addon_id, $name_or_id ) {
 		return is_numeric( $name_or_id )
 			? self::ADDON_PREFIX . $addon_id . '_option_' . $name_or_id . '_label'
 			: self::ADDON_PREFIX . $addon_id . '_' . $name_or_id;
 	}
 
-	/**
-	 * @deprecated This method is used by CTE only.
-	 *
-	 * @param object $obj
-	 * @param int    $product_id
-	 * @param array  $data
-	 */
 	public function custom_box_html( $obj, $product_id, $data ) {
 
 		$product_addons = SharedHooks::getProductAddons( $product_id );
@@ -274,11 +216,14 @@ class WCML_Product_Addons implements IWPML_Action {
 				$addons_section = new WPML_Editor_UI_Field_Section( sprintf( __( 'Product Add-ons Group "%s"', 'woocommerce-multilingual' ), $addon_data->get( 'name' ) ) );
 
 				$group       = new WPML_Editor_UI_Field_Group( '', true );
+				/* translators: Label of a name field in WPML's translation editor for a product. Noun. */
 				$addon_field = new WPML_Editor_UI_Single_Line_Field( self::ADDON_PREFIX . $addon_id . '_name', __( 'Name', 'woocommerce-multilingual' ), $data, false );
 				$group->add_field( $addon_field );
+				/* translators: Label of a description field in WPML's translation editor for a product. Noun. */
 				$addon_field = new WPML_Editor_UI_Single_Line_Field( self::ADDON_PREFIX . $addon_id . '_description', __( 'Description', 'woocommerce-multilingual' ), $data, false );
 				$group->add_field( $addon_field );
 				if ( $addon_data->offsetExists( 'placeholder' ) ) {
+					/* translators: Label of the field holding the hint text of a product add-on, in WPML's translation editor. Noun: the grey text shown inside an empty field. */
 					$addon_field = new WPML_Editor_UI_Single_Line_Field( self::ADDON_PREFIX . $addon_id . '_placeholder', __( 'Placeholder', 'woocommerce-multilingual' ), $data, false );
 					$group->add_field( $addon_field );
 				}
@@ -286,9 +231,11 @@ class WCML_Product_Addons implements IWPML_Action {
 
 				if ( $addon_data->offsetExists( 'options' ) && $addon_data->get( 'options' ) ) {
 
+					/* translators: Heading of the group of add-on option labels in WPML's translation editor for a product. Noun, plural. */
 					$labels_group = new WPML_Editor_UI_Field_Group( __( 'Options', 'woocommerce-multilingual' ), true );
 
 					foreach ( $addon_data->get( 'options' ) as $option_id => $option ) {
+						/* translators: Label of the field holding one add-on option's text, in WPML's translation editor. Noun: the text the shopper reads. */
 						$option_label_field = new WPML_Editor_UI_Single_Line_Field( self::ADDON_PREFIX . $addon_id . '_option_' . $option_id . '_label', __( 'Label', 'woocommerce-multilingual' ), $data, false );
 						$labels_group->add_field( $option_label_field );
 					}
@@ -299,15 +246,6 @@ class WCML_Product_Addons implements IWPML_Action {
 		}
 	}
 
-	/**
-	 * @deprecated This method is used by CTE only.
-	 *
-	 * @param array  $data
-	 * @param int    $product_id
-	 * @param object $translation
-	 *
-	 * @return array
-	 */
 	public function custom_box_html_data( $data, $product_id, $translation ) {
 
 		$product_addons = SharedHooks::getProductAddons( $product_id );
@@ -346,13 +284,6 @@ class WCML_Product_Addons implements IWPML_Action {
 		return $data;
 	}
 
-	/**
-	 * @deprecated This method is used by CTE only.
-	 *
-	 * @param int   $original_product_id
-	 * @param int   $product_id
-	 * @param array $data
-	 */
 	public function addons_update( $original_product_id, $product_id, $data ) {
 
 		$product_addons = SharedHooks::getProductAddons( $original_product_id );

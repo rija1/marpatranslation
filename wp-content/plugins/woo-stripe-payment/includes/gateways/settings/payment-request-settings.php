@@ -1,4 +1,6 @@
 <?php
+defined( 'ABSPATH' ) || exit;
+
 return array(
 	'desc'             => array(
 		'type'        => 'description',
@@ -68,10 +70,10 @@ return array(
 		'title'       => __( 'Payment Sections', 'woo-stripe-payment' ),
 		'class'       => 'wc-enhanced-select',
 		'options'     => array(
-			'product'         => __( 'Product Page', 'woo-stripe-payment' ),
-			'cart'            => __( 'Cart Page', 'woo-stripe-payment' ),
-			'mini_cart'       => __( 'Mini Cart', 'woo-stripe-payment' ),
-			'checkout_banner' => __( 'Express Checkout', 'woo-stripe-payment' ),
+			'product'          => __( 'Product Page', 'woo-stripe-payment' ),
+			'cart'             => __( 'Cart Page', 'woo-stripe-payment' ),
+			'mini_cart'        => __( 'Mini Cart', 'woo-stripe-payment' ),
+			'express_checkout' => __( 'Express Checkout', 'woo-stripe-payment' )
 		),
 		'default'     => array( 'product', 'cart' ),
 		'description' => $this->get_payment_section_description(),

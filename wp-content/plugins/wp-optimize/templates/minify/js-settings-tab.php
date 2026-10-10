@@ -1,9 +1,16 @@
-<?php if (!defined('WPO_VERSION'))  die('No direct access allowed'); ?>
+<?php if (!defined('ABSPATH')) die('No direct access allowed'); ?>
 <div id='wpo_section_js' class="wpo_section wpo_group">
 	<div id="wpo_settings_warnings"></div>
+	<div class="notice notice-warning wpo-warning is-dismissible wpo_section_notice_js show-if-enabled" style="<?php echo $show_section_notice ? '' : 'display:none;'; ?>">
+		<p>
+			<span class="dashicons dashicons-shield"></span>
+			<strong><?php esc_html_e('Enable merging of JavaScript files into one to reduce HTTP requests.', 'wp-optimize'); ?></strong><br>
+			<?php echo wp_kses_post($notice_text);?>
+		</p>
+	</div>
 	<form>
-		<h3><?php esc_html_e('JavaScript options', 'wp-optimize'); ?></h3>
-		<div class="wpo-fieldgroup">
+		<h3 class="show-if-enabled"><?php esc_html_e('JavaScript options', 'wp-optimize'); ?></h3>
+		<div class="wpo-fieldgroup show-if-enabled">
 			<fieldset>
 				<div class="wpo-fieldgroup__subgroup">
 					<label for="enable_js_minification">
@@ -28,7 +35,7 @@
 						>
 						<?php esc_html_e('Enable merging of JavaScript files', 'wp-optimize'); ?>
 					</label>
-					<span tabindex="0" data-tooltip="<?php esc_attr_e('If some functionality is breaking on the frontend, disabling merging of JavaScript might fix the issues.', 'wp-optimize');?>"><span class="dashicons dashicons-editor-help"></span> </span><br>
+					<span tabindex="0" class="wpo-tooltip" data-tooltip="<?php echo esc_attr($tooltip); ?>"><span class="dashicons dashicons-editor-help"></span> </span>
 				</div>
 				<div class="wpo-fieldgroup__subgroup">
 					<label for="enable_js_trycatch">
@@ -47,31 +54,36 @@
 							$message .= __('This means that if one file has an error, it should not impede execution of other, independent files.', 'wp-optimize');
 						?>
 					</label>
-					<span tabindex="0" data-tooltip="<?php echo esc_attr($message); ?>"><span class="dashicons dashicons-editor-help"></span> </span>
+					<span tabindex="0" class="wpo-tooltip" data-tooltip="<?php echo esc_attr($message); ?>"><span class="dashicons dashicons-editor-help"></span> </span>
 				</div>
 			</fieldset>
 		</div>
-		<h3><?php esc_html_e('Exclude JavaScript from processing', 'wp-optimize'); ?></h3>
-		<div class="wpo-fieldgroup">
+
+		<?php do_action('wpo_after_minify_javascript_options'); ?>
+
+		<h3 class="show-if-enabled"><?php esc_html_e('Exclude JavaScript from processing', 'wp-optimize'); ?></h3>
+		<div class="wpo-fieldgroup show-if-enabled">
 			<fieldset>
-				<label for="exclude_js">
-					<?php esc_html_e('Any JavaScript files that match the paths below will be completely ignored', 'wp-optimize'); ?>
-					<span tabindex="0" data-tooltip="<?php esc_attr_e('Use this if you are having issues with a certain JavaScript file.', 'wp-optimize'); ?> <?php esc_attr_e('Any file present here will be loaded normally by WordPress', 'wp-optimize');?>"><span class="dashicons dashicons-editor-help"></span></span>
-				</label>
-				<textarea
-					name="exclude_js"
-					rows="7" cols="50"
-					id="exclude_js"
-					class="large-text code"
-					placeholder="<?php esc_attr_e('e.g.: /wp-includes/js/jquery/jquery.js', 'wp-optimize'); ?>"
-				><?php echo esc_textarea($wpo_minify_options['exclude_js']);?></textarea>
-				<br>
-				<?php esc_html_e('Some files known for causing issues when combined / minified are excluded by default.', 'wp-optimize'); ?> <?php esc_html_e('You can see / edit them in the Advanced tab.', 'wp-optimize'); ?>
+				<div class="wpo-fieldgroup__subgroup">
+					<label for="exclude_js">
+						<?php esc_html_e('Any JavaScript files that match the paths below will be completely ignored', 'wp-optimize'); ?>					
+					</label>
+					<span tabindex="0" class="wpo-tooltip" data-tooltip="<?php esc_attr_e('Use this if you are having issues with a certain JavaScript file.', 'wp-optimize'); ?> <?php esc_attr_e('Any file present here will be loaded normally by WordPress', 'wp-optimize');?>"><span class="dashicons dashicons-editor-help"></span></span>
+					<textarea
+						name="exclude_js"
+						rows="7" cols="50"
+						id="exclude_js"
+						class="large-text code"
+						placeholder="<?php esc_attr_e('e.g.: /wp-includes/js/jquery/jquery.js', 'wp-optimize'); ?>"
+					><?php echo esc_textarea($wpo_minify_options['exclude_js']);?></textarea>
+					<br>
+					<?php esc_html_e('Some files known for causing issues when combined / minified are excluded by default.', 'wp-optimize'); ?> <?php esc_html_e('You can see / edit them in the Advanced tab.', 'wp-optimize'); ?>
+				</div>
 			</fieldset>
 		</div>
 
-		<h3><?php esc_html_e('Defer JavaScript', 'wp-optimize'); ?></h3>
-		<div class="wpo-fieldgroup">
+		<h3 class="show-if-enabled"><?php esc_html_e('Defer JavaScript', 'wp-optimize'); ?></h3>
+		<div class="wpo-fieldgroup show-if-enabled">
 			<fieldset class="async-js-manual-list">
 				<div class="wpo-fieldgroup__subgroup">
 					<h4><label>
@@ -83,7 +95,7 @@
 						>
 						<?php esc_html_e('Asynchronously load selected JavaScript files', 'wp-optimize'); ?>
 					</label>
-					<span tabindex="0" data-tooltip="<?php esc_attr_e('The files in the list will be loaded asynchronously, and will not be minified or merged.', 'wp-optimize');?>"><span class="dashicons dashicons-editor-help"></span></span><br>
+					<span tabindex="0" class="wpo-tooltip" data-tooltip="<?php esc_attr_e('The files in the list will be loaded asynchronously, and will not be minified or merged.', 'wp-optimize');?>"><span class="dashicons dashicons-editor-help"></span></span><br>
 					</h4>
 				</div>
 				<div class="defer-js-settings">
@@ -97,8 +109,8 @@
 								$message .= ' ';
 								$message .= __('They are not required for the website to work', 'wp-optimize');
 							?>
-							<span tabindex="0" data-tooltip="<?php echo esc_attr($message);?>"><span class="dashicons dashicons-editor-help"></span></span>
 						</label>
+						<span tabindex="0" class="wpo-tooltip" data-tooltip="<?php echo esc_attr($message);?>"><span class="dashicons dashicons-editor-help"></span></span>
 						<textarea
 							name="async_js"
 							rows="7"
@@ -119,7 +131,7 @@
 							>
 							<?php esc_html_e('Exclude scripts from page speed tests (PageSpeed Insights, GTMetrix...)', 'wp-optimize'); ?>
 						</label>
-						<span tabindex="0" data-tooltip="<?php esc_attr_e('Use this only for testing purpose to find out which scripts are slowing down your site.', 'wp-optimize');?>"><span class="dashicons dashicons-editor-help"></span></span><br>
+						<span tabindex="0" class="wpo-tooltip" data-tooltip="<?php esc_attr_e('Use this only for testing purpose to find out which scripts are slowing down your site.', 'wp-optimize');?>"><span class="dashicons dashicons-editor-help"></span></span><br>
 					</div>
 				</div>
 			</fieldset>
@@ -136,7 +148,7 @@
 							>
 							<?php esc_html_e('Defer all the JavaScript files', 'wp-optimize'); ?>
 						</label>
-						<span tabindex="0" data-tooltip="<?php esc_attr_e('All files - including the ones processed by WP-Optimize - will be deferred, except the ones in the exclusion list above.', 'wp-optimize');?>"><span class="dashicons dashicons-editor-help"></span></span>
+						<span tabindex="0" class="wpo-tooltip" data-tooltip="<?php esc_attr_e('All files - including the ones processed by WP-Optimize - will be deferred, except the ones in the exclusion list above.', 'wp-optimize');?>"><span class="dashicons dashicons-editor-help"></span></span>
 					</h4>
 				</div>
 				<div class="defer-js-settings">
@@ -156,7 +168,7 @@
 							>
 							<?php esc_html_e('Use the "defer" html attribute', 'wp-optimize'); ?>
 						</label>
-						<span tabindex="0" data-tooltip="<?php esc_attr_e('Supported by all modern browsers.', 'wp-optimize');?>"><span class="dashicons dashicons-editor-help"></span></span>
+						<span tabindex="0" class="wpo-tooltip" data-tooltip="<?php esc_attr_e('Supported by all modern browsers.', 'wp-optimize');?>"><span class="dashicons dashicons-editor-help"></span></span>
 					</div>
 					<div class="wpo-fieldgroup__subgroup">
 						<label>
@@ -191,7 +203,7 @@
 							>
 							<?php esc_html_e('Defer jQuery', 'wp-optimize'); ?> <em><?php esc_html_e('(Note that as jQuery is a common dependency, it probably needs to be loaded synchronously).', 'wp-optimize'); ?></em>
 						</label>
-						<span tabindex="0" data-tooltip="<?php esc_attr_e('Disable this setting if you have an error \'jQuery undefined\'.', 'wp-optimize');?>"><span class="dashicons dashicons-editor-help"></span></span>
+						<span tabindex="0" class="wpo-tooltip" data-tooltip="<?php esc_attr_e('Disable this setting if you have an error \'jQuery undefined\'.', 'wp-optimize');?>"><span class="dashicons dashicons-editor-help"></span></span>
 					</div>
 				</div>
 			</fieldset>
@@ -210,7 +222,7 @@
 						>
 						<?php esc_html_e('Delay JS', 'wp-optimize'); ?>
 					</label>
-					<span tabindex="0" data-tooltip="<?php esc_attr_e('Delays JavaScript file loading until the user interacts with the page (e.g., mouse movement, scrolling, or touch), thereby improving page load performance', 'wp-optimize'); ?>"><span class="dashicons dashicons-editor-help"></span> </span>
+					<span tabindex="0" class="wpo-tooltip" data-tooltip="<?php esc_attr_e('Delays JavaScript file loading until the user interacts with the page (e.g., mouse movement, scrolling, or touch), thereby improving page load performance', 'wp-optimize'); ?>"><span class="dashicons dashicons-editor-help"></span> </span>
 					</h4>
 				</div>
 
@@ -224,7 +236,7 @@
 						>
 						<?php esc_html_e('Preload JavaScript files', 'wp-optimize'); ?>
 					</label>
-					<span tabindex="0" data-tooltip="<?php esc_attr_e('Preloads JavaScript files in parallel with other resources ahead of time, ensuring they are ready for faster execution without impacting the overall page load time', 'wp-optimize'); ?>"><span class="dashicons dashicons-editor-help"></span> </span>
+					<span tabindex="0" class="wpo-tooltip" data-tooltip="<?php esc_attr_e('Preloads JavaScript files in parallel with other resources ahead of time, ensuring they are ready for faster execution without impacting the overall page load time', 'wp-optimize'); ?>"><span class="dashicons dashicons-editor-help"></span> </span>
 					</h4>
 				</div>
 
@@ -233,7 +245,7 @@
 						<?php esc_html_e('Any JavaScript files that match the paths below will be completely ignored.', 'wp-optimize'); ?>
 						<?php esc_html_e('It is also possible to exclude scripts by adding the "data-no-delay-js" attribute.', 'wp-optimize'); ?>
 					</label>
-					<span tabindex="0" data-tooltip="<?php esc_attr_e('Use this if you are having issues with a specific JavaScript file.', 'wp-optimize'); ?> <?php esc_attr_e('Any file present here will be loaded normally by WordPress', 'wp-optimize');?>"><span class="dashicons dashicons-editor-help"></span></span>
+					<span tabindex="0" class="wpo-tooltip" data-tooltip="<?php esc_attr_e('Use this if you are having issues with a specific JavaScript file.', 'wp-optimize'); ?> <?php esc_attr_e('Any file present here will be loaded normally by WordPress', 'wp-optimize');?>"><span class="dashicons dashicons-editor-help"></span></span>
 					
 					<textarea
 						name="exclude_delay_js"
@@ -254,14 +266,10 @@
 			</fieldset>
 		</div>
 
-		<p class="submit">
-			<input
-				class="wp-optimize-save-minify-settings button button-primary"
-				type="submit"
-				value="<?php esc_attr_e('Save settings', 'wp-optimize'); ?>"
-			>
+		<div class="wpo-save-btn-container">
+			<input class="wp-optimize-save-minify-settings button button-primary" type="submit" value="<?php esc_attr_e('Save settings', 'wp-optimize'); ?>">
 			<img class="wpo_spinner" src="<?php echo esc_url(admin_url('images/spinner-2x.gif')); // phpcs:ignore PluginCheck.CodeAnalysis.ImageFunctions.NonEnqueuedImage -- N/A ?>" alt="...">
 			<span class="save-done dashicons dashicons-yes display-none"></span>
-		</p>
+		</div>
 	</form>
 </div>

@@ -457,9 +457,6 @@ body:not(.elementor-device-mobile) .elementor-control.elementor-control-responsi
   border-radius: 100px;
   padding: 5px 8px;
 }
-.elementor-panel-heading-category-chip i {
-  margin-inline-start: 4px;
-}
 .elementor-panel-heading-promotion {
   margin-inline-start: auto;
 }
@@ -1643,6 +1640,17 @@ body:not(.elementor-device-mobile) .elementor-control.elementor-control-responsi
 .e-global__preview-items-container::-webkit-scrollbar-thumb {
   background-color: #BABFC5;
   border-radius: 10px;
+}
+.e-global__group-header {
+  padding: 12px 20px 5px;
+  font-weight: 500;
+  font-size: 11px;
+  color: var(--e-a-color-txt-muted);
+}
+.e-global__group-divider {
+  height: 1px;
+  background-color: var(--e-a-border-color);
+  margin: 10px 20px;
 }
 .e-global__manage-button {
   font-weight: 500;
@@ -2976,11 +2984,14 @@ body:not(.elementor-device-mobile) .elementor-control.elementor-control-responsi
   --e-p-border-global:	#5EEAD4;
   --e-p-border-global-hover:	#1DDDBF;
   --e-p-border-global-invert:	#0C0D0E;
+  --e-p-border-global-element:	#5EEAD4;
 }
 
 .elementor-editor-active .elementor-add-section {
   all: initial;
   display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
   max-width: 1160px;
   position: relative;
   margin-inline: auto;
@@ -3824,6 +3835,18 @@ html.elementor-html {
 .elementor-editor-preview .elementor-widget-empty {
   display: none;
 }
+.elementor-editor-preview :where(.elementor-edit-area-active) .elementor-element-overlay,
+.elementor-editor-preview :where(.elementor-edit-area-active) .elementor-empty,
+.elementor-editor-preview :where(.elementor-edit-area-active) .elementor-empty-view,
+.elementor-editor-preview :where(.elementor-edit-area-active) .elementor-widget-empty {
+  display: revert;
+}
+.elementor-editor-preview :where(.elementor-edit-area-active.elementor-widget-e-component) > .elementor-section-wrap > :first-child > .elementor-element-overlay::after {
+  outline-color: var(--e-p-border-global-element);
+}
+.elementor-editor-preview :where(.elementor-edit-area-active.elementor-widget-e-component) > .elementor-section-wrap > :first-child.elementor-element-editable > .elementor-element-overlay::after {
+  outline-offset: -1px;
+}
 
 .e-preview--show-hidden-elements[data-elementor-device-mode=widescreen] .elementor-edit-area-active .elementor-hidden-widescreen,
 .e-preview--show-hidden-elements[data-elementor-device-mode=desktop] .elementor-edit-area-active .elementor-hidden-desktop,
@@ -3922,6 +3945,13 @@ html.elementor-html {
 }
 
 .e-youtube-base iframe {
+  pointer-events: none;
+}
+
+.elementor-widget-e-component[data-atomic].elementor-edit-area-active > * > * {
+  pointer-events: initial;
+}
+.elementor-widget-e-component[data-atomic]:not(.elementor-edit-area-active) > * > * {
   pointer-events: none;
 }
 
@@ -4232,10 +4262,10 @@ html.elementor-html {
   outline-width: 2px;
 }
 
-.e-con .e-con-inner .e-con > .elementor-element-overlay:after {
+.e-con .e-con-inner .e-con.e-child > .elementor-element-overlay:after {
   outline: 1px dashed var(--e-p-border-con-in);
 }
-.e-con .e-con-inner .e-con.elementor-element-editable > .elementor-element-overlay:after {
+.e-con .e-con-inner .e-con.e-child.elementor-element-editable > .elementor-element-overlay:after {
   outline: 2px solid var(--e-p-border-con-in);
 }
 .e-con .elementor-empty-view {
@@ -4267,7 +4297,9 @@ html.elementor-html {
   z-index: 1;
   pointer-events: none;
 }
-.e-con.e-con--row > .elementor-widget-placeholder, .e-con.e-con--row > .e-con-inner > .elementor-widget-placeholder {
+.e-con.e-con--row > .elementor-widget-placeholder,
+.e-con.e-con--row > .elementor-element[data-atomic] > .elementor-widget-placeholder, .e-con.e-con--row > .e-con-inner > .elementor-widget-placeholder,
+.e-con.e-con--row > .e-con-inner > .elementor-element[data-atomic] > .elementor-widget-placeholder {
   position: relative;
   z-index: 9999;
   width: var(--size);
@@ -4318,26 +4350,26 @@ html.elementor-html {
   width: 125px;
   z-index: -1;
 }
-.e-con > .e-con > .elementor-element-overlay .elementor-editor-element-setting, .e-con-inner > .e-con > .elementor-element-overlay .elementor-editor-element-setting, .elementor-widget .e-con > .elementor-element-overlay .elementor-editor-element-setting {
+.e-con > .e-con > .elementor-element-overlay .elementor-editor-element-setting, .e-con-inner > .e-con > .elementor-element-overlay .elementor-editor-element-setting, .e-con.e-child > .elementor-element-overlay .elementor-editor-element-setting {
   position: relative;
   background-color: var(--e-p-border-con-in);
 }
-.e-con > .e-con > .elementor-element-overlay .elementor-editor-element-setting:hover, .e-con-inner > .e-con > .elementor-element-overlay .elementor-editor-element-setting:hover, .elementor-widget .e-con > .elementor-element-overlay .elementor-editor-element-setting:hover {
+.e-con > .e-con > .elementor-element-overlay .elementor-editor-element-setting:hover, .e-con-inner > .e-con > .elementor-element-overlay .elementor-editor-element-setting:hover, .e-con.e-child > .elementor-element-overlay .elementor-editor-element-setting:hover {
   background-color: var(--e-p-border-con-in-hover);
 }
-.e-con > .e-con > .elementor-element-overlay .elementor-editor-element-setting.elementor-editor-element-add, .e-con > .e-con > .elementor-element-overlay .elementor-editor-element-setting.elementor-editor-element-edit + .elementor-editor-element-remove, .e-con > .e-con > .elementor-element-overlay .elementor-editor-element-setting:first-child::before, .e-con > .e-con > .elementor-element-overlay .elementor-editor-element-setting:last-child::after, .e-con-inner > .e-con > .elementor-element-overlay .elementor-editor-element-setting.elementor-editor-element-add, .e-con-inner > .e-con > .elementor-element-overlay .elementor-editor-element-setting.elementor-editor-element-edit + .elementor-editor-element-remove, .e-con-inner > .e-con > .elementor-element-overlay .elementor-editor-element-setting:first-child::before, .e-con-inner > .e-con > .elementor-element-overlay .elementor-editor-element-setting:last-child::after, .elementor-widget .e-con > .elementor-element-overlay .elementor-editor-element-setting.elementor-editor-element-add, .elementor-widget .e-con > .elementor-element-overlay .elementor-editor-element-setting.elementor-editor-element-edit + .elementor-editor-element-remove, .elementor-widget .e-con > .elementor-element-overlay .elementor-editor-element-setting:first-child::before, .elementor-widget .e-con > .elementor-element-overlay .elementor-editor-element-setting:last-child::after {
+.e-con > .e-con > .elementor-element-overlay .elementor-editor-element-setting.elementor-editor-element-add, .e-con > .e-con > .elementor-element-overlay .elementor-editor-element-setting.elementor-editor-element-edit + .elementor-editor-element-remove, .e-con > .e-con > .elementor-element-overlay .elementor-editor-element-setting:first-child::before, .e-con > .e-con > .elementor-element-overlay .elementor-editor-element-setting:last-child::after, .e-con-inner > .e-con > .elementor-element-overlay .elementor-editor-element-setting.elementor-editor-element-add, .e-con-inner > .e-con > .elementor-element-overlay .elementor-editor-element-setting.elementor-editor-element-edit + .elementor-editor-element-remove, .e-con-inner > .e-con > .elementor-element-overlay .elementor-editor-element-setting:first-child::before, .e-con-inner > .e-con > .elementor-element-overlay .elementor-editor-element-setting:last-child::after, .e-con.e-child > .elementor-element-overlay .elementor-editor-element-setting.elementor-editor-element-add, .e-con.e-child > .elementor-element-overlay .elementor-editor-element-setting.elementor-editor-element-edit + .elementor-editor-element-remove, .e-con.e-child > .elementor-element-overlay .elementor-editor-element-setting:first-child::before, .e-con.e-child > .elementor-element-overlay .elementor-editor-element-setting:last-child::after {
   display: none;
 }
-.e-con > .e-con > .elementor-element-overlay .elementor-editor-element-setting:not(.elementor-editor-element-edit), .e-con-inner > .e-con > .elementor-element-overlay .elementor-editor-element-setting:not(.elementor-editor-element-edit), .elementor-widget .e-con > .elementor-element-overlay .elementor-editor-element-setting:not(.elementor-editor-element-edit) {
+.e-con > .e-con > .elementor-element-overlay .elementor-editor-element-setting:not(.elementor-editor-element-edit), .e-con-inner > .e-con > .elementor-element-overlay .elementor-editor-element-setting:not(.elementor-editor-element-edit), .e-con.e-child > .elementor-element-overlay .elementor-editor-element-setting:not(.elementor-editor-element-edit) {
   margin-inline-start: -25px;
   z-index: -1;
   transition: 0.3s all;
   will-change: margin-inline-start;
 }
-.e-con > .e-con > .elementor-element-overlay > .elementor-editor-element-settings:hover > :is(.elementor-editor-element-duplicate, .elementor-editor-element-remove), .e-con-inner > .e-con > .elementor-element-overlay > .elementor-editor-element-settings:hover > :is(.elementor-editor-element-duplicate, .elementor-editor-element-remove), .elementor-widget .e-con > .elementor-element-overlay > .elementor-editor-element-settings:hover > :is(.elementor-editor-element-duplicate, .elementor-editor-element-remove) {
+.e-con > .e-con > .elementor-element-overlay > .elementor-editor-element-settings:hover > :is(.elementor-editor-element-duplicate, .elementor-editor-element-remove), .e-con-inner > .e-con > .elementor-element-overlay > .elementor-editor-element-settings:hover > :is(.elementor-editor-element-duplicate, .elementor-editor-element-remove), .e-con.e-child > .elementor-element-overlay > .elementor-editor-element-settings:hover > :is(.elementor-editor-element-duplicate, .elementor-editor-element-remove) {
   margin-inline-start: 0;
 }
-.e-con > .e-con > .elementor-element-overlay .elementor-editor-element-settings, .e-con-inner > .e-con > .elementor-element-overlay .elementor-editor-element-settings, .elementor-widget .e-con > .elementor-element-overlay .elementor-editor-element-settings {
+.e-con > .e-con > .elementor-element-overlay .elementor-editor-element-settings, .e-con-inner > .e-con > .elementor-element-overlay .elementor-editor-element-settings, .e-con.e-child > .elementor-element-overlay .elementor-editor-element-settings {
   inset: initial;
   transform: none;
   inset-inline-start: 0;
@@ -4346,18 +4378,56 @@ html.elementor-html {
   border-end-end-radius: 3px;
   height: auto;
 }
-.e-con > .e-con > .elementor-element-overlay .elementor-editor-element-settings i.eicon-handle::before, .e-con-inner > .e-con > .elementor-element-overlay .elementor-editor-element-settings i.eicon-handle::before, .elementor-widget .e-con > .elementor-element-overlay .elementor-editor-element-settings i.eicon-handle::before {
+.e-con > .e-con > .elementor-element-overlay .elementor-editor-element-settings i.eicon-handle::before, .e-con-inner > .e-con > .elementor-element-overlay .elementor-editor-element-settings i.eicon-handle::before, .e-con.e-child > .elementor-element-overlay .elementor-editor-element-settings i.eicon-handle::before {
   content: "\e9b4";
   font-size: 20px;
   display: block;
   padding: 2px;
 }
 
-.e-atomic-element:has(.elementor-empty-view) {
+.e-atomic-element:has(> .elementor-empty-view) {
   min-height: 120px;
 }
 .e-atomic-element > .elementor-empty-view.elementor-empty-view {
   min-height: inherit;
+}
+
+.e-grid-base > .elementor-empty-view.elementor-empty-view > .elementor-first-add {
+  opacity: 0;
+}
+.e-grid-base:has(> .elementor-element) > .elementor-empty-view.elementor-empty-view {
+  position: absolute;
+  grid-row: var(--e-grid-empty-cell-row, 1)/span 1;
+  grid-column: var(--e-grid-empty-cell-col, 1)/span 1;
+  visibility: var(--e-grid-empty-cell-visibility, visible);
+  inset: 0;
+  width: auto;
+  height: auto;
+  min-width: 0;
+  min-height: 0;
+}
+.e-grid-base .elementor-element:has(> .elementor-widget-placeholder.e-dragging-top),
+.e-grid-base .elementor-element:has(> .elementor-widget-placeholder.e-dragging-bottom),
+.e-grid-base .elementor-element > :has(> .elementor-widget-placeholder.e-dragging-top),
+.e-grid-base .elementor-element > :has(> .elementor-widget-placeholder.e-dragging-bottom) {
+  position: relative;
+}
+.e-grid-base .elementor-element .elementor-widget-placeholder {
+  --size: 10px;
+}
+.e-grid-base .elementor-element .elementor-widget-placeholder.e-dragging-top, .e-grid-base .elementor-element .elementor-widget-placeholder.e-dragging-bottom {
+  position: absolute;
+  width: 100%;
+  height: var(--size);
+  inset-inline: 0;
+  z-index: 9999;
+  animation: placeholder-widget 500ms;
+}
+.e-grid-base .elementor-element .elementor-widget-placeholder.e-dragging-top {
+  inset-block-start: 0;
+}
+.e-grid-base .elementor-element .elementor-widget-placeholder.e-dragging-bottom {
+  inset-block-end: 0;
 }
 
 body.rtl .e-con.e-grid.e-con--row .elementor-widget-placeholder.e-dragging-right, body.rtl .e-con.e-grid.e-con--row > .e-con-inner .elementor-widget-placeholder.e-dragging-right {

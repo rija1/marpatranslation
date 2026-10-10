@@ -8,6 +8,8 @@ use Elementor\Modules\Variables\Storage\Entities\Variable;
 use Elementor\Modules\Variables\Storage\Exceptions\BatchOperationFailed;
 use Elementor\Modules\Variables\Storage\Variables_Repository;
 use Elementor\Modules\Variables\Storage\Exceptions\FatalError;
+use Elementor\Modules\Variables\PropTypes\Size_Variable_Prop_Type;
+use Elementor\Utils as ElementorUtils;
 
 class Variables_Service {
 	private Variables_Repository $repo;
@@ -22,37 +24,102 @@ class Variables_Service {
 		return $this->load()['data'];
 	}
 
+	public function find_by_label_or_id( string $needle ): ?array {
+		$needle = trim( $needle );
+		$needle = ltrim( $needle, '-' );
+
+		if ( '' === $needle ) {
+			return null;
+		}
+
+		$variables = $this->get_variables_list();
+
+		if ( isset( $variables[ $needle ] ) ) {
+			$variable = $variables[ $needle ];
+
+			if ( ! empty( $variable['deleted'] ) ) {
+				return null;
+			}
+
+			return array_merge( [ 'id' => $needle ], $variable );
+		}
+
+		foreach ( $variables as $id => $variable ) {
+			if ( ! empty( $variable['deleted'] ) ) {
+				continue;
+			}
+
+			if ( strcasecmp( $variable['label'] ?? '', $needle ) === 0 ) {
+				return array_merge( [ 'id' => $id ], $variable );
+			}
+		}
+
+		return null;
+	}
+
 	public function load() {
-		return $this->repo->load()->serialize( true );
+		$collection = $this->repo->load()->serialize( true );
+		foreach ( $collection['data'] as $id => $variable ) {
+			if ( ! ElementorUtils::has_pro() && Size_Variable_Prop_Type::get_key() === $variable['type'] ) {
+				unset( $collection['data'][ $id ] );
+			}
+		}
+		return $collection;
 	}
 
 	/**
-	 * @throws BatchOperationFailed Thrown when one of the operations fails.
+	 * @throws BatchOperationFailed Thrown when one of the operations fails and $lenient is false.
 	 * @throws FatalError Failed to save after batch.
 	 */
-	public function process_batch( array $operations ) {
+	public function process_batch( array $operations, bool $lenient = false ) {
 		$collection = $this->repo->load();
 		$results = [];
 		$errors = [];
+		$has_success = false;
 
 		$error_formatter = new Batch_Error_Formatter();
 
 		foreach ( $operations as $index => $operation ) {
 			try {
-				$results[] = $this->batch_processor->apply_operation( $collection, $operation );
+				$batch_result = $this->batch_processor->apply_operation( $collection, $operation );
+				$has_success = true;
 
+				if ( $lenient ) {
+					$results[] = $this->format_lenient_success_result( $index, $batch_result );
+				} else {
+					$results[] = $batch_result;
+				}
 			} catch ( \Exception $e ) {
-				$errors[ $this->batch_processor->operation_id( $operation, $index ) ] = [
-					'status' => $error_formatter->status_for( $e ),
-					'code' => $error_formatter->error_code_for( $e ),
-					'message' => $e->getMessage(),
-				];
+				if ( $lenient ) {
+					$results[] = [
+						'index' => $index,
+						'status' => 'error',
+						'action' => $operation['type'] ?? '',
+						'id' => $operation['id'] ?? ( $operation['variable']['id'] ?? null ),
+						'code' => $error_formatter->error_code_for( $e ),
+						'message' => $e->getMessage(),
+					];
+				} else {
+					$errors[ $this->batch_processor->operation_id( $operation, $index ) ] = [
+						'status' => $error_formatter->status_for( $e ),
+						'code' => $error_formatter->error_code_for( $e ),
+						'message' => $e->getMessage(),
+					];
+				}
 			}
 		}
 
-		if ( ! empty( $errors ) ) {
+		if ( ! $lenient && ! empty( $errors ) ) {
 			// phpcs:ignore WordPress.Security.EscapeOutput.ExceptionNotEscaped
 			throw new BatchOperationFailed( 'Batch failed', $errors );
+		}
+
+		if ( ! $has_success ) {
+			return [
+				'success' => false,
+				'results' => $results,
+				'watermark' => $collection->watermark(),
+			];
 		}
 
 		$watermark = $this->repo->save( $collection );
@@ -66,6 +133,25 @@ class Variables_Service {
 			'results'   => $results,
 			'watermark' => $watermark,
 		];
+	}
+
+	private function format_lenient_success_result( int $index, array $batch_result ): array {
+		$result = [
+			'index' => $index,
+			'status' => 'ok',
+			'action' => $batch_result['type'] ?? '',
+			'id' => $batch_result['id'] ?? null,
+		];
+
+		if ( isset( $batch_result['variable']['label'] ) ) {
+			$result['label'] = $batch_result['variable']['label'];
+		}
+
+		if ( isset( $batch_result['variable']['type'] ) ) {
+			$result['type'] = $batch_result['variable']['type'];
+		}
+
+		return $result;
 	}
 
 	/**
@@ -86,6 +172,7 @@ class Variables_Service {
 		}
 
 		$variable = Variable::from_array( $data );
+		$variable->validate();
 
 		$collection->add_variable( $variable );
 
@@ -113,6 +200,7 @@ class Variables_Service {
 		}
 
 		$variable->apply_changes( $data );
+		$variable->validate();
 
 		$watermark = $this->repo->save( $collection );
 
@@ -157,13 +245,18 @@ class Variables_Service {
 		$collection = $this->repo->load();
 		$variable = $collection->find_or_fail( $id );
 
-		$collection->assert_limit_not_reached();
+		$label = $variable->label();
 
 		if ( isset( $overrides['label'] ) ) {
-			$collection->assert_label_is_unique( $overrides['label'], $variable->id() );
+			$label = $overrides['label'];
 		}
 
+		$collection->assert_limit_not_reached();
+
+		$collection->assert_label_is_unique( $label, $variable->id() );
+
 		$variable->apply_changes( $overrides );
+		$variable->validate();
 
 		$variable->restore();
 

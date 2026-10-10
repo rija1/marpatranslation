@@ -354,8 +354,11 @@ class WP_Optimize_Minify_Cache_Functions {
 					}
 					$log[] = "cache expiration time - $expires";
 					$log[] = "checking if cache has expired - $d";
-					if ($d !== $cache_time && (is_numeric($d) && $d <= $expires)) {
-						$dir = WPO_CACHE_MIN_FILES_DIR.'/'.$d;
+					
+					$dir = WPO_CACHE_MIN_FILES_DIR.'/'.$d;
+					$is_empty_dir = self::is_empty_minify_subdir($dir);
+
+					if ($d !== (string) $cache_time && (is_numeric($d) && $d <= $expires || $is_empty_dir)) {
 						if (is_dir($dir)) {
 							$log[] = "deleting cache in $dir";
 							if (wpo_delete_files($dir)) {
@@ -383,6 +386,16 @@ class WP_Optimize_Minify_Cache_Functions {
 		}
 
 		return $log;
+	}
+
+	/**
+	 * Checks whether the minify cache subdirectory (/ddddddddd/) is empty, i.e. whether the 'assets' and 'header' subdirectories contain no files.
+	 *
+	 * @param string $dir
+	 * @return boolean
+	 */
+	private static function is_empty_minify_subdir($dir) {
+		return wpo_is_empty_dir($dir . '/assets') && wpo_is_empty_dir($dir . '/header');
 	}
 
 	/**
@@ -430,20 +443,11 @@ class WP_Optimize_Minify_Cache_Functions {
 	 * @return string
 	 */
 	public static function get_cachestats($folder) {
-		clearstatcache();
-		if (is_dir($folder)) {
-			$dir = new RecursiveIteratorIterator(new RecursiveDirectoryIterator($folder, FilesystemIterator::SKIP_DOTS));
-			$size = 0;
-			$file_count = 0;
-			foreach ($dir as $file) {
-				$size += $file->getSize();
-				$file_count++;
-			}
-			return WP_Optimize()->format_size($size) . ' ('.$file_count.' files)';
-		} else {
-			// translators: %s is a folder path
-			return sprintf(__('Error: %s is not a directory!', 'wp-optimize'), $folder);
-		}
+		$stats = WP_Optimize_Utils::get_folder_stats($folder);
+
+		// Translators: %s: number of files.
+		$translated_file_count = sprintf(_n('%s file', '%s files', $stats['file_count'], 'wp-optimize'), number_format_i18n($stats['file_count']));
+		return WP_Optimize()->format_size($stats['size']) . ' (' . $translated_file_count . ')';
 	}
 
 	/**

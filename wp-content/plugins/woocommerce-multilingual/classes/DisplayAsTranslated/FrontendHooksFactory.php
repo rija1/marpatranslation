@@ -7,7 +7,6 @@ use function WPML\Container\make;
 class FrontendHooksFactory implements \IWPML_Frontend_Action_Loader {
 
 	public function create() {
-		/** @var \SitePress $sitepress */
 		global $sitepress;
 
 		$hooks           = [];
@@ -18,6 +17,10 @@ class FrontendHooksFactory implements \IWPML_Frontend_Action_Loader {
 			if ( $sitepress->is_display_as_translated_taxonomy( 'product_cat' ) ) {
 				$hooks[] = make( ProductCatHooks::class );
 			}
+		}
+
+		if ( $sitepress->is_display_as_translated_post_type( 'product' ) ) {
+			$hooks[] = make( ProductHooks::class );
 		}
 
 		return $hooks;

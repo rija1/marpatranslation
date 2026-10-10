@@ -2,6 +2,11 @@
 
 namespace Pods\Integrations;
 
+// Don't load directly.
+if ( ! defined( 'ABSPATH' ) ) {
+	die( '-1' );
+}
+
 use Pods\Integration;
 use Pods\Integrations\Query_Monitor\Collectors;
 use Pods\Integrations\Query_Monitor\Outputters;
@@ -49,6 +54,10 @@ class Query_Monitor extends Integration {
 	 * @since 3.2.7
 	 */
 	public static function enqueue_assets(): void {
+		if ( ! wp_style_is( 'query-monitor', 'registered' ) ) {
+			return;
+		}
+
 		wp_register_style( 'pods-query-monitor', PODS_URL . 'ui/styles/dist/pods-query-monitor.css', [ 'query-monitor' ], PODS_VERSION );
 		wp_enqueue_style( 'pods-query-monitor' );
 	}

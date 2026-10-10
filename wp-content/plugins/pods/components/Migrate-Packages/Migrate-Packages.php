@@ -1,4 +1,10 @@
 <?php
+
+// Don't load directly.
+if ( ! defined( 'ABSPATH' ) ) {
+	die( '-1' );
+}
+
 /**
  * ID: migrate-packages
  *
@@ -47,7 +53,7 @@ class Pods_Migrate_Packages extends PodsComponent {
 	 * @since 2.0.0
 	 */
 	public function admin_assets() {
-		wp_enqueue_script( 'pods-file-saver', PODS_URL . '/components/Migrate-Packages/js/FileSaver.min.js', '', [], '2.0.4', true );
+		wp_enqueue_script( 'pods-file-saver', PODS_URL . '/components/Migrate-Packages/js/FileSaver.min.js', [], '2.0.4', true );
 		wp_enqueue_style( 'pods-wizard' );
 	}
 
@@ -92,15 +98,23 @@ class Pods_Migrate_Packages extends PodsComponent {
 
 				if ( 0 !== (int) $file['error'] ) {
 					$content .= '<p>' . esc_html__( 'Import Error: Package upload failed', 'pods' ) . '</p>';
-				} elseif (
-					! in_array( $file['type'], [ 'application/json', 'text/json' ], true )
-					|| '.json' !== substr( $file['name'], -5, 5 )
-				) {
-					$content .= '<p>' . esc_html__( 'Import Error: Package upload is not a valid JSON file', 'pods' ) . '</p>';
-				} elseif ( ! is_file( $file['tmp_name'] ) ) {
+				} elseif ( ! is_uploaded_file( $file['tmp_name'] ) ) {
 					$content .= '<p>' . esc_html__( 'Import Error: Package upload not completed', 'pods' ) . '</p>';
 				} else {
 					$data = file_get_contents( $file['tmp_name'] );
+
+					// Validate on the actual content rather than the client-provided MIME type / filename: the payload must decode as a JSON array (matching how import() reads it).
+					if (
+						! in_array( $file['type'], [ 'application/json', 'text/json' ], true )
+						|| '.json' !== substr( $file['name'], -5, 5 )
+						|| (
+							! is_array( @json_decode( $data, true ) )
+							&& ! is_array( @json_decode( pods_unslash( $data ), true ) )
+						)
+					) {
+						$data     = null;
+						$content .= '<p>' . esc_html__( 'Import Error: Package upload is not a valid JSON file', 'pods' ) . '</p>';
+					}
 				}
 			}
 
@@ -121,6 +135,8 @@ class Pods_Migrate_Packages extends PodsComponent {
 
 						$content .= '</ul>';
 					}
+				} else {
+					$content .= '<p>' . esc_html__( 'Import Error: Nothing found in package to import', 'pods' ) . '</p>';
 				}
 			} elseif ( null === $file ) {
 				$content .= '<p>' . esc_html__( 'Import Error: Invalid Package', 'pods' ) . '</p>';
@@ -128,7 +144,7 @@ class Pods_Migrate_Packages extends PodsComponent {
 
 			$content .= '</div>';
 
-			echo $content;
+			echo $content; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
 		} elseif ( 'export' === $params->import_export ) {
 			$params = get_object_vars( $params );
 			foreach ( $params as $k => $v ) {
@@ -141,7 +157,7 @@ class Pods_Migrate_Packages extends PodsComponent {
 
 			echo '<div class="pods-field-option">';
 
-			echo PodsForm::field( 'export_package', $package, 'paragraph', [
+			PodsForm::output_field( 'export_package', $package, 'paragraph', [
 				'attributes'  => [
 					'style' => 'width: 94%; max-width: 94%; height: 300px;',
 				],
@@ -291,7 +307,7 @@ class Pods_Migrate_Packages extends PodsComponent {
 		}
 
 		// Attempt to adjust the version if needed for compatibility.
-		$has_dot_versioning = false !== strpos( $meta['version'], '.' );
+		$has_dot_versioning = false !== strpos( (string) $meta['version'], '.' );
 
 		if ( ! $has_dot_versioning ) {
 			if ( (int) $meta['version'] < 1000 ) {

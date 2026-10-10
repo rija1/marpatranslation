@@ -3,14 +3,6 @@
 namespace WCML\Multicurrency\Shipping;
 
 class ShippingClasses {
-	/**
-	 * Adds shipping classes for currencies fields to shipping method wp-admin GUI.
-	 *
-	 * @param array               $field
-	 * @param \WCML_Multi_Currency $wcmlMultiCurrency
-	 *
-	 * @return array
-	 */
 	public static function addFields( array $field, \WCML_Multi_Currency $wcmlMultiCurrency ) {
 		$shippingClasses = WC()->shipping()->get_shipping_classes();
 		if ( ! empty( $shippingClasses ) ) {
@@ -32,13 +24,6 @@ class ShippingClasses {
 		return $field;
 	}
 
-	/**
-	 * Returns source language of the shipping class which was created originally.
-	 *
-	 * @param \WP_Term $shippingClass
-	 *
-	 * @return string|null
-	 */
 	protected static function getSourceLanguageCode( $shippingClass ) {
 		$classLanguageDetails = apply_filters( 'wpml_element_language_details', false, [
 			'element_id' => $shippingClass->term_id,
@@ -47,15 +32,6 @@ class ShippingClasses {
 		return $classLanguageDetails->source_language_code ?? null;
 	}
 
-	/**
-	 * Adds field to the GUI which explains user should switch to the other language to provide the data.
-	 *
-	 * @param array    $field
-	 * @param \WP_Term $shippingClass
-	 * @param string   $classSourceLanguageCode
-	 *
-	 * @return array
-	 */
 	protected static function askToSwitchLanguage( $field, $shippingClass, $classSourceLanguageCode ) {
 		$field[ 'wcml_ask_to_switch_language_' . $shippingClass->term_id ] = [
 			'title' => '',
@@ -73,6 +49,7 @@ class ShippingClasses {
 			/* translators: %1$s is a shipping class name and %2$s is a currency code */
 			'title'             => sprintf( __( '"%1$s" shipping class cost in %2$s', 'woocommerce-multilingual' ), esc_html( $shippingClass->name ), esc_html( $currencyCode ) ),
 			'type'              => 'text',
+			/* translators: Placeholder text shown in an empty shipping-cost field, short for "not applicable". */
 			'placeholder'       => __( 'N/A', 'woocommerce-multilingual' ),
 			'class' => 'wcml-shipping-cost-currency'
 		];
@@ -84,6 +61,7 @@ class ShippingClasses {
 			/* translators: %s is a currency code */
 			'title'             => sprintf( __( 'No shipping class cost in %s', 'woocommerce-multilingual' ), esc_html( $currencyCode ) ),
 			'type'              => 'text',
+			/* translators: Placeholder text shown in an empty shipping-cost field, short for "not applicable". */
 			'placeholder'       => __( 'N/A', 'woocommerce-multilingual' ),
 			'default'           => '',
 			'class' => 'wcml-shipping-cost-currency'

@@ -9,11 +9,6 @@ class MulticurrencyHooks implements \IWPML_Action {
 		add_filter( 'wcml_filter_currency_position', [ $this, 'filter_pip_currency_position' ] );
 	}
 
-	/**
-	 * @param string $currencySymbol
-	 *
-	 * @return string
-	 */
 	public function filter_pip_currency_symbol( $currencySymbol ) {
 		remove_filter( 'woocommerce_currency_symbol', [ $this, 'filter_pip_currency_symbol' ] );
 
@@ -28,11 +23,6 @@ class MulticurrencyHooks implements \IWPML_Action {
 		return $currencySymbol;
 	}
 
-	/**
-	 * @param string $currency
-	 *
-	 * @return string
-	 */
 	public function filter_pip_currency_position( $currency ) {
 		remove_filter( 'wcml_filter_currency_position', [ $this, 'filter_pip_currency_position' ] );
 
@@ -43,11 +33,6 @@ class MulticurrencyHooks implements \IWPML_Action {
 		return $currency;
 	}
 
-	/**
-	 * @param string|false $currency
-	 *
-	 * @return string|false
-	 */
 	private static function getPipOrderCurrency( $currency = false ) {
 		$pip_order_id = Helper::getPipOrderId();
 

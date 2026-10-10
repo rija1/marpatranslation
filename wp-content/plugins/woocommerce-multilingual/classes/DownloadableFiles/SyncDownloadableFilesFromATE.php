@@ -13,11 +13,6 @@ class SyncDownloadableFilesFromATE {
 		], 20, 3 );
 	}
 
-	/**
-	 * @param int       $post_id
-	 * @param array     $fields
-	 * @param \stdClass $job
-	 */
 	public function save_downloadable_files_fields_translations( $post_id, $fields, $job ) {
 		if ( ! Hooks::isProduct( $job ) ) {
 			return null;
@@ -25,21 +20,35 @@ class SyncDownloadableFilesFromATE {
 
 		$groupedDownloadableFiles = $this->groupDownloadableFilesByProductIdConsideringProductVariants( $post_id, $fields, $job->language_code );
 
+		$allowed_target_ids = $this->getJobProductAndVariationIds( (int) $post_id );
+
 		foreach ( $groupedDownloadableFiles as $product_id => $downloadableFiles ) {
+			$product_id = (int) $product_id;
+			if ( ! in_array( $product_id, $allowed_target_ids, true ) ) {
+				continue;
+			}
+
 			$needUpdate     = false;
 			$orig_file_path = maybe_unserialize( get_post_meta( $product_id, \WCML_Downloadable_Products::DOWNLOADABLE_FILES_META, true ) );
+
+			if ( ! is_array( $orig_file_path ) ) {
+				$orig_file_path = [];
+			}
 
 			foreach ( $downloadableFiles as $downloadableFileId => $downloadableFile ) {
 				$id = str_replace( \WCML_Synchronize_Product_Data::CUSTOM_FIELD_KEY_SEPARATOR, '-', $downloadableFileId );
 
-				if ( isset( $orig_file_path[ $id ] ) ) {
-					$orig_file_path[ $id ] = array_merge( $orig_file_path[ $id ], [
-						'name' => $downloadableFile['name'],
-						'file' => $downloadableFile['file'],
-					] );
+				$translatedDownloadableFileData = [
+					'name' => $downloadableFile['name'],
+					'file' => $downloadableFile['file'],
+				];
 
-					$needUpdate = true;
+				if ( isset( $orig_file_path[ $id ] ) ) {
+					$translatedDownloadableFileData = array_merge( $orig_file_path[ $id ], $translatedDownloadableFileData );
 				}
+
+				$orig_file_path[ $id ] = $translatedDownloadableFileData;
+				$needUpdate            = true;
 			}
 
 			if ( $needUpdate ) {
@@ -48,13 +57,19 @@ class SyncDownloadableFilesFromATE {
 		}
 	}
 
-	/**
-	 * @param int    $product_id
-	 * @param array  $fields
-	 * @param string $language
-	 *
-	 * @return array
-	 */
+	private function getJobProductAndVariationIds( $product_id ) {
+		$ids = [ (int) $product_id ];
+
+		$product = function_exists( 'wc_get_product' ) ? wc_get_product( (int) $product_id ) : null;
+		if ( $product ) {
+			foreach ( (array) $product->get_children() as $variation_id ) {
+				$ids[] = (int) $variation_id;
+			}
+		}
+
+		return $ids;
+	}
+
 	private function groupDownloadableFilesByProductIdConsideringProductVariants( $product_id, array $fields, $language ) {
 		$data = [];
 		foreach ( $fields as $field ) {
@@ -64,13 +79,11 @@ class SyncDownloadableFilesFromATE {
 				continue;
 			}
 
-			// Default: When a product has no variants
 			$variation_id = $product_id;
 
 			$exp = explode( ':', $title, 2 );
 
 			if ( ! empty( $exp[1] ) ) {
-				// Product Variant
 				$title        = $exp[0];
 				$variation_id = $exp[1];
 			}

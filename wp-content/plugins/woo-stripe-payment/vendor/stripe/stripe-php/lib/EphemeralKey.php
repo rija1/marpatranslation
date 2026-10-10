@@ -1,8 +1,7 @@
 <?php
 
 // File generated from our OpenAPI spec
-
-namespace Stripe;
+namespace PaymentPlugins\Vendor\Stripe;
 
 /**
  * @property string $id Unique identifier for the object.
@@ -15,28 +14,41 @@ namespace Stripe;
 class EphemeralKey extends ApiResource
 {
     const OBJECT_NAME = 'ephemeral_key';
-
-    use ApiOperations\Create {
+    /**
+     * Invalidates a short-lived API key for a given resource.
+     *
+     * @param null|array{expand?: string[]} $params
+     * @param null|array|string $opts
+     *
+     * @return EphemeralKey the deleted resource
+     *
+     * @throws Exception\ApiErrorException if the request fails
+     */
+    public function delete($params = null, $opts = null)
+    {
+        self::_validateParams($params);
+        $url = $this->instanceUrl();
+        list($response, $opts) = $this->_request('delete', $url, $params, $opts);
+        $this->refreshFrom($response, $opts);
+        return $this;
+    }
+    use \PaymentPlugins\Vendor\Stripe\ApiOperations\Create {
         create as protected _create;
     }
-
-    use ApiOperations\Delete;
-
     /**
      * @param null|array $params
      * @param null|array|string $opts
      *
-     * @throws \Stripe\Exception\InvalidArgumentException if stripe_version is missing
-     * @throws \Stripe\Exception\ApiErrorException if the request fails
+     * @return EphemeralKey the created key
      *
-     * @return \Stripe\EphemeralKey the created key
+     * @throws Exception\InvalidArgumentException if stripe_version is missing
+     * @throws Exception\ApiErrorException if the request fails
      */
     public static function create($params = null, $opts = null)
     {
         if (!$opts || !isset($opts['stripe_version'])) {
             throw new Exception\InvalidArgumentException('stripe_version must be specified to create an ephemeral key');
         }
-
         return self::_create($params, $opts);
     }
 }

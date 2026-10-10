@@ -2,27 +2,26 @@
 
 // File generated from our OpenAPI spec
 
-namespace Stripe\Service\Radar;
+namespace PaymentPlugins\Vendor\Stripe\Service\Radar;
 
 /**
  * @phpstan-import-type RequestOptionsArray from \Stripe\Util\RequestOptions
- */
-/**
+ *
  * @psalm-import-type RequestOptionsArray from \Stripe\Util\RequestOptions
  */
-class ValueListItemService extends \Stripe\Service\AbstractService
+class ValueListItemService extends \PaymentPlugins\Vendor\Stripe\Service\AbstractService
 {
     /**
      * Returns a list of <code>ValueListItem</code> objects. The objects are sorted in
      * descending order by creation date, with the most recently created object
      * appearing first.
      *
-     * @param null|array $params
-     * @param null|RequestOptionsArray|\Stripe\Util\RequestOptions $opts
+     * @param null|array{created?: array|int, ending_before?: string, expand?: string[], limit?: int, starting_after?: string, value?: string, value_list: string} $params
+     * @param null|RequestOptionsArray|\PaymentPlugins\Vendor\Stripe\Util\RequestOptions $opts
      *
-     * @throws \Stripe\Exception\ApiErrorException if the request fails
+     * @return \PaymentPlugins\Vendor\Stripe\Collection<\PaymentPlugins\Vendor\Stripe\Radar\ValueListItem>
      *
-     * @return \Stripe\Collection<\Stripe\Radar\ValueListItem>
+     * @throws \PaymentPlugins\Vendor\Stripe\Exception\ApiErrorException if the request fails
      */
     public function all($params = null, $opts = null)
     {
@@ -33,12 +32,12 @@ class ValueListItemService extends \Stripe\Service\AbstractService
      * Creates a new <code>ValueListItem</code> object, which is added to the specified
      * parent value list.
      *
-     * @param null|array $params
-     * @param null|RequestOptionsArray|\Stripe\Util\RequestOptions $opts
+     * @param null|array{expand?: string[], value: string, value_list: string} $params
+     * @param null|RequestOptionsArray|\PaymentPlugins\Vendor\Stripe\Util\RequestOptions $opts
      *
-     * @throws \Stripe\Exception\ApiErrorException if the request fails
+     * @return \PaymentPlugins\Vendor\Stripe\Radar\ValueListItem
      *
-     * @return \Stripe\Radar\ValueListItem
+     * @throws \PaymentPlugins\Vendor\Stripe\Exception\ApiErrorException if the request fails
      */
     public function create($params = null, $opts = null)
     {
@@ -51,11 +50,11 @@ class ValueListItemService extends \Stripe\Service\AbstractService
      *
      * @param string $id
      * @param null|array $params
-     * @param null|RequestOptionsArray|\Stripe\Util\RequestOptions $opts
+     * @param null|RequestOptionsArray|\PaymentPlugins\Vendor\Stripe\Util\RequestOptions $opts
      *
-     * @throws \Stripe\Exception\ApiErrorException if the request fails
+     * @return \PaymentPlugins\Vendor\Stripe\Radar\ValueListItem
      *
-     * @return \Stripe\Radar\ValueListItem
+     * @throws \PaymentPlugins\Vendor\Stripe\Exception\ApiErrorException if the request fails
      */
     public function delete($id, $params = null, $opts = null)
     {
@@ -66,12 +65,12 @@ class ValueListItemService extends \Stripe\Service\AbstractService
      * Retrieves a <code>ValueListItem</code> object.
      *
      * @param string $id
-     * @param null|array $params
-     * @param null|RequestOptionsArray|\Stripe\Util\RequestOptions $opts
+     * @param null|array{expand?: string[]} $params
+     * @param null|RequestOptionsArray|\PaymentPlugins\Vendor\Stripe\Util\RequestOptions $opts
      *
-     * @throws \Stripe\Exception\ApiErrorException if the request fails
+     * @return \PaymentPlugins\Vendor\Stripe\Radar\ValueListItem
      *
-     * @return \Stripe\Radar\ValueListItem
+     * @throws \PaymentPlugins\Vendor\Stripe\Exception\ApiErrorException if the request fails
      */
     public function retrieve($id, $params = null, $opts = null)
     {

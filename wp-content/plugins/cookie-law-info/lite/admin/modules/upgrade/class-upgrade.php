@@ -7,9 +7,14 @@
 
 namespace CookieYes\Lite\Admin\Modules\Upgrade;
 
+use CookieYes\Lite\Admin\Modules\Banners\Includes\Banner;
+use CookieYes\Lite\Admin\Modules\Banners\Includes\Controller;
+use CookieYes\Lite\Admin\Modules\Cookies\Includes\Cookie;
+use CookieYes\Lite\Admin\Modules\Cookies\Includes\Cookie_Categories;
 use CookieYes\Lite\Admin\Modules\Settings\Includes\Settings;
 use CookieYes\Lite\Includes\Modules;
 use CookieYes\Lite\Includes\Notice;
+use WP_Post;
 
 if ( ! defined( 'ABSPATH' ) ) {
 	exit; // Exit if accessed directly.
@@ -131,7 +136,7 @@ class Upgrade extends Modules {
 		if ( is_array( $terms ) ) {
 			foreach ( $terms as $term ) {
 				if ( is_object( $term ) ) {
-					$object        = new \CookieYes\Lite\Admin\Modules\Cookies\Includes\Cookie_Categories();
+					$object        = new Cookie_Categories();
 					$term_language = cky_i18n_term_language( $term->term_id );
 					if ( $term_language === $default_lang ) {
 
@@ -160,7 +165,7 @@ class Upgrade extends Modules {
 
 						if ( ! empty( $cookies ) ) {
 							foreach ( $cookies as $key => $item ) {
-								$cookie      = new \CookieYes\Lite\Admin\Modules\Cookies\Includes\Cookie();
+								$cookie      = new Cookie();
 								$meta        = get_post_custom( $item->ID );
 								$description = array();
 								$duration    = array();
@@ -247,10 +252,10 @@ class Upgrade extends Modules {
 	 */
 	public function migrate_banners() {
 		$languages = cky_i18n_selected_languages();
-		$banners   = \CookieYes\Lite\Admin\Modules\Banners\Includes\Controller::get_instance()->get_items();
+		$banners   = Controller::get_instance()->get_items();
 		$old_law   = isset( $this->settings['consent_type'] ) ? $this->settings['consent_type'] : 'gdpr';
 		foreach ( $banners as $key => $item ) {
-			$banner    = new \CookieYes\Lite\Admin\Modules\Banners\Includes\Banner( $item->banner_id );
+			$banner    = new Banner( $item->banner_id );
 			$type      = $banner->get_law();
 			$this->law = $type;
 			$banner->set_status( false );
@@ -300,42 +305,45 @@ class Upgrade extends Modules {
 		$config['settings']['theme']    = 'custom';
 		$config['settings']['position'] = $position;
 
-		$background_color = isset( $settings['background'] ) ? cky_sanitize_color( $settings['background'] ) : $config['config']['notice']['styles']['background-color'];
-		$border_color     = isset( $settings['border'] ) ? cky_sanitize_color( $settings['border'] ) : $config['config']['notice']['styles']['border-color'];
-		$color            = isset( $settings['text'] ) ? cky_sanitize_color( $settings['text'] ) : $config['config']['notice']['styles']['color'];
+		$notice_styles   = &$config['config']['notice']['styles'];
+		$notice_elements = &$config['config']['notice']['elements'];
+		$pref_center     = &$config['config']['preferenceCenter'];
 
-		$config['config']['notice']['styles']['background-color']                 = $background_color;
-		$config['config']['notice']['styles']['border-color']                     = $border_color;
-		$config['config']['notice']['elements']['title']['styles']['color']       = $color;
-		$config['config']['notice']['elements']['description']['styles']['color'] = $color;
-		$config['config']['notice']['elements']['closeButton']['status'] = has_shortcode( $settings['notify_message'], 'cookie_close' );
+		$background_color = isset( $settings['background'] ) ? cky_sanitize_color( $settings['background'] ) : $notice_styles['background-color'];
+		$border_color     = isset( $settings['border'] ) ? cky_sanitize_color( $settings['border'] ) : $notice_styles['border-color'];
+		$color            = isset( $settings['text'] ) ? cky_sanitize_color( $settings['text'] ) : $notice_styles['color'];
 
-		$config['config']['preferenceCenter']['styles']['background-color'] = $background_color;
-		$config['config']['preferenceCenter']['styles']['border-color']     = $border_color;
+		$notice_styles['background-color']                 = $background_color;
+		$notice_styles['border-color']                     = $border_color;
+		$notice_elements['title']['styles']['color']       = $color;
+		$notice_elements['description']['styles']['color'] = $color;
+		$notice_elements['closeButton']['status']          = has_shortcode( $settings['notify_message'], 'cookie_close' );
 
-		$buttons_config = isset( $config['config']['notice']['elements']['buttons']['elements'] ) ? $config['config']['notice']['elements']['buttons']['elements'] : array();
+		$pref_center['styles']['background-color'] = $background_color;
+		$pref_center['styles']['border-color']     = $border_color;
+
+		$buttons_config = isset( $notice_elements['buttons']['elements'] ) ? $notice_elements['buttons']['elements'] : array();
 
 		if ( ! empty( $buttons_config ) ) {
 			$accept_button = has_shortcode( $settings['notify_message'], 'cookie_accept_all' ) ? 'button_7' : 'button_1';
 
-			$buttons_config['accept']    = isset( $buttons_config['accept'] ) ? $this->prepare_buttons( $accept_button, $buttons_config['accept'] ) : array();
-			$buttons_config['reject']    = isset( $buttons_config['reject'] ) ? $this->prepare_buttons( 'button_3', $buttons_config['reject'] ) : array();
-			$buttons_config['settings']  = isset( $buttons_config['settings'] ) ? $this->prepare_buttons( 'button_4', $buttons_config['settings'] ) : array();
-			$buttons_config['donotSell'] = isset( $buttons_config['donotSell'] ) ? $this->prepare_buttons( 'button_6', $buttons_config['donotSell'] ) : array();
-			$buttons_config['readMore']  = isset( $buttons_config['readMore'] ) ? $this->prepare_buttons( 'button_2', $buttons_config['readMore'] ) : array();
-			$buttons_config['readMore']  = $this->prepare_readmore( $buttons_config['readMore'] );
+			$buttons_config['accept']           = isset( $buttons_config['accept'] ) ? $this->prepare_buttons( $accept_button, $buttons_config['accept'] ) : array();
+			// Only enable accept button for GDPR banners, not for US state law (CCPA)
+			$buttons_config['accept']['status'] = ( 'ccpa' !== $this->law );
+			$buttons_config['reject']           = isset( $buttons_config['reject'] ) ? $this->prepare_buttons( 'button_3', $buttons_config['reject'] ) : array();
+			$buttons_config['settings']         = isset( $buttons_config['settings'] ) ? $this->prepare_buttons( 'button_4', $buttons_config['settings'] ) : array();
+			$buttons_config['donotSell']        = isset( $buttons_config['donotSell'] ) ? $this->prepare_buttons( 'button_6', $buttons_config['donotSell'] ) : array();
+			$buttons_config['readMore']         = isset( $buttons_config['readMore'] ) ? $this->prepare_buttons( 'button_2', $buttons_config['readMore'] ) : array();
+			$buttons_config['readMore']         = $this->prepare_readmore( $buttons_config['readMore'] );
 
-			$config['config']['notice']['elements']['buttons']['elements'] = $buttons_config;
+			$notice_elements['buttons']['elements'] = $buttons_config;
 
-			$preference_center  = isset( $config['config']['preferenceCenter'] ) ? $config['config']['preferenceCenter'] : array();
-			$preference_buttons = isset( $preference_center['elements']['buttons']['elements'] ) ? $preference_center['elements']['buttons']['elements'] : array();
-
-			$preference_buttons['accept']['styles'] = isset( $buttons_config['accept']['styles'] ) ? $buttons_config['accept']['styles'] : array();
-			$preference_buttons['reject']['styles'] = isset( $buttons_config['reject']['styles'] ) ? $buttons_config['reject']['styles'] : array();
-			$preference_buttons['save']['styles']   = isset( $buttons_config['settings']['styles'] ) ? $buttons_config['settings']['styles'] : array();
-
-			$config['config']['preferenceCenter']['elements']['buttons']['elements'] = $preference_buttons;
+			$pref_buttons                     = &$pref_center['elements']['buttons']['elements'];
+			$pref_buttons['accept']['styles'] = isset( $buttons_config['accept']['styles'] ) ? $buttons_config['accept']['styles'] : array();
+			$pref_buttons['reject']['styles'] = isset( $buttons_config['reject']['styles'] ) ? $buttons_config['reject']['styles'] : array();
+			$pref_buttons['save']['styles']   = isset( $buttons_config['settings']['styles'] ) ? $buttons_config['settings']['styles'] : array();
 		}
+
 		$revisit_options = isset( $config['config']['revisitConsent'] ) ? $config['config']['revisitConsent'] : array();
 
 		$config['config']['revisitConsent'] = $this->get_revisit_options( $revisit_options );
@@ -384,28 +392,35 @@ class Upgrade extends Modules {
 	 * @return array
 	 */
 	public function prepare_contents( $contents, $language ) {
-		$settings              = $this->settings;
-		$notice                = isset( $contents['notice']['elements'] ) ? $contents['notice']['elements'] : array();
+		$settings = $this->settings;
+		$notice   = isset( $contents['notice']['elements'] ) ? $contents['notice']['elements'] : array();
+
 		$notice['title']       = isset( $settings['bar_heading_text'] ) ? cky_i18n_translate_string( $settings['bar_heading_text'], 'bar_heading_text', $language ) : '';
 		$notice['description'] = isset( $settings['notify_message'] ) ? wp_strip_all_tags( strip_shortcodes( cky_i18n_translate_string( $settings['notify_message'], 'notify_message', $language ) ) ) : '';
 		$notice['privacyLink'] = $this->get_readmore_link();
 
-		$accept_button                             = has_shortcode( $settings['notify_message'], 'cookie_accept_all' ) ? 'button_7' : 'button_1';
-		$notice['buttons']['elements']['accept']   = $this->get_button_text( $accept_button, $language );
-		$notice['buttons']['elements']['reject']   = $this->get_button_text( 'button_3', $language );
-		$notice['buttons']['elements']['settings'] = $this->get_button_text( 'button_4', $language );
-		$notice['buttons']['elements']['readMore'] = $this->get_button_text( 'button_2', $language );
-		$contents['notice']['elements']            = $notice;
+		$accept_button = has_shortcode( $settings['notify_message'], 'cookie_accept_all' ) ? 'button_7' : 'button_1';
+
+		$notice_buttons             = &$notice['buttons']['elements'];
+		$notice_buttons['accept']   = $this->get_button_text( $accept_button, $language );
+		$notice_buttons['reject']   = $this->get_button_text( 'button_3', $language );
+		$notice_buttons['settings'] = $this->get_button_text( 'button_4', $language );
+		$notice_buttons['readMore'] = $this->get_button_text( 'button_2', $language );
+
+		$contents['notice']['elements'] = $notice;
 
 		// Preference center.
 
 		$preference = isset( $contents['preferenceCenter']['elements'] ) ? $contents['preferenceCenter']['elements'] : array();
 		$existing   = $this->get_preference_center_texts();
 
-		$preference['title']                             = cky_i18n_translate_string( $existing['title'], 'privacy_overview_title', $language, 'cookielawinfo_privacy_overview_content_settings' );
-		$preference['description']                       = cky_i18n_translate_string( $existing['description'], 'privacy_overview_content', $language, 'cookielawinfo_privacy_overview_content_settings' );
-		$preference['buttons']['elements']['accept']     = $this->get_button_text( $accept_button, $language );
-		$preference['buttons']['elements']['reject']     = $this->get_button_text( 'button_3', $language );
+		$preference['title']       = cky_i18n_translate_string( $existing['title'], 'privacy_overview_title', $language, 'cookielawinfo_privacy_overview_content_settings' );
+		$preference['description'] = cky_i18n_translate_string( $existing['description'], 'privacy_overview_content', $language, 'cookielawinfo_privacy_overview_content_settings' );
+
+		$pref_buttons           = &$preference['buttons']['elements'];
+		$pref_buttons['accept'] = $this->get_button_text( $accept_button, $language );
+		$pref_buttons['reject'] = $this->get_button_text( 'button_3', $language );
+
 		$contents['preferenceCenter']['elements']        = $preference;
 		$contents['revisitConsent']['elements']['title'] = cky_i18n_translate_string( $existing['title'], 'title', $language );
 		return $contents;
@@ -529,7 +544,7 @@ class Upgrade extends Modules {
 			$notice->add(
 				'migration_notice',
 				array( // translators: %s: Migration notice expiry notice.
-					'message' => sprintf( __( 'Not satisfied with the New UI and related changes? You can switch back to the old UI at any time until %s.', 'cookie-law-info' ), esc_html( $date ) ),
+					'message' => sprintf( __( 'Prefer the previous version? Switch back anytime until %s.', 'cookie-law-info' ), esc_html( $date ) ),
 					'type'    => 'info',
 				)
 			);
@@ -551,7 +566,7 @@ class Upgrade extends Modules {
 				return '';
 			}
 			$post = get_post( $page );
-			if ( $post instanceof \WP_Post ) {
+			if ( $post instanceof WP_Post ) {
 				if ( 'publish' === $post->post_status ) {
 					$privacy = get_page_link( $post );
 				}

@@ -197,7 +197,13 @@ class Container implements ArrayAccess, ContainerInterface
         // bound into this container to the abstract type and we will just wrap it
         // up inside its own Closure to give us more convenience when extending.
         if ( ! $concrete instanceof Closure) {
-            $concrete = $this->getClosure($abstract, $concrete);
+            if (is_string($concrete) && ($abstract === $concrete || class_exists($concrete) || interface_exists($concrete))) {
+                $concrete = $this->getClosure($abstract, $concrete);
+            } else {
+                $concrete = function () use ($concrete) {
+                    return $concrete;
+                };
+            }
         }
 
         $this->bindings[$abstract] = compact('concrete', 'shared');
@@ -871,8 +877,9 @@ class Container implements ArrayAccess, ContainerInterface
      * @param Closure|null   $callback
      *
      * @return void
+     * @since 4.17.0 Declare the nullable parameter explicitly.
      */
-    public function resolving($abstract, Closure $callback = null)
+    public function resolving($abstract, ?Closure $callback = null)
     {
         if (is_string($abstract)) {
             $abstract = $this->getAlias($abstract);
@@ -892,8 +899,9 @@ class Container implements ArrayAccess, ContainerInterface
      * @param Closure|null   $callback
      *
      * @return void
+     * @since 4.17.0 Declare the nullable parameter explicitly.
      */
-    public function afterResolving($abstract, Closure $callback = null)
+    public function afterResolving($abstract, ?Closure $callback = null)
     {
         if (is_string($abstract)) {
             $abstract = $this->getAlias($abstract);
@@ -997,7 +1005,13 @@ class Container implements ArrayAccess, ContainerInterface
             return $class ? $class->name : null;
         }
 
-        return $parameter->hasType() ? $parameter->getType()->getName() : null;
+        $type = $parameter->getType();
+
+        if (! $type instanceof \ReflectionNamedType || $type->isBuiltin()) {
+            return null;
+        }
+
+        return $type->getName();
     }
 
     /**

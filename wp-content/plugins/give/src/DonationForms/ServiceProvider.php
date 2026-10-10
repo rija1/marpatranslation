@@ -6,6 +6,8 @@ use Exception;
 use Give\DonationForms\OrphanedForms\Actions\Assets as OrphanedFormsAssets;
 use Give\DonationForms\Actions\AddHoneyPotFieldToDonationForms;
 use Give\DonationForms\Actions\DispatchDonateControllerDonationCreatedListeners;
+use Give\DonationForms\Actions\GenerateExternalEmbedScriptUrl;
+use Give\DonationForms\Actions\GetExternalEmbedScriptData;
 use Give\DonationForms\Actions\DispatchDonateControllerSubscriptionCreatedListeners;
 use Give\DonationForms\Actions\PrintFormMetaTags;
 use Give\DonationForms\Actions\RegisterFormEntity;
@@ -105,8 +107,6 @@ class ServiceProvider implements ServiceProviderInterface
         /**
          * @since 4.2.0
          */
-        Hooks::addAction('init', RegisterFormEntity::class);
-        Hooks::addAction('rest_api_init', DonationFormsEntityRoute::class);
         Hooks::addAction('admin_init', OrphanedFormsAssets::class);
 
         /**
@@ -194,6 +194,12 @@ class ServiceProvider implements ServiceProviderInterface
          * @since 3.0.0
          */
         Route::post('authenticate', AuthenticationRoute::class);
+
+        /**
+         * @since 4.17.0
+         */
+        Route::script(GenerateExternalEmbedScriptUrl::URI, GIVE_PLUGIN_DIR . 'build/donationFormExternalEmbed.js')
+            ->localize('givewpDonationFormEmbed', new GetExternalEmbedScriptData());
 
         /**
          * @since 3.22.0 Add locale support

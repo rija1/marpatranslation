@@ -1,6 +1,6 @@
 <?php
 
-if (!defined('WPO_VERSION')) die('No direct access allowed');
+if (!defined('ABSPATH')) die('No direct access allowed');
 
 class WP_Optimization_optimizetables extends WP_Optimization {
 
@@ -178,15 +178,6 @@ class WP_Optimization_optimizetables extends WP_Optimization {
 			// translators: %s is number of tables
 			$this->register_output(sprintf(__('Tables will be optimized (%s).', 'wp-optimize'), $tablesstatus['non_inno_db_tables'] + $tablesstatus['inno_db_tables']));
 		}
-	}
-	
-	/**
-	 * Return description
-	 *
-	 * @return string
-	 */
-	public function get_auto_option_description() {
-		return __('Optimize database tables', 'wp-optimize');
 	}
 	
 	/**

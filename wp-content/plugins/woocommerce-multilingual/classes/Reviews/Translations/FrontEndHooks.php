@@ -5,6 +5,8 @@ namespace WCML\Reviews\Translations;
 use IWPML_Action;
 use WPML\FP\Obj;
 
+use function WPML\Container\make;
+
 class FrontEndHooks implements IWPML_Action {
 
 	const CONTEXT             = 'wcml-reviews';
@@ -13,29 +15,24 @@ class FrontEndHooks implements IWPML_Action {
 	const COMMENT_TYPE_REPLY  = 'comment';
 	const HOOK_ENABLE         = 'wcml_enable_product_review_translation';
 
+	private $demandRecorder;
+
+	public function __construct( ?DemandRecorder $demandRecorder = null ) {
+		$this->demandRecorder = $demandRecorder;
+	}
+
 	public function add_hooks() {
-		/**
-		 * Allows disabling product reviews translation.
-		 *
-		 * @param bool $true
-		 */
 		if ( apply_filters( self::HOOK_ENABLE, true ) ) {
 			add_action( 'wp_insert_comment', [ $this, 'insertCommentAction' ], 10, 2 );
 			add_action( 'woocommerce_review_before', [ $this, 'translateReview' ] );
+			add_action( 'shutdown', [ $this->getDemandRecorder(), 'flush' ] );
 		}
 	}
 
-	/**
-	 * @param int         $commentId
-	 * @param \WP_Comment $comment
-	 */
 	public function insertCommentAction( $commentId, $comment ) {
 		self::registerReviewString( $comment );
 	}
 
-	/**
-	 * @param \WP_Comment|\stdClass $comment
-	 */
 	public function translateReview( $comment ) {
 		if ( self::isNonEmptyReview( $comment ) ) {
 			if ( \WCML_Comments::is_translated( $comment ) ) {
@@ -50,15 +47,15 @@ class FrontEndHooks implements IWPML_Action {
 			);
 
 			if ( $reviewTranslation !== $comment->comment_content ) {
-				$comment->is_translated   = true;
-				$comment->comment_content = $reviewTranslation;
+				$comment->is_translated                 = true;
+				$comment->wcml_original_comment_content = $comment->comment_content;
+				$comment->comment_content               = $reviewTranslation;
+			} else {
+				$this->getDemandRecorder()->recordMissingTranslation( $comment );
 			}
 		}
 	}
 
-	/**
-	 * @param \WP_Comment|\stdClass $review
-	 */
 	public static function registerReviewString( $review ) {
 		if ( self::isNonEmptyReview( $review ) ) {
 			$language = Obj::prop( 'language_code', $review ) ?: apply_filters( 'wpml_current_language', null );
@@ -73,9 +70,6 @@ class FrontEndHooks implements IWPML_Action {
 		}
 	}
 
-	/**
-	 * @param \WP_Comment|\stdClass $comment
-	 */
 	private static function isNonEmptyReview( $comment ): bool {
 		if ( ! Obj::prop( 'comment_content', $comment ) ) {
 			return false;
@@ -84,12 +78,21 @@ class FrontEndHooks implements IWPML_Action {
 		return in_array( Obj::prop( 'comment_type', $comment ), self::COMMENT_TYPES, true );
 	}
 
-	/**
-	 * @param \WP_Comment|\stdClass $review
-	 *
-	 * @return string (e.g. "product-123-review-456")
-	 */
 	private static function getReviewStringName( $review ): string {
-		return 'product-' . \WCML_Comments::getOriginalPostId( $review ) . '-review-' . Obj::prop( 'comment_ID', $review );
+		return self::buildReviewStringName(
+			\WCML_Comments::getOriginalPostId( $review ),
+			Obj::prop( 'comment_ID', $review )
+		);
+	}
+
+	public static function buildReviewStringName( $originalPostId, $commentId ): string {
+		return 'product-' . $originalPostId . '-review-' . $commentId;
+	}
+	private function getDemandRecorder() {
+		if ( ! $this->demandRecorder ) {
+			$this->demandRecorder = make( DemandRecorder::class );
+		}
+
+		return $this->demandRecorder;
 	}
 }

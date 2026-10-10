@@ -2,7 +2,8 @@
 /**
  * This class integrates Stripe & PayPal Express Checkout with Donation Platform for WooCommerce
  */
-if (!defined('ABSPATH')) exit;
+if (!defined('ABSPATH'))
+    exit;
 
 class WCDP_Express_Checkout
 {
@@ -29,8 +30,10 @@ class WCDP_Express_Checkout
         //Add hidden Amount Variation fields
         add_action('wcdp_express_checkout_amount_variation', array($this, 'express_checkout_amount_variation'));
 
-        //Rename '(via WooCommerce)' to '(Donation)'
-        add_filter('wc_stripe_payment_request_total_label_suffix', array($this, 'stripe_total_label_suffix'));
+        //Remove '(via WooCommerce)' suffix
+        add_filter('wc_stripe_payment_request_total_label_suffix', '__return_empty_string');
+
+        add_action('wc_stripe_product_payment_methods', array($this, 'payment_plugins_hide_express_stripe'), 10, 2);
     }
 
     function express_donation_heading()
@@ -41,10 +44,10 @@ class WCDP_Express_Checkout
     function express_checkout_amount_variation()
     {
         $min_donation_amount = get_option('wcdp_min_amount', 3);
-        echo '<div class="variations_form" style="display:none !important;">
-                <input class="wcdp-express-amount" style="display:none !important;" type="number" step="any" name="attribute_wcdp_donation_amount" value="1">
+        echo '<div aria-hidden="true" class="variations_form" style="display:none !important;">
+                <input class="wcdp-express-amount" style="display:none !important;" type="number" step="any" name="attribute_wcdp_donation_amount" value="1" aria-hidden="true">
                 <div class="variations" style="display:none !important;">
-                    <select style="display:none !important;" name="attribute_wcdp_donation_amount">
+                    <select style="display:none !important;" name="attribute_wcdp_donation_amount" aria-hidden="true" data-attribute_name="attribute_wcdp_donation_amount">
                         <option value="' . esc_attr($min_donation_amount) . '" style="display:none !important;" class="wcdp-express-amount" selected></option>
                     </select>
                 </div>
@@ -158,21 +161,19 @@ class WCDP_Express_Checkout
         return $cart_item_data;
     }
 
-    function stripe_total_label_suffix()
+    /**
+     * Express Checkout for Payment Plugins for Stripe WooCommerce does not work for donation products
+     * therefor we have to disable it
+     *
+     * @param $gateways
+     * @param $product
+     * @return array|mixed
+     */
+    public function payment_plugins_hide_express_stripe($gateways, $product)
     {
-        $label = ' ' . __('(Donation)', 'wc-donation-platform');
-
-        $label = wp_strip_all_tags($label);
-
-        // Strip any HTML entities.
-        // Props https://stackoverflow.com/questions/657643/how-to-remove-html-special-chars .
-        $label = preg_replace('/&#?[a-z0-9]{2,8};/i', '', $label);
-
-        // remove any remaining disallowed characters
-        $disallowed_characters = ['<', '>', '\\', '*', '"', "'", '/', '{', '}'];
-        $label = str_replace($disallowed_characters, '', $label);
-
-        // limit to 22 characters
-        return substr($label, 0, 22);
+        if (WCDP_Form::is_donable($product->id)) {
+            return [];
+        }
+        return $gateways;
     }
 }

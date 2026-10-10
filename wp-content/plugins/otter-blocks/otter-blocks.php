@@ -7,9 +7,10 @@
  * Plugin Name:       Otter – Page Builder Blocks & Extensions for Gutenberg
  * Plugin URI:        https://themeisle.com/plugins/otter-blocks
  * Description:       Create beautiful and attracting posts, pages, and landing pages with Otter – Page Builder Blocks & Extensions for Gutenberg. Otter comes with dozens of Gutenberg blocks that are all you need to build beautiful pages.
- * Version:           3.1.2
+ * Version:           3.2.7
  * Author:            ThemeIsle
  * Author URI:        https://themeisle.com
+ * Requires at least:   6.6
  * License:           GPL-2.0+
  * License URI:       http://www.gnu.org/licenses/gpl-2.0.txt
  * Text Domain:       otter-blocks
@@ -26,7 +27,7 @@ if ( ! defined( 'WPINC' ) ) {
 define( 'OTTER_BLOCKS_BASEFILE', __FILE__ );
 define( 'OTTER_BLOCKS_URL', plugins_url( '/', __FILE__ ) );
 define( 'OTTER_BLOCKS_PATH', __DIR__ );
-define( 'OTTER_BLOCKS_VERSION', '3.1.2' );
+define( 'OTTER_BLOCKS_VERSION', '3.2.7' );
 define( 'OTTER_BLOCKS_PRO_SUPPORT', true );
 define( 'OTTER_BLOCKS_SHOW_NOTICES', false );
 define( 'OTTER_PRODUCT_SLUG', basename( OTTER_BLOCKS_PATH ) );
@@ -37,8 +38,31 @@ if ( is_readable( $vendor_file ) ) {
 	require_once $vendor_file;
 }
 
-if ( class_exists( '\ThemeIsle\GutenbergBlocks\Main' ) ) {
-	\ThemeIsle\GutenbergBlocks\Main::instance();
+$loader_file = OTTER_BLOCKS_PATH . '/inc/class-loader.php';
+
+$loader_available = class_exists( '\ThemeIsle\GutenbergBlocks\Loader', false );
+if ( ! $loader_available ) {
+	if ( ! is_file( $loader_file ) ) {
+		error_log( '[Otter Blocks] Not starting: ' . $loader_file . ' is missing.' ); // phpcs:ignore WordPress.PHP.DevelopmentFunctions.error_log_error_log
+	} elseif ( ! is_readable( $loader_file ) ) {
+		error_log( '[Otter Blocks] Not starting: ' . $loader_file . ' is not readable.' ); // phpcs:ignore WordPress.PHP.DevelopmentFunctions.error_log_error_log
+	} else {
+		try {
+			require_once $loader_file;
+			$loader_available = class_exists( '\ThemeIsle\GutenbergBlocks\Loader', false );
+
+			if ( ! $loader_available ) {
+				error_log( '[Otter Blocks] Not starting: ' . $loader_file . ' does not declare ThemeIsle\GutenbergBlocks\Loader.' ); // phpcs:ignore WordPress.PHP.DevelopmentFunctions.error_log_error_log
+			}
+		} catch ( \Throwable $e ) {
+			error_log( '[Otter Blocks] Not starting: ' . $loader_file . ' failed to load: ' . $e->getMessage() . '.' ); // phpcs:ignore WordPress.PHP.DevelopmentFunctions.error_log_error_log
+		}
+	}
+}
+
+// Everything downstream runs from Main, so boot it through Loader's throwable boundary.
+if ( $loader_available ) {
+	\ThemeIsle\GutenbergBlocks\Loader::boot_singleton( '\ThemeIsle\GutenbergBlocks\Main' );
 }
 
 add_filter(

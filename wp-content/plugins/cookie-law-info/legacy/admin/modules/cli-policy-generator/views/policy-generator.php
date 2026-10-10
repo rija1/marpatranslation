@@ -18,6 +18,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 .cli_pg_content_hid, .cli_pg_samplehid_block{ display:none; }
 </style>
 <div class="wrap">
+	<?php include_once CLI_PLUGIN_PATH . 'admin/partials/wt-cli-update-banner.php'; ?>
 	<h1><?php echo esc_html__( 'Policy generator', 'cookie-law-info' ); ?></h1>
 	<div class="cli_pg_samplehid_block">
 		<div class="cli_pg_left_menu">

@@ -12,6 +12,7 @@ use Give\Donations\Models\Donation;
  * @uses give_insert_payment hook
  * @uses give_update_payment_status hook
  * @uses give_recurring_add_subscription_payment hook
+ * @uses givewp_campaigns_merged hook
  *
  * Action used to update campaign's stats data
  *
@@ -19,6 +20,7 @@ use Give\Donations\Models\Donation;
 class CacheCampaignData
 {
     /**
+     * @since 4.13.1 added dispatch method
      * @since 4.8.0
      */
     public function __invoke(int $donationId): void
@@ -30,16 +32,42 @@ class CacheCampaignData
         }
 
         if ($donation->status->isComplete() || $donation->status->isRenewal()) {
-            as_enqueue_async_action('givewp_cache_campaign_data', [$donation->campaignId], 'givewp_campaigns_cache');
+            $this->dispatch($donation->campaignId);
         }
+    }
 
+    /**
+     * Dispatch the cache campaign data action
+     * @since 4.13.1
+     */
+    public function dispatch(int $campaignId): void
+    {
+        as_enqueue_async_action('givewp_cache_campaign_data', [$campaignId], 'givewp_campaigns_cache');
     }
 
     /**
      * Handle campaign cache
+     *
+     * @since 4.18.0 Read the subscriptions cache from the option it is written to; always compute live stats, keep zero rows when a campaign has no donations.
      * @since 4.8.0
      */
     public function handleCache(int $campaignId): void
+    {
+        // The cache holds live stats only. The queries follow the site's payment mode, so force
+        // live for the duration of the job in case test mode was switched on before it ran.
+        add_filter('give_is_test_mode', '__return_false', PHP_INT_MAX);
+
+        try {
+            $this->refresh($campaignId);
+        } finally {
+            remove_filter('give_is_test_mode', '__return_false', PHP_INT_MAX);
+        }
+    }
+
+    /**
+     * @since 4.18.0
+     */
+    private function refresh(int $campaignId): void
     {
         $campaign = Campaign::find($campaignId);
 
@@ -48,7 +76,7 @@ class CacheCampaignData
         }
 
         $campaignsData = get_option('give_campaigns_data', []);
-        $campaignsSubscriptionData = get_option('give_campaigns_subscription_data', []);
+        $campaignsSubscriptionData = get_option('give_campaigns_subscriptions_data', []);
 
         // Prefill cache structure to ensure keys exist
         $campaignsData = array_merge([
@@ -72,21 +100,21 @@ class CacheCampaignData
             if ($data['campaign_id'] == $campaign->id) {
                 $isCached = true;
 
-                $campaignsData['amounts'][$i] = $donations->collectIntendedAmounts()[0];
+                $campaignsData['amounts'][$i] = $this->row($donations->collectIntendedAmounts(), $campaign->id, 'sum');
                 break;
             }
         }
 
         foreach ($campaignsData['donationsCount'] as $i => $data) {
             if ($data['campaign_id'] == $campaign->id) {
-                $campaignsData['donationsCount'][$i] = $donations->collectDonations()[0];
+                $campaignsData['donationsCount'][$i] = $this->row($donations->collectDonations(), $campaign->id, 'count');
                 break;
             }
         }
 
         foreach ($campaignsData['donorsCount'] as $i => $data) {
             if ($data['campaign_id'] == $campaign->id) {
-                $campaignsData['donorsCount'][$i] = $donations->collectDonors()[0];
+                $campaignsData['donorsCount'][$i] = $this->row($donations->collectDonors(), $campaign->id, 'count');
                 break;
             }
         }
@@ -101,21 +129,21 @@ class CacheCampaignData
                 if ($data['campaign_id'] == $campaign->id) {
                     $isSubscriptionCached = true;
 
-                    $campaignsSubscriptionData['amounts'][$i] = $subscriptions->collectInitialAmounts()[0];
+                    $campaignsSubscriptionData['amounts'][$i] = $this->row($subscriptions->collectInitialAmounts(), $campaign->id, 'sum');
                     break;
                 }
             }
 
             foreach ($campaignsSubscriptionData['donationsCount'] as $i => $data) {
                 if ($data['campaign_id'] == $campaign->id) {
-                    $campaignsSubscriptionData['donationsCount'][$i] = $subscriptions->collectDonations()[0];
+                    $campaignsSubscriptionData['donationsCount'][$i] = $this->row($subscriptions->collectDonations(), $campaign->id, 'count');
                     break;
                 }
             }
 
             foreach ($campaignsSubscriptionData['donorsCount'] as $i => $data) {
                 if ($data['campaign_id'] == $campaign->id) {
-                    $campaignsSubscriptionData['donorsCount'][$i] = $subscriptions->collectDonors()[0];
+                    $campaignsSubscriptionData['donorsCount'][$i] = $this->row($subscriptions->collectDonors(), $campaign->id, 'count');
                     break;
                 }
             }
@@ -154,7 +182,7 @@ class CacheCampaignData
             update_option('give_campaigns_subscriptions_data', [
                 'amounts' => array_merge(
                     $campaignsSubscriptionData['amounts'] ?? [],
-                    $subscriptions->collectIntendedAmounts()
+                    $subscriptions->collectInitialAmounts()
                 ),
                 'donationsCount' => array_merge(
                     $campaignsSubscriptionData['donationsCount'] ?? [],
@@ -166,5 +194,16 @@ class CacheCampaignData
                 ),
             ]);
         }
+    }
+
+    /**
+     * The aggregate queries return no row for a campaign with no donations. Keep a zero row so the
+     * campaign stays cached instead of turning into a null row and a PHP warning.
+     *
+     * @since 4.18.0
+     */
+    private function row($rows, int $campaignId, string $column): array
+    {
+        return $rows[0] ?? ['campaign_id' => (string)$campaignId, $column => 0];
     }
 }

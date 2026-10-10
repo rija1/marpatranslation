@@ -1,5 +1,9 @@
 <?php
 
+if ( ! defined( 'ABSPATH' ) ) {
+	exit;
+}
+
 if ( ! class_exists( 'WC_Connect_Help_View' ) ) {
 
 	class WC_Connect_Help_View {
@@ -43,6 +47,7 @@ if ( ! class_exists( 'WC_Connect_Help_View' ) ) {
 
 			add_filter( 'woocommerce_admin_status_tabs', array( $this, 'status_tabs' ) );
 			add_action( 'woocommerce_admin_status_content_connect', array( $this, 'page' ) );
+			add_action( 'wp_ajax_wcs_download_tax_backup', array( $this, 'handle_tax_backup_download' ) );
 		}
 
 		protected function get_health_items() {
@@ -57,6 +62,7 @@ if ( ! class_exists( 'WC_Connect_Help_View' ) ) {
 				$health_item = array(
 					'state'   => 'error',
 					'message' => sprintf(
+						/* translators: %1$s: minimum required WooCommerce version, %2$s: installed WooCommerce version */
 						__( 'WooCommerce %1$s or higher is required (You are running %2$s)', 'woocommerce-services' ),
 						WOOCOMMERCE_CONNECT_MINIMUM_WOOCOMMERCE_VERSION,
 						WC()->version
@@ -71,6 +77,7 @@ if ( ! class_exists( 'WC_Connect_Help_View' ) ) {
 				$health_item = array(
 					'state'   => 'success',
 					'message' => sprintf(
+						/* translators: %s: installed WooCommerce version */
 						__( 'WooCommerce %s is configured correctly', 'woocommerce-services' ),
 						WC()->version
 					),
@@ -164,6 +171,7 @@ if ( ! class_exists( 'WC_Connect_Help_View' ) ) {
 				}
 
 				$subtitle = sprintf(
+					/* translators: %s: shipping zone name */
 					__( '%s Shipping Zone', 'woocommerce-services' ),
 					$enabled_service->zone_name
 				);
@@ -265,17 +273,24 @@ if ( ! class_exists( 'WC_Connect_Help_View' ) ) {
 		 */
 		protected function get_form_data() {
 			return array(
-				'health_items'       => $this->get_health_items(),
-				'services'           => $this->get_services_items(),
-				'logging_enabled'    => $this->logger->is_logging_enabled(),
-				'debug_enabled'      => $this->logger->is_debug_enabled(),
-				'logs'               => array(
+				'health_items'            => $this->get_health_items(),
+				'services'                => $this->get_services_items(),
+				'logging_enabled'         => $this->logger->is_logging_enabled(),
+				'debug_enabled'           => $this->logger->is_debug_enabled(),
+				'logs'                    => array(
 					'shipping' => $this->get_debug_log_data( 'shipping' ),
 					'taxes'    => $this->get_debug_log_data( 'taxes' ),
 					'other'    => $this->get_debug_log_data(),
 				),
-				'tax_rate_backups'   => WC_Connect_Functions::get_backed_up_tax_rate_files(),
-				'is_shipping_loaded' => $this->is_shipping_loaded(),
+				'tax_rate_backups'        => WC_Connect_Functions::get_backed_up_tax_rate_files(),
+				'tax_backup_download_url' => add_query_arg(
+					array(
+						'action'   => 'wcs_download_tax_backup',
+						'_wpnonce' => wp_create_nonce( 'wcs_tax_backup_download' ),
+					),
+					admin_url( 'admin-ajax.php' )
+				),
+				'is_shipping_loaded'      => $this->is_shipping_loaded(),
 			);
 		}
 
@@ -297,15 +312,18 @@ if ( ! class_exists( 'WC_Connect_Help_View' ) ) {
 				)
 			);
 
-			do_action(
-				'enqueue_wc_connect_script',
-				'wc-connect-admin-test-print',
-				array(
-					'isShippingLoaded' => $this->is_shipping_loaded(),
-					'storeOptions'     => $this->service_settings_store->get_store_options(),
-					'paperSize'        => $this->service_settings_store->get_preferred_paper_size(),
-				)
-			);
+			// Shipping related.
+			if ( WC_Connect_Loader::should_load_shipping_features() ) {
+				do_action(
+					'enqueue_wc_connect_script',
+					'wc-connect-admin-test-print',
+					array(
+						'isShippingLoaded' => $this->is_shipping_loaded(),
+						'storeOptions'     => $this->service_settings_store->get_store_options(),
+						'paperSize'        => $this->service_settings_store->get_preferred_paper_size(),
+					)
+				);
+			}
 		}
 
 		/**
@@ -317,6 +335,7 @@ if ( ! class_exists( 'WC_Connect_Help_View' ) ) {
 				return array(
 					'state'              => 'error',
 					'settings_link_type' => '',
+					/* translators: %s: store country code */
 					'message'            => sprintf( __( 'Your store\'s country (%s) is not supported. Automated taxes functionality is disabled', 'woocommerce-services' ), $store_country ),
 				);
 			}
@@ -350,6 +369,51 @@ if ( ! class_exists( 'WC_Connect_Help_View' ) ) {
 				'settings_link_type' => 'tax',
 				'message'            => __( 'Automated taxes are enabled', 'woocommerce-services' ),
 			);
+		}
+
+		/**
+		 * AJAX handler for secure tax backup file downloads.
+		 *
+		 * Verifies nonce and capability before streaming the file.
+		 */
+		public function handle_tax_backup_download() {
+			check_ajax_referer( 'wcs_tax_backup_download', '_wpnonce' );
+
+			if ( ! current_user_can( 'manage_woocommerce' ) ) {
+				wp_die( esc_html__( 'You do not have permission to download this file.', 'woocommerce-services' ), '', array( 'response' => 403 ) );
+			}
+
+			$filename = isset( $_GET['file'] ) ? sanitize_file_name( wp_unslash( $_GET['file'] ) ) : '';
+
+			// Validate filename matches expected pattern: YYYY-MM-DD or legacy MM-DD-YYYY, with optional hash suffix.
+			if ( ! preg_match( '/^taxjar-wc_tax_rates-(\d{4}-\d{2}-\d{2}|\d{2}-\d{2}-\d{4})-\d{1,10}(-[0-9a-f]{32})?\.csv$/', $filename ) ) {
+				wp_die( esc_html__( 'Invalid file name.', 'woocommerce-services' ), '', array( 'response' => 400 ) );
+			}
+
+			$upload_dir = wp_upload_dir();
+			$file_path  = $upload_dir['basedir'] . '/woocommerce_uploads/taxes/' . $filename;
+
+			// Fall back to the uploads root for sites where the protected directory could not be created.
+			if ( ! file_exists( $file_path ) ) {
+				$file_path = $upload_dir['basedir'] . '/' . $filename;
+			}
+
+			if ( ! file_exists( $file_path ) ) {
+				wp_die( esc_html__( 'File not found.', 'woocommerce-services' ), '', array( 'response' => 404 ) );
+			}
+
+			nocache_headers();
+			header( 'Content-Type: text/csv' );
+			header( 'Content-Disposition: attachment; filename="' . $filename . '"' );
+			header( 'Content-Length: ' . filesize( $file_path ) );
+
+			// Clean any output buffers to prevent corrupted downloads.
+			while ( ob_get_level() > 0 ) {
+				ob_end_clean();
+			}
+
+			readfile( $file_path ); // phpcs:ignore WordPress.WP.AlternativeFunctions.file_system_operations_readfile
+			exit;
 		}
 	}
 

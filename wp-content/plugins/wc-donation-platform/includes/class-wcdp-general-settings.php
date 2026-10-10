@@ -1,5 +1,6 @@
 <?php
-if (!defined('ABSPATH')) exit;
+if (!defined('ABSPATH'))
+    exit;
 
 class WCDP_General_Settings
 {
@@ -18,7 +19,7 @@ class WCDP_General_Settings
         add_action('woocommerce_admin_field_wcdp_leaderboard_js', [$this, 'leaderboard_js']);
 
         if (function_exists('wp_add_privacy_policy_content')) {
-            add_action( 'admin_init', array($this, 'suggest_privacy_policy_content') );
+            add_action('admin_init', array($this, 'suggest_privacy_policy_content'));
         }
 
         add_action('upgrader_process_complete', array($this, 'on_plugin_update'), 10, 2);
@@ -40,7 +41,8 @@ class WCDP_General_Settings
      * Disables the new product block editor since WCDP is not compatible
      * @return void
      */
-    public function disable_new_product_editor() {
+    public function disable_new_product_editor()
+    {
         update_option('woocommerce_feature_product_block_editor_enabled', 'no');
     }
 
@@ -158,6 +160,13 @@ class WCDP_General_Settings
                 'type' => 'wcdp_clear_cache_button',
             ),
             array(
+                'title' => __('Enable branding', 'wc-donation-platform'),
+                'desc' => __('Show a small “Powered by Donation Platform for WooCommerce” note below the donation form.', 'wc-donation-platform'),
+                'id' => 'wcdp_branding',
+                'default' => 'no',
+                'type' => 'checkbox',
+            ),
+            array(
                 'type' => 'sectionend',
                 'id' => 'wcdp_section_general',
             ),
@@ -241,11 +250,11 @@ class WCDP_General_Settings
             array(
                 'title' => __('Main Color', 'wc-donation-platform'),
                 /* translators: %s: default color */
-                'desc' => sprintf(__('Primary Color used in the frontend. Default: %s.', 'wc-donation-platform'), '<code>#00753a</code>'),
+                'desc' => sprintf(__('Primary Color used in the frontend. Default: %s.', 'wc-donation-platform'), '<code>#006633</code>'),
                 'id' => 'wcdp_main_color',
                 'type' => 'color',
                 'css' => 'width:6em;',
-                'default' => '#00753a',
+                'default' => '#006633',
                 'autoload' => false,
                 'desc_tip' => true,
             ),
@@ -265,11 +274,11 @@ class WCDP_General_Settings
             array(
                 'title' => __('Error Color', 'wc-donation-platform'),
                 // translators: %s: default color //
-                'desc' => sprintf(__('Error Color used in the frontend. Default: %s.', 'wc-donation-platform'), '<code>#de0000</code>'),
+                'desc' => sprintf(__('Error Color used in the frontend. Default: %s.', 'wc-donation-platform'), '<code>#B30000</code>'),
                 'id' => 'wcdp_error_color',
                 'type' => 'color',
                 'css' => 'width:6em;',
-                'default' => '#de0000',
+                'default' => '#B30000',
                 'autoload' => false,
                 'desc_tip' => true,
             ),
@@ -282,7 +291,7 @@ class WCDP_General_Settings
                 'title' => __('Support', 'wc-donation-platform'),
                 // translators: %1$s & %3$s: opening links, %2$s & %4$s closing links
                 'desc' => sprintf(esc_html__('Having issues? First, %1$scheck the documentation%2$s. If that doesn’t solve your problem, feel free to %3$sopen an issue on WordPress.org%4$s!', 'wc-donation-platform'), '<a href="https://www.wc-donation.com/documentation/" target="_blank">', '</a>', '<a href="https://wordpress.org/support/plugin/wc-donation-platform/#new-topic-0" target="_blank">', '</a>')
-                    . '<br><br><a href="https://wordpress.org/support/plugin/wc-donation-platform/reviews/?filter=5#new-post" target="_blank">'
+                    . '<br><br><a href="https://wordpress.org/support/plugin/wc-donation-platform/reviews/#new-post" target="_blank">'
                     . esc_html__('If you like Donation Platform for WooCommerce and want to support the further growth and development of the plugin, please consider a 5-star rating on wordpress.org.', 'wc-donation-platform')
                     . '</a>',
                 'type' => 'title',
@@ -301,6 +310,7 @@ class WCDP_General_Settings
     {
         WCDP_Progress::delete_total_revenue_meta_for_all_products();
         WCDP_Leaderboard::delete_cached_leaderboard_total();
+        WCDP_Leaderboard::clear_donable_products_cache();
     }
 
     /**
@@ -315,14 +325,16 @@ class WCDP_General_Settings
         $available_payment_methods = WC()->payment_gateways->get_available_payment_gateways();
         foreach ($available_payment_methods as $method) {
             if (isset($_POST['wcdp_fixed_' . $method->id]) && $_POST['wcdp_fixed_' . $method->id] >= 0) {
-                $fixed = (float)$_POST['wcdp_fixed_' . $method->id];
+                $fixed = (float) $_POST['wcdp_fixed_' . $method->id];
             } else {
                 $fixed = 0;
             }
-            if (isset($_POST['wcdp_variable_' . $method->id]) &&
-                (float)$_POST['wcdp_variable_' . $method->id] >= 0 &&
-                (float)$_POST['wcdp_variable_' . $method->id] <= 100) {
-                $variable = (float)$_POST['wcdp_variable_' . $method->id];
+            if (
+                isset($_POST['wcdp_variable_' . $method->id]) &&
+                (float) $_POST['wcdp_variable_' . $method->id] >= 0 &&
+                (float) $_POST['wcdp_variable_' . $method->id] <= 100
+            ) {
+                $variable = (float) $_POST['wcdp_variable_' . $method->id];
             } else {
                 $variable = 0;
             }
@@ -343,38 +355,40 @@ class WCDP_General_Settings
     /**
      * Adds privacy policy content for the Donation Platform for WooCommerce plugin.
      */
-    public function suggest_privacy_policy_content() {
+    public function suggest_privacy_policy_content()
+    {
         $content = sprintf(
             '<div class="wp-suggested-text">' .
             '<p class="privacy-policy-tutorial">' .
-                __( 'This sample language includes the basics around what personal data Donation Platform for WooCommerce may be collecting, storing and sharing. We recommend consulting with a lawyer when deciding what information to disclose on your privacy policy.', 'wc-donation-platform' ) .
+            __('This sample language includes the basics around what personal data Donation Platform for WooCommerce may be collecting, storing and sharing. We recommend consulting with a lawyer when deciding what information to disclose on your privacy policy.', 'wc-donation-platform') .
             '</p>' .
             // Translators: %1$s & %2$s: link tags
             '<p>' . __('This website utilizes %1$sDonation Platform for WooCommerce%2$s, a plugin designed to facilitate donations.', 'wc-donation-platform') . '</p>' .
             '<p>' . __('By making a donation through our website, you acknowledge and agree to the following:', 'wc-donation-platform') . '</p>' .
             '<ul>' .
-                '<li>' . __('Any information provided during the donation process, such as name, email address, and donation amount, may be securely stored in our website’s database.', 'wc-donation-platform') . '</li>' .
-                '<li>' . __('Donation Platform for WooCommerce provides an anonymized donor wall / Leaderboard feature to showcase donations. You have the option to specify how you would like your donation to be listed during the checkout process.', 'wc-donation-platform') . '</li>' .
-                '<li>' . __('We may use the provided information to:', 'wc-donation-platform') . '</li>' .
-                    '<ul>' .
-                        '<li>' . __('Thank you for your donation via email or other communication methods.', 'wc-donation-platform') . '</li>' .
-                        '<li>' . __('Issue receipts for your donations.', 'wc-donation-platform') . '</li>' .
-                        '<li>' . __('Comply with any legal obligations regarding donation records and reporting.', 'wc-donation-platform') . '</li>' .
-                        '<li>' . __('Provide you with a donation thank you certificate.', 'wc-donation-platform') . '</li>' .
-                    '</ul>' .
-                '<li>' . __('Your information will not be disclosed to third parties except when required by law, with your explicit consent, when necessary for providing our services such as payment processing, and in cases where it is in our legitimate interest, such as fraud prevention.', 'wc-donation-platform') . '</li>' .
+            '<li>' . __('Any information provided during the donation process, such as name, email address, and donation amount, may be securely stored in our website’s database.', 'wc-donation-platform') . '</li>' .
+            '<li>' . __('Donation Platform for WooCommerce provides an anonymized donor wall / Leaderboard feature to showcase donations. You have the option to specify how you would like your donation to be listed during the checkout process.', 'wc-donation-platform') . '</li>' .
+            '<li>' . __('We may use the provided information to:', 'wc-donation-platform') . '</li>' .
+            '<ul>' .
+            '<li>' . __('Thank you for your donation via email or other communication methods.', 'wc-donation-platform') . '</li>' .
+            '<li>' . __('Issue receipts for your donations.', 'wc-donation-platform') . '</li>' .
+            '<li>' . __('Comply with any legal obligations regarding donation records and reporting.', 'wc-donation-platform') . '</li>' .
+            '<li>' . __('Provide you with a donation thank you certificate.', 'wc-donation-platform') . '</li>' .
+            '</ul>' .
+            '<li>' . __('Your information will not be disclosed to third parties except when required by law, with your explicit consent, when necessary for providing our services such as payment processing, and in cases where it is in our legitimate interest, such as fraud prevention.', 'wc-donation-platform') . '</li>' .
             '</ul>' .
             '</div>',
             '<a href="https://www.wc-donation.com/" target="_blank">',
             '</a>'
         );
 
-        $content = apply_filters( 'wcdp_privacy_policy_content', $content );
+        $content = apply_filters('wcdp_privacy_policy_content', $content);
 
         wp_add_privacy_policy_content('Donation Platform for WooCommerce', wp_kses_post($content));
     }
 
-    public function on_plugin_update($upgrader_object, $options) {
+    public function on_plugin_update($upgrader_object, $options)
+    {
         if ($options['action'] === 'update' && $options['type'] === 'plugin') {
             if (array_key_exists('plugins', $options) && in_array('woocommerce/woocommerce.php', $options['plugins'], true)) {
                 if (get_option('woocommerce_email_footer_text') === '{site_title} &mdash; Built with {WooCommerce}') {
@@ -388,17 +402,20 @@ class WCDP_General_Settings
      * Render a "Clear Cache" button with AJAX submit
      * @return void
      */
-    public function js_clear_cache() {
+    public function js_clear_cache()
+    {
 
         ?>
         <tr class="">
-            <th scope="row" class="titledesc"><?php esc_html_e('Clear Cached Data', 'wc-donation-platform');?></th>
+            <th scope="row" class="titledesc"><?php esc_html_e('Clear Cached Data', 'wc-donation-platform'); ?></th>
             <td class="forminp forminp-checkbox ">
                 <fieldset>
                     <button type="button" class="button-secondary" id="wcdp-clear-cache-btn">
-                        <?php esc_html_e('Clear Cache', 'wc-donation-platform');?>
+                        <?php esc_html_e('Clear Cache', 'wc-donation-platform'); ?>
                     </button>
-                    <p class="description "><?php esc_html_e('Clear cached progress bar & leaderboard data.', 'wc-donation-platform');?></p>
+                    <p class="description ">
+                        <?php esc_html_e('Clear cached progress bar & leaderboard data.', 'wc-donation-platform'); ?>
+                    </p>
             </td>
         </tr>
         <script type="text/javascript">
@@ -426,7 +443,8 @@ class WCDP_General_Settings
      *
      * @return void
      */
-    public function ajax_clear_cache() {
+    public function ajax_clear_cache()
+    {
         if (!current_user_can('manage_woocommerce')) {
             wp_send_json_error(__('Permission denied.', 'wc-donation-platform'));
         }
@@ -443,7 +461,8 @@ class WCDP_General_Settings
      * Show/Hide Leaderboard input fields depending on settings
      * @return void
      */
-    public function leaderboard_js() {
+    public function leaderboard_js()
+    {
 
         ?>
         <script type="text/javascript">

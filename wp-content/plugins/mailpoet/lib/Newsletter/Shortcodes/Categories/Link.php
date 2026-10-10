@@ -9,16 +9,12 @@ use MailPoet\Entities\NewsletterEntity;
 use MailPoet\Entities\SendingQueueEntity;
 use MailPoet\Entities\SubscriberEntity;
 use MailPoet\Newsletter\Url as NewsletterUrl;
-use MailPoet\Settings\SettingsController;
 use MailPoet\Settings\TrackingConfig;
 use MailPoet\Subscription\SubscriptionUrlFactory;
 use MailPoet\WP\Functions as WPFunctions;
 
 class Link implements CategoryInterface {
   const CATEGORY_NAME = 'link';
-
-  /** @var SettingsController */
-  private $settings;
 
   /** @var NewsletterUrl */
   private $newsletterUrl;
@@ -30,12 +26,10 @@ class Link implements CategoryInterface {
   private $trackingConfig;
 
   public function __construct(
-    SettingsController $settings,
     NewsletterUrl $newsletterUrl,
     WPFunctions $wp,
     TrackingConfig $trackingConfig
   ) {
-    $this->settings = $settings;
     $this->newsletterUrl = $newsletterUrl;
     $this->wp = $wp;
     $this->trackingConfig = $trackingConfig;
@@ -78,6 +72,14 @@ class Link implements CategoryInterface {
         return self::processUrl(
           $shortcodeDetails['action'],
           $subscriptionUrlFactory->getManageUrl($wpUserPreview ? null : $subscriber),
+          $queue,
+          $wpUserPreview
+        );
+
+      case 'subscription_tracking_opt_out_url':
+        return self::processUrl(
+          $shortcodeDetails['action'],
+          $subscriptionUrlFactory->getTrackingOptOutUrl($wpUserPreview ? null : $subscriber),
           $queue,
           $wpUserPreview
         );
@@ -149,6 +151,9 @@ class Link implements CategoryInterface {
       case 'subscription_manage_url':
         $url = $subscriptionUrlFactory->getManageUrl($subscriber);
         break;
+      case 'subscription_tracking_opt_out_url':
+        $url = $subscriptionUrlFactory->getTrackingOptOutUrl($subscriber);
+        break;
       case 'newsletter_view_in_browser_url':
         $url = $this->newsletterUrl->getViewInBrowserUrl(
           $newsletter,
@@ -173,6 +178,9 @@ class Link implements CategoryInterface {
         );
         $url = ($url !== $shortcode) ? $url : null;
         break;
+    }
+    if (!is_string($url) && $url !== null) {
+      return null;
     }
     return $url;
   }

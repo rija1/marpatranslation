@@ -2,32 +2,76 @@
 
 class WCML_Product_Gallery_Filter implements IWPML_Action {
 
-	/**
-	 * @var WPML_Translation_Element_Factory
-	 */
+	const CACHE_GROUP = 'WCML_Product_Gallery_Filter';
+
 	private $translation_element_factory;
-	/** @var WPML_WP_Cache */
 	private $wpml_cache;
 
 	public function __construct( WPML_Translation_Element_Factory $translation_element_factory, $wpml_cache = null ) {
 		$this->translation_element_factory = $translation_element_factory;
 
-		$cache_group      = 'WCML_Product_Gallery_Filter';
 		$this->wpml_cache = $wpml_cache;
 		if ( null === $wpml_cache ) {
-			$this->wpml_cache = new WPML_WP_Cache( $cache_group );
+			$this->wpml_cache = new WPML_WP_Cache( self::CACHE_GROUP );
 		}
 	}
 
+	public static function delete_cache( $product_id ) {
+		wp_cache_delete( $product_id . '_image_gallery', self::CACHE_GROUP );
+	}
+
 	public function add_hooks() {
-		add_filter( 'get_post_metadata', [ $this, 'localize_image_ids' ], 10, 3 );
+		if ( apply_filters( 'wcml_product_localize_image_ids_legacy_mode', false ) ) {
+			add_filter( 'get_post_metadata', [ $this, 'localize_image_ids' ], 10, 3 );
+		} else {
+			add_filter( 'woocommerce_product_get_gallery_image_ids', [ $this, 'translate_image_ids' ], 10, 2 );
+		}
+	}
+
+	public function translate_image_ids( $gallery_org_ids, $product ) {
+		$product_id        = $product->get_id();
+		$cache_key         = $product_id . '_image_gallery';
+		$found             = false;
+		$gallery_cache_ids = $this->wpml_cache->get( $cache_key, $found );
+
+		if ( $found && is_array( $gallery_cache_ids ) ) {
+			return $gallery_cache_ids;
+		}
+
+		$gallery_ids    = $gallery_org_ids;
+		$post_element   = $this->translation_element_factory->create( $product_id, 'post' );
+		$source_element = $post_element->get_source_element();
+		if ( null !== $source_element ) {
+
+			$original_gallery_value = get_post_meta( $source_element->get_id(), '_product_image_gallery', true );
+
+			if ( $original_gallery_value ) {
+				$original_gallery = explode( ',', $original_gallery_value );
+				$original_gallery = array_filter( $original_gallery );
+
+				$gallery_ids = [];
+				foreach ( $original_gallery as $attachment_id ) {
+					$attachment_element    = $this->translation_element_factory->create( (int) $attachment_id, 'post' );
+					$translated_attachment = $attachment_element->get_translation( $post_element->get_language_code() );
+					if ( null !== $translated_attachment ) {
+						$gallery_ids[] = $translated_attachment->get_id();
+					} else {
+						$gallery_ids[] = (int) $attachment_id;
+					}
+				}
+			}
+		}
+
+		$this->wpml_cache->set( $cache_key, $gallery_ids );
+
+		return $gallery_ids;
 	}
 
 	public function localize_image_ids( $value, $object_id, $meta_key ) {
 
 		$image_ids = false;
 		if ( '_product_image_gallery' === $meta_key &&
-			 in_array( get_post_type( $object_id ), [ 'product', 'product_variation' ] ) ) {
+			in_array( get_post_type( $object_id ), [ 'product', 'product_variation' ] ) ) {
 
 			$cache_key = $object_id . '_image_gallery';
 			$found     = false;
@@ -71,5 +115,4 @@ class WCML_Product_Gallery_Filter implements IWPML_Action {
 
 		return $image_ids ? [ $image_ids ] : $value;
 	}
-
 }

@@ -2,25 +2,24 @@
 
 // File generated from our OpenAPI spec
 
-namespace Stripe\Service\Treasury;
+namespace PaymentPlugins\Vendor\Stripe\Service\Treasury;
 
 /**
  * @phpstan-import-type RequestOptionsArray from \Stripe\Util\RequestOptions
- */
-/**
+ *
  * @psalm-import-type RequestOptionsArray from \Stripe\Util\RequestOptions
  */
-class DebitReversalService extends \Stripe\Service\AbstractService
+class DebitReversalService extends \PaymentPlugins\Vendor\Stripe\Service\AbstractService
 {
     /**
      * Returns a list of DebitReversals.
      *
-     * @param null|array $params
-     * @param null|RequestOptionsArray|\Stripe\Util\RequestOptions $opts
+     * @param null|array{ending_before?: string, expand?: string[], financial_account: string, limit?: int, received_debit?: string, resolution?: string, starting_after?: string, status?: string} $params
+     * @param null|RequestOptionsArray|\PaymentPlugins\Vendor\Stripe\Util\RequestOptions $opts
      *
-     * @throws \Stripe\Exception\ApiErrorException if the request fails
+     * @return \PaymentPlugins\Vendor\Stripe\Collection<\PaymentPlugins\Vendor\Stripe\Treasury\DebitReversal>
      *
-     * @return \Stripe\Collection<\Stripe\Treasury\DebitReversal>
+     * @throws \PaymentPlugins\Vendor\Stripe\Exception\ApiErrorException if the request fails
      */
     public function all($params = null, $opts = null)
     {
@@ -30,12 +29,12 @@ class DebitReversalService extends \Stripe\Service\AbstractService
     /**
      * Reverses a ReceivedDebit and creates a DebitReversal object.
      *
-     * @param null|array $params
-     * @param null|RequestOptionsArray|\Stripe\Util\RequestOptions $opts
+     * @param null|array{expand?: string[], metadata?: array<string, string>, received_debit: string} $params
+     * @param null|RequestOptionsArray|\PaymentPlugins\Vendor\Stripe\Util\RequestOptions $opts
      *
-     * @throws \Stripe\Exception\ApiErrorException if the request fails
+     * @return \PaymentPlugins\Vendor\Stripe\Treasury\DebitReversal
      *
-     * @return \Stripe\Treasury\DebitReversal
+     * @throws \PaymentPlugins\Vendor\Stripe\Exception\ApiErrorException if the request fails
      */
     public function create($params = null, $opts = null)
     {
@@ -46,12 +45,12 @@ class DebitReversalService extends \Stripe\Service\AbstractService
      * Retrieves a DebitReversal object.
      *
      * @param string $id
-     * @param null|array $params
-     * @param null|RequestOptionsArray|\Stripe\Util\RequestOptions $opts
+     * @param null|array{expand?: string[]} $params
+     * @param null|RequestOptionsArray|\PaymentPlugins\Vendor\Stripe\Util\RequestOptions $opts
      *
-     * @throws \Stripe\Exception\ApiErrorException if the request fails
+     * @return \PaymentPlugins\Vendor\Stripe\Treasury\DebitReversal
      *
-     * @return \Stripe\Treasury\DebitReversal
+     * @throws \PaymentPlugins\Vendor\Stripe\Exception\ApiErrorException if the request fails
      */
     public function retrieve($id, $params = null, $opts = null)
     {

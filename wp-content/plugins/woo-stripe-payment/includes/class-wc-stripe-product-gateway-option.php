@@ -36,8 +36,8 @@ class WC_Stripe_Product_Gateway_Option {
 
 	/**
 	 *
-	 * @param int|WC_Product            $product
-	 * @param WC_Payment_Gateway_Stripe $payment_method
+	 * @param int|WC_Product                                           $product
+	 * @param \PaymentPlugins\Stripe\Payments\Gateways\AbstractGateway $payment_method
 	 */
 	public function __construct( $product, $payment_method ) {
 		if ( ! is_object( $product ) ) {
@@ -82,8 +82,20 @@ class WC_Stripe_Product_Gateway_Option {
 	 * @return array
 	 */
 	public function get_default_values() {
+		if ( $this->payment_method->supports( 'stripe_bnpl_msg' ) ) {
+			$payment_sections = (array) $this->payment_method->get_option( 'message_sections', [] );
+			if ( ! is_array( $payment_sections ) ) {
+				$payment_sections = array();
+			}
+
+			return array(
+				'enabled' => \wc_string_to_bool( $this->payment_method->get_option( 'message_enabled', 'yes' ) )
+				             && in_array( 'product', $payment_sections, true ),
+			);
+		}
+
 		return array(
-			'enabled'     => $this->payment_method->product_checkout_enabled(),
+			'enabled'     => $this->payment_method->enabled === 'yes' && $this->payment_method->product_checkout_enabled(),
 			'charge_type' => $this->payment_method->get_option( 'charge_type' ),
 		);
 	}
@@ -94,11 +106,11 @@ class WC_Stripe_Product_Gateway_Option {
 	 * @param mixed  $default
 	 */
 	public function get_option( $key, $default = null ) {
-		if ( ! isset( $this->settings[ $key ] ) && null != $default ) {
+		if ( ! isset( $this->settings[ $key ] ) && null !== $default ) {
 			$this->settings[ $key ] = $default;
 		}
 
-		return $this->settings[ $key ];
+		return $this->settings[ $key ] ?? $default;
 	}
 
 	public function set_option( $key, $value ) {
@@ -110,8 +122,8 @@ class WC_Stripe_Product_Gateway_Option {
 	}
 
 	/**
-	 * @since 3.3.21
 	 * @return bool
+	 * @since 3.3.21
 	 */
 	public function has_product() {
 		return ! ! $this->product;

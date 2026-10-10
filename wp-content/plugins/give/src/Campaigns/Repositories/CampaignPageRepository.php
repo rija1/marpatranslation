@@ -42,6 +42,7 @@ class CampaignPageRepository
     public function queryByCampaignId(int $campaignId): ModelQueryBuilder
     {
         return $this->prepareQuery()
+            ->where('post_status', CampaignPageStatus::TRASH()->getValue(), '!=')
             ->where('postmeta_attach_meta_campaignId.meta_value', $campaignId);
     }
 
@@ -54,6 +55,7 @@ class CampaignPageRepository
     }
 
     /**
+     * @since 4.18.0 Keep the original error as the previous exception when the write fails.
      * @since 4.0.0
      * @throws Exception
      */
@@ -108,7 +110,7 @@ class CampaignPageRepository
 
             Log::error('Failed creating a campaign page', [$campaignPage]);
 
-            throw new $exception('Failed creating a campaign page');
+            throw new Exception('Failed creating a campaign page', 0, $exception);
         }
 
         DB::query('COMMIT');
@@ -117,6 +119,7 @@ class CampaignPageRepository
     }
 
     /**
+     * @since 4.18.0 Keep the original error as the previous exception when the write fails.
      * @since 4.0.0
      * @throws Exception
      */
@@ -151,7 +154,7 @@ class CampaignPageRepository
 
             Log::error('Failed updating a campaign page', [$campaignPage]);
 
-            throw new $exception('Failed updating a campaign page');
+            throw new Exception('Failed updating a campaign page', 0, $exception);
         }
 
         DB::query('COMMIT');
@@ -160,6 +163,7 @@ class CampaignPageRepository
     }
 
     /**
+     * @since 4.18.0 Keep the original error as the previous exception when the write fails.
      * @since 4.0.0
      * @throws Exception
      */
@@ -182,7 +186,7 @@ class CampaignPageRepository
 
             Log::error('Failed deleting a campaign page', [$campaignPage]);
 
-            throw new $exception('Failed deleting a campaign page');
+            throw new Exception('Failed deleting a campaign page', 0, $exception);
         }
 
         DB::query('COMMIT');

@@ -2,6 +2,7 @@
 declare(strict_types = 1);
 namespace Automattic\WooCommerce\EmailEditor\Engine;
 if (!defined('ABSPATH')) exit;
+use Automattic\WooCommerce\EmailEditor\Engine\Renderer\ContentRenderer\Preset_Variable_Resolver;
 use WP_Block_Template;
 use WP_Post;
 use WP_Theme_JSON;
@@ -29,7 +30,7 @@ class Theme_Controller {
  // Merge synced styles from current active theme.
  if ( $this->site_style_sync_controller->is_sync_enabled() ) {
  // phpcs:ignore Generic.Commenting.DocComment.MissingShort
- $site_theme = $this->site_style_sync_controller->get_theme();
+ $site_theme = $this->site_style_sync_controller->get_theme( $theme );
  $theme->merge( $site_theme );
  }
  return apply_filters( 'woocommerce_email_editor_theme_json', $theme );
@@ -50,9 +51,8 @@ class Theme_Controller {
  foreach ( $styles as $key => $style_value ) {
  if ( is_array( $style_value ) ) {
  $styles[ $key ] = $this->recursive_extract_preset_variables( $style_value );
- } elseif ( is_string( $style_value ) && strpos( $style_value, 'var:preset|' ) === 0 ) {
- // phpcs:ignore Generic.Commenting.DocComment.MissingShort
- $styles[ $key ] = 'var(--wp--' . str_replace( '|', '--', str_replace( 'var:', '', $style_value ) ) . ')';
+ } elseif ( is_string( $style_value ) && Preset_Variable_Resolver::is_preset_reference( $style_value ) ) {
+ $styles[ $key ] = Preset_Variable_Resolver::to_css_var( $style_value );
  } else {
  $styles[ $key ] = $style_value;
  }

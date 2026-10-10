@@ -153,15 +153,14 @@ abstract class Updraft_Smush_Task extends Updraft_Task_1_2 {
 			$this->log('There were no WebP conversion tools found on your server.');
 		}
 
-		$webp_converter = new WPO_WebP_Convert();
-		$destination = $webp_converter->get_destination_path($file_path);
+		$destination = WPO_WebP_Utils::get_destination_path($file_path);
 		if ($webp_tools_available && file_exists($destination)) {
 			if (is_multisite()) {
 				switch_to_blog($this->get_option('blog_id', 1));
-				update_post_meta($attachment_id, 'wpo-webp-conversion-complete', true);
+				update_post_meta($attachment_id, WPO_Webp_Convert_Image_Task::WEBP_CONVERSION_META_KEY, true);
 				restore_current_blog();
 			} else {
-				update_post_meta($attachment_id, 'wpo-webp-conversion-complete', true);
+				update_post_meta($attachment_id, WPO_Webp_Convert_Image_Task::WEBP_CONVERSION_META_KEY, true);
 			}
 		}
 
@@ -248,7 +247,7 @@ abstract class Updraft_Smush_Task extends Updraft_Task_1_2 {
 		// Make path relative and safe for migrations
 		$back_up_relative_path = preg_replace('#^'.wp_normalize_path($uploads_dir['basedir'].'/').'#', '', $back_up);
 
-		update_post_meta($this->get_option('attachment_id'), 'original-file', $back_up_relative_path);
+		update_post_meta($this->get_option('attachment_id'), '_wpo-original-file', $back_up_relative_path);
 
 		if (is_multisite()) {
 			restore_current_blog();
@@ -323,14 +322,14 @@ abstract class Updraft_Smush_Task extends Updraft_Task_1_2 {
 
 		if (is_multisite()) {
 			switch_to_blog($this->get_option('blog_id', 1));
-			update_post_meta($attachment_id, 'smush-complete', true);
-			update_post_meta($attachment_id, 'smush-info', $info);
-			update_post_meta($attachment_id, 'smush-stats', $stats);
+			update_post_meta($attachment_id, '_wpo-smush-complete', true);
+			update_post_meta($attachment_id, '_wpo-smush-info', $info);
+			update_post_meta($attachment_id, '_wpo-smush-stats', $stats);
 			restore_current_blog();
 		} else {
-			update_post_meta($attachment_id, 'smush-complete', true);
-			update_post_meta($attachment_id, 'smush-info', $info);
-			update_post_meta($attachment_id, 'smush-stats', $stats);
+			update_post_meta($attachment_id, '_wpo-smush-complete', true);
+			update_post_meta($attachment_id, '_wpo-smush-info', $info);
+			update_post_meta($attachment_id, '_wpo-smush-stats', $stats);
 		}
 
 		$this->log("Successfully optimized the image - $file_path." . $info);
@@ -354,12 +353,12 @@ abstract class Updraft_Smush_Task extends Updraft_Task_1_2 {
 
 		if (is_multisite()) {
 			switch_to_blog($this->get_option('blog_id', 1));
-			update_post_meta($attachment_id, 'smush-info', $info);
-			update_post_meta($attachment_id, 'smush-complete', false);
+			update_post_meta($attachment_id, '_wpo-smush-info', $info);
+			update_post_meta($attachment_id, '_wpo-smush-complete', false);
 			restore_current_blog();
 		} else {
-			update_post_meta($attachment_id, 'smush-info', $info);
-			update_post_meta($attachment_id, 'smush-complete', false);
+			update_post_meta($attachment_id, '_wpo-smush-info', $info);
+			update_post_meta($attachment_id, '_wpo-smush-complete', false);
 		}
 
 

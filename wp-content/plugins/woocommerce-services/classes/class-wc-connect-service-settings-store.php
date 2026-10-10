@@ -1,5 +1,9 @@
 <?php
 
+if ( ! defined( 'ABSPATH' ) ) {
+	exit;
+}
+
 if ( ! class_exists( 'WC_Connect_Service_Settings_Store' ) ) {
 
 	class WC_Connect_Service_Settings_Store {
@@ -261,17 +265,26 @@ if ( ! class_exists( 'WC_Connect_Service_Settings_Store' ) ) {
 		/**
 		 * Updates the existing label data
 		 *
-		 * @param $order_id
-		 * @param $new_label_data
+		 * @param int    $order_id       Order ID.
+		 * @param object $new_label_data Label data from the Connect server, with a label_id.
 		 *
-		 * @return array updated label info
+		 * @return array|object The updated label info, or $new_label_data unchanged when the order
+		 *                      does not have that label.
 		 */
 		public function update_label_order_meta_data( $order_id, $new_label_data ) {
-			$result      = $new_label_data;
-			$order       = wc_get_order( $order_id );
+			$result = $new_label_data;
+			$order  = wc_get_order( $order_id );
+
+			// Nothing to update when the ID is not an order.
+			if ( ! $order instanceof WC_Order ) {
+				return $result;
+			}
+
 			$labels_data = $this->get_label_order_meta_data( $order_id );
+			$matched     = false;
 			foreach ( $labels_data as $index => $label_data ) {
-				if ( $label_data['label_id'] === $new_label_data->label_id ) {
+				if ( is_array( $label_data ) && isset( $label_data['label_id'] ) && (int) $label_data['label_id'] === (int) $new_label_data->label_id ) {
+					$matched               = true;
 					$result                = array_merge( $label_data, (array) $new_label_data );
 					$labels_data[ $index ] = $result;
 
@@ -281,6 +294,12 @@ if ( ! class_exists( 'WC_Connect_Service_Settings_Store' ) ) {
 					}
 				}
 			}
+
+			// Not this order's label: write nothing, not even an empty list, which counts as a label.
+			if ( ! $matched ) {
+				return $result;
+			}
+
 			$order->update_meta_data( 'wc_connect_labels', $labels_data );
 			$order->save();
 			return $result;
@@ -290,12 +309,18 @@ if ( ! class_exists( 'WC_Connect_Service_Settings_Store' ) ) {
 		 * Adds new labels to the order
 		 *
 		 * @param $order_id
-		 * @param array    $new_labels - labels to be added
+		 * @param array $new_labels - labels to be added
 		 */
 		public function add_labels_to_order( $order_id, $new_labels ) {
+			$order = wc_get_order( $order_id );
+
+			// Nothing to add to when the ID is not an order.
+			if ( ! $order instanceof WC_Order ) {
+				return;
+			}
+
 			$labels_data = $this->get_label_order_meta_data( $order_id );
 			$labels_data = array_merge( $new_labels, $labels_data );
-			$order       = wc_get_order( $order_id );
 			$order->update_meta_data( 'wc_connect_labels', $labels_data );
 			$order->save();
 		}
@@ -305,7 +330,13 @@ if ( ! class_exists( 'WC_Connect_Service_Settings_Store' ) ) {
 		}
 
 		public function update_destination_address( $order_id, $api_address ) {
-			$order      = wc_get_order( $order_id );
+			$order = wc_get_order( $order_id );
+
+			// Nothing to update when the ID is not an order.
+			if ( ! $order instanceof WC_Order ) {
+				return;
+			}
+
 			$wc_address = $order->get_address( 'shipping' );
 
 			$new_address = array_merge( array(), (array) $wc_address, (array) $api_address );
@@ -360,33 +391,31 @@ if ( ! class_exists( 'WC_Connect_Service_Settings_Store' ) ) {
 		}
 
 		public function get_enabled_services_by_ids( $service_ids ) {
-			if ( empty( $service_ids ) ) {
+			if ( empty( $service_ids ) || ! is_array( $service_ids ) ) {
 				return array();
 			}
 
 			$enabled_services = array();
 
-			// Note: We use esc_sql here instead of prepare because we are using WHERE IN
-			// https://codex.wordpress.org/Function_Reference/esc_sql.
-
-			$escaped_list = '';
-			foreach ( $service_ids as $shipping_service ) {
-				if ( ! empty( $escaped_list ) ) {
-					$escaped_list .= ',';
-				}
-				$escaped_list .= "'" . esc_sql( $shipping_service ) . "'";
-			}
+			// prepare() cannot take a list, but it can take a generated run of placeholders:
+			// one %s per service id, with the ids passed through as the arguments.
+			$service_ids  = array_values( $service_ids );
+			$placeholders = implode( ', ', array_fill( 0, count( $service_ids ), '%s' ) );
 
 			global $wpdb;
-			// phpcs:disable WordPress.DB.PreparedSQL.InterpolatedNotPrepared --- Need to use interpolated for the `IN()` condition
+			// phpcs:disable WordPress.DB.PreparedSQL.InterpolatedNotPrepared, WordPress.DB.PreparedSQLPlaceholders.UnfinishedPrepare -- The only interpolations are $wpdb->prefix and $placeholders, a generated run of %s built above from count( $service_ids ); the ids themselves are bound by prepare().
+			// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching -- Joins WooCommerce's shipping zone tables, which have no core reader that returns raw rows; WC_Shipping_Zones would instantiate every shipping method. Not cached because zone methods are edited from WooCommerce's own screens, which fire no hook this store could invalidate on.
 			$methods = $wpdb->get_results(
-				"SELECT * FROM {$wpdb->prefix}woocommerce_shipping_zone_methods " .
-				"LEFT JOIN {$wpdb->prefix}woocommerce_shipping_zones " .
-				"ON {$wpdb->prefix}woocommerce_shipping_zone_methods.zone_id = {$wpdb->prefix}woocommerce_shipping_zones.zone_id " .
-				"WHERE method_id IN ({$escaped_list}) " .
-				'ORDER BY zone_order, instance_id;'
+				$wpdb->prepare(
+					"SELECT * FROM {$wpdb->prefix}woocommerce_shipping_zone_methods " .
+					"LEFT JOIN {$wpdb->prefix}woocommerce_shipping_zones " .
+					"ON {$wpdb->prefix}woocommerce_shipping_zone_methods.zone_id = {$wpdb->prefix}woocommerce_shipping_zones.zone_id " .
+					"WHERE method_id IN ({$placeholders}) " .
+					'ORDER BY zone_order, instance_id;',
+					$service_ids
+				)
 			);
-			// phpcs:enable WordPress.DB.PreparedSQL.InterpolatedNotPrepared
+			// phpcs:enable WordPress.DB.PreparedSQL.InterpolatedNotPrepared, WordPress.DB.PreparedSQLPlaceholders.UnfinishedPrepare
 
 			if ( empty( $methods ) ) {
 				return $enabled_services;
@@ -444,6 +473,7 @@ if ( ! class_exists( 'WC_Connect_Service_Settings_Store' ) ) {
 
 				$new_method_id = $service_schema->method_id;
 
+				// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching -- Rewrites the stored method_id of a zone method row; core exposes no API for renaming a shipping method in place. One-shot migration guarded by the shipping_methods_migrated option, and a write has nothing to cache.
 				$wpdb->update(
 					"{$wpdb->prefix}woocommerce_shipping_zone_methods",
 					array( 'method_id' => $new_method_id ),

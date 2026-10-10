@@ -6,14 +6,32 @@ use WCML\Utilities\DB;
 
 abstract class SynchronizerForMeta extends Synchronizer {
 
-	/**
-	 * @param string $metaKey
-	 * @param int[]  $itemIds
-	 *
-	 * @return array
-	 */
+	private const DEADLOCK_ATTEMPTS = 3;
+
+	private const DEADLOCK_RETRY_DELAY = 20000;
+
+	protected function retryOnDeadlock( callable $write ) {
+		for ( $attempt = 1; $attempt <= self::DEADLOCK_ATTEMPTS; $attempt++ ) {
+			$write();
+
+			if ( ! $this->isDeadlockError( $this->wpdb->last_error ) ) {
+				return;
+			}
+
+			if ( $attempt < self::DEADLOCK_ATTEMPTS ) {
+				usleep( self::DEADLOCK_RETRY_DELAY * $attempt );
+			}
+		}
+	}
+
+	private function isDeadlockError( $error ) {
+		$error = (string) $error;
+
+		return false !== stripos( $error, 'deadlock' )
+			|| false !== stripos( $error, 'lock wait timeout' );
+	}
+
 	protected function getMeta( $metaKey, $itemIds ) {
-		// phpcs:disable WordPress.WP.PreparedSQL.NotPrepared
 		$storedRawData = $this->wpdb->get_results(
 			$this->wpdb->prepare(
 				"
@@ -28,7 +46,6 @@ abstract class SynchronizerForMeta extends Synchronizer {
 			),
 			OBJECT_K
 		);
-		// phpcs:enable
 
 		if ( empty( $storedRawData ) ) {
 			return [];
@@ -41,10 +58,6 @@ abstract class SynchronizerForMeta extends Synchronizer {
 		return $storedData;
 	}
 
-	/**
-	 * @param string           $metaKey
-	 * @param array<int,mixed> $metaValues
-	 */
 	protected function insertMeta( $metaKey, $metaValues ) {
 		if ( empty( $metaValues ) ) {
 			return;
@@ -54,42 +67,35 @@ abstract class SynchronizerForMeta extends Synchronizer {
 		foreach ( $metaValues as $idToInsert => $valueToInsert ) {
 			$insertValues[] = $this->wpdb->prepare( "(%d,%s,%s)", $idToInsert, $metaKey, maybe_serialize( $valueToInsert ) );
 		}
-		// phpcs:disable WordPress.WP.PreparedSQL.NotPrepared
 		$this->wpdb->query(
 				"INSERT INTO {$this->wpdb->postmeta}
 				(`post_id`,`meta_key`,`meta_value`)
 				VALUES " . implode( ',', $insertValues )
 		);
-		// phpcs:enable
 	}
 
-	/**
-	 * @param string           $metaKey
-	 * @param array<int,mixed> $metaValues
-	 */
 	protected function updateMeta( $metaKey, $metaValues ) {
 		if ( empty( $metaValues ) ) {
 			return;
 		}
+		ksort( $metaValues, SORT_NUMERIC );
+
 		foreach ( $metaValues as $idToUpdate => $valueToUpdate ) {
-			// phpcs:disable WordPress.WP.PreparedSQL.NotPrepared
 			$this->wpdb->update(
 				$this->wpdb->postmeta,
 				[ 'meta_value' => maybe_serialize( $valueToUpdate ) ],
 				[ 'post_id' => $idToUpdate, 'meta_key' => $metaKey ]
 			);
-			// phpcs:enable
 		}
 	}
 
-	/**
-	 * @param int[] $metaIds
-	 */
 	protected function deleteMetaByIds( $metaIds ) {
 		if ( empty( $metaIds ) ) {
 			return;
 		}
-		// phpcs:disable WordPress.WP.PreparedSQL.NotPrepared
+
+		sort( $metaIds, SORT_NUMERIC );
+
 		$this->wpdb->query(
 			$this->wpdb->prepare(
 				"
@@ -100,19 +106,15 @@ abstract class SynchronizerForMeta extends Synchronizer {
 				count( $metaIds )
 			)
 		);
-		// phpcs:enable
 	}
 
-	/**
-	 * @param string $metaKey
-	 * @param mixed  $metaValue
-	 * @param int[]  $idsToUnify
-	 */
 	protected function unifyMeta( $metaKey, $metaValue, $idsToUnify ) {
 		if ( empty( $idsToUnify ) ) {
 			return;
 		}
-		// phpcs:disable WordPress.WP.PreparedSQL.NotPrepared
+
+		sort( $idsToUnify, SORT_NUMERIC );
+
 		$this->wpdb->query(
 			$this->wpdb->prepare(
 				"UPDATE {$this->wpdb->postmeta}
@@ -123,20 +125,14 @@ abstract class SynchronizerForMeta extends Synchronizer {
 				$metaKey
 			)
 		);
-		// phpcs:enable
 	}
 
-	/**
-	 * @param int    $productId
-	 * @param int[]  $translationsIds
-	 * @param string $metaKey
-	 */
 	protected function synchronizeMeta( $productId, $translationsIds, $metaKey ) {
 		$productsIds = array_merge( [ $productId ], $translationsIds );
 		$storedMeta  = $this->getMeta( $metaKey, $productsIds );
 		$productMeta = $storedMeta[ $productId ] ?? null;
 		if ( null === $productMeta ) {
-			return;
+			return [];
 		}
 
 		$metaToInsert = [];
@@ -154,13 +150,10 @@ abstract class SynchronizerForMeta extends Synchronizer {
 
 		$this->insertMeta( $metaKey, $metaToInsert );
 		$this->unifyMeta( $metaKey, $productMeta, $idsToUpdate );
+
+		return array_merge( array_keys( $metaToInsert ), $idsToUpdate );
 	}
 
-	/**
-	 * @param int[]            $translationsIds
-	 * @param array<int,mixed> $storedData
-	 * @param string           $metaKey
-	 */
 	protected function spreadEmptyValue( $translationsIds, $storedData, $metaKey ) {
 		$metaToInsert = [];
 		$metaToUpdate = [];
@@ -179,15 +172,13 @@ abstract class SynchronizerForMeta extends Synchronizer {
 		$this->updateMeta( $metaKey, $metaToUpdate );
 	}
 
-	/**
-	 * @param int[]  $translationsIds
-	 * @param string $metaKey
-	 */
 	protected function clearTranslationsValue( $translationsIds, $metaKey ) {
 		if ( empty( $translationsIds ) ) {
 			return;
 		}
-		// phpcs:disable WordPress.WP.PreparedSQL.NotPrepared
+
+		sort( $translationsIds, SORT_NUMERIC );
+
 		$this->wpdb->query(
 			$this->wpdb->prepare(
 				"
@@ -200,16 +191,10 @@ abstract class SynchronizerForMeta extends Synchronizer {
 				count( $translationsIds )
 			)
 		);
-		// phpcs:enable
 	}
 
-	/**
-	 * @param int   $productId
-	 * @param int[] $translationsIds
-	 */
 	protected function deleteOrphanedFields( $productId, $translationsIds ) {
 		$productsIds   = array_merge( [ $productId ], $translationsIds );
-		// phpcs:disable WordPress.WP.PreparedSQL.NotPrepared
 		$storedRawData = $this->wpdb->get_results(
 			"
 			SELECT *
@@ -217,7 +202,6 @@ abstract class SynchronizerForMeta extends Synchronizer {
 			WHERE post_id IN (" . DB::prepareIn( $productsIds ) . ")
 			"
 		);
-		// phpcs:enable
 
 		$storedData = [];
 		foreach ( $storedRawData as $rawData ) {

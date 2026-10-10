@@ -23,6 +23,7 @@ use Elementor\App\Modules\KitLibrary\Module as KitLibraryModule;
 use Elementor\App\Modules\ImportExportCustomization\Module as ImportExportCustomizationModule;
 use Elementor\App\Modules\SiteEditor\Module as SiteEditorModule;
 use Elementor\App\Modules\Onboarding\Module as OnboardingModule;
+use Elementor\App\Modules\OnboardingNew\Module as OnboardingNewModule;
 
 if ( ! defined( 'ABSPATH' ) ) {
 	exit; // Exit if accessed directly.
@@ -50,18 +51,8 @@ class App extends BaseApp {
 		return admin_url( 'admin.php?page=' . self::PAGE_ID . '&ver=' . ELEMENTOR_VERSION );
 	}
 
-	private function register_admin_menu( Admin_Menu_Manager $admin_menu ) {
-		if ( ! $this->is_editor_one_active() ) {
-			$admin_menu->register( static::PAGE_ID, new Theme_Builder_Menu_Item() );
-		}
-	}
-
 	private function register_editor_one_menu( Menu_Data_Provider $menu_data_provider ) {
 		$menu_data_provider->register_menu( new Editor_One_Theme_Builder_Menu() );
-	}
-
-	private function is_editor_one_active(): bool {
-		return (bool) Plugin::instance()->modules_manager->get_modules( 'editor-one' );
 	}
 
 	public function fix_submenu( $menu ) {
@@ -179,7 +170,7 @@ class App extends BaseApp {
 				return ELEMENTOR_ASSETS_PATH . "js/packages/{$name}/{$name}.asset.php";
 			} );
 
-		Collection::make( [ 'ui', 'icons' ] )
+		Collection::make( [ 'ui', 'icons', 'store', 'query', 'utils', 'events', 'onboarding', 'schema' ] )
 			->each( function( $package ) use ( $assets_config_provider ) {
 				$suffix = Utils::is_script_debug() ? '' : '.min';
 				$config = $assets_config_provider->load( $package )->get( $package );
@@ -266,6 +257,7 @@ class App extends BaseApp {
 				'wp-i18n',
 				'elementor-v2-ui',
 				'elementor-v2-icons',
+				'elementor-v2-onboarding',
 				'react',
 				'react-dom',
 				'select2',
@@ -307,6 +299,20 @@ class App extends BaseApp {
 		] );
 	}
 
+	private function register_e_onboarding_experiment() {
+		Plugin::$instance->experiments->add_feature( [
+			'name' => 'e_onboarding',
+			'title' => esc_html__( 'New Onboarding', 'elementor' ),
+			'hidden' => true,
+			'default' => ExperimentsManager::STATE_INACTIVE,
+			'release_status' => ExperimentsManager::RELEASE_STATUS_DEV,
+		] );
+	}
+
+	private function is_e_onboarding_active(): bool {
+		return Plugin::$instance->experiments->is_feature_active( 'e_onboarding' );
+	}
+
 	public function __construct() {
 		$this->register_import_export_customization_experiment();
 
@@ -323,11 +329,13 @@ class App extends BaseApp {
 			$this->add_component( 'kit-library', new KitLibraryModule() );
 		}
 
-		$this->add_component( 'onboarding', new OnboardingModule() );
+		$this->register_e_onboarding_experiment();
 
-		add_action( 'elementor/admin/menu/register', function ( Admin_Menu_Manager $admin_menu ) {
-			$this->register_admin_menu( $admin_menu );
-		}, Source_Local::ADMIN_MENU_PRIORITY + 10 );
+		if ( $this->is_e_onboarding_active() ) {
+			$this->add_component( 'onboarding', new OnboardingNewModule() );
+		} else {
+			$this->add_component( 'onboarding', new OnboardingModule() );
+		}
 
 		add_action( 'elementor/editor-one/menu/register', function ( Menu_Data_Provider $menu_data_provider ) {
 			$this->register_editor_one_menu( $menu_data_provider );

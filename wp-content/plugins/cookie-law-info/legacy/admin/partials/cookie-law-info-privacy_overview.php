@@ -19,6 +19,7 @@ if ( ! defined( 'WPINC' ) ) {
 	}
 </style>
 <div class="wrap">
+	<?php include_once CLI_PLUGIN_PATH . 'admin/partials/wt-cli-update-banner.php'; ?>
 
 	<div class="cookie-law-info-form-container">
 		<div class="cli-plugin-toolbar top">

@@ -2,16 +2,16 @@
 
 namespace PaymentPlugins\Stripe\WooCommerceSubscriptions;
 
+use PaymentPlugins\Stripe\Client\StripeClient;
+
 /**
  * @package PaymentPlugins\WooCommerceSubscriptions\Stripe
  */
 class RetryManager {
-
 	/**
 	 * @var int|mixed
 	 */
 	private $retries = 0;
-
 	/**
 	 * @var int|mixed
 	 */
@@ -32,7 +32,7 @@ class RetryManager {
 
 	/**
 	 * @param \WC_Order                                                                           $order
-	 * @param \WC_Stripe_Gateway                                                                  $client
+	 * @param \StripeClient                                                                       $client
 	 * @param \WP_Error|\PaymentPlugins\Stripe\WooCommerceSubscriptions\Controllers\PaymentIntent $result
 	 * @param array                                                                               $params
 	 *
@@ -79,5 +79,4 @@ class RetryManager {
 	private function has_retries() {
 		return $this->retries < $this->max_retries;
 	}
-
 }

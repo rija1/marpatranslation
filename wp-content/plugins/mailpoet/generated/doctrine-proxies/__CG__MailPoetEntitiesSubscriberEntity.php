@@ -57,15 +57,7 @@ class SubscriberEntity extends \MailPoet\Entities\SubscriberEntity implements \M
         $this->__cloner__      = $cloner;
     }
 
-    /**
-     * {@inheritDoc}
-     * @param string $name
-     */
-    public function __get($name)
-    {
-        $this->__initializer__ && $this->__initializer__->__invoke($this, '__get', [$name]);
-        return parent::__get($name);
-    }
+
 
 
 
@@ -78,10 +70,10 @@ class SubscriberEntity extends \MailPoet\Entities\SubscriberEntity implements \M
     public function __sleep()
     {
         if ($this->__isInitialized__) {
-            return ['__isInitialized__', '' . "\0" . 'MailPoet\\Entities\\SubscriberEntity' . "\0" . 'wpUserId', '' . "\0" . 'MailPoet\\Entities\\SubscriberEntity' . "\0" . 'isWoocommerceUser', '' . "\0" . 'MailPoet\\Entities\\SubscriberEntity' . "\0" . 'firstName', '' . "\0" . 'MailPoet\\Entities\\SubscriberEntity' . "\0" . 'lastName', '' . "\0" . 'MailPoet\\Entities\\SubscriberEntity' . "\0" . 'email', '' . "\0" . 'MailPoet\\Entities\\SubscriberEntity' . "\0" . 'status', '' . "\0" . 'MailPoet\\Entities\\SubscriberEntity' . "\0" . 'subscribedIp', '' . "\0" . 'MailPoet\\Entities\\SubscriberEntity' . "\0" . 'confirmedIp', '' . "\0" . 'MailPoet\\Entities\\SubscriberEntity' . "\0" . 'confirmedAt', '' . "\0" . 'MailPoet\\Entities\\SubscriberEntity' . "\0" . 'lastSubscribedAt', '' . "\0" . 'MailPoet\\Entities\\SubscriberEntity' . "\0" . 'unconfirmedData', '' . "\0" . 'MailPoet\\Entities\\SubscriberEntity' . "\0" . 'source', '' . "\0" . 'MailPoet\\Entities\\SubscriberEntity' . "\0" . 'countConfirmations', '' . "\0" . 'MailPoet\\Entities\\SubscriberEntity' . "\0" . 'unsubscribeToken', '' . "\0" . 'MailPoet\\Entities\\SubscriberEntity' . "\0" . 'linkToken', '' . "\0" . 'MailPoet\\Entities\\SubscriberEntity' . "\0" . 'engagementScore', '' . "\0" . 'MailPoet\\Entities\\SubscriberEntity' . "\0" . 'engagementScoreUpdatedAt', '' . "\0" . 'MailPoet\\Entities\\SubscriberEntity' . "\0" . 'lastEngagementAt', '' . "\0" . 'MailPoet\\Entities\\SubscriberEntity' . "\0" . 'lastSendingAt', '' . "\0" . 'MailPoet\\Entities\\SubscriberEntity' . "\0" . 'lastOpenAt', '' . "\0" . 'MailPoet\\Entities\\SubscriberEntity' . "\0" . 'lastClickAt', '' . "\0" . 'MailPoet\\Entities\\SubscriberEntity' . "\0" . 'lastPurchaseAt', '' . "\0" . 'MailPoet\\Entities\\SubscriberEntity' . "\0" . 'lastPageViewAt', '' . "\0" . 'MailPoet\\Entities\\SubscriberEntity' . "\0" . 'woocommerceSyncedAt', '' . "\0" . 'MailPoet\\Entities\\SubscriberEntity' . "\0" . 'emailCount', '' . "\0" . 'MailPoet\\Entities\\SubscriberEntity' . "\0" . 'subscriberSegments', '' . "\0" . 'MailPoet\\Entities\\SubscriberEntity' . "\0" . 'subscriberCustomFields', '' . "\0" . 'MailPoet\\Entities\\SubscriberEntity' . "\0" . 'subscriberTags', '' . "\0" . 'MailPoet\\Entities\\SubscriberEntity' . "\0" . 'scheduledTaskSubscribers', '' . "\0" . 'MailPoet\\Entities\\SubscriberEntity' . "\0" . 'id', '' . "\0" . 'MailPoet\\Entities\\SubscriberEntity' . "\0" . 'createdAt', '' . "\0" . 'MailPoet\\Entities\\SubscriberEntity' . "\0" . 'updatedAt', '' . "\0" . 'MailPoet\\Entities\\SubscriberEntity' . "\0" . 'deletedAt', '' . "\0" . 'MailPoet\\Entities\\SubscriberEntity' . "\0" . 'validationGroups'];
+            return ['__isInitialized__', '' . "\0" . 'MailPoet\\Entities\\SubscriberEntity' . "\0" . 'wpUserId', '' . "\0" . 'MailPoet\\Entities\\SubscriberEntity' . "\0" . 'isWoocommerceUser', '' . "\0" . 'MailPoet\\Entities\\SubscriberEntity' . "\0" . 'trackingConsent', '' . "\0" . 'MailPoet\\Entities\\SubscriberEntity' . "\0" . 'trackingConsentUpdatedAt', '' . "\0" . 'MailPoet\\Entities\\SubscriberEntity' . "\0" . 'trackingConsentMethod', '' . "\0" . 'MailPoet\\Entities\\SubscriberEntity' . "\0" . 'trackingConsentCopy', '' . "\0" . 'MailPoet\\Entities\\SubscriberEntity' . "\0" . 'firstName', '' . "\0" . 'MailPoet\\Entities\\SubscriberEntity' . "\0" . 'lastName', '' . "\0" . 'MailPoet\\Entities\\SubscriberEntity' . "\0" . 'email', '' . "\0" . 'MailPoet\\Entities\\SubscriberEntity' . "\0" . 'status', '' . "\0" . 'MailPoet\\Entities\\SubscriberEntity' . "\0" . 'subscribedIp', '' . "\0" . 'MailPoet\\Entities\\SubscriberEntity' . "\0" . 'confirmedIp', '' . "\0" . 'MailPoet\\Entities\\SubscriberEntity' . "\0" . 'timeZone', '' . "\0" . 'MailPoet\\Entities\\SubscriberEntity' . "\0" . 'timeZoneSource', '' . "\0" . 'MailPoet\\Entities\\SubscriberEntity' . "\0" . 'timeZoneConfidence', '' . "\0" . 'MailPoet\\Entities\\SubscriberEntity' . "\0" . 'timeZoneUpdatedAt', '' . "\0" . 'MailPoet\\Entities\\SubscriberEntity' . "\0" . 'confirmedAt', '' . "\0" . 'MailPoet\\Entities\\SubscriberEntity' . "\0" . 'lastSubscribedAt', '' . "\0" . 'MailPoet\\Entities\\SubscriberEntity' . "\0" . 'lastConfirmationEmailSentAt', '' . "\0" . 'MailPoet\\Entities\\SubscriberEntity' . "\0" . 'unconfirmedData', '' . "\0" . 'MailPoet\\Entities\\SubscriberEntity' . "\0" . 'source', '' . "\0" . 'MailPoet\\Entities\\SubscriberEntity' . "\0" . 'countConfirmations', '' . "\0" . 'MailPoet\\Entities\\SubscriberEntity' . "\0" . 'segmentsCount', '' . "\0" . 'MailPoet\\Entities\\SubscriberEntity' . "\0" . 'unsubscribeToken', '' . "\0" . 'MailPoet\\Entities\\SubscriberEntity' . "\0" . 'linkToken', '' . "\0" . 'MailPoet\\Entities\\SubscriberEntity' . "\0" . 'engagementScore', '' . "\0" . 'MailPoet\\Entities\\SubscriberEntity' . "\0" . 'engagementScoreUpdatedAt', '' . "\0" . 'MailPoet\\Entities\\SubscriberEntity' . "\0" . 'lastEngagementAt', '' . "\0" . 'MailPoet\\Entities\\SubscriberEntity' . "\0" . 'lastSendingAt', '' . "\0" . 'MailPoet\\Entities\\SubscriberEntity' . "\0" . 'lastOpenAt', '' . "\0" . 'MailPoet\\Entities\\SubscriberEntity' . "\0" . 'lastClickAt', '' . "\0" . 'MailPoet\\Entities\\SubscriberEntity' . "\0" . 'lastPurchaseAt', '' . "\0" . 'MailPoet\\Entities\\SubscriberEntity' . "\0" . 'lastPageViewAt', '' . "\0" . 'MailPoet\\Entities\\SubscriberEntity' . "\0" . 'woocommerceSyncedAt', '' . "\0" . 'MailPoet\\Entities\\SubscriberEntity' . "\0" . 'emailCount', '' . "\0" . 'MailPoet\\Entities\\SubscriberEntity' . "\0" . 'subscriberSegments', '' . "\0" . 'MailPoet\\Entities\\SubscriberEntity' . "\0" . 'subscriberCustomFields', '' . "\0" . 'MailPoet\\Entities\\SubscriberEntity' . "\0" . 'subscriberTags', '' . "\0" . 'MailPoet\\Entities\\SubscriberEntity' . "\0" . 'scheduledTaskSubscribers', '' . "\0" . 'MailPoet\\Entities\\SubscriberEntity' . "\0" . 'id', '' . "\0" . 'MailPoet\\Entities\\SubscriberEntity' . "\0" . 'createdAt', '' . "\0" . 'MailPoet\\Entities\\SubscriberEntity' . "\0" . 'updatedAt', '' . "\0" . 'MailPoet\\Entities\\SubscriberEntity' . "\0" . 'deletedAt', '' . "\0" . 'MailPoet\\Entities\\SubscriberEntity' . "\0" . 'validationGroups'];
         }
 
-        return ['__isInitialized__', '' . "\0" . 'MailPoet\\Entities\\SubscriberEntity' . "\0" . 'wpUserId', '' . "\0" . 'MailPoet\\Entities\\SubscriberEntity' . "\0" . 'isWoocommerceUser', '' . "\0" . 'MailPoet\\Entities\\SubscriberEntity' . "\0" . 'firstName', '' . "\0" . 'MailPoet\\Entities\\SubscriberEntity' . "\0" . 'lastName', '' . "\0" . 'MailPoet\\Entities\\SubscriberEntity' . "\0" . 'email', '' . "\0" . 'MailPoet\\Entities\\SubscriberEntity' . "\0" . 'status', '' . "\0" . 'MailPoet\\Entities\\SubscriberEntity' . "\0" . 'subscribedIp', '' . "\0" . 'MailPoet\\Entities\\SubscriberEntity' . "\0" . 'confirmedIp', '' . "\0" . 'MailPoet\\Entities\\SubscriberEntity' . "\0" . 'confirmedAt', '' . "\0" . 'MailPoet\\Entities\\SubscriberEntity' . "\0" . 'lastSubscribedAt', '' . "\0" . 'MailPoet\\Entities\\SubscriberEntity' . "\0" . 'unconfirmedData', '' . "\0" . 'MailPoet\\Entities\\SubscriberEntity' . "\0" . 'source', '' . "\0" . 'MailPoet\\Entities\\SubscriberEntity' . "\0" . 'countConfirmations', '' . "\0" . 'MailPoet\\Entities\\SubscriberEntity' . "\0" . 'unsubscribeToken', '' . "\0" . 'MailPoet\\Entities\\SubscriberEntity' . "\0" . 'linkToken', '' . "\0" . 'MailPoet\\Entities\\SubscriberEntity' . "\0" . 'engagementScore', '' . "\0" . 'MailPoet\\Entities\\SubscriberEntity' . "\0" . 'engagementScoreUpdatedAt', '' . "\0" . 'MailPoet\\Entities\\SubscriberEntity' . "\0" . 'lastEngagementAt', '' . "\0" . 'MailPoet\\Entities\\SubscriberEntity' . "\0" . 'lastSendingAt', '' . "\0" . 'MailPoet\\Entities\\SubscriberEntity' . "\0" . 'lastOpenAt', '' . "\0" . 'MailPoet\\Entities\\SubscriberEntity' . "\0" . 'lastClickAt', '' . "\0" . 'MailPoet\\Entities\\SubscriberEntity' . "\0" . 'lastPurchaseAt', '' . "\0" . 'MailPoet\\Entities\\SubscriberEntity' . "\0" . 'lastPageViewAt', '' . "\0" . 'MailPoet\\Entities\\SubscriberEntity' . "\0" . 'woocommerceSyncedAt', '' . "\0" . 'MailPoet\\Entities\\SubscriberEntity' . "\0" . 'emailCount', '' . "\0" . 'MailPoet\\Entities\\SubscriberEntity' . "\0" . 'subscriberSegments', '' . "\0" . 'MailPoet\\Entities\\SubscriberEntity' . "\0" . 'subscriberCustomFields', '' . "\0" . 'MailPoet\\Entities\\SubscriberEntity' . "\0" . 'subscriberTags', '' . "\0" . 'MailPoet\\Entities\\SubscriberEntity' . "\0" . 'scheduledTaskSubscribers', '' . "\0" . 'MailPoet\\Entities\\SubscriberEntity' . "\0" . 'id', '' . "\0" . 'MailPoet\\Entities\\SubscriberEntity' . "\0" . 'createdAt', '' . "\0" . 'MailPoet\\Entities\\SubscriberEntity' . "\0" . 'updatedAt', '' . "\0" . 'MailPoet\\Entities\\SubscriberEntity' . "\0" . 'deletedAt', '' . "\0" . 'MailPoet\\Entities\\SubscriberEntity' . "\0" . 'validationGroups'];
+        return ['__isInitialized__', '' . "\0" . 'MailPoet\\Entities\\SubscriberEntity' . "\0" . 'wpUserId', '' . "\0" . 'MailPoet\\Entities\\SubscriberEntity' . "\0" . 'isWoocommerceUser', '' . "\0" . 'MailPoet\\Entities\\SubscriberEntity' . "\0" . 'trackingConsent', '' . "\0" . 'MailPoet\\Entities\\SubscriberEntity' . "\0" . 'trackingConsentUpdatedAt', '' . "\0" . 'MailPoet\\Entities\\SubscriberEntity' . "\0" . 'trackingConsentMethod', '' . "\0" . 'MailPoet\\Entities\\SubscriberEntity' . "\0" . 'trackingConsentCopy', '' . "\0" . 'MailPoet\\Entities\\SubscriberEntity' . "\0" . 'firstName', '' . "\0" . 'MailPoet\\Entities\\SubscriberEntity' . "\0" . 'lastName', '' . "\0" . 'MailPoet\\Entities\\SubscriberEntity' . "\0" . 'email', '' . "\0" . 'MailPoet\\Entities\\SubscriberEntity' . "\0" . 'status', '' . "\0" . 'MailPoet\\Entities\\SubscriberEntity' . "\0" . 'subscribedIp', '' . "\0" . 'MailPoet\\Entities\\SubscriberEntity' . "\0" . 'confirmedIp', '' . "\0" . 'MailPoet\\Entities\\SubscriberEntity' . "\0" . 'timeZone', '' . "\0" . 'MailPoet\\Entities\\SubscriberEntity' . "\0" . 'timeZoneSource', '' . "\0" . 'MailPoet\\Entities\\SubscriberEntity' . "\0" . 'timeZoneConfidence', '' . "\0" . 'MailPoet\\Entities\\SubscriberEntity' . "\0" . 'timeZoneUpdatedAt', '' . "\0" . 'MailPoet\\Entities\\SubscriberEntity' . "\0" . 'confirmedAt', '' . "\0" . 'MailPoet\\Entities\\SubscriberEntity' . "\0" . 'lastSubscribedAt', '' . "\0" . 'MailPoet\\Entities\\SubscriberEntity' . "\0" . 'lastConfirmationEmailSentAt', '' . "\0" . 'MailPoet\\Entities\\SubscriberEntity' . "\0" . 'unconfirmedData', '' . "\0" . 'MailPoet\\Entities\\SubscriberEntity' . "\0" . 'source', '' . "\0" . 'MailPoet\\Entities\\SubscriberEntity' . "\0" . 'countConfirmations', '' . "\0" . 'MailPoet\\Entities\\SubscriberEntity' . "\0" . 'segmentsCount', '' . "\0" . 'MailPoet\\Entities\\SubscriberEntity' . "\0" . 'unsubscribeToken', '' . "\0" . 'MailPoet\\Entities\\SubscriberEntity' . "\0" . 'linkToken', '' . "\0" . 'MailPoet\\Entities\\SubscriberEntity' . "\0" . 'engagementScore', '' . "\0" . 'MailPoet\\Entities\\SubscriberEntity' . "\0" . 'engagementScoreUpdatedAt', '' . "\0" . 'MailPoet\\Entities\\SubscriberEntity' . "\0" . 'lastEngagementAt', '' . "\0" . 'MailPoet\\Entities\\SubscriberEntity' . "\0" . 'lastSendingAt', '' . "\0" . 'MailPoet\\Entities\\SubscriberEntity' . "\0" . 'lastOpenAt', '' . "\0" . 'MailPoet\\Entities\\SubscriberEntity' . "\0" . 'lastClickAt', '' . "\0" . 'MailPoet\\Entities\\SubscriberEntity' . "\0" . 'lastPurchaseAt', '' . "\0" . 'MailPoet\\Entities\\SubscriberEntity' . "\0" . 'lastPageViewAt', '' . "\0" . 'MailPoet\\Entities\\SubscriberEntity' . "\0" . 'woocommerceSyncedAt', '' . "\0" . 'MailPoet\\Entities\\SubscriberEntity' . "\0" . 'emailCount', '' . "\0" . 'MailPoet\\Entities\\SubscriberEntity' . "\0" . 'subscriberSegments', '' . "\0" . 'MailPoet\\Entities\\SubscriberEntity' . "\0" . 'subscriberCustomFields', '' . "\0" . 'MailPoet\\Entities\\SubscriberEntity' . "\0" . 'subscriberTags', '' . "\0" . 'MailPoet\\Entities\\SubscriberEntity' . "\0" . 'scheduledTaskSubscribers', '' . "\0" . 'MailPoet\\Entities\\SubscriberEntity' . "\0" . 'id', '' . "\0" . 'MailPoet\\Entities\\SubscriberEntity' . "\0" . 'createdAt', '' . "\0" . 'MailPoet\\Entities\\SubscriberEntity' . "\0" . 'updatedAt', '' . "\0" . 'MailPoet\\Entities\\SubscriberEntity' . "\0" . 'deletedAt', '' . "\0" . 'MailPoet\\Entities\\SubscriberEntity' . "\0" . 'validationGroups'];
     }
 
     /**
@@ -246,6 +238,61 @@ class SubscriberEntity extends \MailPoet\Entities\SubscriberEntity implements \M
     /**
      * {@inheritDoc}
      */
+    public function getTrackingConsent(): string
+    {
+
+        $this->__initializer__ && $this->__initializer__->__invoke($this, 'getTrackingConsent', []);
+
+        return parent::getTrackingConsent();
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    public function setTrackingConsent(string $consent, ?string $method = NULL, ?string $copy = NULL): void
+    {
+
+        $this->__initializer__ && $this->__initializer__->__invoke($this, 'setTrackingConsent', [$consent, $method, $copy]);
+
+        parent::setTrackingConsent($consent, $method, $copy);
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    public function getTrackingConsentUpdatedAt(): ?\DateTimeInterface
+    {
+
+        $this->__initializer__ && $this->__initializer__->__invoke($this, 'getTrackingConsentUpdatedAt', []);
+
+        return parent::getTrackingConsentUpdatedAt();
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    public function getTrackingConsentMethod(): ?string
+    {
+
+        $this->__initializer__ && $this->__initializer__->__invoke($this, 'getTrackingConsentMethod', []);
+
+        return parent::getTrackingConsentMethod();
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    public function getTrackingConsentCopy(): ?string
+    {
+
+        $this->__initializer__ && $this->__initializer__->__invoke($this, 'getTrackingConsentCopy', []);
+
+        return parent::getTrackingConsentCopy();
+    }
+
+    /**
+     * {@inheritDoc}
+     */
     public function getFirstName()
     {
 
@@ -378,6 +425,94 @@ class SubscriberEntity extends \MailPoet\Entities\SubscriberEntity implements \M
     /**
      * {@inheritDoc}
      */
+    public function getTimeZone(): ?string
+    {
+
+        $this->__initializer__ && $this->__initializer__->__invoke($this, 'getTimeZone', []);
+
+        return parent::getTimeZone();
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    public function setTimeZone(?string $timeZone): void
+    {
+
+        $this->__initializer__ && $this->__initializer__->__invoke($this, 'setTimeZone', [$timeZone]);
+
+        parent::setTimeZone($timeZone);
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    public function getTimeZoneSource(): ?string
+    {
+
+        $this->__initializer__ && $this->__initializer__->__invoke($this, 'getTimeZoneSource', []);
+
+        return parent::getTimeZoneSource();
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    public function setTimeZoneSource(?string $timeZoneSource): void
+    {
+
+        $this->__initializer__ && $this->__initializer__->__invoke($this, 'setTimeZoneSource', [$timeZoneSource]);
+
+        parent::setTimeZoneSource($timeZoneSource);
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    public function getTimeZoneConfidence(): ?int
+    {
+
+        $this->__initializer__ && $this->__initializer__->__invoke($this, 'getTimeZoneConfidence', []);
+
+        return parent::getTimeZoneConfidence();
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    public function setTimeZoneConfidence(?int $timeZoneConfidence): void
+    {
+
+        $this->__initializer__ && $this->__initializer__->__invoke($this, 'setTimeZoneConfidence', [$timeZoneConfidence]);
+
+        parent::setTimeZoneConfidence($timeZoneConfidence);
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    public function getTimeZoneUpdatedAt(): ?\DateTimeInterface
+    {
+
+        $this->__initializer__ && $this->__initializer__->__invoke($this, 'getTimeZoneUpdatedAt', []);
+
+        return parent::getTimeZoneUpdatedAt();
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    public function setTimeZoneUpdatedAt(?\DateTimeInterface $timeZoneUpdatedAt): void
+    {
+
+        $this->__initializer__ && $this->__initializer__->__invoke($this, 'setTimeZoneUpdatedAt', [$timeZoneUpdatedAt]);
+
+        parent::setTimeZoneUpdatedAt($timeZoneUpdatedAt);
+    }
+
+    /**
+     * {@inheritDoc}
+     */
     public function getConfirmedAt()
     {
 
@@ -417,6 +552,28 @@ class SubscriberEntity extends \MailPoet\Entities\SubscriberEntity implements \M
         $this->__initializer__ && $this->__initializer__->__invoke($this, 'setLastSubscribedAt', [$lastSubscribedAt]);
 
         return parent::setLastSubscribedAt($lastSubscribedAt);
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    public function getLastConfirmationEmailSentAt()
+    {
+
+        $this->__initializer__ && $this->__initializer__->__invoke($this, 'getLastConfirmationEmailSentAt', []);
+
+        return parent::getLastConfirmationEmailSentAt();
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    public function setLastConfirmationEmailSentAt($lastConfirmationEmailSentAt)
+    {
+
+        $this->__initializer__ && $this->__initializer__->__invoke($this, 'setLastConfirmationEmailSentAt', [$lastConfirmationEmailSentAt]);
+
+        return parent::setLastConfirmationEmailSentAt($lastConfirmationEmailSentAt);
     }
 
     /**
@@ -483,6 +640,28 @@ class SubscriberEntity extends \MailPoet\Entities\SubscriberEntity implements \M
         $this->__initializer__ && $this->__initializer__->__invoke($this, 'setConfirmationsCount', [$countConfirmations]);
 
         return parent::setConfirmationsCount($countConfirmations);
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    public function getSegmentsCount(): int
+    {
+
+        $this->__initializer__ && $this->__initializer__->__invoke($this, 'getSegmentsCount', []);
+
+        return parent::getSegmentsCount();
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    public function setSegmentsCount(int $segmentsCount): void
+    {
+
+        $this->__initializer__ && $this->__initializer__->__invoke($this, 'setSegmentsCount', [$segmentsCount]);
+
+        parent::setSegmentsCount($segmentsCount);
     }
 
     /**
@@ -659,6 +838,17 @@ class SubscriberEntity extends \MailPoet\Entities\SubscriberEntity implements \M
         $this->__initializer__ && $this->__initializer__->__invoke($this, 'setLastEngagementAt', [$lastEngagementAt]);
 
         parent::setLastEngagementAt($lastEngagementAt);
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    public function markEngaged(\DateTimeInterface $engagedAt): void
+    {
+
+        $this->__initializer__ && $this->__initializer__->__invoke($this, 'markEngaged', [$engagedAt]);
+
+        parent::markEngaged($engagedAt);
     }
 
     /**

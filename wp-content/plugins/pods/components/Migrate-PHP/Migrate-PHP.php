@@ -16,6 +16,11 @@
  * @subpackage Migrate-PHP
  */
 
+// Don't load directly.
+if ( ! defined( 'ABSPATH' ) ) {
+	die( '-1' );
+}
+
 use Pods\Whatsit;
 use Pods\Whatsit\Page;
 use Pods\Whatsit\Template;
@@ -124,7 +129,14 @@ class Pods_Migrate_PHP extends PodsComponent {
 	 * @param $params
 	 */
 	public function ajax_migrate( $params ) {
-		WP_Filesystem();
+		require_once ABSPATH . '/wp-admin/includes/file.php';
+
+		/** @var WP_Filesystem_Base $wp_filesystem */
+		global $wp_filesystem;
+
+		if ( ! WP_Filesystem() || ! $wp_filesystem ) {
+			return '<e>' . esc_html__( 'Error: There was a problem accessing the filesystem.', 'pods' );
+		}
 
 		[
 			'pod_templates' => $pod_templates_available_to_migrate,
@@ -229,23 +241,23 @@ class Pods_Migrate_PHP extends PodsComponent {
 
 			if ( ! $wp_filesystem->is_dir( $pods_path ) && ! $wp_filesystem->mkdir( $pods_path, FS_CHMOD_DIR ) ) {
 				// translators: %s is the directory path.
-				pods_error( sprintf( esc_html__( 'Unable to create the directory: %s', 'pods' ), $pods_path ) );
+				return pods_error( sprintf( esc_html__( 'Unable to create the directory: %s', 'pods' ), $pods_path ) );
 			}
 
 			$grandparent_path = dirname( dirname( $file_path ) );
 
 			if ( $pods_path !== $grandparent_path && ! $wp_filesystem->is_dir( $grandparent_path ) && ! $wp_filesystem->mkdir( $grandparent_path, FS_CHMOD_DIR ) ) {
 				// translators: %s is the directory path.
-				pods_error( sprintf( esc_html__( 'Unable to create the directory: %s', 'pods' ), $grandparent_path ) );
+				return pods_error( sprintf( esc_html__( 'Unable to create the directory: %s', 'pods' ), $grandparent_path ) );
 			}
 
 			if ( ! $wp_filesystem->mkdir( dirname( $file_path ), FS_CHMOD_DIR ) ) {
 				// translators: %s is the directory path.
-				pods_error( sprintf( esc_html__( 'Unable to create the directory: %s', 'pods' ), $file_path ) );
+				return pods_error( sprintf( esc_html__( 'Unable to create the directory: %s', 'pods' ), $file_path ) );
 			}
 		} elseif ( ! $wp_filesystem->is_writable( dirname( $file_path ) ) ) {
 			// translators: %s is the directory path.
-			pods_error( sprintf( esc_html__( 'Unable to write to the directory: %s', 'pods' ), $file_path ) );
+			return pods_error( sprintf( esc_html__( 'Unable to write to the directory: %s', 'pods' ), $file_path ) );
 		}
 	}
 
@@ -262,14 +274,14 @@ class Pods_Migrate_PHP extends PodsComponent {
 
 		if ( ! $object ) {
 			// translators: %s is the object ID.
-			pods_error( sprintf( esc_html__( 'Unable to find the Pod Template by ID: %s', 'pods' ), $object_id ) );
+			return pods_error( sprintf( esc_html__( 'Unable to find the Pod Template by ID: %s', 'pods' ), $object_id ) );
 		}
 
 		$files = Pods_Templates::get_templates_for_pod_template( $object );
 
 		if ( count( $files ) < 2 ) {
 			// translators: %s is the file paths found.
-			pods_error( sprintf( esc_html__( 'Unable to detect the file path: %s', 'pods' ), json_encode( $files, JSON_PRETTY_PRINT ) ) );
+			return pods_error( sprintf( esc_html__( 'Unable to detect the file path: %s', 'pods' ), json_encode( $files, JSON_PRETTY_PRINT ) ) );
 		}
 
 		$file_path = trailingslashit( get_stylesheet_directory() ) . array_shift( $files );
@@ -281,12 +293,10 @@ class Pods_Migrate_PHP extends PodsComponent {
 		$extra_headers = '';
 
 		if ( false !== strpos( $template_code, '{@' ) ) {
-			$extra_headers = <<<PHPTEMPLATE
- * Magic Tags: Enabled
-PHPTEMPLATE;
-
+			$extra_headers = "\n * Magic Tags: Enabled";
 		}
 
+		// phpcs:ignore PluginCheck.CodeAnalysis.Heredoc.NotAllowed
 		$contents = <<<PHPTEMPLATE
 <?php
 /**
@@ -301,7 +311,7 @@ PHPTEMPLATE;
 
 		if ( ! $wp_filesystem->put_contents( $file_path, $contents, FS_CHMOD_FILE ) ) {
 			// translators: %s is the file path.
-			pods_error( sprintf( esc_html__( 'Unable to write to the file: %s', 'pods' ), $file_path ) );
+			return pods_error( sprintf( esc_html__( 'Unable to write to the file: %s', 'pods' ), $file_path ) );
 		}
 
 		if ( $cleanup ) {
@@ -328,7 +338,7 @@ PHPTEMPLATE;
 
 		if ( ! $object ) {
 			// translators: %s is the object ID.
-			pods_error( sprintf( esc_html__( 'Unable to find the Pod Page by ID: %s', 'pods' ), $object_id ) );
+			return pods_error( sprintf( esc_html__( 'Unable to find the Pod Page by ID: %s', 'pods' ), $object_id ) );
 		}
 
 		$files             = Pods_Pages::get_templates_for_pod_page( $object );
@@ -336,7 +346,7 @@ PHPTEMPLATE;
 
 		if ( count( $files ) < 2 ) {
 			// translators: %s is the file paths found.
-			pods_error( sprintf( esc_html__( 'Unable to detect the file path: %s', 'pods' ), json_encode( $files, JSON_PRETTY_PRINT ) ) );
+			return pods_error( sprintf( esc_html__( 'Unable to detect the file path: %s', 'pods' ), json_encode( $files, JSON_PRETTY_PRINT ) ) );
 		}
 
 		$file_path             = trailingslashit( get_stylesheet_directory() ) . array_shift( $files );
@@ -354,13 +364,16 @@ PHPTEMPLATE;
 		$precode_template = '';
 
 		if ( ! empty( $precode ) ) {
-			$precode_template = "\n" . <<<PHPTEMPLATE
+			$precode_template .= "\n";
+			// phpcs:ignore PluginCheck.CodeAnalysis.Heredoc.NotAllowed
+			$precode_template .= <<<PHPTEMPLATE
 /*
  * Precode goes below.
  */
 ?>
 {$precode}
-PHPTEMPLATE . "\n";
+PHPTEMPLATE;
+			$precode_template .= "\n";
 		}
 
 		$template_code = trim( $object->get_description() );
@@ -387,7 +400,8 @@ PHPTEMPLATE . "\n";
 				$start_tag = "\n<?php\n";
 			}
 
-			$template_code = $start_tag . <<<PHPTEMPLATE
+			// phpcs:ignore PluginCheck.CodeAnalysis.Heredoc.NotAllowed
+			$template_code = <<<PHPTEMPLATE
 get_header();
 
 // Pod Page content goes here.
@@ -396,31 +410,26 @@ get_header();
 get_sidebar();
 get_footer();
 PHPTEMPLATE;
+
+			$template_code = $start_tag . $template_code;
 		} else {
 			// Set the code and save it for the content path.
 			$this->setup_file_path( $file_path_for_content );
 
 			if ( '_custom' !== $page_template && 'blank' !== $page_template ) {
-				$extra_notes .= "\n" . <<<PHPTEMPLATE
- *
- * @see {$page_template} for the template where this will get called from.
-PHPTEMPLATE;
+				$extra_notes .= "\n *\n * @see {$page_template} for the template where this will get called from.";
 			}
 
 			// Set the file path we will write to as the one for the content specific template.
 			$file_path = $file_path_for_content;
-			$extra_notes .= "\n" . <<<PHPTEMPLATE
- *
- * This template is only used for pods_content() calls.
-PHPTEMPLATE;
+			$extra_notes .= "\n *\n * This template is only used for pods_content() calls.";
 		}
 
 		if ( false !== strpos( $template_code, '{@' ) ) {
-			$extra_headers = "\n" . <<<PHPTEMPLATE
- * Magic Tags: Enabled
-PHPTEMPLATE;
+			$extra_headers = "\n * Magic Tags: Enabled";
 		}
 
+		// phpcs:ignore PluginCheck.CodeAnalysis.Heredoc.NotAllowed
 		$contents = <<<PHPTEMPLATE
 <?php
 /**
@@ -441,7 +450,7 @@ PHPTEMPLATE;
 
 		if ( ! $wp_filesystem->put_contents( $file_path, $contents, FS_CHMOD_FILE ) ) {
 			// translators: %s is the file path.
-			pods_error( sprintf( esc_html__( 'Unable to write to the file: %s', 'pods' ), $file_path ) );
+			return pods_error( sprintf( esc_html__( 'Unable to write to the file: %s', 'pods' ), $file_path ) );
 		}
 
 		if ( $cleanup ) {

@@ -13,11 +13,18 @@ class Meow_WR2X_Admin extends MeowKit_WR2X_Admin {
 		if ( is_admin() ) {
 			add_action( 'admin_menu', array( $this, 'app_menu' ) );
 			add_action( 'admin_notices', array( $this, 'admin_notices' ) );
-			add_action( 'admin_enqueue_scripts', array( $this, 'enqueue_scripts' ) );
+			// Late priority: the media modal check in needs_scripts() relies on the screen having
+			// enqueued the media scripts already.
+			add_action( 'admin_enqueue_scripts', array( $this, 'enqueue_scripts' ), 100 );
+			add_action( 'add_meta_boxes', array( $this, 'add_meta_boxes' ) );
 		}
 	}
 
-	function enqueue_scripts() {
+	function enqueue_scripts( $hook_suffix = '' ) {
+
+		if ( !$this->needs_scripts( $hook_suffix ) ) {
+			return;
+		}
 
 		$physical_file = WR2X_PATH . '/app/vendor.js';
 		$cache_buster = file_exists( $physical_file ) ? filemtime( $physical_file ) : WR2X_VERSION;
@@ -49,11 +56,30 @@ class Meow_WR2X_Admin extends MeowKit_WR2X_Admin {
 			'rest_nonce' => wp_create_nonce( 'wp_rest' ),
 			//'image_sizes' => $this->core->get_image_sizes( ARRAY_A ),
 
-			'options' => $this->core->sanitize_options(), // Ensure all options are sanitized on load
+			'options' => $this->core->get_options(),
 			'image_size_names' => get_intermediate_image_sizes(),
 		] ) );
 
 		wp_enqueue_script( 'wr2x_perfect_images-index' );
+	}
+
+	// The admin app only mounts on a few screens (see app/js/index.js), so there is no reason
+	// to load it on every admin page.
+	private function needs_scripts( $hook_suffix ) {
+
+		// Perfect Images settings, and the Meow Apps dashboard (which hosts the common dashboard).
+		$page = isset( $_GET['page'] ) ? sanitize_key( $_GET['page'] ) : '';
+		if ( $page === 'wr2x_settings' || $page === 'meowapps-main-menu' ) {
+			return true;
+		}
+
+		// Media Library list (Retina column, Replace Image row action) and the Add Media File
+		// screen (the full-size uploader of the Pro version).
+		if ( in_array( $hook_suffix, [ 'upload.php', 'media-new.php' ], true ) ) {
+			return true;
+		}
+
+		return false;
 	}
 
 	function admin_notices() {
@@ -72,6 +98,67 @@ class Meow_WR2X_Admin extends MeowKit_WR2X_Admin {
 			_e( "JetPack's <b>Photon</b> module breaks features built in WP Retina 2x (as Photos moves the files away). A common and better alternative to Photon is to use <a href='http://tracking.maxcdn.com/c/97349/3982/378'>MaxCDN</a> (very popular), CloudFlare or Fastly.", 'wp-retina-2x' );
 			echo "</p></div>";
 		}
+	}
+
+	function add_meta_boxes() {
+		add_meta_box( 'meta-meow-perfect-images', 'Perfect Images', array( $this, 'metabox_meow_perfect_images' ), 
+			'attachment', 'side', 'low' );
+	}
+
+	function metabox_meow_perfect_images( $post ) {
+		$attachment_id = $post->ID;
+		$nonce = wp_create_nonce( 'wp_rest' );
+		?>
+		<div id="wr2x-metabox-content">
+			<p>
+				<a href="#" id="wr2x-regenerate-btn" class="button button-secondary"data-id="<?php echo esc_attr( $attachment_id ); ?>">
+					<?php _e( 'Regenerate Thumbnails', WR2X_DOMAIN ); ?>
+				</a>
+				<div id="wr2x-loading" style="display:none; text-align: center;">
+					<p style="margin-top: 10px;">
+						Regenerating...
+					</p>
+					<span class="spinner is-active" style="float:none;"></span>
+				</div>
+				<span id="wr2x-regenerate-result" style="display:none; margin-top: 10px;"></span>
+			</p>
+		</div>
+		<script>
+		jQuery(document).ready(function($) {
+			$('#wr2x-regenerate-btn').on('click', function(e) {
+				e.preventDefault();
+				var $btn = $(this);
+				var $loading = $('#wr2x-loading');
+				var mediaId = $btn.data('id');
+				
+				$btn.hide();
+				$loading.show();
+				
+				$.ajax({
+					url: '<?php echo esc_js( get_rest_url( null, '/wp-retina-2x/v1/regenerate' ) ); ?>',
+					method: 'POST',
+					contentType: 'application/json',
+					headers: { 'X-WP-Nonce': '<?php echo esc_js( $nonce ); ?>' },
+					data: JSON.stringify({ mediaId: mediaId, optimized: true }),
+					success: function(response) {
+						$loading.hide();
+						$btn.show();
+						if (response.success) {
+							$('#wr2x-regenerate-result').text('Thumbnails regenerated successfully!').css('color', 'green').show();
+						} else {
+							$('#wr2x-regenerate-result').text('Error: ' + (response.message || 'Unknown error')).css('color', 'red').show();
+						}
+					},
+					error: function() {
+						$loading.hide();
+						$btn.show();
+						alert('Request failed');
+					}
+				});
+			});
+		});
+		</script>
+		<?php
 	}
 
 	static function activate() {

@@ -1,10 +1,12 @@
 <?php
 
-namespace PaymentPlugins\Blocks\Stripe\StoreApi;
+namespace PaymentPlugins\Stripe\Blocks\StoreApi;
 
 use Automattic\WooCommerce\StoreApi\Schemas\ExtendSchema;
 use Automattic\WooCommerce\StoreApi\Schemas\V1\CartSchema;
-use PaymentPlugins\Blocks\Stripe\Payments\PaymentsApi;
+use PaymentPlugins\Stripe\Blocks\Payments\PaymentsApi;
+use PaymentPlugins\Stripe\ContextHandler;
+use PaymentPlugins\Stripe\Payments\PaymentGatewaysController;
 use PaymentPlugins\Stripe\Transformers\DataTransformer;
 
 class SchemaController {
@@ -22,36 +24,6 @@ class SchemaController {
 	public function initialize() {
 		$this->register_cart_data();
 		$this->register_payment_gateway_data();
-
-		/**
-		 * @todo - temporary use of filter. Woo checkout block has a bug where if an express payment method was used
-		 * on the previous order, that causes the express checkout section to be disabled because Woo considers the express payment
-		 * option active since the last used payment method is the default payment method.
-		 */
-		add_filter( 'woocommerce_hydration_request_after_callbacks', function ( $response, $handler, $request ) {
-			/**
-			 * @var \WP_REST_Request $request
-			 * @var \WP_REST_Response $response
-			 */
-			if ( $request->get_route() === '/wc/store/v1/checkout' ) {
-				$data = $response->get_data();
-				if ( isset( $data['order_id'], $data['status'], $data['payment_method'] ) ) {
-					if ( $data['status'] === 'checkout-draft' ) {
-						if ( \in_array( $data['payment_method'], [
-							'stripe_googlepay',
-							'stripe_applepay',
-							'stripe_payment_request',
-							'stripe_link_checkout'
-						] ) ) {
-							$data['payment_method'] = '';
-							$response->set_data( $data );
-						}
-					}
-				}
-			};
-
-			return $response;
-		}, 10, 3 );
 	}
 
 	private function register_payment_gateway_data() {
@@ -64,6 +36,14 @@ class SchemaController {
 					}
 					$this->extend_schema->register_endpoint_data( $data );
 				}
+
+				$callback = $payment_method->get_update_callback();
+				if ( $callback ) {
+					$this->extend_schema->register_update_callback( [
+						'namespace' => $payment_method->get_name(),
+						'callback'  => $callback,
+					] );
+				}
 			}
 		}
 
@@ -75,6 +55,10 @@ class SchemaController {
 		$data->set_endpoint( CartSchema::IDENTIFIER );
 		$data->set_schema_type( ARRAY_A );
 		$data->set_data_callback( function () {
+			// @todo - improve this logic. For now, it ensures the PaymentGatewayController calls is_local_payment_available for
+			// local payment gateways
+			wc_stripe_get_container()->get( PaymentGatewaysController::class )->set_check_payment_availability( true );
+
 			return [
 				'cart' => ( new DataTransformer() )->transform_cart( WC()->cart )
 			];

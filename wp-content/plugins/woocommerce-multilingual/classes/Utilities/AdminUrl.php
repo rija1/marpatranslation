@@ -59,6 +59,17 @@ class AdminUrl {
 		return $url;
 	}
 
+	public static function getMultiCurrencyDestination(): string {
+		if ( class_exists( '\WCML_Bonded_Menu' ) && \WCML_Bonded_Menu::is_active() ) {
+			return self::getAdminUrl( [
+				'page'    => AdminPages::BONDED_SETTINGS_PAGE,
+				'section' => AdminPages::TAB_MULTICURRENCY,
+			] );
+		}
+
+		return self::getMultiCurrencyTab();
+	}
+
 	public static function getStoreURLTab() : string {
 		return self::getAdminUrl( [
 			'page' => self::PAGE_WPML_WCML,
@@ -81,10 +92,20 @@ class AdminUrl {
 	}
 
 	public static function getTroubleshootingTab() : string {
-		return self::getAdminUrl( [
+		$legacy = self::getAdminUrl( [
 			'page' => self::PAGE_WPML_WCML,
 			'tab'  => self::TAB_TROUBLESHOOTING,
 		] );
+
+		if ( class_exists( '\WCML_Bonded_Menu' ) && \WCML_Bonded_Menu::is_active() ) {
+			$bonded = (string) apply_filters( 'wcml_bonded_target_url', '', 'troubleshooting-safe' );
+
+			if ( '' !== $bonded ) {
+				return $bonded;
+			}
+		}
+
+		return $legacy;
 	}
 
 	public static function getSetupLater() : string {
@@ -94,9 +115,6 @@ class AdminUrl {
 		] );
 	}
 
-	/**
-	 * @param ?string $step
-	 */
 	public static function getSetup( $step = null ) : string {
 		$args         = [];
 		$args['page'] = \WCML_Setup_UI::SLUG;
@@ -107,14 +125,6 @@ class AdminUrl {
 		return self::getAdminUrl( $args );
 	}
 
-	/**
-	 * @param string[] $sections
-	 * @param string   $stringDomain
-	 *
-	 * @return string
-	 *
-	 * @throws \Error if WPML is not active, since \WPML\UIPage depends on it.
-	 */
 	public static function getWPMLTMDashboard( array $sections = [], string $stringDomain = '' ) : string {
 		$dashboardUrl = admin_url( \WPML\UIPage::getTMDashboard() );
 		if ( empty( $sections ) ) {
@@ -136,13 +146,6 @@ class AdminUrl {
 		return $dashboardUrl;
 	}
 
-	/**
-	 * @param string $domain
-	 *
-	 * @return string
-	 *
-	 * @throws \Error if WPML is not active, since \WPML\UIPage depends on it.
-	 */
 	public static function getWPMLTMDashboardStringDomain( string $domain ) : string {
 		return self::getWPMLTMDashboard(
 			[ self::DASHBOARD_SECTION_STRING ],
@@ -150,42 +153,25 @@ class AdminUrl {
 		);
 	}
 
-	/**
-	 * @return string
-	 *
-	 * @throws \Error if WPML is not active, since \WPML\UIPage depends on it.
-	 */
 	public static function getWPMLTMDashboardProducts() : string {
 		return self::getWPMLTMDashboard( [ self::DASHBOARD_SECTION_PRODUCT ] );
 	}
 
-	/**
-	 * @param ?string $taxonomy
-	 *
-	 * @return string
-	 *
-	 * @throws \Error if WPML is not active, since WPML_PLUGIN_FOLDER depends on it.
-	 */
 	public static function getWPMLTaxonomyTranslation( $taxonomy = null ) : string {
 		$args = [
-			'page'     => WPML_PLUGIN_FOLDER . '/menu/taxonomy-translation.php',
+			'page'     => 'tm/menu/main.php',
+			'tab'      => 'taxonomy',
 			'taxonomy' => $taxonomy,
 		];
 
 		return self::getAdminUrl( $args );
 	}
 
-	/**
-	 * @param array $args
-	 *
-	 * @return string
-	 *
-	 * @throws \Error if WPML is not active, since WPML_ST_FOLDER depends on it.
-	 */
 	public static function getWPMLStringTranslation( array $args = [] ) : string {
 		$args = array_merge(
 			[
-				'page' => WPML_ST_FOLDER . '/menu/string-translation.php',
+				'page' => 'tm/menu/main.php',
+				'tab'  => 'strings',
 			],
 			$args
 		);
@@ -204,9 +190,6 @@ class AdminUrl {
 		);
 	}
 
-	/**
-	 * @param ?string $tab
-	 */
 	public static function getWooSettings( $tab = null ) : string {
 		$args = [
 			'page' => self::PAGE_WOO_SETTINGS,
@@ -216,9 +199,6 @@ class AdminUrl {
 		return self::getAdminUrl( $args );
 	}
 
-	/**
-	 * @param ?string $tab
-	 */
 	public static function getWooStatus( $tab = null ) : string {
 		$args = [
 			'page' => 'wc-status',

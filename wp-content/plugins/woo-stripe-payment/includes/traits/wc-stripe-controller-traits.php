@@ -31,9 +31,9 @@ trait WC_Stripe_Controller_Cart_Trait {
 	/**
 	 * @param WP_Rest_Request $request
 	 *
-	 * @since 3.1.8
 	 * @return array
 	 * @throws Exception
+	 * @since 3.1.8
 	 */
 	private function get_shipping_method_from_request( $request ) {
 		if ( ( $method = $request->get_param( 'shipping_method' ) ) ) {
@@ -65,8 +65,8 @@ trait WC_Stripe_Controller_Cart_Trait {
 	 *
 	 * @param WP_REST_Request $request
 	 *
-	 * @since 3.3.39
 	 * @return array
+	 * @since 3.3.39
 	 */
 	protected function get_add_to_cart_args( $request ) {
 		$session_args = WC()->session ? WC()->session->get( WC_Stripe_Constants::CART_ARGS, [ 'product_id' => 0 ] )
@@ -132,12 +132,12 @@ trait WC_Stripe_Controller_Frontend_Trait {
 	/**
 	 * @param $request
 	 *
-	 * @since 3.2.2
 	 * @return bool|WP_Error
+	 * @since 3.2.2
 	 */
 	public function validate_rest_nonce( $request ) {
 		if ( ! isset( $request['wp_rest_nonce'] ) || ! wp_verify_nonce( $request['wp_rest_nonce'], 'wp_rest' ) ) {
-			return new WP_Error( 'rest_cookie_invalid_nonce', __( 'Cookie nonce is invalid' ), array( 'status' => 403 ) );
+			return new WP_Error( 'rest_cookie_invalid_nonce', __( 'Cookie nonce is invalid', 'woo-stripe-payment' ), array( 'status' => 403 ) );
 		}
 
 		return true;

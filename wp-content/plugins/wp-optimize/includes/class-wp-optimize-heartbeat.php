@@ -1,6 +1,6 @@
 <?php
 
-if (!defined('WPO_VERSION')) die('No direct access allowed');
+if (!defined('ABSPATH')) die('No direct access allowed');
 
 if (!class_exists('WP_Optimize_Heartbeat')) :
 
@@ -64,6 +64,8 @@ class WP_Optimize_Heartbeat {
 	 * @return array|void
 	 */
 	public function receive_heartbeat($response, $data) {
+		$allowed_smush_commands = Updraft_Smush_Manager_Commands::get_allowed_ajax_commands();
+		$user_can = WP_Optimize()->current_user_can();
 		$commands = new Updraft_Smush_Manager_Commands(Updraft_Smush_Manager::instance());
 		$commands->heartbeat_command = true;
 
@@ -79,7 +81,20 @@ class WP_Optimize_Heartbeat {
 			} else {
 				$command_name = key($command);
 				if ('updraft_smush_ajax' === $command_name) {
+
+					if (!$user_can) {
+						continue;
+					}
+
 					$command_data = current($command);
+
+					if (empty($command_data['subaction'])) {
+						continue;
+					}
+
+					if (!in_array($command_data['subaction'], $allowed_smush_commands, true)) {
+						continue;
+					}
 					
 					$command_data_param = null;
 					if (isset($command_data['data'])) {
@@ -88,16 +103,20 @@ class WP_Optimize_Heartbeat {
 
 					$_REQUEST['subaction'] = $command_data['subaction'];
 					$_REQUEST['data'] = $command_data_param;
-				
-					ob_start();
-					
+
 					if (!is_callable(array($commands, $command_data['subaction']))) {
 						continue;
 					}
 
+					ob_start();
+
 					$method = new ReflectionMethod($commands, $command_data['subaction']);
 					
-					$command_response = $method->invokeArgs($commands, array($command_data_param));
+					try {
+						$command_response = $method->invokeArgs($commands, array($command_data_param));
+					} catch (Exception $e) {
+						$command_response = new WP_Error($e->getCode() ? $e->getCode() : 1, $e->getMessage());
+					}
 
 					if (is_array($command_response)) {
 						$response['callbacks'][$uid] = $command_response;

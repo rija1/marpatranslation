@@ -28,6 +28,8 @@ $all_pages          = get_pages( $args_for_get_pages );
 	var cli_reset_settings_error_message='<?php echo esc_html__( 'Unable to reset settings.', 'cookie-law-info' ); ?>';
 </script>
 <div class="wrap">
+	<?php include_once CLI_PLUGIN_PATH . 'admin/partials/wt-cli-update-banner.php'; ?>
+
 	<h2 class="wp-heading-inline"><?php echo esc_html__( 'Settings', 'cookie-law-info' ); ?></h2>
 	
 	<div class="wt-cli-gdpr-plugin-header">
@@ -36,7 +38,7 @@ $all_pages          = get_pages( $args_for_get_pages );
 				<tr valign="middle" class="cli_bar_on" style="<?php echo $the_options['is_on'] == true ? '' : 'display:none;'; ?>">
 					<td style="padding-left: 10px;">
 						<div class="wt-cli-gdpr-plugin-status wt-cli-gdpr-plugin-status-active">
-							<img id="cli-plugin-status-icon" src="<?php echo esc_url( $cli_img_path ); ?>add.svg" />
+							<img src="<?php echo esc_url( $cli_img_path ); ?>add.svg" />
 							<span><?php echo esc_html__( 'Cookie bar is currently active', 'cookie-law-info' ); ?></span>
 						</div>
 					</td>
@@ -44,7 +46,7 @@ $all_pages          = get_pages( $args_for_get_pages );
 				<tr valign="middle" class="cli_bar_off" style="<?php echo $the_options['is_on'] == true ? 'display:none;' : ''; ?>">
 					<td style="padding-left: 10px;">
 						<div class="wt-cli-gdpr-plugin-status wt-cli-gdpr-plugin-status-active">
-							<img id="cli-plugin-status-icon" src="<?php echo esc_url( $cli_img_path ); ?>cross.png" />
+							<img src="<?php echo esc_url( $cli_img_path ); ?>cross.png" />
 							<span><?php echo esc_html__( 'Cookie bar is currently inactive', 'cookie-law-info' ); ?></span>
 						</div>
 					</td>
@@ -63,7 +65,6 @@ $all_pages          = get_pages( $args_for_get_pages );
 		</div>
 	</div>
 
-   
 	<div class="cli_settings_left" id="cky-container">
 		<div class="nav-tab-wrapper wp-clearfix cookie-law-info-tab-head">
 			<?php
@@ -121,9 +122,6 @@ $all_pages          = get_pages( $args_for_get_pages );
 			?>
 			<?php do_action( 'cli_module_out_settings_form' ); ?>
 		</div>
-	</div>
-	<div class="cli_settings_right">
-	 <?php require $cli_admin_view_path . 'goto-pro-v2.php'; ?>   
 	</div>
 
 </div>

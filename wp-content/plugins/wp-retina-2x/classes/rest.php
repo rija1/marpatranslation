@@ -58,6 +58,16 @@ class Meow_WR2X_Rest
 			'permission_callback' => array( $this->core, 'can_access_settings' ),
 			'callback' => array( $this, 'rest_check_optimizers' )
 		) );
+		register_rest_route( $this->namespace, '/ai_image_sizes/', array(
+			'methods' => 'POST',
+			'permission_callback' => array( $this->core, 'can_access_settings' ),
+			'callback' => array( $this, 'rest_ai_image_sizes' )
+		) );
+		register_rest_route( $this->namespace, '/ai_retina_sizes/', array(
+			'methods' => 'POST',
+			'permission_callback' => array( $this->core, 'can_access_settings' ),
+			'callback' => array( $this, 'rest_ai_retina_sizes' )
+		) );
 		register_rest_route( $this->namespace, '/get_logs', array(
 			'methods' => 'GET',
 			'permission_callback' => array( $this->core, 'can_access_features' ),
@@ -201,6 +211,12 @@ class Meow_WR2X_Rest
 		if ( empty( $mediaId ) ) {
 			return new WP_REST_Response( [ 'success' => false, 'message' => "The Media ID is required." ] );
 		}
+		// Being allowed to upload files says nothing about this particular media, so make sure
+		// the user can actually edit it before replacing anyone's image.
+		$mediaId = (int)$mediaId;
+		if ( get_post_type( $mediaId ) !== 'attachment' || !current_user_can( 'edit_post', $mediaId ) ) {
+			return new WP_REST_Response( [ 'success' => false, 'message' => "You are not allowed to modify this media." ] );
+		}
 		if ( empty( $tmpfname ) ) {
 			return new WP_REST_Response( [ 'success' => false, 'message' => "A file is required." ] );
 		}
@@ -254,7 +270,7 @@ class Meow_WR2X_Rest
 		wp_update_attachment_metadata( $mediaId, wp_generate_attachment_metadata( $mediaId, $current_file ) );
 		$meta = wp_get_attachment_metadata( $mediaId );
 		$this->engine->generate_retina_images( $meta );
-		$this->engine->generate_webp_images( $meta );
+		$this->engine->generate_modern_format( $meta );
 		$this->engine->generate_webp_retina_images( $meta );
 
 		// Increase the version number
@@ -268,7 +284,7 @@ class Meow_WR2X_Rest
 
 
 	function rest_all_settings() {
-		return new WP_REST_Response( [ 'success' => true, 'data' => $this->core->get_all_options() ], 200 );
+		return new WP_REST_Response( [ 'success' => true, 'data' => $this->core->get_options() ], 200 );
 	}
 
 	function find_whereis_command() {
@@ -307,6 +323,116 @@ class Meow_WR2X_Rest
 		return false;
 	}
 	
+	function rest_ai_image_sizes() {
+		global $mwai;
+		if ( empty( $mwai ) ) {
+			return new WP_REST_Response( [ 'success' => false, 'message' => 'AI Engine is not available.' ], 400 );
+		}
+
+		$sizes = $this->core->get_image_sizes( ARRAY_A );
+		$theme = wp_get_theme()->get( 'Name' );
+
+		$sizes_description = "";
+		foreach ( $sizes as $size ) {
+			$status = $size['enabled'] ? 'enabled' : 'disabled';
+			$sizes_description .= "- {$size['name']}: {$size['width']}x{$size['height']} ({$status})\n";
+		}
+
+		$prompt = "You are a WordPress image optimization expert. The site uses the theme '{$theme}'. " .
+			"Here are all registered image sizes:\n\n{$sizes_description}\n" .
+			"Your goal: recommend the **minimal, optimal set** of sizes. WordPress uses srcset to let the browser " .
+			"pick the best image for each viewport — sizes don't need to be pixel-perfect, they just need to provide " .
+			"good coverage across common screen widths (mobile, tablet, desktop).\n\n" .
+			"Guidelines:\n" .
+			"- KEEP: thumbnail (used in admin), medium, large — these are WordPress core and widely used.\n" .
+			"- medium_large (768px): rarely useful, usually redundant between medium and large.\n" .
+			"- 1536x1536 and 2048x2048: WordPress scaled sizes, often redundant if large is already 1024px+.\n" .
+			"- Look for REDUNDANT sizes: if two sizes are close in width (within ~100-150px), the smaller one is likely enough.\n" .
+			"- Theme/plugin sizes: keep only if they serve a unique breakpoint not already covered.\n" .
+			"- Fewer sizes = faster uploads, less disk space, and srcset still works perfectly.\n" .
+			"- Be aggressive about disabling truly redundant sizes, but conservative with clearly unique breakpoints.\n\n" .
+			"Reply ONLY with valid JSON in this exact format, no other text:\n" .
+			"{ \"sizes\": [ { \"name\": \"size_name\", \"enabled\": true/false, \"reason\": \"short reason\" } ] }";
+
+		try {
+			$response = $mwai->simpleTextQuery( $prompt );
+			// Extract JSON from response (in case of markdown wrapping)
+			if ( preg_match( '/\{[\s\S]*\}/', $response, $matches ) ) {
+				$response = $matches[0];
+			}
+			$data = json_decode( $response, true );
+			if ( empty( $data ) || !isset( $data['sizes'] ) ) {
+				return new WP_REST_Response( [ 'success' => false, 'message' => 'Could not parse AI response.' ], 500 );
+			}
+			return new WP_REST_Response( [ 'success' => true, 'data' => $data['sizes'] ], 200 );
+		}
+		catch ( Exception $e ) {
+			return new WP_REST_Response( [ 'success' => false, 'message' => $e->getMessage() ], 500 );
+		}
+	}
+
+	function rest_ai_retina_sizes() {
+		global $mwai;
+		if ( empty( $mwai ) ) {
+			return new WP_REST_Response( [ 'success' => false, 'message' => 'AI Engine is not available.' ], 400 );
+		}
+
+		$sizes = $this->core->get_image_sizes( ARRAY_A );
+		$theme = wp_get_theme()->get( 'Name' );
+
+		// Collect enabled sizes sorted by width for coverage analysis
+		$enabled_sizes = array_filter( $sizes, function( $s ) { return $s['enabled']; } );
+		$widths = array_map( function( $s ) { return (int) $s['width']; }, $enabled_sizes );
+
+		$sizes_description = "";
+		foreach ( $enabled_sizes as $size ) {
+			$retina_status = $size['retina'] ? 'retina enabled' : 'retina disabled';
+			$retina_width = (int) $size['width'] * 2;
+			// Check if another enabled size already covers the @2x width (within 20%)
+			$covered_by = null;
+			foreach ( $enabled_sizes as $other ) {
+				if ( $other['name'] === $size['name'] ) continue;
+				$other_w = (int) $other['width'];
+				if ( $other_w >= $retina_width * 0.8 && $other_w <= $retina_width * 1.2 ) {
+					$covered_by = $other['name'];
+					break;
+				}
+			}
+			$coverage_note = $covered_by ? " [NOTE: @2x={$retina_width}px is ~covered by '{$covered_by}' at {$other_w}px]" : "";
+			$sizes_description .= "- {$size['name']}: {$size['width']}x{$size['height']} ({$retina_status}){$coverage_note}\n";
+		}
+
+		$prompt = "You are a WordPress image optimization expert. The site uses the theme '{$theme}'. " .
+			"Here are the enabled image sizes:\n\n{$sizes_description}\n" .
+			"Your goal: recommend which sizes should have **Retina (@2x) images** generated.\n\n" .
+			"KEY INSIGHT: WordPress uses srcset, so the browser picks the best available image for the screen. " .
+			"If a size's @2x width (~double) is already covered by another existing normal size, " .
+			"retina is REDUNDANT for that size — srcset will serve the larger normal image on HiDPI screens anyway. " .
+			"Sizes marked with [NOTE: @2x covered by...] are candidates for skipping retina.\n\n" .
+			"Other guidelines:\n" .
+			"- thumbnail: usually only shown in admin, retina rarely needed.\n" .
+			"- Very large sizes (1536+): @2x would require 3000+ px originals, usually impractical.\n" .
+			"- Medium and large are most commonly seen by visitors — retina is most impactful there if not already covered.\n" .
+			"- Balance quality vs. disk space: each retina image doubles storage for that size.\n\n" .
+			"Reply ONLY with valid JSON in this exact format, no other text:\n" .
+			"{ \"sizes\": [ { \"name\": \"size_name\", \"enabled\": true/false, \"reason\": \"short reason\" } ] }";
+
+		try {
+			$response = $mwai->simpleTextQuery( $prompt );
+			if ( preg_match( '/\{[\s\S]*\}/', $response, $matches ) ) {
+				$response = $matches[0];
+			}
+			$data = json_decode( $response, true );
+			if ( empty( $data ) || !isset( $data['sizes'] ) ) {
+				return new WP_REST_Response( [ 'success' => false, 'message' => 'Could not parse AI response.' ], 500 );
+			}
+			return new WP_REST_Response( [ 'success' => true, 'data' => $data['sizes'] ], 200 );
+		}
+		catch ( Exception $e ) {
+			return new WP_REST_Response( [ 'success' => false, 'message' => $e->getMessage() ], 500 );
+		}
+	}
+
 	function rest_check_optimizers() {
 		if ( ! function_exists( 'exec' ) ) {
 			return new WP_REST_Response( array( 
@@ -433,17 +559,23 @@ class Meow_WR2X_Rest
 		if ($search) {
 			$whereSql = $wpdb->prepare("AND post_title LIKE %s ", ( '%' . $search . '%' ));
 		}
+		// Exclude ignored items
+		$ignored = array_filter( $this->core->get_ignores($search) );
+		$excludeSql = '';
+		if ( !empty( $ignored ) ) {
+			$excludeSql = 'AND p.ID NOT IN (' . implode( ',', $ignored ) . ')';
+		}
 		return (int)$wpdb->get_var( "SELECT COUNT(*) FROM $wpdb->posts p 
 			WHERE post_type='attachment'
 			AND post_mime_type LIKE 'image/%'
-			$whereSql"
+			$whereSql
+			$excludeSql"
 		);
 	}
 
 	function rest_get_stats( $request ) {
 		$search = sanitize_text_field( $request->get_param('search') );
 		return new WP_REST_Response( [ 'success' => true, 'data' => array(
-			'issues' => $this->count_issues( $search ),
 			'ignored' => $this->count_ignored( $search ),
 			'optimizeIssues' => $this->count_optimize_issues( $search ),
 			'all' => $this->count_all( $search )
@@ -488,11 +620,25 @@ class Meow_WR2X_Rest
 		global $wpdb;
 		$whereIsIn = '';
 		if ( $filterBy !== 'all' ) {
-			$in = $this->get_filtered_post_ids( $filterBy );
+
+			$filtered = $this->get_filtered_post_ids( $filterBy );
+			if( empty( $filtered ) ) {
+				return array();
+			}
+
+			$in = array_filter( $filtered );
 			if ( empty( $in ) ) {
 				return array();
 			}
+			
 			$whereIsIn = 'AND p.ID IN (' . implode( ',', $in ) . ')';
+		}
+		else {
+			// For 'all', exclude ignored items
+			$ignored = array_filter( $this->core->get_ignores() );
+			if ( !empty( $ignored ) ) {
+				$whereIsIn = 'AND p.ID NOT IN (' . implode( ',', $ignored ) . ')';
+			}
 		}
 		$orderSql = 'ORDER BY p.ID DESC';
 		if ($orderBy === 'post_title') {
@@ -553,10 +699,6 @@ class Meow_WR2X_Rest
 
 	function get_filtered_post_ids( $filterBy ) {
 		switch ( $filterBy ) {
-			case 'issues':
-				return $this->core->get_issues();
-				break;
-
 			case 'ignored':
 				return $this->core->get_ignores();
 				break;
@@ -580,10 +722,7 @@ class Meow_WR2X_Rest
 		$search = sanitize_text_field( $request->get_param('search') );
 		$entries = $this->get_media_status( $skip, $limit, $filterBy, $orderBy, $order, $search );
 		$total = 0;
-		if ( $filterBy == 'issues' ) {
-			$total = $this->count_issues($search);
-		}
-		else if ( $filterBy == 'ignored' ) {
+		if ( $filterBy == 'ignored' ) {
 			$total = $this->count_ignored($search);
 		}
 		else if ( $filterBy == 'all' ) {
@@ -677,7 +816,7 @@ class Meow_WR2X_Rest
 		$this->engine->delete_webp_attachment( $mediaId, false );
 		$this->engine->delete_webp_retina_attachment( $mediaId, false );
 		$meta = wp_get_attachment_metadata( $mediaId );
-		$this->engine->generate_webp_images( $meta );
+		$this->engine->generate_modern_format( $meta );
 		$this->engine->generate_webp_retina_images( $meta );
 		do_action( 'wr2x_regenerate', $mediaId );
 
@@ -709,21 +848,27 @@ class Meow_WR2X_Rest
 
 	function rest_ignore( $request ) {
 		$params = $request->get_json_params();
-		$mediaId = isset( $params['mediaId'] ) ? (int)$params['mediaId'] : null;
+		$mediaIds = is_array( $params['mediaIds'] ) ? $params['mediaIds'] : array( $params['mediaIds'] );
 
 		// Check errors
-		if ( empty( $mediaId ) ) {
-			return new WP_REST_Response( [ 'success' => false, 'message' => "The Media ID is required." ] );
+		if ( empty( $mediaIds ) ) {
+			return new WP_REST_Response( [ 'success' => false, 'message' => "At least one Media ID is required." ] );
 		}
 
-		// Ignore
-		if ( $this->core->is_ignore( $mediaId ) ) {
-			$info = $this->core->remove_ignore( $mediaId );
+		// Toggle ignore status and collect media status
+		$infos = [];
+		foreach( $mediaIds as $mediaId ) {
+			if ( $this->core->is_ignore( $mediaId ) ) {
+				$this->core->remove_ignore( $mediaId );
+			}
+			else {
+				$this->core->add_ignore( $mediaId );
+			}
+			// Return updated media status
+			$infos[] = $this->core->get_media_status_one( $mediaId );
 		}
-		else {
-			$info = $this->core->add_ignore( $mediaId );
-		}
-		return new WP_REST_Response( [ 'success' => true, 'data' => $info  ], 200 );
+
+		return new WP_REST_Response( [ 'success' => true, 'data' => $infos  ], 200 );
 	}
 
 	function rest_regenerate( $request ) {
@@ -790,6 +935,9 @@ class Meow_WR2X_Rest
 	}
 
 	function rest_update_option( $request ) {
+		$value = null;
+		$old_options = [];
+		$custom_image_size_changes = [];
 		try {
 			$params = $request->get_json_params();
 			$value = $params['options'];
@@ -802,25 +950,26 @@ class Meow_WR2X_Rest
 			$options = $this->core->update_options( $value );
 			$success = !!$options;
 
-			if ($success && $custom_image_size_changes !== null) {
-				$type = $custom_image_size_changes['type'];
-				$values = $custom_image_size_changes['value'];
-				//TODO: Should use core->add_image_sizes instead
-				$this->core->register_custom_image_size(
-					$type,
-					$values['name'],
-					$values['width'],
-					$values['height'],
-					$values['crop']
-				);
-				$options = $this->core->sanitize_options();
+			if ( $success && !empty( $custom_image_size_changes ) ) {
+				foreach ( $custom_image_size_changes as $change ) {
+					$values = $change['value'];
+					//TODO: Should use core->add_image_sizes instead
+					$this->core->register_custom_image_size(
+						$change['type'],
+						$values['name'],
+						$values['width'],
+						$values['height'],
+						$values['crop']
+					);
+				}
+				$options = $this->core->sanitize_options( $options );
 			}
 
 			$message = __( $success ? 'OK' : "Could not update options.", 'wp-retina-2x' );
 			return new WP_REST_Response([ 'success' => $success, 'message' => $message, 'options' => $options ], 200 );
 		}
 		catch ( Exception $e ) {
-			if ( $custom_image_size_changes !== null ) {
+			if ( !empty( $custom_image_size_changes ) && !empty( $value ) ) {
 				// Rollback the options when the change was custom_image_sizes.
 				$this->core->update_options( array_merge( $value, ['custom_image_sizes' => $old_options ] ) );
 			}
@@ -829,10 +978,11 @@ class Meow_WR2X_Rest
 	}
 
 	function rest_easy_io_unlink( $request ) {
-		$options = $this->core->get_all_options();
+		$options = $this->core->get_options();
 		$options['easyio_domain'] = '';
 		$options['easyio_plan'] = '';
-		update_option( $this->core->get_option_name(), $options );
+		$options['webp_force_with_easyio'] = false;
+		$this->core->update_options( $options );
 		return new WP_REST_Response([ 'success' => true ], 200 );
 	}
 
@@ -854,13 +1004,13 @@ class Meow_WR2X_Rest
 			} 
 			else if ( !empty( $result['body'] ) && strpos( $result['body'], 'domain' ) !== false ) {
 				$response = json_decode( $result['body'], true );
-				$options = $this->core->get_all_options();
+				$options = $this->core->get_options();
 				if ( !empty( $response['domain'] ) ) {
 					$options['easyio_domain'] = $response['domain'];
 					if ( !empty( $response['plan_id'] ) ) {
 						$options['easyio_plan'] = (int)$response['plan_id'];
 					}
-					update_option( $this->core->get_option_name(), $options );
+					$this->core->update_options( $options );
 
 					// Clear cache
 					// From https://github.com/nosilver4u/ewww-image-optimizer/blob/master/classes/class-exactdn.php#L298

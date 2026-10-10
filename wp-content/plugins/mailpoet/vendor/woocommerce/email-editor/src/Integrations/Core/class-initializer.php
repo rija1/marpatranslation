@@ -20,6 +20,7 @@ use Automattic\WooCommerce\EmailEditor\Integrations\Core\Renderer\Blocks\List_Bl
 use Automattic\WooCommerce\EmailEditor\Integrations\Core\Renderer\Blocks\List_Item;
 use Automattic\WooCommerce\EmailEditor\Integrations\Core\Renderer\Blocks\Media_Text;
 use Automattic\WooCommerce\EmailEditor\Integrations\Core\Renderer\Blocks\Post_Content;
+use Automattic\WooCommerce\EmailEditor\Integrations\Core\Renderer\Blocks\Post_Template;
 use Automattic\WooCommerce\EmailEditor\Integrations\Core\Renderer\Blocks\Quote;
 use Automattic\WooCommerce\EmailEditor\Integrations\Core\Renderer\Blocks\Video;
 use Automattic\WooCommerce\EmailEditor\Integrations\Core\Renderer\Blocks\Social_Link;
@@ -32,6 +33,7 @@ class Initializer {
  'core/buttons',
  'core/column',
  'core/columns',
+ 'core/embed',
  'core/group',
  'core/heading',
  'core/image',
@@ -50,15 +52,24 @@ class Initializer {
  'core/gallery',
  'core/media-text',
  'core/audio',
- 'core/embed',
  'core/cover',
  'core/video',
  'core/post-title',
+ 'core/post-template',
  );
  private array $renderers = array();
+ private bool $initialized = false;
  public function initialize(): void {
+ if ( $this->initialized ) {
+ return;
+ }
+ $this->initialized = true;
  add_filter( 'woocommerce_email_editor_theme_json', array( $this, 'adjust_theme_json' ), 10, 1 );
  add_filter( 'safe_style_css', array( $this, 'allow_styles' ) );
+ add_action( 'woocommerce_email_editor_render_start', array( $this, 'reset_renderers' ) );
+ }
+ public function reset_renderers(): void {
+ $this->renderers = array();
  }
  public function adjust_theme_json( \WP_Theme_JSON $editor_theme_json ): \WP_Theme_JSON {
  $theme_json = (string) file_get_contents( __DIR__ . '/theme.json' );
@@ -75,6 +86,7 @@ class Initializer {
  $allowed_styles[] = 'mso-padding-alt';
  $allowed_styles[] = 'mso-font-width';
  $allowed_styles[] = 'mso-text-raise';
+ $allowed_styles[] = 'word-break';
  return $allowed_styles;
  }
  public function update_block_settings( array $settings ): array {
@@ -145,6 +157,9 @@ class Initializer {
  break;
  case 'core/gallery':
  $renderer = new Gallery();
+ break;
+ case 'core/post-template':
+ $renderer = new Post_Template();
  break;
  case 'core/media-text':
  $renderer = new Media_Text();

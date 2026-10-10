@@ -1,3 +1,9908 @@
-/*! For license information please see editor-canvas.js.LICENSE.txt */
-!function(){"use strict";var e,t,n={"./packages/node_modules/@floating-ui/core/dist/floating-ui.core.mjs":function(e,t,n){n.r(t),n.d(t,{arrow:function(){return arrow},autoPlacement:function(){return autoPlacement},computePosition:function(){return computePosition},detectOverflow:function(){return detectOverflow},flip:function(){return flip},hide:function(){return hide},inline:function(){return inline},limitShift:function(){return limitShift},offset:function(){return offset},rectToClientRect:function(){return r.rectToClientRect},shift:function(){return shift},size:function(){return size}});var r=n("./packages/node_modules/@floating-ui/utils/dist/floating-ui.utils.mjs");function computeCoordsFromPlacement(e,t,n){let{reference:o,floating:s}=e;const i=(0,r.getSideAxis)(t),a=(0,r.getAlignmentAxis)(t),c=(0,r.getAxisLength)(a),l=(0,r.getSide)(t),u="y"===i,d=o.x+o.width/2-s.width/2,f=o.y+o.height/2-s.height/2,p=o[c]/2-s[c]/2;let m;switch(l){case"top":m={x:d,y:o.y-s.height};break;case"bottom":m={x:d,y:o.y+o.height};break;case"right":m={x:o.x+o.width,y:f};break;case"left":m={x:o.x-s.width,y:f};break;default:m={x:o.x,y:o.y}}switch((0,r.getAlignment)(t)){case"start":m[a]-=p*(n&&u?-1:1);break;case"end":m[a]+=p*(n&&u?-1:1)}return m}const computePosition=async(e,t,n)=>{const{placement:r="bottom",strategy:o="absolute",middleware:s=[],platform:i}=n,a=s.filter(Boolean),c=await(null==i.isRTL?void 0:i.isRTL(t));let l=await i.getElementRects({reference:e,floating:t,strategy:o}),{x:u,y:d}=computeCoordsFromPlacement(l,r,c),f=r,p={},m=0;for(let n=0;n<a.length;n++){const{name:s,fn:g}=a[n],{x:y,y:h,data:v,reset:b}=await g({x:u,y:d,initialPlacement:r,placement:f,strategy:o,middlewareData:p,rects:l,platform:i,elements:{reference:e,floating:t}});u=null!=y?y:u,d=null!=h?h:d,p={...p,[s]:{...p[s],...v}},b&&m<=50&&(m++,"object"==typeof b&&(b.placement&&(f=b.placement),b.rects&&(l=!0===b.rects?await i.getElementRects({reference:e,floating:t,strategy:o}):b.rects),({x:u,y:d}=computeCoordsFromPlacement(l,f,c))),n=-1)}return{x:u,y:d,placement:f,strategy:o,middlewareData:p}};async function detectOverflow(e,t){var n;void 0===t&&(t={});const{x:o,y:s,platform:i,rects:a,elements:c,strategy:l}=e,{boundary:u="clippingAncestors",rootBoundary:d="viewport",elementContext:f="floating",altBoundary:p=!1,padding:m=0}=(0,r.evaluate)(t,e),g=(0,r.getPaddingObject)(m),y=c[p?"floating"===f?"reference":"floating":f],h=(0,r.rectToClientRect)(await i.getClippingRect({element:null==(n=await(null==i.isElement?void 0:i.isElement(y)))||n?y:y.contextElement||await(null==i.getDocumentElement?void 0:i.getDocumentElement(c.floating)),boundary:u,rootBoundary:d,strategy:l})),v="floating"===f?{x:o,y:s,width:a.floating.width,height:a.floating.height}:a.reference,b=await(null==i.getOffsetParent?void 0:i.getOffsetParent(c.floating)),k=await(null==i.isElement?void 0:i.isElement(b))&&await(null==i.getScale?void 0:i.getScale(b))||{x:1,y:1},w=(0,r.rectToClientRect)(i.convertOffsetParentRelativeRectToViewportRelativeRect?await i.convertOffsetParentRelativeRectToViewportRelativeRect({elements:c,rect:v,offsetParent:b,strategy:l}):v);return{top:(h.top-w.top+g.top)/k.y,bottom:(w.bottom-h.bottom+g.bottom)/k.y,left:(h.left-w.left+g.left)/k.x,right:(w.right-h.right+g.right)/k.x}}const arrow=e=>({name:"arrow",options:e,async fn(t){const{x:n,y:o,placement:s,rects:i,platform:a,elements:c,middlewareData:l}=t,{element:u,padding:d=0}=(0,r.evaluate)(e,t)||{};if(null==u)return{};const f=(0,r.getPaddingObject)(d),p={x:n,y:o},m=(0,r.getAlignmentAxis)(s),g=(0,r.getAxisLength)(m),y=await a.getDimensions(u),h="y"===m,v=h?"top":"left",b=h?"bottom":"right",k=h?"clientHeight":"clientWidth",w=i.reference[g]+i.reference[m]-p[m]-i.floating[g],E=p[m]-i.reference[m],T=await(null==a.getOffsetParent?void 0:a.getOffsetParent(u));let x=T?T[k]:0;x&&await(null==a.isElement?void 0:a.isElement(T))||(x=c.floating[k]||i.floating[g]);const R=w/2-E/2,S=x/2-y[g]/2-1,C=(0,r.min)(f[v],S),P=(0,r.min)(f[b],S),I=C,O=x-y[g]-P,L=x/2-y[g]/2+R,M=(0,r.clamp)(I,L,O),A=!l.arrow&&null!=(0,r.getAlignment)(s)&&L!==M&&i.reference[g]/2-(L<I?C:P)-y[g]/2<0,_=A?L<I?L-I:L-O:0;return{[m]:p[m]+_,data:{[m]:M,centerOffset:L-M-_,...A&&{alignmentOffset:_}},reset:A}}});const autoPlacement=function(e){return void 0===e&&(e={}),{name:"autoPlacement",options:e,async fn(t){var n,o,s;const{rects:i,middlewareData:a,placement:c,platform:l,elements:u}=t,{crossAxis:d=!1,alignment:f,allowedPlacements:p=r.placements,autoAlignment:m=!0,...g}=(0,r.evaluate)(e,t),y=void 0!==f||p===r.placements?function getPlacementList(e,t,n){return(e?[...n.filter(t=>(0,r.getAlignment)(t)===e),...n.filter(t=>(0,r.getAlignment)(t)!==e)]:n.filter(e=>(0,r.getSide)(e)===e)).filter(n=>!e||(0,r.getAlignment)(n)===e||!!t&&(0,r.getOppositeAlignmentPlacement)(n)!==n)}(f||null,m,p):p,h=await detectOverflow(t,g),v=(null==(n=a.autoPlacement)?void 0:n.index)||0,b=y[v];if(null==b)return{};const k=(0,r.getAlignmentSides)(b,i,await(null==l.isRTL?void 0:l.isRTL(u.floating)));if(c!==b)return{reset:{placement:y[0]}};const w=[h[(0,r.getSide)(b)],h[k[0]],h[k[1]]],E=[...(null==(o=a.autoPlacement)?void 0:o.overflows)||[],{placement:b,overflows:w}],T=y[v+1];if(T)return{data:{index:v+1,overflows:E},reset:{placement:T}};const x=E.map(e=>{const t=(0,r.getAlignment)(e.placement);return[e.placement,t&&d?e.overflows.slice(0,2).reduce((e,t)=>e+t,0):e.overflows[0],e.overflows]}).sort((e,t)=>e[1]-t[1]),R=(null==(s=x.filter(e=>e[2].slice(0,(0,r.getAlignment)(e[0])?2:3).every(e=>e<=0))[0])?void 0:s[0])||x[0][0];return R!==c?{data:{index:v+1,overflows:E},reset:{placement:R}}:{}}}},flip=function(e){return void 0===e&&(e={}),{name:"flip",options:e,async fn(t){var n,o;const{placement:s,middlewareData:i,rects:a,initialPlacement:c,platform:l,elements:u}=t,{mainAxis:d=!0,crossAxis:f=!0,fallbackPlacements:p,fallbackStrategy:m="bestFit",fallbackAxisSideDirection:g="none",flipAlignment:y=!0,...h}=(0,r.evaluate)(e,t);if(null!=(n=i.arrow)&&n.alignmentOffset)return{};const v=(0,r.getSide)(s),b=(0,r.getSideAxis)(c),k=(0,r.getSide)(c)===c,w=await(null==l.isRTL?void 0:l.isRTL(u.floating)),E=p||(k||!y?[(0,r.getOppositePlacement)(c)]:(0,r.getExpandedPlacements)(c)),T="none"!==g;!p&&T&&E.push(...(0,r.getOppositeAxisPlacements)(c,y,g,w));const x=[c,...E],R=await detectOverflow(t,h),S=[];let C=(null==(o=i.flip)?void 0:o.overflows)||[];if(d&&S.push(R[v]),f){const e=(0,r.getAlignmentSides)(s,a,w);S.push(R[e[0]],R[e[1]])}if(C=[...C,{placement:s,overflows:S}],!S.every(e=>e<=0)){var P,I;const e=((null==(P=i.flip)?void 0:P.index)||0)+1,t=x[e];if(t){if(!("alignment"===f&&b!==(0,r.getSideAxis)(t))||C.every(e=>(0,r.getSideAxis)(e.placement)!==b||e.overflows[0]>0))return{data:{index:e,overflows:C},reset:{placement:t}}}let n=null==(I=C.filter(e=>e.overflows[0]<=0).sort((e,t)=>e.overflows[1]-t.overflows[1])[0])?void 0:I.placement;if(!n)switch(m){case"bestFit":{var O;const e=null==(O=C.filter(e=>{if(T){const t=(0,r.getSideAxis)(e.placement);return t===b||"y"===t}return!0}).map(e=>[e.placement,e.overflows.filter(e=>e>0).reduce((e,t)=>e+t,0)]).sort((e,t)=>e[1]-t[1])[0])?void 0:O[0];e&&(n=e);break}case"initialPlacement":n=c}if(s!==n)return{reset:{placement:n}}}return{}}}};function getSideOffsets(e,t){return{top:e.top-t.height,right:e.right-t.width,bottom:e.bottom-t.height,left:e.left-t.width}}function isAnySideFullyClipped(e){return r.sides.some(t=>e[t]>=0)}const hide=function(e){return void 0===e&&(e={}),{name:"hide",options:e,async fn(t){const{rects:n}=t,{strategy:o="referenceHidden",...s}=(0,r.evaluate)(e,t);switch(o){case"referenceHidden":{const e=getSideOffsets(await detectOverflow(t,{...s,elementContext:"reference"}),n.reference);return{data:{referenceHiddenOffsets:e,referenceHidden:isAnySideFullyClipped(e)}}}case"escaped":{const e=getSideOffsets(await detectOverflow(t,{...s,altBoundary:!0}),n.floating);return{data:{escapedOffsets:e,escaped:isAnySideFullyClipped(e)}}}default:return{}}}}};function getBoundingRect(e){const t=(0,r.min)(...e.map(e=>e.left)),n=(0,r.min)(...e.map(e=>e.top));return{x:t,y:n,width:(0,r.max)(...e.map(e=>e.right))-t,height:(0,r.max)(...e.map(e=>e.bottom))-n}}const inline=function(e){return void 0===e&&(e={}),{name:"inline",options:e,async fn(t){const{placement:n,elements:o,rects:s,platform:i,strategy:a}=t,{padding:c=2,x:l,y:u}=(0,r.evaluate)(e,t),d=Array.from(await(null==i.getClientRects?void 0:i.getClientRects(o.reference))||[]),f=function getRectsByLine(e){const t=e.slice().sort((e,t)=>e.y-t.y),n=[];let o=null;for(let e=0;e<t.length;e++){const r=t[e];!o||r.y-o.y>o.height/2?n.push([r]):n[n.length-1].push(r),o=r}return n.map(e=>(0,r.rectToClientRect)(getBoundingRect(e)))}(d),p=(0,r.rectToClientRect)(getBoundingRect(d)),m=(0,r.getPaddingObject)(c);const g=await i.getElementRects({reference:{getBoundingClientRect:function getBoundingClientRect(){if(2===f.length&&f[0].left>f[1].right&&null!=l&&null!=u)return f.find(e=>l>e.left-m.left&&l<e.right+m.right&&u>e.top-m.top&&u<e.bottom+m.bottom)||p;if(f.length>=2){if("y"===(0,r.getSideAxis)(n)){const e=f[0],t=f[f.length-1],o="top"===(0,r.getSide)(n),s=e.top,i=t.bottom,a=o?e.left:t.left,c=o?e.right:t.right;return{top:s,bottom:i,left:a,right:c,width:c-a,height:i-s,x:a,y:s}}const e="left"===(0,r.getSide)(n),t=(0,r.max)(...f.map(e=>e.right)),o=(0,r.min)(...f.map(e=>e.left)),s=f.filter(n=>e?n.left===o:n.right===t),i=s[0].top,a=s[s.length-1].bottom;return{top:i,bottom:a,left:o,right:t,width:t-o,height:a-i,x:o,y:i}}return p}},floating:o.floating,strategy:a});return s.reference.x!==g.reference.x||s.reference.y!==g.reference.y||s.reference.width!==g.reference.width||s.reference.height!==g.reference.height?{reset:{rects:g}}:{}}}},o=new Set(["left","top"]);const offset=function(e){return void 0===e&&(e=0),{name:"offset",options:e,async fn(t){var n,s;const{x:i,y:a,placement:c,middlewareData:l}=t,u=await async function convertValueToCoords(e,t){const{placement:n,platform:s,elements:i}=e,a=await(null==s.isRTL?void 0:s.isRTL(i.floating)),c=(0,r.getSide)(n),l=(0,r.getAlignment)(n),u="y"===(0,r.getSideAxis)(n),d=o.has(c)?-1:1,f=a&&u?-1:1,p=(0,r.evaluate)(t,e);let{mainAxis:m,crossAxis:g,alignmentAxis:y}="number"==typeof p?{mainAxis:p,crossAxis:0,alignmentAxis:null}:{mainAxis:p.mainAxis||0,crossAxis:p.crossAxis||0,alignmentAxis:p.alignmentAxis};return l&&"number"==typeof y&&(g="end"===l?-1*y:y),u?{x:g*f,y:m*d}:{x:m*d,y:g*f}}(t,e);return c===(null==(n=l.offset)?void 0:n.placement)&&null!=(s=l.arrow)&&s.alignmentOffset?{}:{x:i+u.x,y:a+u.y,data:{...u,placement:c}}}}},shift=function(e){return void 0===e&&(e={}),{name:"shift",options:e,async fn(t){const{x:n,y:o,placement:s}=t,{mainAxis:i=!0,crossAxis:a=!1,limiter:c={fn:e=>{let{x:t,y:n}=e;return{x:t,y:n}}},...l}=(0,r.evaluate)(e,t),u={x:n,y:o},d=await detectOverflow(t,l),f=(0,r.getSideAxis)((0,r.getSide)(s)),p=(0,r.getOppositeAxis)(f);let m=u[p],g=u[f];if(i){const e="y"===p?"bottom":"right",t=m+d["y"===p?"top":"left"],n=m-d[e];m=(0,r.clamp)(t,m,n)}if(a){const e="y"===f?"bottom":"right",t=g+d["y"===f?"top":"left"],n=g-d[e];g=(0,r.clamp)(t,g,n)}const y=c.fn({...t,[p]:m,[f]:g});return{...y,data:{x:y.x-n,y:y.y-o,enabled:{[p]:i,[f]:a}}}}}},limitShift=function(e){return void 0===e&&(e={}),{options:e,fn(t){const{x:n,y:s,placement:i,rects:a,middlewareData:c}=t,{offset:l=0,mainAxis:u=!0,crossAxis:d=!0}=(0,r.evaluate)(e,t),f={x:n,y:s},p=(0,r.getSideAxis)(i),m=(0,r.getOppositeAxis)(p);let g=f[m],y=f[p];const h=(0,r.evaluate)(l,t),v="number"==typeof h?{mainAxis:h,crossAxis:0}:{mainAxis:0,crossAxis:0,...h};if(u){const e="y"===m?"height":"width",t=a.reference[m]-a.floating[e]+v.mainAxis,n=a.reference[m]+a.reference[e]-v.mainAxis;g<t?g=t:g>n&&(g=n)}if(d){var b,k;const e="y"===m?"width":"height",t=o.has((0,r.getSide)(i)),n=a.reference[p]-a.floating[e]+(t&&(null==(b=c.offset)?void 0:b[p])||0)+(t?0:v.crossAxis),s=a.reference[p]+a.reference[e]+(t?0:(null==(k=c.offset)?void 0:k[p])||0)-(t?v.crossAxis:0);y<n?y=n:y>s&&(y=s)}return{[m]:g,[p]:y}}}},size=function(e){return void 0===e&&(e={}),{name:"size",options:e,async fn(t){var n,o;const{placement:s,rects:i,platform:a,elements:c}=t,{apply:l=()=>{},...u}=(0,r.evaluate)(e,t),d=await detectOverflow(t,u),f=(0,r.getSide)(s),p=(0,r.getAlignment)(s),m="y"===(0,r.getSideAxis)(s),{width:g,height:y}=i.floating;let h,v;"top"===f||"bottom"===f?(h=f,v=p===(await(null==a.isRTL?void 0:a.isRTL(c.floating))?"start":"end")?"left":"right"):(v=f,h="end"===p?"top":"bottom");const b=y-d.top-d.bottom,k=g-d.left-d.right,w=(0,r.min)(y-d[h],b),E=(0,r.min)(g-d[v],k),T=!t.middlewareData.shift;let x=w,R=E;if(null!=(n=t.middlewareData.shift)&&n.enabled.x&&(R=k),null!=(o=t.middlewareData.shift)&&o.enabled.y&&(x=b),T&&!p){const e=(0,r.max)(d.left,0),t=(0,r.max)(d.right,0),n=(0,r.max)(d.top,0),o=(0,r.max)(d.bottom,0);m?R=g-2*(0!==e||0!==t?e+t:(0,r.max)(d.left,d.right)):x=y-2*(0!==n||0!==o?n+o:(0,r.max)(d.top,d.bottom))}await l({...t,availableWidth:R,availableHeight:x});const S=await a.getDimensions(c.floating);return g!==S.width||y!==S.height?{reset:{rects:!0}}:{}}}}},"./packages/node_modules/@floating-ui/dom/dist/floating-ui.dom.mjs":function(e,t,n){n.r(t),n.d(t,{arrow:function(){return y},autoPlacement:function(){return d},autoUpdate:function(){return autoUpdate},computePosition:function(){return computePosition},detectOverflow:function(){return l},flip:function(){return p},getOverflowAncestors:function(){return s.getOverflowAncestors},hide:function(){return g},inline:function(){return h},limitShift:function(){return v},offset:function(){return u},platform:function(){return c},shift:function(){return f},size:function(){return m}});var r=n("./packages/node_modules/@floating-ui/utils/dist/floating-ui.utils.mjs"),o=n("./packages/node_modules/@floating-ui/core/dist/floating-ui.core.mjs"),s=n("./packages/node_modules/@floating-ui/utils/dist/floating-ui.utils.dom.mjs");function getCssDimensions(e){const t=(0,s.getComputedStyle)(e);let n=parseFloat(t.width)||0,o=parseFloat(t.height)||0;const i=(0,s.isHTMLElement)(e),a=i?e.offsetWidth:n,c=i?e.offsetHeight:o,l=(0,r.round)(n)!==a||(0,r.round)(o)!==c;return l&&(n=a,o=c),{width:n,height:o,$:l}}function unwrapElement(e){return(0,s.isElement)(e)?e:e.contextElement}function getScale(e){const t=unwrapElement(e);if(!(0,s.isHTMLElement)(t))return(0,r.createCoords)(1);const n=t.getBoundingClientRect(),{width:o,height:i,$:a}=getCssDimensions(t);let c=(a?(0,r.round)(n.width):n.width)/o,l=(a?(0,r.round)(n.height):n.height)/i;return c&&Number.isFinite(c)||(c=1),l&&Number.isFinite(l)||(l=1),{x:c,y:l}}const i=(0,r.createCoords)(0);function getVisualOffsets(e){const t=(0,s.getWindow)(e);return(0,s.isWebKit)()&&t.visualViewport?{x:t.visualViewport.offsetLeft,y:t.visualViewport.offsetTop}:i}function getBoundingClientRect(e,t,n,o){void 0===t&&(t=!1),void 0===n&&(n=!1);const i=e.getBoundingClientRect(),a=unwrapElement(e);let c=(0,r.createCoords)(1);t&&(o?(0,s.isElement)(o)&&(c=getScale(o)):c=getScale(e));const l=function shouldAddVisualOffsets(e,t,n){return void 0===t&&(t=!1),!(!n||t&&n!==(0,s.getWindow)(e))&&t}(a,n,o)?getVisualOffsets(a):(0,r.createCoords)(0);let u=(i.left+l.x)/c.x,d=(i.top+l.y)/c.y,f=i.width/c.x,p=i.height/c.y;if(a){const e=(0,s.getWindow)(a),t=o&&(0,s.isElement)(o)?(0,s.getWindow)(o):o;let n=e,r=(0,s.getFrameElement)(n);for(;r&&o&&t!==n;){const e=getScale(r),t=r.getBoundingClientRect(),o=(0,s.getComputedStyle)(r),i=t.left+(r.clientLeft+parseFloat(o.paddingLeft))*e.x,a=t.top+(r.clientTop+parseFloat(o.paddingTop))*e.y;u*=e.x,d*=e.y,f*=e.x,p*=e.y,u+=i,d+=a,n=(0,s.getWindow)(r),r=(0,s.getFrameElement)(n)}}return(0,r.rectToClientRect)({width:f,height:p,x:u,y:d})}function getWindowScrollBarX(e,t){const n=(0,s.getNodeScroll)(e).scrollLeft;return t?t.left+n:getBoundingClientRect((0,s.getDocumentElement)(e)).left+n}function getHTMLOffset(e,t){const n=e.getBoundingClientRect();return{x:n.left+t.scrollLeft-getWindowScrollBarX(e,n),y:n.top+t.scrollTop}}const a=new Set(["absolute","fixed"]);function getClientRectFromClippingAncestor(e,t,n){let o;if("viewport"===t)o=function getViewportRect(e,t){const n=(0,s.getWindow)(e),r=(0,s.getDocumentElement)(e),o=n.visualViewport;let i=r.clientWidth,a=r.clientHeight,c=0,l=0;if(o){i=o.width,a=o.height;const e=(0,s.isWebKit)();(!e||e&&"fixed"===t)&&(c=o.offsetLeft,l=o.offsetTop)}const u=getWindowScrollBarX(r);if(u<=0){const e=r.ownerDocument,t=e.body,n=getComputedStyle(t),o="CSS1Compat"===e.compatMode&&parseFloat(n.marginLeft)+parseFloat(n.marginRight)||0,s=Math.abs(r.clientWidth-t.clientWidth-o);s<=25&&(i-=s)}else u<=25&&(i+=u);return{width:i,height:a,x:c,y:l}}(e,n);else if("document"===t)o=function getDocumentRect(e){const t=(0,s.getDocumentElement)(e),n=(0,s.getNodeScroll)(e),o=e.ownerDocument.body,i=(0,r.max)(t.scrollWidth,t.clientWidth,o.scrollWidth,o.clientWidth),a=(0,r.max)(t.scrollHeight,t.clientHeight,o.scrollHeight,o.clientHeight);let c=-n.scrollLeft+getWindowScrollBarX(e);const l=-n.scrollTop;return"rtl"===(0,s.getComputedStyle)(o).direction&&(c+=(0,r.max)(t.clientWidth,o.clientWidth)-i),{width:i,height:a,x:c,y:l}}((0,s.getDocumentElement)(e));else if((0,s.isElement)(t))o=function getInnerBoundingClientRect(e,t){const n=getBoundingClientRect(e,!0,"fixed"===t),o=n.top+e.clientTop,i=n.left+e.clientLeft,a=(0,s.isHTMLElement)(e)?getScale(e):(0,r.createCoords)(1);return{width:e.clientWidth*a.x,height:e.clientHeight*a.y,x:i*a.x,y:o*a.y}}(t,n);else{const n=getVisualOffsets(e);o={x:t.x-n.x,y:t.y-n.y,width:t.width,height:t.height}}return(0,r.rectToClientRect)(o)}function hasFixedPositionAncestor(e,t){const n=(0,s.getParentNode)(e);return!(n===t||!(0,s.isElement)(n)||(0,s.isLastTraversableNode)(n))&&("fixed"===(0,s.getComputedStyle)(n).position||hasFixedPositionAncestor(n,t))}function getRectRelativeToOffsetParent(e,t,n){const o=(0,s.isHTMLElement)(t),i=(0,s.getDocumentElement)(t),a="fixed"===n,c=getBoundingClientRect(e,!0,a,t);let l={scrollLeft:0,scrollTop:0};const u=(0,r.createCoords)(0);function setLeftRTLScrollbarOffset(){u.x=getWindowScrollBarX(i)}if(o||!o&&!a)if(("body"!==(0,s.getNodeName)(t)||(0,s.isOverflowElement)(i))&&(l=(0,s.getNodeScroll)(t)),o){const e=getBoundingClientRect(t,!0,a,t);u.x=e.x+t.clientLeft,u.y=e.y+t.clientTop}else i&&setLeftRTLScrollbarOffset();a&&!o&&i&&setLeftRTLScrollbarOffset();const d=!i||o||a?(0,r.createCoords)(0):getHTMLOffset(i,l);return{x:c.left+l.scrollLeft-u.x-d.x,y:c.top+l.scrollTop-u.y-d.y,width:c.width,height:c.height}}function isStaticPositioned(e){return"static"===(0,s.getComputedStyle)(e).position}function getTrueOffsetParent(e,t){if(!(0,s.isHTMLElement)(e)||"fixed"===(0,s.getComputedStyle)(e).position)return null;if(t)return t(e);let n=e.offsetParent;return(0,s.getDocumentElement)(e)===n&&(n=n.ownerDocument.body),n}function getOffsetParent(e,t){const n=(0,s.getWindow)(e);if((0,s.isTopLayer)(e))return n;if(!(0,s.isHTMLElement)(e)){let t=(0,s.getParentNode)(e);for(;t&&!(0,s.isLastTraversableNode)(t);){if((0,s.isElement)(t)&&!isStaticPositioned(t))return t;t=(0,s.getParentNode)(t)}return n}let r=getTrueOffsetParent(e,t);for(;r&&(0,s.isTableElement)(r)&&isStaticPositioned(r);)r=getTrueOffsetParent(r,t);return r&&(0,s.isLastTraversableNode)(r)&&isStaticPositioned(r)&&!(0,s.isContainingBlock)(r)?n:r||(0,s.getContainingBlock)(e)||n}const c={convertOffsetParentRelativeRectToViewportRelativeRect:function convertOffsetParentRelativeRectToViewportRelativeRect(e){let{elements:t,rect:n,offsetParent:o,strategy:i}=e;const a="fixed"===i,c=(0,s.getDocumentElement)(o),l=!!t&&(0,s.isTopLayer)(t.floating);if(o===c||l&&a)return n;let u={scrollLeft:0,scrollTop:0},d=(0,r.createCoords)(1);const f=(0,r.createCoords)(0),p=(0,s.isHTMLElement)(o);if((p||!p&&!a)&&(("body"!==(0,s.getNodeName)(o)||(0,s.isOverflowElement)(c))&&(u=(0,s.getNodeScroll)(o)),(0,s.isHTMLElement)(o))){const e=getBoundingClientRect(o);d=getScale(o),f.x=e.x+o.clientLeft,f.y=e.y+o.clientTop}const m=!c||p||a?(0,r.createCoords)(0):getHTMLOffset(c,u);return{width:n.width*d.x,height:n.height*d.y,x:n.x*d.x-u.scrollLeft*d.x+f.x+m.x,y:n.y*d.y-u.scrollTop*d.y+f.y+m.y}},getDocumentElement:s.getDocumentElement,getClippingRect:function getClippingRect(e){let{element:t,boundary:n,rootBoundary:o,strategy:i}=e;const c=[..."clippingAncestors"===n?(0,s.isTopLayer)(t)?[]:function getClippingElementAncestors(e,t){const n=t.get(e);if(n)return n;let r=(0,s.getOverflowAncestors)(e,[],!1).filter(e=>(0,s.isElement)(e)&&"body"!==(0,s.getNodeName)(e)),o=null;const i="fixed"===(0,s.getComputedStyle)(e).position;let c=i?(0,s.getParentNode)(e):e;for(;(0,s.isElement)(c)&&!(0,s.isLastTraversableNode)(c);){const t=(0,s.getComputedStyle)(c),n=(0,s.isContainingBlock)(c);n||"fixed"!==t.position||(o=null),(i?!n&&!o:!n&&"static"===t.position&&o&&a.has(o.position)||(0,s.isOverflowElement)(c)&&!n&&hasFixedPositionAncestor(e,c))?r=r.filter(e=>e!==c):o=t,c=(0,s.getParentNode)(c)}return t.set(e,r),r}(t,this._c):[].concat(n),o],l=c[0],u=c.reduce((e,n)=>{const o=getClientRectFromClippingAncestor(t,n,i);return e.top=(0,r.max)(o.top,e.top),e.right=(0,r.min)(o.right,e.right),e.bottom=(0,r.min)(o.bottom,e.bottom),e.left=(0,r.max)(o.left,e.left),e},getClientRectFromClippingAncestor(t,l,i));return{width:u.right-u.left,height:u.bottom-u.top,x:u.left,y:u.top}},getOffsetParent:getOffsetParent,getElementRects:async function(e){const t=this.getOffsetParent||getOffsetParent,n=this.getDimensions,r=await n(e.floating);return{reference:getRectRelativeToOffsetParent(e.reference,await t(e.floating),e.strategy),floating:{x:0,y:0,width:r.width,height:r.height}}},getClientRects:function getClientRects(e){return Array.from(e.getClientRects())},getDimensions:function getDimensions(e){const{width:t,height:n}=getCssDimensions(e);return{width:t,height:n}},getScale:getScale,isElement:s.isElement,isRTL:function isRTL(e){return"rtl"===(0,s.getComputedStyle)(e).direction}};function rectsAreEqual(e,t){return e.x===t.x&&e.y===t.y&&e.width===t.width&&e.height===t.height}function autoUpdate(e,t,n,o){void 0===o&&(o={});const{ancestorScroll:i=!0,ancestorResize:a=!0,elementResize:c="function"==typeof ResizeObserver,layoutShift:l="function"==typeof IntersectionObserver,animationFrame:u=!1}=o,d=unwrapElement(e),f=i||a?[...d?(0,s.getOverflowAncestors)(d):[],...(0,s.getOverflowAncestors)(t)]:[];f.forEach(e=>{i&&e.addEventListener("scroll",n,{passive:!0}),a&&e.addEventListener("resize",n)});const p=d&&l?function observeMove(e,t){let n,o=null;const i=(0,s.getDocumentElement)(e);function cleanup(){var e;clearTimeout(n),null==(e=o)||e.disconnect(),o=null}return function refresh(s,a){void 0===s&&(s=!1),void 0===a&&(a=1),cleanup();const c=e.getBoundingClientRect(),{left:l,top:u,width:d,height:f}=c;if(s||t(),!d||!f)return;const p={rootMargin:-(0,r.floor)(u)+"px "+-(0,r.floor)(i.clientWidth-(l+d))+"px "+-(0,r.floor)(i.clientHeight-(u+f))+"px "+-(0,r.floor)(l)+"px",threshold:(0,r.max)(0,(0,r.min)(1,a))||1};let m=!0;function handleObserve(t){const r=t[0].intersectionRatio;if(r!==a){if(!m)return refresh();r?refresh(!1,r):n=setTimeout(()=>{refresh(!1,1e-7)},1e3)}1!==r||rectsAreEqual(c,e.getBoundingClientRect())||refresh(),m=!1}try{o=new IntersectionObserver(handleObserve,{...p,root:i.ownerDocument})}catch(e){o=new IntersectionObserver(handleObserve,p)}o.observe(e)}(!0),cleanup}(d,n):null;let m,g=-1,y=null;c&&(y=new ResizeObserver(e=>{let[r]=e;r&&r.target===d&&y&&(y.unobserve(t),cancelAnimationFrame(g),g=requestAnimationFrame(()=>{var e;null==(e=y)||e.observe(t)})),n()}),d&&!u&&y.observe(d),y.observe(t));let h=u?getBoundingClientRect(e):null;return u&&function frameLoop(){const t=getBoundingClientRect(e);h&&!rectsAreEqual(h,t)&&n();h=t,m=requestAnimationFrame(frameLoop)}(),n(),()=>{var e;f.forEach(e=>{i&&e.removeEventListener("scroll",n),a&&e.removeEventListener("resize",n)}),null==p||p(),null==(e=y)||e.disconnect(),y=null,u&&cancelAnimationFrame(m)}}const l=o.detectOverflow,u=o.offset,d=o.autoPlacement,f=o.shift,p=o.flip,m=o.size,g=o.hide,y=o.arrow,h=o.inline,v=o.limitShift,computePosition=(e,t,n)=>{const r=new Map,s={platform:c,...n},i={...s.platform,_c:r};return(0,o.computePosition)(e,t,{...s,platform:i})}},"./packages/node_modules/@floating-ui/react-dom/dist/floating-ui.react-dom.mjs":function(e,t,n){n.r(t),n.d(t,{arrow:function(){return arrow},autoPlacement:function(){return autoPlacement},autoUpdate:function(){return r.autoUpdate},computePosition:function(){return r.computePosition},detectOverflow:function(){return r.detectOverflow},flip:function(){return flip},getOverflowAncestors:function(){return o.getOverflowAncestors},hide:function(){return hide},inline:function(){return inline},limitShift:function(){return limitShift},offset:function(){return offset},platform:function(){return r.platform},shift:function(){return shift},size:function(){return size},useFloating:function(){return useFloating}});var r=n("./packages/node_modules/@floating-ui/dom/dist/floating-ui.dom.mjs"),o=n("./packages/node_modules/@floating-ui/utils/dist/floating-ui.utils.dom.mjs"),s=n("react"),i=n("react-dom"),a="undefined"!=typeof document?s.useLayoutEffect:function noop(){};function deepEqual(e,t){if(e===t)return!0;if(typeof e!=typeof t)return!1;if("function"==typeof e&&e.toString()===t.toString())return!0;let n,r,o;if(e&&t&&"object"==typeof e){if(Array.isArray(e)){if(n=e.length,n!==t.length)return!1;for(r=n;0!==r--;)if(!deepEqual(e[r],t[r]))return!1;return!0}if(o=Object.keys(e),n=o.length,n!==Object.keys(t).length)return!1;for(r=n;0!==r--;)if(!{}.hasOwnProperty.call(t,o[r]))return!1;for(r=n;0!==r--;){const n=o[r];if(("_owner"!==n||!e.$$typeof)&&!deepEqual(e[n],t[n]))return!1}return!0}return e!=e&&t!=t}function getDPR(e){if("undefined"==typeof window)return 1;return(e.ownerDocument.defaultView||window).devicePixelRatio||1}function roundByDPR(e,t){const n=getDPR(e);return Math.round(t*n)/n}function useLatestRef(e){const t=s.useRef(e);return a(()=>{t.current=e}),t}function useFloating(e){void 0===e&&(e={});const{placement:t="bottom",strategy:n="absolute",middleware:o=[],platform:c,elements:{reference:l,floating:u}={},transform:d=!0,whileElementsMounted:f,open:p}=e,[m,g]=s.useState({x:0,y:0,strategy:n,placement:t,middlewareData:{},isPositioned:!1}),[y,h]=s.useState(o);deepEqual(y,o)||h(o);const[v,b]=s.useState(null),[k,w]=s.useState(null),E=s.useCallback(e=>{e!==S.current&&(S.current=e,b(e))},[]),T=s.useCallback(e=>{e!==C.current&&(C.current=e,w(e))},[]),x=l||v,R=u||k,S=s.useRef(null),C=s.useRef(null),P=s.useRef(m),I=null!=f,O=useLatestRef(f),L=useLatestRef(c),M=useLatestRef(p),A=s.useCallback(()=>{if(!S.current||!C.current)return;const e={placement:t,strategy:n,middleware:y};L.current&&(e.platform=L.current),(0,r.computePosition)(S.current,C.current,e).then(e=>{const t={...e,isPositioned:!1!==M.current};_.current&&!deepEqual(P.current,t)&&(P.current=t,i.flushSync(()=>{g(t)}))})},[y,t,n,L,M]);a(()=>{!1===p&&P.current.isPositioned&&(P.current.isPositioned=!1,g(e=>({...e,isPositioned:!1})))},[p]);const _=s.useRef(!1);a(()=>(_.current=!0,()=>{_.current=!1}),[]),a(()=>{if(x&&(S.current=x),R&&(C.current=R),x&&R){if(O.current)return O.current(x,R,A);A()}},[x,R,A,O,I]);const D=s.useMemo(()=>({reference:S,floating:C,setReference:E,setFloating:T}),[E,T]),N=s.useMemo(()=>({reference:x,floating:R}),[x,R]),F=s.useMemo(()=>{const e={position:n,left:0,top:0};if(!N.floating)return e;const t=roundByDPR(N.floating,m.x),r=roundByDPR(N.floating,m.y);return d?{...e,transform:"translate("+t+"px, "+r+"px)",...getDPR(N.floating)>=1.5&&{willChange:"transform"}}:{position:n,left:t,top:r}},[n,d,N.floating,m.x,m.y]);return s.useMemo(()=>({...m,update:A,refs:D,elements:N,floatingStyles:F}),[m,A,D,N,F])}const arrow$1=e=>({name:"arrow",options:e,fn(t){const{element:n,padding:o}="function"==typeof e?e(t):e;return n&&function isRef(e){return{}.hasOwnProperty.call(e,"current")}(n)?null!=n.current?(0,r.arrow)({element:n.current,padding:o}).fn(t):{}:n?(0,r.arrow)({element:n,padding:o}).fn(t):{}}}),offset=(e,t)=>({...(0,r.offset)(e),options:[e,t]}),shift=(e,t)=>({...(0,r.shift)(e),options:[e,t]}),limitShift=(e,t)=>({...(0,r.limitShift)(e),options:[e,t]}),flip=(e,t)=>({...(0,r.flip)(e),options:[e,t]}),size=(e,t)=>({...(0,r.size)(e),options:[e,t]}),autoPlacement=(e,t)=>({...(0,r.autoPlacement)(e),options:[e,t]}),hide=(e,t)=>({...(0,r.hide)(e),options:[e,t]}),inline=(e,t)=>({...(0,r.inline)(e),options:[e,t]}),arrow=(e,t)=>({...arrow$1(e),options:[e,t]})},"./packages/node_modules/@floating-ui/react/dist/floating-ui.react.mjs":function(e,t,n){var r;n.r(t),n.d(t,{Composite:function(){return R},CompositeItem:function(){return S},FloatingArrow:function(){return M},FloatingDelayGroup:function(){return FloatingDelayGroup},FloatingFocusManager:function(){return FloatingFocusManager},FloatingList:function(){return FloatingList},FloatingNode:function(){return FloatingNode},FloatingOverlay:function(){return Q},FloatingPortal:function(){return FloatingPortal},FloatingTree:function(){return FloatingTree},NextFloatingDelayGroup:function(){return NextFloatingDelayGroup},arrow:function(){return u.arrow},autoPlacement:function(){return u.autoPlacement},autoUpdate:function(){return d.autoUpdate},computePosition:function(){return d.computePosition},detectOverflow:function(){return d.detectOverflow},flip:function(){return u.flip},getOverflowAncestors:function(){return a.getOverflowAncestors},hide:function(){return u.hide},inline:function(){return u.inline},inner:function(){return inner},limitShift:function(){return u.limitShift},offset:function(){return u.offset},platform:function(){return d.platform},safePolygon:function(){return safePolygon},shift:function(){return u.shift},size:function(){return u.size},useClick:function(){return useClick},useClientPoint:function(){return useClientPoint},useDelayGroup:function(){return useDelayGroup},useDelayGroupContext:function(){return useDelayGroupContext},useDismiss:function(){return useDismiss},useFloating:function(){return useFloating},useFloatingNodeId:function(){return useFloatingNodeId},useFloatingParentNodeId:function(){return useFloatingParentNodeId},useFloatingPortalNode:function(){return useFloatingPortalNode},useFloatingRootContext:function(){return useFloatingRootContext},useFloatingTree:function(){return useFloatingTree},useFocus:function(){return useFocus},useHover:function(){return useHover},useId:function(){return O},useInnerOffset:function(){return useInnerOffset},useInteractions:function(){return useInteractions},useListItem:function(){return useListItem},useListNavigation:function(){return useListNavigation},useMergeRefs:function(){return useMergeRefs},useNextDelayGroup:function(){return useNextDelayGroup},useRole:function(){return useRole},useTransitionStatus:function(){return useTransitionStatus},useTransitionStyles:function(){return useTransitionStyles},useTypeahead:function(){return useTypeahead}});var o=n("react"),s=n("./packages/node_modules/@floating-ui/react/dist/floating-ui.react.utils.mjs"),i=n("./packages/node_modules/react/jsx-runtime.js"),a=n("./packages/node_modules/@floating-ui/utils/dist/floating-ui.utils.dom.mjs"),c=n("./packages/node_modules/tabbable/dist/index.esm.js"),l=n("react-dom"),u=n("./packages/node_modules/@floating-ui/react-dom/dist/floating-ui.react-dom.mjs"),d=n("./packages/node_modules/@floating-ui/dom/dist/floating-ui.dom.mjs"),f=n("./packages/node_modules/@floating-ui/utils/dist/floating-ui.utils.mjs");function useMergeRefs(e){const t=o.useRef(void 0),n=o.useCallback(t=>{const n=e.map(e=>{if(null!=e){if("function"==typeof e){const n=e,r=n(t);return"function"==typeof r?r:()=>{n(null)}}return e.current=t,()=>{e.current=null}}});return()=>{n.forEach(e=>null==e?void 0:e())}},e);return o.useMemo(()=>e.every(e=>null==e)?null:e=>{t.current&&(t.current(),t.current=void 0),null!=e&&(t.current=n(e))},e)}function sortByDocumentPosition(e,t){const n=e.compareDocumentPosition(t);return n&Node.DOCUMENT_POSITION_FOLLOWING||n&Node.DOCUMENT_POSITION_CONTAINED_BY?-1:n&Node.DOCUMENT_POSITION_PRECEDING||n&Node.DOCUMENT_POSITION_CONTAINS?1:0}const p=o.createContext({register:()=>{},unregister:()=>{},map:new Map,elementsRef:{current:[]}});function FloatingList(e){const{children:t,elementsRef:n,labelsRef:r}=e,[s,a]=o.useState(()=>new Set),c=o.useCallback(e=>{a(t=>new Set(t).add(e))},[]),l=o.useCallback(e=>{a(t=>{const n=new Set(t);return n.delete(e),n})},[]),u=o.useMemo(()=>{const e=new Map;return Array.from(s.keys()).sort(sortByDocumentPosition).forEach((t,n)=>{e.set(t,n)}),e},[s]);return(0,i.jsx)(p.Provider,{value:o.useMemo(()=>({register:c,unregister:l,map:u,elementsRef:n,labelsRef:r}),[c,l,u,n,r]),children:t})}function useListItem(e){void 0===e&&(e={});const{label:t}=e,{register:n,unregister:r,map:i,elementsRef:a,labelsRef:c}=o.useContext(p),[l,u]=o.useState(null),d=o.useRef(null),f=o.useCallback(e=>{if(d.current=e,null!==l&&(a.current[l]=e,c)){var n;const r=void 0!==t;c.current[l]=r?t:null!=(n=null==e?void 0:e.textContent)?n:null}},[l,a,c,t]);return(0,s.useModernLayoutEffect)(()=>{const e=d.current;if(e)return n(e),()=>{r(e)}},[n,r]),(0,s.useModernLayoutEffect)(()=>{const e=d.current?i.get(d.current):null;null!=e&&u(e)},[i]),o.useMemo(()=>({ref:f,index:null==l?-1:l}),[l,f])}const m="data-floating-ui-focusable",g="active",y="selected",h="ArrowLeft",v="ArrowRight",b="ArrowUp",k="ArrowDown";function renderJsx(e,t){return"function"==typeof e?e(t):e?o.cloneElement(e,t):(0,i.jsx)("div",{...t})}const w=o.createContext({activeIndex:0,onNavigate:()=>{}}),E=[h,v],T=[b,k],x=[...E,...T],R=o.forwardRef(function Composite(e,t){const{render:n,orientation:r="both",loop:a=!0,rtl:c=!1,cols:l=1,disabledIndices:u,activeIndex:d,onNavigate:f,itemSizes:p,dense:m=!1,...g}=e,[y,R]=o.useState(0),S=null!=d?d:y,C=(0,s.useEffectEvent)(null!=f?f:R),P=o.useRef([]),I=n&&"function"!=typeof n?n.props:{},O=o.useMemo(()=>({activeIndex:S,onNavigate:C}),[S,C]),L=l>1;const M={...g,...I,ref:t,"aria-orientation":"both"===r?void 0:r,onKeyDown(e){null==g.onKeyDown||g.onKeyDown(e),null==I.onKeyDown||I.onKeyDown(e),function handleKeyDown(e){if(!x.includes(e.key))return;let t=S;const n=(0,s.getMinListIndex)(P,u),o=(0,s.getMaxListIndex)(P,u),i=c?h:v,d=c?v:h;if(L){const d=p||Array.from({length:P.current.length},()=>({width:1,height:1})),f=(0,s.createGridCellMap)(d,l,m),g=f.findIndex(e=>null!=e&&!(0,s.isListIndexDisabled)(P,e,u)),y=f.reduce((e,t,n)=>null==t||(0,s.isListIndexDisabled)(P,t,u)?e:n,-1),h=f[(0,s.getGridNavigatedIndex)({current:f.map(e=>e?P.current[e]:null)},{event:e,orientation:r,loop:a,rtl:c,cols:l,disabledIndices:(0,s.getGridCellIndices)([...("function"!=typeof u?u:null)||P.current.map((e,t)=>(0,s.isListIndexDisabled)(P,t,u)?t:void 0),void 0],f),minIndex:g,maxIndex:y,prevIndex:(0,s.getGridCellIndexOfCorner)(S>o?n:S,d,f,l,e.key===k?"bl":e.key===i?"tr":"tl")})];null!=h&&(t=h)}const f={horizontal:[i],vertical:[k],both:[i,k]}[r],g={horizontal:[d],vertical:[b],both:[d,b]}[r],y=L?x:{horizontal:E,vertical:T,both:x}[r];var w;t===S&&[...f,...g].includes(e.key)&&(t=a&&t===o&&f.includes(e.key)?n:a&&t===n&&g.includes(e.key)?o:(0,s.findNonDisabledListIndex)(P,{startingIndex:t,decrement:g.includes(e.key),disabledIndices:u})),t===S||(0,s.isIndexOutOfListBounds)(P,t)||(e.stopPropagation(),y.includes(e.key)&&e.preventDefault(),C(t),null==(w=P.current[t])||w.focus())}(e)}};return(0,i.jsx)(w.Provider,{value:O,children:(0,i.jsx)(FloatingList,{elementsRef:P,children:renderJsx(n,M)})})}),S=o.forwardRef(function CompositeItem(e,t){const{render:n,...r}=e,s=n&&"function"!=typeof n?n.props:{},{activeIndex:i,onNavigate:a}=o.useContext(w),{ref:c,index:l}=useListItem(),u=useMergeRefs([c,t,s.ref]),d=i===l;return renderJsx(n,{...r,...s,ref:u,tabIndex:d?0:-1,"data-active":d?"":void 0,onFocus(e){null==r.onFocus||r.onFocus(e),null==s.onFocus||s.onFocus(e),a(l)}})}),C={...r||(r=n.t(o,2))};let P=!1,I=0;const genId=()=>"floating-ui-"+Math.random().toString(36).slice(2,6)+I++;const O=C.useId||function useFloatingId(){const[e,t]=o.useState(()=>P?genId():void 0);return(0,s.useModernLayoutEffect)(()=>{null==e&&t(genId())},[]),o.useEffect(()=>{P=!0},[]),e};let L;function warn(){for(var e,t=arguments.length,n=new Array(t),r=0;r<t;r++)n[r]=arguments[r];const o="Floating UI: "+n.join(" ");var s;null!=(e=L)&&e.has(o)||(null==(s=L)||s.add(o),console.warn(o))}L=new Set;const M=o.forwardRef(function FloatingArrow(e,t){const{context:{placement:n,elements:{floating:r},middlewareData:{arrow:c,shift:l}},width:u=14,height:d=7,tipRadius:f=0,strokeWidth:p=0,staticOffset:m,stroke:g,d:y,style:{transform:h,...v}={},...b}=e;t||warn("The `ref` prop is required for `FloatingArrow`.");const k=O(),[w,E]=o.useState(!1);if((0,s.useModernLayoutEffect)(()=>{if(!r)return;"rtl"===(0,a.getComputedStyle)(r).direction&&E(!0)},[r]),!r)return null;const[T,x]=n.split("-"),R="top"===T||"bottom"===T;let S=m;(R&&null!=l&&l.x||!R&&null!=l&&l.y)&&(S=null);const C=2*p,P=C/2,I=u/2*(f/-8+1),L=d/2*f/4,M=!!y,A=S&&"end"===x?"bottom":"top";let _=S&&"end"===x?"right":"left";S&&w&&(_="end"===x?"left":"right");const D=null!=(null==c?void 0:c.x)?S||c.x:"",N=null!=(null==c?void 0:c.y)?S||c.y:"",F=y||"M0,0 H"+u+" L"+(u-I)+","+(d-L)+" Q"+u/2+","+d+" "+I+","+(d-L)+" Z",j={top:M?"rotate(180deg)":"",left:M?"rotate(90deg)":"rotate(-90deg)",bottom:M?"":"rotate(180deg)",right:M?"rotate(-90deg)":"rotate(90deg)"}[T];return(0,i.jsxs)("svg",{...b,"aria-hidden":!0,ref:t,width:M?u:u+C,height:u,viewBox:"0 0 "+u+" "+(d>u?d:u),style:{position:"absolute",pointerEvents:"none",[_]:D,[A]:N,[T]:R||M?"100%":"calc(100% - "+C/2+"px)",transform:[j,h].filter(e=>!!e).join(" "),...v},children:[C>0&&(0,i.jsx)("path",{clipPath:"url(#"+k+")",fill:"none",stroke:g,strokeWidth:C+(y?0:1),d:F}),(0,i.jsx)("path",{stroke:C&&!y?b.fill:"none",d:F}),(0,i.jsx)("clipPath",{id:k,children:(0,i.jsx)("rect",{x:-P,y:P*(M?-1:1),width:u+C,height:u})})]})});function createEventEmitter(){const e=new Map;return{emit(t,n){var r;null==(r=e.get(t))||r.forEach(e=>e(n))},on(t,n){e.has(t)||e.set(t,new Set),e.get(t).add(n)},off(t,n){var r;null==(r=e.get(t))||r.delete(n)}}}const A=o.createContext(null),_=o.createContext(null),useFloatingParentNodeId=()=>{var e;return(null==(e=o.useContext(A))?void 0:e.id)||null},useFloatingTree=()=>o.useContext(_);function useFloatingNodeId(e){const t=O(),n=useFloatingTree(),r=useFloatingParentNodeId(),o=e||r;return(0,s.useModernLayoutEffect)(()=>{if(!t)return;const e={id:t,parentId:o};return null==n||n.addNode(e),()=>{null==n||n.removeNode(e)}},[n,t,o]),t}function FloatingNode(e){const{children:t,id:n}=e,r=useFloatingParentNodeId();return(0,i.jsx)(A.Provider,{value:o.useMemo(()=>({id:n,parentId:r}),[n,r]),children:t})}function FloatingTree(e){const{children:t}=e,n=o.useRef([]),r=o.useCallback(e=>{n.current=[...n.current,e]},[]),s=o.useCallback(e=>{n.current=n.current.filter(t=>t!==e)},[]),[a]=o.useState(()=>createEventEmitter());return(0,i.jsx)(_.Provider,{value:o.useMemo(()=>({nodesRef:n,addNode:r,removeNode:s,events:a}),[r,s,a]),children:t})}function createAttribute(e){return"data-floating-ui-"+e}function clearTimeoutIfSet(e){-1!==e.current&&(clearTimeout(e.current),e.current=-1)}const D=createAttribute("safe-polygon");function getDelay(e,t,n){if(n&&!(0,s.isMouseLikePointerType)(n))return 0;if("number"==typeof e)return e;if("function"==typeof e){const n=e();return"number"==typeof n?n:null==n?void 0:n[t]}return null==e?void 0:e[t]}function getRestMs(e){return"function"==typeof e?e():e}function useHover(e,t){void 0===t&&(t={});const{open:n,onOpenChange:r,dataRef:i,events:c,elements:l}=e,{enabled:u=!0,delay:d=0,handleClose:f=null,mouseOnly:p=!1,restMs:m=0,move:g=!0}=t,y=useFloatingTree(),h=useFloatingParentNodeId(),v=(0,s.useLatestRef)(f),b=(0,s.useLatestRef)(d),k=(0,s.useLatestRef)(n),w=(0,s.useLatestRef)(m),E=o.useRef(),T=o.useRef(-1),x=o.useRef(),R=o.useRef(-1),S=o.useRef(!0),C=o.useRef(!1),P=o.useRef(()=>{}),I=o.useRef(!1),O=(0,s.useEffectEvent)(()=>{var e;const t=null==(e=i.current.openEvent)?void 0:e.type;return(null==t?void 0:t.includes("mouse"))&&"mousedown"!==t});o.useEffect(()=>{if(u)return c.on("openchange",onOpenChange),()=>{c.off("openchange",onOpenChange)};function onOpenChange(e){let{open:t}=e;t||(clearTimeoutIfSet(T),clearTimeoutIfSet(R),S.current=!0,I.current=!1)}},[u,c]),o.useEffect(()=>{if(!u)return;if(!v.current)return;if(!n)return;function onLeave(e){O()&&r(!1,e,"hover")}const e=(0,s.getDocument)(l.floating).documentElement;return e.addEventListener("mouseleave",onLeave),()=>{e.removeEventListener("mouseleave",onLeave)}},[l.floating,n,r,u,v,O]);const L=o.useCallback(function(e,t,n){void 0===t&&(t=!0),void 0===n&&(n="hover");const o=getDelay(b.current,"close",E.current);o&&!x.current?(clearTimeoutIfSet(T),T.current=window.setTimeout(()=>r(!1,e,n),o)):t&&(clearTimeoutIfSet(T),r(!1,e,n))},[b,r]),M=(0,s.useEffectEvent)(()=>{P.current(),x.current=void 0}),A=(0,s.useEffectEvent)(()=>{if(C.current){const e=(0,s.getDocument)(l.floating).body;e.style.pointerEvents="",e.removeAttribute(D),C.current=!1}}),_=(0,s.useEffectEvent)(()=>!!i.current.openEvent&&["click","mousedown"].includes(i.current.openEvent.type));o.useEffect(()=>{if(u&&(0,a.isElement)(l.domReference)){const e=l.domReference,t=l.floating;return n&&e.addEventListener("mouseleave",onScrollMouseLeave),g&&e.addEventListener("mousemove",onReferenceMouseEnter,{once:!0}),e.addEventListener("mouseenter",onReferenceMouseEnter),e.addEventListener("mouseleave",onReferenceMouseLeave),t&&(t.addEventListener("mouseleave",onScrollMouseLeave),t.addEventListener("mouseenter",onFloatingMouseEnter),t.addEventListener("mouseleave",onFloatingMouseLeave)),()=>{n&&e.removeEventListener("mouseleave",onScrollMouseLeave),g&&e.removeEventListener("mousemove",onReferenceMouseEnter),e.removeEventListener("mouseenter",onReferenceMouseEnter),e.removeEventListener("mouseleave",onReferenceMouseLeave),t&&(t.removeEventListener("mouseleave",onScrollMouseLeave),t.removeEventListener("mouseenter",onFloatingMouseEnter),t.removeEventListener("mouseleave",onFloatingMouseLeave))}}function onReferenceMouseEnter(e){if(clearTimeoutIfSet(T),S.current=!1,p&&!(0,s.isMouseLikePointerType)(E.current)||getRestMs(w.current)>0&&!getDelay(b.current,"open"))return;const t=getDelay(b.current,"open",E.current);t?T.current=window.setTimeout(()=>{k.current||r(!0,e,"hover")},t):n||r(!0,e,"hover")}function onReferenceMouseLeave(e){if(_())return void A();P.current();const t=(0,s.getDocument)(l.floating);if(clearTimeoutIfSet(R),I.current=!1,v.current&&i.current.floatingContext){n||clearTimeoutIfSet(T),x.current=v.current({...i.current.floatingContext,tree:y,x:e.clientX,y:e.clientY,onClose(){A(),M(),_()||L(e,!0,"safe-polygon")}});const r=x.current;return t.addEventListener("mousemove",r),void(P.current=()=>{t.removeEventListener("mousemove",r)})}("touch"!==E.current||!(0,s.contains)(l.floating,e.relatedTarget))&&L(e)}function onScrollMouseLeave(e){_()||i.current.floatingContext&&(null==v.current||v.current({...i.current.floatingContext,tree:y,x:e.clientX,y:e.clientY,onClose(){A(),M(),_()||L(e)}})(e))}function onFloatingMouseEnter(){clearTimeoutIfSet(T)}function onFloatingMouseLeave(e){_()||L(e,!1)}},[l,u,e,p,g,L,M,A,r,n,k,y,b,v,i,_,w]),(0,s.useModernLayoutEffect)(()=>{var e;if(u&&n&&null!=(e=v.current)&&null!=(e=e.__options)&&e.blockPointerEvents&&O()){C.current=!0;const e=l.floating;if((0,a.isElement)(l.domReference)&&e){var t;const n=(0,s.getDocument)(l.floating).body;n.setAttribute(D,"");const r=l.domReference,o=null==y||null==(t=y.nodesRef.current.find(e=>e.id===h))||null==(t=t.context)?void 0:t.elements.floating;return o&&(o.style.pointerEvents=""),n.style.pointerEvents="none",r.style.pointerEvents="auto",e.style.pointerEvents="auto",()=>{n.style.pointerEvents="",r.style.pointerEvents="",e.style.pointerEvents=""}}}},[u,n,h,l,y,v,O]),(0,s.useModernLayoutEffect)(()=>{n||(E.current=void 0,I.current=!1,M(),A())},[n,M,A]),o.useEffect(()=>()=>{M(),clearTimeoutIfSet(T),clearTimeoutIfSet(R),A()},[u,l.domReference,M,A]);const N=o.useMemo(()=>{function setPointerRef(e){E.current=e.pointerType}return{onPointerDown:setPointerRef,onPointerEnter:setPointerRef,onMouseMove(e){const{nativeEvent:t}=e;function handleMouseMove(){S.current||k.current||r(!0,t,"hover")}p&&!(0,s.isMouseLikePointerType)(E.current)||n||0===getRestMs(w.current)||I.current&&e.movementX**2+e.movementY**2<2||(clearTimeoutIfSet(R),"touch"===E.current?handleMouseMove():(I.current=!0,R.current=window.setTimeout(handleMouseMove,getRestMs(w.current))))}}},[p,r,n,k,w]);return o.useMemo(()=>u?{reference:N}:{},[u,N])}const NOOP=()=>{},N=o.createContext({delay:0,initialDelay:0,timeoutMs:0,currentId:null,setCurrentId:NOOP,setState:NOOP,isInstantPhase:!1}),useDelayGroupContext=()=>o.useContext(N);function FloatingDelayGroup(e){const{children:t,delay:n,timeoutMs:r=0}=e,[a,c]=o.useReducer((e,t)=>({...e,...t}),{delay:n,timeoutMs:r,initialDelay:n,currentId:null,isInstantPhase:!1}),l=o.useRef(null),u=o.useCallback(e=>{c({currentId:e})},[]);return(0,s.useModernLayoutEffect)(()=>{a.currentId?null===l.current?l.current=a.currentId:a.isInstantPhase||c({isInstantPhase:!0}):(a.isInstantPhase&&c({isInstantPhase:!1}),l.current=null)},[a.currentId,a.isInstantPhase]),(0,i.jsx)(N.Provider,{value:o.useMemo(()=>({...a,setState:c,setCurrentId:u}),[a,u]),children:t})}function useDelayGroup(e,t){void 0===t&&(t={});const{open:n,onOpenChange:r,floatingId:o}=e,{id:i,enabled:a=!0}=t,c=null!=i?i:o,l=useDelayGroupContext(),{currentId:u,setCurrentId:d,initialDelay:f,setState:p,timeoutMs:m}=l;return(0,s.useModernLayoutEffect)(()=>{a&&u&&(p({delay:{open:1,close:getDelay(f,"close")}}),u!==c&&r(!1))},[a,c,r,p,u,f]),(0,s.useModernLayoutEffect)(()=>{function unset(){r(!1),p({delay:f,currentId:null})}if(a&&u&&!n&&u===c){if(m){const e=window.setTimeout(unset,m);return()=>{clearTimeout(e)}}unset()}},[a,n,p,u,c,r,f,m]),(0,s.useModernLayoutEffect)(()=>{a&&d!==NOOP&&n&&d(c)},[a,n,d,c]),l}const F=o.createContext({hasProvider:!1,timeoutMs:0,delayRef:{current:0},initialDelayRef:{current:0},timeoutIdRef:{current:-1},currentIdRef:{current:null},currentContextRef:{current:null}});function NextFloatingDelayGroup(e){const{children:t,delay:n,timeoutMs:r=0}=e,s=o.useRef(n),a=o.useRef(n),c=o.useRef(null),l=o.useRef(null),u=o.useRef(-1);return(0,i.jsx)(F.Provider,{value:o.useMemo(()=>({hasProvider:!0,delayRef:s,initialDelayRef:a,currentIdRef:c,timeoutMs:r,currentContextRef:l,timeoutIdRef:u}),[r]),children:t})}function useNextDelayGroup(e,t){void 0===t&&(t={});const{open:n,onOpenChange:r,floatingId:i}=e,{enabled:a=!0}=t,c=o.useContext(F),{currentIdRef:l,delayRef:u,timeoutMs:d,initialDelayRef:f,currentContextRef:p,hasProvider:m,timeoutIdRef:g}=c,[y,h]=o.useState(!1);return(0,s.useModernLayoutEffect)(()=>{function unset(){var e;h(!1),null==(e=p.current)||e.setIsInstantPhase(!1),l.current=null,p.current=null,u.current=f.current}if(a&&l.current&&!n&&l.current===i){if(h(!1),d)return g.current=window.setTimeout(unset,d),()=>{clearTimeout(g.current)};unset()}},[a,n,i,l,u,d,f,p,g]),(0,s.useModernLayoutEffect)(()=>{if(!a)return;if(!n)return;const e=p.current,t=l.current;p.current={onOpenChange:r,setIsInstantPhase:h},l.current=i,u.current={open:0,close:getDelay(f.current,"close")},null!==t&&t!==i?(clearTimeoutIfSet(g),h(!0),null==e||e.setIsInstantPhase(!0),null==e||e.onOpenChange(!1)):(h(!1),null==e||e.setIsInstantPhase(!1))},[a,n,i,r,l,u,d,f,p,g]),(0,s.useModernLayoutEffect)(()=>()=>{p.current=null},[p]),o.useMemo(()=>({hasProvider:m,delayRef:u,isInstantPhase:y}),[m,u,y])}let j=0;function enqueueFocus(e,t){void 0===t&&(t={});const{preventScroll:n=!1,cancelPrevious:r=!0,sync:o=!1}=t;r&&cancelAnimationFrame(j);const exec=()=>null==e?void 0:e.focus({preventScroll:n});o?exec():j=requestAnimationFrame(exec)}function contains(e,t){if(!e||!t)return!1;const n=null==t.getRootNode?void 0:t.getRootNode();if(e.contains(t))return!0;if(n&&(0,a.isShadowRoot)(n)){let n=t;for(;n;){if(e===n)return!0;n=n.parentNode||n.host}}return!1}const $={inert:new WeakMap,"aria-hidden":new WeakMap,none:new WeakMap};function getCounterMap(e){return"inert"===e?$.inert:"aria-hidden"===e?$["aria-hidden"]:$.none}let V=new WeakSet,W={},B=0;const supportsInert=()=>"undefined"!=typeof HTMLElement&&"inert"in HTMLElement.prototype,unwrapHost=e=>e&&(e.host||unwrapHost(e.parentNode)),correctElements=(e,t)=>t.map(t=>{if(e.contains(t))return t;const n=unwrapHost(t);return e.contains(n)?n:null}).filter(e=>null!=e);function markOthers(e,t,n){void 0===t&&(t=!1),void 0===n&&(n=!1);const r=function getDocument(e){return(null==e?void 0:e.ownerDocument)||document}(e[0]).body;return function applyAttributeToOthers(e,t,n,r){const o="data-floating-ui-inert",s=r?"inert":n?"aria-hidden":null,i=correctElements(t,e),c=new Set,l=new Set(i),u=[];W[o]||(W[o]=new WeakMap);const d=W[o];return i.forEach(function keep(e){e&&!c.has(e)&&(c.add(e),e.parentNode&&keep(e.parentNode))}),function deep(e){e&&!l.has(e)&&[].forEach.call(e.children,e=>{if("script"!==(0,a.getNodeName)(e))if(c.has(e))deep(e);else{const t=s?e.getAttribute(s):null,n=null!==t&&"false"!==t,r=getCounterMap(s),i=(r.get(e)||0)+1,a=(d.get(e)||0)+1;r.set(e,i),d.set(e,a),u.push(e),1===i&&n&&V.add(e),1===a&&e.setAttribute(o,""),!n&&s&&e.setAttribute(s,"inert"===s?"":"true")}})}(t),c.clear(),B++,()=>{u.forEach(e=>{const t=getCounterMap(s),n=(t.get(e)||0)-1,r=(d.get(e)||0)-1;t.set(e,n),d.set(e,r),n||(!V.has(e)&&s&&e.removeAttribute(s),V.delete(e)),r||e.removeAttribute(o)}),B--,B||($.inert=new WeakMap,$["aria-hidden"]=new WeakMap,$.none=new WeakMap,V=new WeakSet,W={})}}(e.concat(Array.from(r.querySelectorAll('[aria-live],[role="status"],output'))),r,t,n)}const z={border:0,clip:"rect(0 0 0 0)",height:"1px",margin:"-1px",overflow:"hidden",padding:0,position:"fixed",whiteSpace:"nowrap",width:"1px",top:0,left:0},H=o.forwardRef(function FocusGuard(e,t){const[n,r]=o.useState();(0,s.useModernLayoutEffect)(()=>{(0,s.isSafari)()&&r("button")},[]);const a={ref:t,tabIndex:0,role:n,"aria-hidden":!n||void 0,[createAttribute("focus-guard")]:"",style:z};return(0,i.jsx)("span",{...e,...a})}),U=o.createContext(null),q=createAttribute("portal");function useFloatingPortalNode(e){void 0===e&&(e={});const{id:t,root:n}=e,r=O(),i=usePortalContext(),[c,l]=o.useState(null),u=o.useRef(null);return(0,s.useModernLayoutEffect)(()=>()=>{null==c||c.remove(),queueMicrotask(()=>{u.current=null})},[c]),(0,s.useModernLayoutEffect)(()=>{if(!r)return;if(u.current)return;const e=t?document.getElementById(t):null;if(!e)return;const n=document.createElement("div");n.id=r,n.setAttribute(q,""),e.appendChild(n),u.current=n,l(n)},[t,r]),(0,s.useModernLayoutEffect)(()=>{if(null===n)return;if(!r)return;if(u.current)return;let e=n||(null==i?void 0:i.portalNode);e&&!(0,a.isNode)(e)&&(e=e.current),e=e||document.body;let o=null;t&&(o=document.createElement("div"),o.id=t,e.appendChild(o));const s=document.createElement("div");s.id=r,s.setAttribute(q,""),e=o||e,e.appendChild(s),u.current=s,l(s)},[t,n,r,i]),c}function FloatingPortal(e){const{children:t,id:n,root:r,preserveTabOrder:a=!0}=e,c=useFloatingPortalNode({id:n,root:r}),[u,d]=o.useState(null),f=o.useRef(null),p=o.useRef(null),m=o.useRef(null),g=o.useRef(null),y=null==u?void 0:u.modal,h=null==u?void 0:u.open,v=!!u&&!u.modal&&u.open&&a&&!(!r&&!c);return o.useEffect(()=>{if(c&&a&&!y)return c.addEventListener("focusin",onFocus,!0),c.addEventListener("focusout",onFocus,!0),()=>{c.removeEventListener("focusin",onFocus,!0),c.removeEventListener("focusout",onFocus,!0)};function onFocus(e){if(c&&(0,s.isOutsideEvent)(e)){("focusin"===e.type?s.enableFocusInside:s.disableFocusInside)(c)}}},[c,a,y]),o.useEffect(()=>{c&&(h||(0,s.enableFocusInside)(c))},[h,c]),(0,i.jsxs)(U.Provider,{value:o.useMemo(()=>({preserveTabOrder:a,beforeOutsideRef:f,afterOutsideRef:p,beforeInsideRef:m,afterInsideRef:g,portalNode:c,setFocusManagerState:d}),[a,c]),children:[v&&c&&(0,i.jsx)(H,{"data-type":"outside",ref:f,onFocus:e=>{if((0,s.isOutsideEvent)(e,c)){var t;null==(t=m.current)||t.focus()}else{const e=u?u.domReference:null,t=(0,s.getPreviousTabbable)(e);null==t||t.focus()}}}),v&&c&&(0,i.jsx)("span",{"aria-owns":c.id,style:z}),c&&l.createPortal(t,c),v&&c&&(0,i.jsx)(H,{"data-type":"outside",ref:p,onFocus:e=>{if((0,s.isOutsideEvent)(e,c)){var t;null==(t=g.current)||t.focus()}else{const t=u?u.domReference:null,n=(0,s.getNextTabbable)(t);null==n||n.focus(),(null==u?void 0:u.closeOnFocusOut)&&(null==u||u.onOpenChange(!1,e.nativeEvent,"focus-out"))}}})]})}const usePortalContext=()=>o.useContext(U);function useLiteMergeRefs(e){return o.useMemo(()=>t=>{e.forEach(e=>{e&&(e.current=t)})},e)}const K=20;let G=[];function clearDisconnectedPreviouslyFocusedElements(){G=G.filter(e=>e.isConnected)}function getPreviouslyFocusedElement(){return clearDisconnectedPreviouslyFocusedElements(),G[G.length-1]}function handleTabIndex(e,t){var n;if(!(t.current.includes("floating")||null!=(n=e.getAttribute("role"))&&n.includes("dialog")))return;const r=(0,s.getTabbableOptions)(),o=(0,c.focusable)(e,r).filter(e=>{const t=e.getAttribute("data-tabindex")||"";return(0,c.isTabbable)(e,r)||e.hasAttribute("data-tabindex")&&!t.startsWith("-")}),i=e.getAttribute("tabindex");t.current.includes("floating")||0===o.length?"0"!==i&&e.setAttribute("tabindex","0"):("-1"!==i||e.hasAttribute("data-tabindex")&&"-1"!==e.getAttribute("data-tabindex"))&&(e.setAttribute("tabindex","-1"),e.setAttribute("data-tabindex","-1"))}const Y=o.forwardRef(function VisuallyHiddenDismiss(e,t){return(0,i.jsx)("button",{...e,type:"button",ref:t,tabIndex:-1,style:z})});function FloatingFocusManager(e){const{context:t,children:n,disabled:r=!1,order:l=["content"],guards:u=!0,initialFocus:d=0,returnFocus:f=!0,restoreFocus:p=!1,modal:m=!0,visuallyHiddenDismiss:g=!1,closeOnFocusOut:y=!0,outsideElementsInert:h=!1,getInsideElements:v=()=>[]}=e,{open:b,onOpenChange:k,events:w,dataRef:E,elements:{domReference:T,floating:x}}=t,R=(0,s.useEffectEvent)(()=>{var e;return null==(e=E.current.floatingContext)?void 0:e.nodeId}),S=(0,s.useEffectEvent)(v),C="number"==typeof d&&d<0,P=(0,s.isTypeableCombobox)(T)&&C,I=supportsInert(),O=!I||u,L=!O||I&&h,M=(0,s.useLatestRef)(l),A=(0,s.useLatestRef)(d),_=(0,s.useLatestRef)(f),D=useFloatingTree(),N=usePortalContext(),F=o.useRef(null),j=o.useRef(null),$=o.useRef(!1),V=o.useRef(!1),W=o.useRef(-1),B=o.useRef(-1),U=null!=N,q=(0,s.getFloatingFocusElement)(x),X=(0,s.useEffectEvent)(function(e){return void 0===e&&(e=q),e?(0,c.tabbable)(e,(0,s.getTabbableOptions)()):[]}),J=(0,s.useEffectEvent)(e=>{const t=X(e);return M.current.map(e=>T&&"reference"===e?T:q&&"floating"===e?q:t).filter(Boolean).flat()});o.useEffect(()=>{if(r)return;if(!m)return;function onKeyDown(e){if("Tab"===e.key){(0,s.contains)(q,(0,s.activeElement)((0,s.getDocument)(q)))&&0===X().length&&!P&&(0,s.stopEvent)(e);const t=J(),n=(0,s.getTarget)(e);"reference"===M.current[0]&&n===T&&((0,s.stopEvent)(e),e.shiftKey?enqueueFocus(t[t.length-1]):enqueueFocus(t[1])),"floating"===M.current[1]&&n===q&&e.shiftKey&&((0,s.stopEvent)(e),enqueueFocus(t[0]))}}const e=(0,s.getDocument)(q);return e.addEventListener("keydown",onKeyDown),()=>{e.removeEventListener("keydown",onKeyDown)}},[r,T,q,m,M,P,X,J]),o.useEffect(()=>{if(!r&&x)return x.addEventListener("focusin",handleFocusIn),()=>{x.removeEventListener("focusin",handleFocusIn)};function handleFocusIn(e){const t=(0,s.getTarget)(e),n=X().indexOf(t);-1!==n&&(W.current=n)}},[r,x,X]),o.useEffect(()=>{if(r)return;if(!y)return;function handlePointerDown(){V.current=!0,setTimeout(()=>{V.current=!1})}function handleFocusOutside(e){const t=e.relatedTarget,n=e.currentTarget,r=(0,s.getTarget)(e);queueMicrotask(()=>{const o=R(),i=!((0,s.contains)(T,t)||(0,s.contains)(x,t)||(0,s.contains)(t,x)||(0,s.contains)(null==N?void 0:N.portalNode,t)||null!=t&&t.hasAttribute(createAttribute("focus-guard"))||D&&((0,s.getNodeChildren)(D.nodesRef.current,o).find(e=>{var n,r;return(0,s.contains)(null==(n=e.context)?void 0:n.elements.floating,t)||(0,s.contains)(null==(r=e.context)?void 0:r.elements.domReference,t)})||(0,s.getNodeAncestors)(D.nodesRef.current,o).find(e=>{var n,r,o;return[null==(n=e.context)?void 0:n.elements.floating,(0,s.getFloatingFocusElement)(null==(r=e.context)?void 0:r.elements.floating)].includes(t)||(null==(o=e.context)?void 0:o.elements.domReference)===t})));if(n===T&&q&&handleTabIndex(q,M),p&&n!==T&&(null==r||!r.isConnected)&&(0,s.activeElement)((0,s.getDocument)(q))===(0,s.getDocument)(q).body){(0,a.isHTMLElement)(q)&&q.focus();const e=W.current,t=X(),n=t[e]||t[t.length-1]||q;(0,a.isHTMLElement)(n)&&n.focus()}E.current.insideReactTree?E.current.insideReactTree=!1:!P&&m||!t||!i||V.current||t===getPreviouslyFocusedElement()||($.current=!0,k(!1,e,"focus-out"))})}const e=Boolean(!D&&N);function markInsideReactTree(){clearTimeoutIfSet(B),E.current.insideReactTree=!0,B.current=window.setTimeout(()=>{E.current.insideReactTree=!1})}return x&&(0,a.isHTMLElement)(T)?(T.addEventListener("focusout",handleFocusOutside),T.addEventListener("pointerdown",handlePointerDown),x.addEventListener("focusout",handleFocusOutside),e&&x.addEventListener("focusout",markInsideReactTree,!0),()=>{T.removeEventListener("focusout",handleFocusOutside),T.removeEventListener("pointerdown",handlePointerDown),x.removeEventListener("focusout",handleFocusOutside),e&&x.removeEventListener("focusout",markInsideReactTree,!0)}):void 0},[r,T,x,q,m,D,N,k,y,p,X,P,R,M,E]);const Q=o.useRef(null),Z=o.useRef(null),ee=useLiteMergeRefs([Q,null==N?void 0:N.beforeInsideRef]),te=useLiteMergeRefs([Z,null==N?void 0:N.afterInsideRef]);function renderDismissButton(e){return!r&&g&&m?(0,i.jsx)(Y,{ref:"start"===e?F:j,onClick:e=>k(!1,e.nativeEvent),children:"string"==typeof g?g:"Dismiss"}):null}o.useEffect(()=>{var e,t;if(r)return;if(!x)return;const n=Array.from((null==N||null==(e=N.portalNode)?void 0:e.querySelectorAll("["+createAttribute("portal")+"]"))||[]),o=null==(t=(D?(0,s.getNodeAncestors)(D.nodesRef.current,R()):[]).find(e=>{var t;return(0,s.isTypeableCombobox)((null==(t=e.context)?void 0:t.elements.domReference)||null)}))||null==(t=t.context)?void 0:t.elements.domReference,i=[x,o,...n,...S(),F.current,j.current,Q.current,Z.current,null==N?void 0:N.beforeOutsideRef.current,null==N?void 0:N.afterOutsideRef.current,M.current.includes("reference")||P?T:null].filter(e=>null!=e),a=m||P?markOthers(i,!L,L):markOthers(i);return()=>{a()}},[r,T,x,m,M,N,P,O,L,D,R,S]),(0,s.useModernLayoutEffect)(()=>{if(r||!(0,a.isHTMLElement)(q))return;const e=(0,s.getDocument)(q),t=(0,s.activeElement)(e);queueMicrotask(()=>{const e=J(q),n=A.current,r=("number"==typeof n?e[n]:n.current)||q,o=(0,s.contains)(q,t);C||o||!b||enqueueFocus(r,{preventScroll:r===q})})},[r,b,q,C,J,A]),(0,s.useModernLayoutEffect)(()=>{if(r||!q)return;const e=(0,s.getDocument)(q);function onOpenChange(e){let{reason:t,event:n,nested:r}=e;if(["hover","safe-polygon"].includes(t)&&"mouseleave"===n.type&&($.current=!0),"outside-press"===t)if(r)$.current=!1;else if((0,s.isVirtualClick)(n)||(0,s.isVirtualPointerEvent)(n))$.current=!1;else{let e=!1;document.createElement("div").focus({get preventScroll(){return e=!0,!1}}),$.current=!e}}!function addPreviouslyFocusedElement(e){clearDisconnectedPreviouslyFocusedElements(),e&&"body"!==(0,a.getNodeName)(e)&&(G.push(e),G.length>K&&(G=G.slice(-20)))}((0,s.activeElement)(e)),w.on("openchange",onOpenChange);const t=e.createElement("span");return t.setAttribute("tabindex","-1"),t.setAttribute("aria-hidden","true"),Object.assign(t.style,z),U&&T&&T.insertAdjacentElement("afterend",t),()=>{w.off("openchange",onOpenChange);const n=(0,s.activeElement)(e),r=(0,s.contains)(x,n)||D&&(0,s.getNodeChildren)(D.nodesRef.current,R(),!1).some(e=>{var t;return(0,s.contains)(null==(t=e.context)?void 0:t.elements.floating,n)}),o=function getReturnElement(){if("boolean"==typeof _.current){const e=T||getPreviouslyFocusedElement();return e&&e.isConnected?e:t}return _.current.current||t}();queueMicrotask(()=>{const i=function getFirstTabbableElement(e){const t=(0,s.getTabbableOptions)();return(0,c.isTabbable)(e,t)?e:(0,c.tabbable)(e,t)[0]||e}(o);_.current&&!$.current&&(0,a.isHTMLElement)(i)&&(i===n||n===e.body||r)&&i.focus({preventScroll:!0}),t.remove()})}},[r,x,q,_,E,w,D,U,T,R]),o.useEffect(()=>(queueMicrotask(()=>{$.current=!1}),()=>{queueMicrotask(clearDisconnectedPreviouslyFocusedElements)}),[r]),(0,s.useModernLayoutEffect)(()=>{if(!r&&N)return N.setFocusManagerState({modal:m,closeOnFocusOut:y,open:b,onOpenChange:k,domReference:T}),()=>{N.setFocusManagerState(null)}},[r,N,m,b,k,y,T]),(0,s.useModernLayoutEffect)(()=>{r||q&&handleTabIndex(q,M)},[r,q,M]);const ne=!r&&O&&(!m||!P)&&(U||m);return(0,i.jsxs)(i.Fragment,{children:[ne&&(0,i.jsx)(H,{"data-type":"inside",ref:ee,onFocus:e=>{if(m){const e=J();enqueueFocus("reference"===l[0]?e[0]:e[e.length-1])}else if(null!=N&&N.preserveTabOrder&&N.portalNode)if($.current=!1,(0,s.isOutsideEvent)(e,N.portalNode)){const e=(0,s.getNextTabbable)(T);null==e||e.focus()}else{var t;null==(t=N.beforeOutsideRef.current)||t.focus()}}}),!P&&renderDismissButton("start"),n,renderDismissButton("end"),ne&&(0,i.jsx)(H,{"data-type":"inside",ref:te,onFocus:e=>{if(m)enqueueFocus(J()[0]);else if(null!=N&&N.preserveTabOrder&&N.portalNode)if(y&&($.current=!0),(0,s.isOutsideEvent)(e,N.portalNode)){const e=(0,s.getPreviousTabbable)(T);null==e||e.focus()}else{var t;null==(t=N.afterOutsideRef.current)||t.focus()}}})]})}let X=0;const J="--floating-ui-scrollbar-width";let cleanup=()=>{};const Q=o.forwardRef(function FloatingOverlay(e,t){const{lockScroll:n=!1,...r}=e;return(0,s.useModernLayoutEffect)(()=>{if(n)return X++,1===X&&(cleanup=function enableScrollLock(){const e=(0,s.getPlatform)(),t=/iP(hone|ad|od)|iOS/.test(e)||"MacIntel"===e&&navigator.maxTouchPoints>1,n=document.body.style,r=Math.round(document.documentElement.getBoundingClientRect().left)+document.documentElement.scrollLeft?"paddingLeft":"paddingRight",o=window.innerWidth-document.documentElement.clientWidth,i=n.left?parseFloat(n.left):window.scrollX,a=n.top?parseFloat(n.top):window.scrollY;if(n.overflow="hidden",n.setProperty(J,o+"px"),o&&(n[r]=o+"px"),t){var c,l;const e=(null==(c=window.visualViewport)?void 0:c.offsetLeft)||0,t=(null==(l=window.visualViewport)?void 0:l.offsetTop)||0;Object.assign(n,{position:"fixed",top:-(a-Math.floor(t))+"px",left:-(i-Math.floor(e))+"px",right:"0"})}return()=>{Object.assign(n,{overflow:"",[r]:""}),n.removeProperty(J),t&&(Object.assign(n,{position:"",top:"",left:"",right:""}),window.scrollTo(i,a))}}()),()=>{X--,0===X&&cleanup()}},[n]),(0,i.jsx)("div",{ref:t,...r,style:{position:"fixed",overflow:"auto",top:0,right:0,bottom:0,left:0,...r.style}})});function isButtonTarget(e){return(0,a.isHTMLElement)(e.target)&&"BUTTON"===e.target.tagName}function isSpaceIgnored(e){return(0,s.isTypeableElement)(e)}function useClick(e,t){void 0===t&&(t={});const{open:n,onOpenChange:r,dataRef:i,elements:{domReference:c}}=e,{enabled:l=!0,event:u="click",toggle:d=!0,ignoreMouse:f=!1,keyboardHandlers:p=!0,stickIfOpen:m=!0}=t,g=o.useRef(),y=o.useRef(!1),h=o.useMemo(()=>({onPointerDown(e){g.current=e.pointerType},onMouseDown(e){const t=g.current;0===e.button&&"click"!==u&&((0,s.isMouseLikePointerType)(t,!0)&&f||(!n||!d||i.current.openEvent&&m&&"mousedown"!==i.current.openEvent.type?(e.preventDefault(),r(!0,e.nativeEvent,"click")):r(!1,e.nativeEvent,"click")))},onClick(e){const t=g.current;"mousedown"===u&&g.current?g.current=void 0:(0,s.isMouseLikePointerType)(t,!0)&&f||(!n||!d||i.current.openEvent&&m&&"click"!==i.current.openEvent.type?r(!0,e.nativeEvent,"click"):r(!1,e.nativeEvent,"click"))},onKeyDown(e){g.current=void 0,e.defaultPrevented||!p||isButtonTarget(e)||(" "!==e.key||isSpaceIgnored(c)||(e.preventDefault(),y.current=!0),function isAnchorTarget(e){return(0,a.isHTMLElement)(e.target)&&"A"===e.target.tagName}(e)||"Enter"===e.key&&r(!n||!d,e.nativeEvent,"click"))},onKeyUp(e){e.defaultPrevented||!p||isButtonTarget(e)||isSpaceIgnored(c)||" "===e.key&&y.current&&(y.current=!1,r(!n||!d,e.nativeEvent,"click"))}}),[i,c,u,f,p,r,n,m,d]);return o.useMemo(()=>l?{reference:h}:{},[l,h])}function isMouseBasedEvent(e){return null!=e&&null!=e.clientX}function useClientPoint(e,t){void 0===t&&(t={});const{open:n,dataRef:r,elements:{floating:i,domReference:c},refs:l}=e,{enabled:u=!0,axis:d="both",x:f=null,y:p=null}=t,m=o.useRef(!1),g=o.useRef(null),[y,h]=o.useState(),[v,b]=o.useState([]),k=(0,s.useEffectEvent)((e,t)=>{m.current||r.current.openEvent&&!isMouseBasedEvent(r.current.openEvent)||l.setPositionReference(function createVirtualElement(e,t){let n=null,r=null,o=!1;return{contextElement:e||void 0,getBoundingClientRect(){var s;const i=(null==e?void 0:e.getBoundingClientRect())||{width:0,height:0,x:0,y:0},a="x"===t.axis||"both"===t.axis,c="y"===t.axis||"both"===t.axis,l=["mouseenter","mousemove"].includes((null==(s=t.dataRef.current.openEvent)?void 0:s.type)||"")&&"touch"!==t.pointerType;let u=i.width,d=i.height,f=i.x,p=i.y;return null==n&&t.x&&a&&(n=i.x-t.x),null==r&&t.y&&c&&(r=i.y-t.y),f-=n||0,p-=r||0,u=0,d=0,!o||l?(u="y"===t.axis?i.width:0,d="x"===t.axis?i.height:0,f=a&&null!=t.x?t.x:f,p=c&&null!=t.y?t.y:p):o&&!l&&(d="x"===t.axis?i.height:d,u="y"===t.axis?i.width:u),o=!0,{width:u,height:d,x:f,y:p,top:p,right:f+u,bottom:p+d,left:f}}}}(c,{x:e,y:t,axis:d,dataRef:r,pointerType:y}))}),w=(0,s.useEffectEvent)(e=>{null==f&&null==p&&(n?g.current||b([]):k(e.clientX,e.clientY))}),E=(0,s.isMouseLikePointerType)(y)?i:n,T=o.useCallback(()=>{if(!E||!u||null!=f||null!=p)return;const e=(0,a.getWindow)(i);function handleMouseMove(t){const n=(0,s.getTarget)(t);(0,s.contains)(i,n)?(e.removeEventListener("mousemove",handleMouseMove),g.current=null):k(t.clientX,t.clientY)}if(!r.current.openEvent||isMouseBasedEvent(r.current.openEvent)){e.addEventListener("mousemove",handleMouseMove);const cleanup=()=>{e.removeEventListener("mousemove",handleMouseMove),g.current=null};return g.current=cleanup,cleanup}l.setPositionReference(c)},[E,u,f,p,i,r,l,c,k]);o.useEffect(()=>T(),[T,v]),o.useEffect(()=>{u&&!i&&(m.current=!1)},[u,i]),o.useEffect(()=>{!u&&n&&(m.current=!0)},[u,n]),(0,s.useModernLayoutEffect)(()=>{!u||null==f&&null==p||(m.current=!1,k(f,p))},[u,f,p,k]);const x=o.useMemo(()=>{function setPointerTypeRef(e){let{pointerType:t}=e;h(t)}return{onPointerDown:setPointerTypeRef,onPointerEnter:setPointerTypeRef,onMouseMove:w,onMouseEnter:w}},[w]);return o.useMemo(()=>u?{reference:x}:{},[u,x])}const Z={pointerdown:"onPointerDown",mousedown:"onMouseDown",click:"onClick"},ee={pointerdown:"onPointerDownCapture",mousedown:"onMouseDownCapture",click:"onClickCapture"},normalizeProp=e=>{var t,n;return{escapeKey:"boolean"==typeof e?e:null!=(t=null==e?void 0:e.escapeKey)&&t,outsidePress:"boolean"==typeof e?e:null==(n=null==e?void 0:e.outsidePress)||n}};function useDismiss(e,t){void 0===t&&(t={});const{open:n,onOpenChange:r,elements:i,dataRef:c}=e,{enabled:l=!0,escapeKey:u=!0,outsidePress:d=!0,outsidePressEvent:f="pointerdown",referencePress:p=!1,referencePressEvent:m="pointerdown",ancestorScroll:g=!1,bubbles:y,capture:h}=t,v=useFloatingTree(),b=(0,s.useEffectEvent)("function"==typeof d?d:()=>!1),k="function"==typeof d?b:d,w=o.useRef(!1),{escapeKey:E,outsidePress:T}=normalizeProp(y),{escapeKey:x,outsidePress:R}=normalizeProp(h),S=o.useRef(!1),C=(0,s.useEffectEvent)(e=>{var t;if(!n||!l||!u||"Escape"!==e.key)return;if(S.current)return;const o=null==(t=c.current.floatingContext)?void 0:t.nodeId,i=v?(0,s.getNodeChildren)(v.nodesRef.current,o):[];if(!E&&(e.stopPropagation(),i.length>0)){let e=!0;if(i.forEach(t=>{var n;null==(n=t.context)||!n.open||t.context.dataRef.current.__escapeKeyBubbles||(e=!1)}),!e)return}r(!1,(0,s.isReactEvent)(e)?e.nativeEvent:e,"escape-key")}),P=(0,s.useEffectEvent)(e=>{var t;const callback=()=>{var t;C(e),null==(t=(0,s.getTarget)(e))||t.removeEventListener("keydown",callback)};null==(t=(0,s.getTarget)(e))||t.addEventListener("keydown",callback)}),I=(0,s.useEffectEvent)(e=>{var t;const n=c.current.insideReactTree;c.current.insideReactTree=!1;const o=w.current;if(w.current=!1,"click"===f&&o)return;if(n)return;if("function"==typeof k&&!k(e))return;const l=(0,s.getTarget)(e),u="["+createAttribute("inert")+"]",d=(0,s.getDocument)(i.floating).querySelectorAll(u);let p=(0,a.isElement)(l)?l:null;for(;p&&!(0,a.isLastTraversableNode)(p);){const e=(0,a.getParentNode)(p);if((0,a.isLastTraversableNode)(e)||!(0,a.isElement)(e))break;p=e}if(d.length&&(0,a.isElement)(l)&&!(0,s.isRootElement)(l)&&!(0,s.contains)(l,i.floating)&&Array.from(d).every(e=>!(0,s.contains)(p,e)))return;if((0,a.isHTMLElement)(l)&&M){const t=(0,a.isLastTraversableNode)(l),n=(0,a.getComputedStyle)(l),r=/auto|scroll/,o=t||r.test(n.overflowX),s=t||r.test(n.overflowY),i=o&&l.clientWidth>0&&l.scrollWidth>l.clientWidth,c=s&&l.clientHeight>0&&l.scrollHeight>l.clientHeight,u="rtl"===n.direction,d=c&&(u?e.offsetX<=l.offsetWidth-l.clientWidth:e.offsetX>l.clientWidth),f=i&&e.offsetY>l.clientHeight;if(d||f)return}const m=null==(t=c.current.floatingContext)?void 0:t.nodeId,g=v&&(0,s.getNodeChildren)(v.nodesRef.current,m).some(t=>{var n;return(0,s.isEventTargetWithin)(e,null==(n=t.context)?void 0:n.elements.floating)});if((0,s.isEventTargetWithin)(e,i.floating)||(0,s.isEventTargetWithin)(e,i.domReference)||g)return;const y=v?(0,s.getNodeChildren)(v.nodesRef.current,m):[];if(y.length>0){let e=!0;if(y.forEach(t=>{var n;null==(n=t.context)||!n.open||t.context.dataRef.current.__outsidePressBubbles||(e=!1)}),!e)return}r(!1,e,"outside-press")}),O=(0,s.useEffectEvent)(e=>{var t;const callback=()=>{var t;I(e),null==(t=(0,s.getTarget)(e))||t.removeEventListener(f,callback)};null==(t=(0,s.getTarget)(e))||t.addEventListener(f,callback)});o.useEffect(()=>{if(!n||!l)return;c.current.__escapeKeyBubbles=E,c.current.__outsidePressBubbles=T;let e=-1;function onScroll(e){r(!1,e,"ancestor-scroll")}function handleCompositionStart(){window.clearTimeout(e),S.current=!0}function handleCompositionEnd(){e=window.setTimeout(()=>{S.current=!1},(0,a.isWebKit)()?5:0)}const t=(0,s.getDocument)(i.floating);u&&(t.addEventListener("keydown",x?P:C,x),t.addEventListener("compositionstart",handleCompositionStart),t.addEventListener("compositionend",handleCompositionEnd)),k&&t.addEventListener(f,R?O:I,R);let o=[];return g&&((0,a.isElement)(i.domReference)&&(o=(0,a.getOverflowAncestors)(i.domReference)),(0,a.isElement)(i.floating)&&(o=o.concat((0,a.getOverflowAncestors)(i.floating))),!(0,a.isElement)(i.reference)&&i.reference&&i.reference.contextElement&&(o=o.concat((0,a.getOverflowAncestors)(i.reference.contextElement)))),o=o.filter(e=>{var n;return e!==(null==(n=t.defaultView)?void 0:n.visualViewport)}),o.forEach(e=>{e.addEventListener("scroll",onScroll,{passive:!0})}),()=>{u&&(t.removeEventListener("keydown",x?P:C,x),t.removeEventListener("compositionstart",handleCompositionStart),t.removeEventListener("compositionend",handleCompositionEnd)),k&&t.removeEventListener(f,R?O:I,R),o.forEach(e=>{e.removeEventListener("scroll",onScroll)}),window.clearTimeout(e)}},[c,i,u,k,f,n,r,g,l,E,T,C,x,P,I,R,O]),o.useEffect(()=>{c.current.insideReactTree=!1},[c,k,f]);const L=o.useMemo(()=>({onKeyDown:C,...p&&{[Z[m]]:e=>{r(!1,e.nativeEvent,"reference-press")},..."click"!==m&&{onClick(e){r(!1,e.nativeEvent,"reference-press")}}}}),[C,r,p,m]),M=o.useMemo(()=>({onKeyDown:C,onMouseDown(){w.current=!0},onMouseUp(){w.current=!0},[ee[f]]:()=>{c.current.insideReactTree=!0}}),[C,f,c]);return o.useMemo(()=>l?{reference:L,floating:M}:{},[l,L,M])}function useFloatingRootContext(e){const{open:t=!1,onOpenChange:n,elements:r}=e,i=O(),c=o.useRef({}),[l]=o.useState(()=>createEventEmitter()),u=null!=useFloatingParentNodeId();{const e=r.reference;e&&!(0,a.isElement)(e)&&function error(){for(var e,t=arguments.length,n=new Array(t),r=0;r<t;r++)n[r]=arguments[r];const o="Floating UI: "+n.join(" ");var s;null!=(e=L)&&e.has(o)||(null==(s=L)||s.add(o),console.error(o))}("Cannot pass a virtual element to the `elements.reference` option,","as it must be a real DOM element. Use `refs.setPositionReference()`","instead.")}const[d,f]=o.useState(r.reference),p=(0,s.useEffectEvent)((e,t,r)=>{c.current.openEvent=e?t:void 0,l.emit("openchange",{open:e,event:t,reason:r,nested:u}),null==n||n(e,t,r)}),m=o.useMemo(()=>({setPositionReference:f}),[]),g=o.useMemo(()=>({reference:d||r.reference||null,floating:r.floating||null,domReference:r.reference}),[d,r.reference,r.floating]);return o.useMemo(()=>({dataRef:c,open:t,onOpenChange:p,elements:g,events:l,floatingId:i,refs:m}),[t,p,g,l,i,m])}function useFloating(e){void 0===e&&(e={});const{nodeId:t}=e,n=useFloatingRootContext({...e,elements:{reference:null,floating:null,...e.elements}}),r=e.rootContext||n,i=r.elements,[c,l]=o.useState(null),[d,f]=o.useState(null),p=(null==i?void 0:i.domReference)||c,m=o.useRef(null),g=useFloatingTree();(0,s.useModernLayoutEffect)(()=>{p&&(m.current=p)},[p]);const y=(0,u.useFloating)({...e,elements:{...i,...d&&{reference:d}}}),h=o.useCallback(e=>{const t=(0,a.isElement)(e)?{getBoundingClientRect:()=>e.getBoundingClientRect(),getClientRects:()=>e.getClientRects(),contextElement:e}:e;f(t),y.refs.setReference(t)},[y.refs]),v=o.useCallback(e=>{((0,a.isElement)(e)||null===e)&&(m.current=e,l(e)),((0,a.isElement)(y.refs.reference.current)||null===y.refs.reference.current||null!==e&&!(0,a.isElement)(e))&&y.refs.setReference(e)},[y.refs]),b=o.useMemo(()=>({...y.refs,setReference:v,setPositionReference:h,domReference:m}),[y.refs,v,h]),k=o.useMemo(()=>({...y.elements,domReference:p}),[y.elements,p]),w=o.useMemo(()=>({...y,...r,refs:b,elements:k,nodeId:t}),[y,b,k,t,r]);return(0,s.useModernLayoutEffect)(()=>{r.dataRef.current.floatingContext=w;const e=null==g?void 0:g.nodesRef.current.find(e=>e.id===t);e&&(e.context=w)}),o.useMemo(()=>({...y,context:w,refs:b,elements:k}),[y,b,k,w])}function isMacSafari(){return(0,s.isMac)()&&(0,s.isSafari)()}function useFocus(e,t){void 0===t&&(t={});const{open:n,onOpenChange:r,events:i,dataRef:c,elements:l}=e,{enabled:u=!0,visibleOnly:d=!0}=t,f=o.useRef(!1),p=o.useRef(-1),m=o.useRef(!0);o.useEffect(()=>{if(!u)return;const e=(0,a.getWindow)(l.domReference);function onBlur(){!n&&(0,a.isHTMLElement)(l.domReference)&&l.domReference===(0,s.activeElement)((0,s.getDocument)(l.domReference))&&(f.current=!0)}function onKeyDown(){m.current=!0}function onPointerDown(){m.current=!1}return e.addEventListener("blur",onBlur),isMacSafari()&&(e.addEventListener("keydown",onKeyDown,!0),e.addEventListener("pointerdown",onPointerDown,!0)),()=>{e.removeEventListener("blur",onBlur),isMacSafari()&&(e.removeEventListener("keydown",onKeyDown,!0),e.removeEventListener("pointerdown",onPointerDown,!0))}},[l.domReference,n,u]),o.useEffect(()=>{if(u)return i.on("openchange",onOpenChange),()=>{i.off("openchange",onOpenChange)};function onOpenChange(e){let{reason:t}=e;"reference-press"!==t&&"escape-key"!==t||(f.current=!0)}},[i,u]),o.useEffect(()=>()=>{clearTimeoutIfSet(p)},[]);const g=o.useMemo(()=>({onMouseLeave(){f.current=!1},onFocus(e){if(f.current)return;const t=(0,s.getTarget)(e.nativeEvent);if(d&&(0,a.isElement)(t))if(isMacSafari()&&!e.relatedTarget){if(!m.current&&!(0,s.isTypeableElement)(t))return}else if(!(0,s.matchesFocusVisible)(t))return;r(!0,e.nativeEvent,"focus")},onBlur(e){f.current=!1;const t=e.relatedTarget,n=e.nativeEvent,o=(0,a.isElement)(t)&&t.hasAttribute(createAttribute("focus-guard"))&&"outside"===t.getAttribute("data-type");p.current=window.setTimeout(()=>{var e;const i=(0,s.activeElement)(l.domReference?l.domReference.ownerDocument:document);(t||i!==l.domReference)&&((0,s.contains)(null==(e=c.current.floatingContext)?void 0:e.refs.floating.current,i)||(0,s.contains)(l.domReference,i)||o||r(!1,n,"focus"))})}}),[c,l.domReference,r,d]);return o.useMemo(()=>u?{reference:g}:{},[u,g])}function mergeProps(e,t,n){const r=new Map,o="item"===n;let s=e;if(o&&e){const{[g]:t,[y]:n,...r}=e;s=r}return{..."floating"===n&&{tabIndex:-1,[m]:""},...s,...t.map(t=>{const r=t?t[n]:null;return"function"==typeof r?e?r(e):null:r}).concat(e).reduce((e,t)=>t?(Object.entries(t).forEach(t=>{let[n,s]=t;var i;o&&[g,y].includes(n)||(0===n.indexOf("on")?(r.has(n)||r.set(n,[]),"function"==typeof s&&(null==(i=r.get(n))||i.push(s),e[n]=function(){for(var e,t=arguments.length,o=new Array(t),s=0;s<t;s++)o[s]=arguments[s];return null==(e=r.get(n))?void 0:e.map(e=>e(...o)).find(e=>void 0!==e)})):e[n]=s)}),e):e,{})}}function useInteractions(e){void 0===e&&(e=[]);const t=e.map(e=>null==e?void 0:e.reference),n=e.map(e=>null==e?void 0:e.floating),r=e.map(e=>null==e?void 0:e.item),s=o.useCallback(t=>mergeProps(t,e,"reference"),t),i=o.useCallback(t=>mergeProps(t,e,"floating"),n),a=o.useCallback(t=>mergeProps(t,e,"item"),r);return o.useMemo(()=>({getReferenceProps:s,getFloatingProps:i,getItemProps:a}),[s,i,a])}const te="Escape";function doSwitch(e,t,n){switch(e){case"vertical":return t;case"horizontal":return n;default:return t||n}}function isMainOrientationKey(e,t){return doSwitch(t,e===b||e===k,e===h||e===v)}function isMainOrientationToEndKey(e,t,n){return doSwitch(t,e===k,n?e===h:e===v)||"Enter"===e||" "===e||""===e}function isCrossOrientationOpenKey(e,t,n){return doSwitch(t,n?e===h:e===v,e===k)}function isCrossOrientationCloseKey(e,t,n,r){return"both"===t||"horizontal"===t&&r&&r>1?e===te:doSwitch(t,n?e===v:e===h,e===b)}function useListNavigation(e,t){const{open:n,onOpenChange:r,elements:i,floatingId:c}=e,{listRef:l,activeIndex:u,onNavigate:d=()=>{},enabled:f=!0,selectedIndex:p=null,allowEscape:m=!1,loop:g=!1,nested:y=!1,rtl:b=!1,virtual:w=!1,focusItemOnOpen:E="auto",focusItemOnHover:T=!0,openOnArrowKeyDown:x=!0,disabledIndices:R,orientation:S="vertical",parentOrientation:C,cols:P=1,scrollItemIntoView:I=!0,virtualItemRef:O,itemSizes:L,dense:M=!1}=t;m&&(g||warn("`useListNavigation` looping must be enabled to allow escaping."),w||warn("`useListNavigation` must be virtual to allow escaping.")),"vertical"===S&&P>1&&warn("In grid list navigation mode (`cols` > 1), the `orientation` should",'be either "horizontal" or "both".');const A=(0,s.getFloatingFocusElement)(i.floating),_=(0,s.useLatestRef)(A),D=useFloatingParentNodeId(),N=useFloatingTree();(0,s.useModernLayoutEffect)(()=>{e.dataRef.current.orientation=S},[e,S]);const F=(0,s.useEffectEvent)(()=>{d(-1===V.current?null:V.current)}),j=(0,s.isTypeableCombobox)(i.domReference),$=o.useRef(E),V=o.useRef(null!=p?p:-1),W=o.useRef(null),B=o.useRef(!0),z=o.useRef(F),H=o.useRef(!!i.floating),U=o.useRef(n),q=o.useRef(!1),K=o.useRef(!1),G=(0,s.useLatestRef)(R),Y=(0,s.useLatestRef)(n),X=(0,s.useLatestRef)(I),J=(0,s.useLatestRef)(p),[Q,Z]=o.useState(),[ee,te]=o.useState(),ne=(0,s.useEffectEvent)(()=>{function runFocus(e){var t;w?(null!=(t=e.id)&&t.endsWith("-fui-option")&&(e.id=c+"-"+Math.random().toString(16).slice(2,10)),Z(e.id),null==N||N.events.emit("virtualfocus",e),O&&(O.current=e)):enqueueFocus(e,{sync:q.current,preventScroll:!0})}const e=l.current[V.current],t=K.current;e&&runFocus(e);(q.current?e=>e():requestAnimationFrame)(()=>{const n=l.current[V.current]||e;if(!n)return;e||runFocus(n);const r=X.current;r&&oe&&(t||!B.current)&&(null==n.scrollIntoView||n.scrollIntoView("boolean"==typeof r?{block:"nearest",inline:"nearest"}:r))})});(0,s.useModernLayoutEffect)(()=>{f&&(n&&i.floating?$.current&&null!=p&&(K.current=!0,V.current=p,F()):H.current&&(V.current=-1,z.current()))},[f,n,i.floating,p,F]),(0,s.useModernLayoutEffect)(()=>{if(f&&n&&i.floating)if(null==u){if(q.current=!1,null!=J.current)return;if(H.current&&(V.current=-1,ne()),(!U.current||!H.current)&&$.current&&(null!=W.current||!0===$.current&&null==W.current)){let e=0;const waitForListPopulated=()=>{if(null==l.current[0]){if(e<2){(e?requestAnimationFrame:queueMicrotask)(waitForListPopulated)}e++}else V.current=null==W.current||isMainOrientationToEndKey(W.current,S,b)||y?(0,s.getMinListIndex)(l,G.current):(0,s.getMaxListIndex)(l,G.current),W.current=null,F()};waitForListPopulated()}}else(0,s.isIndexOutOfListBounds)(l,u)||(V.current=u,ne(),K.current=!1)},[f,n,i.floating,u,J,y,l,S,b,F,ne,G]),(0,s.useModernLayoutEffect)(()=>{var e;if(!f||i.floating||!N||w||!H.current)return;const t=N.nodesRef.current,n=null==(e=t.find(e=>e.id===D))||null==(e=e.context)?void 0:e.elements.floating,r=(0,s.activeElement)((0,s.getDocument)(i.floating)),o=t.some(e=>e.context&&(0,s.contains)(e.context.elements.floating,r));n&&!o&&B.current&&n.focus({preventScroll:!0})},[f,i.floating,N,D,w]),(0,s.useModernLayoutEffect)(()=>{if(f&&N&&w&&!D)return N.events.on("virtualfocus",handleVirtualFocus),()=>{N.events.off("virtualfocus",handleVirtualFocus)};function handleVirtualFocus(e){te(e.id),O&&(O.current=e)}},[f,N,w,D,O]),(0,s.useModernLayoutEffect)(()=>{z.current=F,U.current=n,H.current=!!i.floating}),(0,s.useModernLayoutEffect)(()=>{n||(W.current=null,$.current=E)},[n,E]);const re=null!=u,oe=o.useMemo(()=>{function syncCurrentTarget(e){if(!Y.current)return;const t=l.current.indexOf(e);-1!==t&&V.current!==t&&(V.current=t,F())}return{onFocus(e){let{currentTarget:t}=e;q.current=!0,syncCurrentTarget(t)},onClick:e=>{let{currentTarget:t}=e;return t.focus({preventScroll:!0})},onMouseMove(e){let{currentTarget:t}=e;q.current=!0,K.current=!1,T&&syncCurrentTarget(t)},onPointerLeave(e){let{pointerType:t}=e;var n;B.current&&"touch"!==t&&(q.current=!0,T&&(V.current=-1,F(),w||null==(n=_.current)||n.focus({preventScroll:!0})))}}},[Y,_,T,l,F,w]),se=o.useCallback(()=>{var e;return null!=C?C:null==N||null==(e=N.nodesRef.current.find(e=>e.id===D))||null==(e=e.context)||null==(e=e.dataRef)?void 0:e.current.orientation},[D,N,C]),ie=(0,s.useEffectEvent)(e=>{if(B.current=!1,q.current=!0,229===e.which)return;if(!Y.current&&e.currentTarget===_.current)return;if(y&&isCrossOrientationCloseKey(e.key,S,b,P))return isMainOrientationKey(e.key,se())||(0,s.stopEvent)(e),r(!1,e.nativeEvent,"list-navigation"),void((0,a.isHTMLElement)(i.domReference)&&(w?null==N||N.events.emit("virtualfocus",i.domReference):i.domReference.focus()));const t=V.current,o=(0,s.getMinListIndex)(l,R),c=(0,s.getMaxListIndex)(l,R);if(j||("Home"===e.key&&((0,s.stopEvent)(e),V.current=o,F()),"End"===e.key&&((0,s.stopEvent)(e),V.current=c,F())),P>1){const t=L||Array.from({length:l.current.length},()=>({width:1,height:1})),n=(0,s.createGridCellMap)(t,P,M),r=n.findIndex(e=>null!=e&&!(0,s.isListIndexDisabled)(l,e,R)),i=n.reduce((e,t,n)=>null==t||(0,s.isListIndexDisabled)(l,t,R)?e:n,-1),a=n[(0,s.getGridNavigatedIndex)({current:n.map(e=>null!=e?l.current[e]:null)},{event:e,orientation:S,loop:g,rtl:b,cols:P,disabledIndices:(0,s.getGridCellIndices)([...("function"!=typeof R?R:null)||l.current.map((e,t)=>(0,s.isListIndexDisabled)(l,t,R)?t:void 0),void 0],n),minIndex:r,maxIndex:i,prevIndex:(0,s.getGridCellIndexOfCorner)(V.current>c?o:V.current,t,n,P,e.key===k?"bl":e.key===(b?h:v)?"tr":"tl"),stopEvent:!0})];if(null!=a&&(V.current=a,F()),"both"===S)return}if(isMainOrientationKey(e.key,S)){if((0,s.stopEvent)(e),n&&!w&&(0,s.activeElement)(e.currentTarget.ownerDocument)===e.currentTarget)return V.current=isMainOrientationToEndKey(e.key,S,b)?o:c,void F();isMainOrientationToEndKey(e.key,S,b)?V.current=g?t>=c?m&&t!==l.current.length?-1:o:(0,s.findNonDisabledListIndex)(l,{startingIndex:t,disabledIndices:R}):Math.min(c,(0,s.findNonDisabledListIndex)(l,{startingIndex:t,disabledIndices:R})):V.current=g?t<=o?m&&-1!==t?l.current.length:c:(0,s.findNonDisabledListIndex)(l,{startingIndex:t,decrement:!0,disabledIndices:R}):Math.max(o,(0,s.findNonDisabledListIndex)(l,{startingIndex:t,decrement:!0,disabledIndices:R})),(0,s.isIndexOutOfListBounds)(l,V.current)&&(V.current=-1),F()}}),ae=o.useMemo(()=>w&&n&&re&&{"aria-activedescendant":ee||Q},[w,n,re,ee,Q]),ce=o.useMemo(()=>({"aria-orientation":"both"===S?void 0:S,...j?{}:ae,onKeyDown:ie,onPointerMove(){B.current=!0}}),[ae,ie,S,j]),le=o.useMemo(()=>{function checkVirtualMouse(e){"auto"===E&&(0,s.isVirtualClick)(e.nativeEvent)&&($.current=!0)}function checkVirtualPointer(e){$.current=E,"auto"===E&&(0,s.isVirtualPointerEvent)(e.nativeEvent)&&($.current=!0)}return{...ae,onKeyDown(e){B.current=!1;const t=e.key.startsWith("Arrow"),o=["Home","End"].includes(e.key),i=t||o,a=isCrossOrientationOpenKey(e.key,S,b),c=isCrossOrientationCloseKey(e.key,S,b,P),u=isCrossOrientationOpenKey(e.key,se(),b),d=isMainOrientationKey(e.key,S),f=(y?u:d)||"Enter"===e.key||""===e.key.trim();if(w&&n){const t=null==N?void 0:N.nodesRef.current.find(e=>null==e.parentId),n=N&&t?(0,s.getDeepestNode)(N.nodesRef.current,t.id):null;if(i&&n&&O){const t=new KeyboardEvent("keydown",{key:e.key,bubbles:!0});if(a||c){var m,g;const r=(null==(m=n.context)?void 0:m.elements.domReference)===e.currentTarget,o=c&&!r?null==(g=n.context)?void 0:g.elements.domReference:a?l.current.find(e=>(null==e?void 0:e.id)===Q):null;o&&((0,s.stopEvent)(e),o.dispatchEvent(t),te(void 0))}var h;if((d||o)&&n.context)if(n.context.open&&n.parentId&&e.currentTarget!==n.context.elements.domReference)return(0,s.stopEvent)(e),void(null==(h=n.context.elements.domReference)||h.dispatchEvent(t))}return ie(e)}if(n||x||!t){if(f){const t=isMainOrientationKey(e.key,se());W.current=y&&t?null:e.key}y?u&&((0,s.stopEvent)(e),n?(V.current=(0,s.getMinListIndex)(l,G.current),F()):r(!0,e.nativeEvent,"list-navigation")):d&&(null!=p&&(V.current=p),(0,s.stopEvent)(e),!n&&x?r(!0,e.nativeEvent,"list-navigation"):ie(e),n&&F())}},onFocus(){n&&!w&&(V.current=-1,F())},onPointerDown:checkVirtualPointer,onPointerEnter:checkVirtualPointer,onMouseDown:checkVirtualMouse,onClick:checkVirtualMouse}},[Q,ae,P,ie,G,E,l,y,F,r,n,x,S,se,b,p,N,w,O]);return o.useMemo(()=>f?{reference:le,floating:ce,item:oe}:{},[f,le,ce,oe])}const ne=new Map([["select","listbox"],["combobox","listbox"],["label",!1]]);function useRole(e,t){var n,r;void 0===t&&(t={});const{open:i,elements:a,floatingId:c}=e,{enabled:l=!0,role:u="dialog"}=t,d=O(),f=(null==(n=a.domReference)?void 0:n.id)||d,p=o.useMemo(()=>{var e;return(null==(e=(0,s.getFloatingFocusElement)(a.floating))?void 0:e.id)||c},[a.floating,c]),m=null!=(r=ne.get(u))?r:u,g=null!=useFloatingParentNodeId(),y=o.useMemo(()=>"tooltip"===m||"label"===u?{["aria-"+("label"===u?"labelledby":"describedby")]:i?p:void 0}:{"aria-expanded":i?"true":"false","aria-haspopup":"alertdialog"===m?"dialog":m,"aria-controls":i?p:void 0,..."listbox"===m&&{role:"combobox"},..."menu"===m&&{id:f},..."menu"===m&&g&&{role:"menuitem"},..."select"===u&&{"aria-autocomplete":"none"},..."combobox"===u&&{"aria-autocomplete":"list"}},[m,p,g,i,f,u]),h=o.useMemo(()=>{const e={id:p,...m&&{role:m}};return"tooltip"===m||"label"===u?e:{...e,..."menu"===m&&{"aria-labelledby":f}}},[m,p,f,u]),v=o.useCallback(e=>{let{active:t,selected:n}=e;const r={role:"option",...t&&{id:p+"-fui-option"}};switch(u){case"select":case"combobox":return{...r,"aria-selected":n}}return{}},[p,u]);return o.useMemo(()=>l?{reference:y,floating:h,item:v}:{},[l,y,h,v])}const camelCaseToKebabCase=e=>e.replace(/[A-Z]+(?![a-z])|[A-Z]/g,(e,t)=>(t?"-":"")+e.toLowerCase());function execWithArgsOrReturn(e,t){return"function"==typeof e?e(t):e}function useTransitionStatus(e,t){void 0===t&&(t={});const{open:n,elements:{floating:r}}=e,{duration:i=250}=t,a=("number"==typeof i?i:i.close)||0,[c,u]=o.useState("unmounted"),d=function useDelayUnmount(e,t){const[n,r]=o.useState(e);return e&&!n&&r(!0),o.useEffect(()=>{if(!e&&n){const e=setTimeout(()=>r(!1),t);return()=>clearTimeout(e)}},[e,n,t]),n}(n,a);return d||"close"!==c||u("unmounted"),(0,s.useModernLayoutEffect)(()=>{if(r){if(n){u("initial");const e=requestAnimationFrame(()=>{l.flushSync(()=>{u("open")})});return()=>{cancelAnimationFrame(e)}}u("close")}},[n,r]),{isMounted:d,status:c}}function useTransitionStyles(e,t){void 0===t&&(t={});const{initial:n={opacity:0},open:r,close:i,common:a,duration:c=250}=t,l=e.placement,u=l.split("-")[0],d=o.useMemo(()=>({side:u,placement:l}),[u,l]),f="number"==typeof c,p=(f?c:c.open)||0,m=(f?c:c.close)||0,[g,y]=o.useState(()=>({...execWithArgsOrReturn(a,d),...execWithArgsOrReturn(n,d)})),{isMounted:h,status:v}=useTransitionStatus(e,{duration:c}),b=(0,s.useLatestRef)(n),k=(0,s.useLatestRef)(r),w=(0,s.useLatestRef)(i),E=(0,s.useLatestRef)(a);return(0,s.useModernLayoutEffect)(()=>{const e=execWithArgsOrReturn(b.current,d),t=execWithArgsOrReturn(w.current,d),n=execWithArgsOrReturn(E.current,d),r=execWithArgsOrReturn(k.current,d)||Object.keys(e).reduce((e,t)=>(e[t]="",e),{});if("initial"===v&&y(t=>({transitionProperty:t.transitionProperty,...n,...e})),"open"===v&&y({transitionProperty:Object.keys(r).map(camelCaseToKebabCase).join(","),transitionDuration:p+"ms",...n,...r}),"close"===v){const r=t||e;y({transitionProperty:Object.keys(r).map(camelCaseToKebabCase).join(","),transitionDuration:m+"ms",...n,...r})}},[m,w,b,k,E,p,v,d]),{isMounted:h,styles:g}}function useTypeahead(e,t){var n;const{open:r,dataRef:i}=e,{listRef:a,activeIndex:c,onMatch:l,onTypingChange:u,enabled:d=!0,findMatch:f=null,resetMs:p=750,ignoreKeys:m=[],selectedIndex:g=null}=t,y=o.useRef(-1),h=o.useRef(""),v=o.useRef(null!=(n=null!=g?g:c)?n:-1),b=o.useRef(null),k=(0,s.useEffectEvent)(l),w=(0,s.useEffectEvent)(u),E=(0,s.useLatestRef)(f),T=(0,s.useLatestRef)(m);(0,s.useModernLayoutEffect)(()=>{r&&(clearTimeoutIfSet(y),b.current=null,h.current="")},[r]),(0,s.useModernLayoutEffect)(()=>{var e;r&&""===h.current&&(v.current=null!=(e=null!=g?g:c)?e:-1)},[r,g,c]);const x=(0,s.useEffectEvent)(e=>{e?i.current.typing||(i.current.typing=e,w(e)):i.current.typing&&(i.current.typing=e,w(e))}),R=(0,s.useEffectEvent)(e=>{function getMatchingIndex(e,t,n){const r=E.current?E.current(t,n):t.find(e=>0===(null==e?void 0:e.toLocaleLowerCase().indexOf(n.toLocaleLowerCase())));return r?e.indexOf(r):-1}const t=a.current;if(h.current.length>0&&" "!==h.current[0]&&(-1===getMatchingIndex(t,t,h.current)?x(!1):" "===e.key&&(0,s.stopEvent)(e)),null==t||T.current.includes(e.key)||1!==e.key.length||e.ctrlKey||e.metaKey||e.altKey)return;r&&" "!==e.key&&((0,s.stopEvent)(e),x(!0));t.every(e=>{var t,n;return!e||(null==(t=e[0])?void 0:t.toLocaleLowerCase())!==(null==(n=e[1])?void 0:n.toLocaleLowerCase())})&&h.current===e.key&&(h.current="",v.current=b.current),h.current+=e.key,clearTimeoutIfSet(y),y.current=window.setTimeout(()=>{h.current="",v.current=b.current,x(!1)},p);const n=v.current,o=getMatchingIndex(t,[...t.slice((n||0)+1),...t.slice(0,(n||0)+1)],h.current);-1!==o?(k(o),b.current=o):" "!==e.key&&(h.current="",x(!1))}),S=o.useMemo(()=>({onKeyDown:R}),[R]),C=o.useMemo(()=>({onKeyDown:R,onKeyUp(e){" "===e.key&&x(!1)}}),[R,x]);return o.useMemo(()=>d?{reference:S,floating:C}:{},[d,S,C])}function getArgsWithCustomFloatingHeight(e,t){return{...e,rects:{...e.rects,floating:{...e.rects.floating,height:t}}}}const inner=e=>({name:"inner",options:e,async fn(t){const{listRef:n,overflowRef:r,onFallbackChange:o,offset:s=0,index:i=0,minItemsVisible:a=4,referenceOverflowThreshold:c=0,scrollRef:p,...m}=(0,f.evaluate)(e,t),{rects:g,elements:{floating:y}}=t,h=n.current[i],v=(null==p?void 0:p.current)||y,b=y.clientTop||v.clientTop,k=0!==y.clientTop,w=0!==v.clientTop,E=y===v;if(t.placement.startsWith("bottom")||warn('`placement` side must be "bottom" when using the `inner`',"middleware."),!h)return{};const T={...t,...await(0,u.offset)(-h.offsetTop-y.clientTop-g.reference.height/2-h.offsetHeight/2-s).fn(t)},x=await(0,d.detectOverflow)(getArgsWithCustomFloatingHeight(T,v.scrollHeight+b+y.clientTop),m),R=await(0,d.detectOverflow)(T,{...m,elementContext:"reference"}),S=(0,f.max)(0,x.top),C=T.y+S,P=(v.scrollHeight>v.clientHeight?e=>e:f.round)((0,f.max)(0,v.scrollHeight+(k&&E||w?2*b:0)-S-(0,f.max)(0,x.bottom)));if(v.style.maxHeight=P+"px",v.scrollTop=S,o){const e=v.offsetHeight<h.offsetHeight*(0,f.min)(a,n.current.length)-1||R.top>=-c||R.bottom>=-c;l.flushSync(()=>o(e))}return r&&(r.current=await(0,d.detectOverflow)(getArgsWithCustomFloatingHeight({...T,y:C},v.offsetHeight+b+y.clientTop),m)),{y:C}}});function useInnerOffset(e,t){const{open:n,elements:r}=e,{enabled:i=!0,overflowRef:a,scrollRef:c,onChange:u}=t,d=(0,s.useEffectEvent)(u),f=o.useRef(!1),p=o.useRef(null),m=o.useRef(null);o.useEffect(()=>{if(!i)return;function onWheel(t){if(t.ctrlKey||!e||null==a.current)return;const n=t.deltaY,r=a.current.top>=-.5,o=a.current.bottom>=-.5,i=e.scrollHeight-e.clientHeight,c=n<0?-1:1,u=n<0?"max":"min";e.scrollHeight<=e.clientHeight||(!r&&n>0||!o&&n<0?(t.preventDefault(),l.flushSync(()=>{d(e=>e+Math[u](n,i*c))})):/firefox/i.test((0,s.getUserAgent)())&&(e.scrollTop+=n))}const e=(null==c?void 0:c.current)||r.floating;return n&&e?(e.addEventListener("wheel",onWheel),requestAnimationFrame(()=>{p.current=e.scrollTop,null!=a.current&&(m.current={...a.current})}),()=>{p.current=null,m.current=null,e.removeEventListener("wheel",onWheel)}):void 0},[i,n,r.floating,a,c,d]);const g=o.useMemo(()=>({onKeyDown(){f.current=!0},onWheel(){f.current=!1},onPointerMove(){f.current=!1},onScroll(){const e=(null==c?void 0:c.current)||r.floating;if(a.current&&e&&f.current){if(null!==p.current){const t=e.scrollTop-p.current;(a.current.bottom<-.5&&t<-1||a.current.top<-.5&&t>1)&&l.flushSync(()=>d(e=>e+t))}requestAnimationFrame(()=>{p.current=e.scrollTop})}}}),[r.floating,d,a,c]);return o.useMemo(()=>i?{floating:g}:{},[i,g])}function getNodeChildren(e,t,n){void 0===n&&(n=!0);return e.filter(e=>{var r;return e.parentId===t&&(!n||(null==(r=e.context)?void 0:r.open))}).flatMap(t=>[t,...getNodeChildren(e,t.id,n)])}function isPointInPolygon(e,t){const[n,r]=e;let o=!1;const s=t.length;for(let e=0,i=s-1;e<s;i=e++){const[s,a]=t[e]||[0,0],[c,l]=t[i]||[0,0];a>=r!=l>=r&&n<=(c-s)*(r-a)/(l-a)+s&&(o=!o)}return o}function safePolygon(e){void 0===e&&(e={});const{buffer:t=.5,blockPointerEvents:n=!1,requireIntent:r=!0}=e,o={current:-1};let s=!1,i=null,c=null,l="undefined"!=typeof performance?performance.now():0;const fn=e=>{let{x:n,y:u,placement:d,elements:f,onClose:p,nodeId:m,tree:g}=e;return function onMouseMove(e){function close(){clearTimeoutIfSet(o),p()}if(clearTimeoutIfSet(o),!f.domReference||!f.floating||null==d||null==n||null==u)return;const{clientX:y,clientY:h}=e,v=[y,h],b=function getTarget(e){return"composedPath"in e?e.composedPath()[0]:e.target}(e),k="mouseleave"===e.type,w=contains(f.floating,b),E=contains(f.domReference,b),T=f.domReference.getBoundingClientRect(),x=f.floating.getBoundingClientRect(),R=d.split("-")[0],S=n>x.right-x.width/2,C=u>x.bottom-x.height/2,P=function isInside(e,t){return e[0]>=t.x&&e[0]<=t.x+t.width&&e[1]>=t.y&&e[1]<=t.y+t.height}(v,T),I=x.width>T.width,O=x.height>T.height,L=(I?T:x).left,M=(I?T:x).right,A=(O?T:x).top,_=(O?T:x).bottom;if(w&&(s=!0,!k))return;if(E&&(s=!1),E&&!k)return void(s=!0);if(k&&(0,a.isElement)(e.relatedTarget)&&contains(f.floating,e.relatedTarget))return;if(g&&getNodeChildren(g.nodesRef.current,m).length)return;if("top"===R&&u>=T.bottom-1||"bottom"===R&&u<=T.top+1||"left"===R&&n>=T.right-1||"right"===R&&n<=T.left+1)return close();let D=[];switch(R){case"top":D=[[L,T.top+1],[L,x.bottom-1],[M,x.bottom-1],[M,T.top+1]];break;case"bottom":D=[[L,x.top+1],[L,T.bottom-1],[M,T.bottom-1],[M,x.top+1]];break;case"left":D=[[x.right-1,_],[x.right-1,A],[T.left+1,A],[T.left+1,_]];break;case"right":D=[[T.right-1,_],[T.right-1,A],[x.left+1,A],[x.left+1,_]]}if(!isPointInPolygon([y,h],D)){if(s&&!P)return close();if(!k&&r){const t=function getCursorSpeed(e,t){const n=performance.now(),r=n-l;if(null===i||null===c||0===r)return i=e,c=t,l=n,null;const o=e-i,s=t-c,a=Math.sqrt(o*o+s*s);return i=e,c=t,l=n,a/r}(e.clientX,e.clientY);if(null!==t&&t<.1)return close()}isPointInPolygon([y,h],function getPolygon(e){let[n,r]=e;switch(R){case"top":return[[I?n+t/2:S?n+4*t:n-4*t,r+t+1],[I?n-t/2:S?n+4*t:n-4*t,r+t+1],...[[x.left,S||I?x.bottom-t:x.top],[x.right,S?I?x.bottom-t:x.top:x.bottom-t]]];case"bottom":return[[I?n+t/2:S?n+4*t:n-4*t,r-t],[I?n-t/2:S?n+4*t:n-4*t,r-t],...[[x.left,S||I?x.top+t:x.bottom],[x.right,S?I?x.top+t:x.bottom:x.top+t]]];case"left":{const e=[n+t+1,O?r+t/2:C?r+4*t:r-4*t],o=[n+t+1,O?r-t/2:C?r+4*t:r-4*t];return[...[[C||O?x.right-t:x.left,x.top],[C?O?x.right-t:x.left:x.right-t,x.bottom]],e,o]}case"right":return[[n-t,O?r+t/2:C?r+4*t:r-4*t],[n-t,O?r-t/2:C?r+4*t:r-4*t],...[[C||O?x.left+t:x.right,x.top],[C?O?x.left+t:x.right:x.left+t,x.bottom]]]}}([n,u]))?!s&&r&&(o.current=window.setTimeout(close,40)):close()}}};return fn.__options={blockPointerEvents:n},fn}},"./packages/node_modules/@floating-ui/react/dist/floating-ui.react.utils.mjs":function(e,t,n){var r;n.r(t),n.d(t,{activeElement:function(){return activeElement},contains:function(){return contains},createGridCellMap:function(){return createGridCellMap},disableFocusInside:function(){return disableFocusInside},enableFocusInside:function(){return enableFocusInside},findNonDisabledListIndex:function(){return findNonDisabledListIndex},getDeepestNode:function(){return getDeepestNode},getDocument:function(){return getDocument},getFloatingFocusElement:function(){return getFloatingFocusElement},getGridCellIndexOfCorner:function(){return getGridCellIndexOfCorner},getGridCellIndices:function(){return getGridCellIndices},getGridNavigatedIndex:function(){return getGridNavigatedIndex},getMaxListIndex:function(){return getMaxListIndex},getMinListIndex:function(){return getMinListIndex},getNextTabbable:function(){return getNextTabbable},getNodeAncestors:function(){return getNodeAncestors},getNodeChildren:function(){return getNodeChildren},getPlatform:function(){return getPlatform},getPreviousTabbable:function(){return getPreviousTabbable},getTabbableOptions:function(){return getTabbableOptions},getTarget:function(){return getTarget},getUserAgent:function(){return getUserAgent},isAndroid:function(){return isAndroid},isDifferentGridRow:function(){return isDifferentGridRow},isEventTargetWithin:function(){return isEventTargetWithin},isIndexOutOfListBounds:function(){return isIndexOutOfListBounds},isJSDOM:function(){return isJSDOM},isListIndexDisabled:function(){return isListIndexDisabled},isMac:function(){return isMac},isMouseLikePointerType:function(){return isMouseLikePointerType},isOutsideEvent:function(){return isOutsideEvent},isReactEvent:function(){return isReactEvent},isRootElement:function(){return isRootElement},isSafari:function(){return isSafari},isTypeableCombobox:function(){return isTypeableCombobox},isTypeableElement:function(){return isTypeableElement},isVirtualClick:function(){return isVirtualClick},isVirtualPointerEvent:function(){return isVirtualPointerEvent},matchesFocusVisible:function(){return matchesFocusVisible},stopEvent:function(){return stopEvent},useEffectEvent:function(){return useEffectEvent},useLatestRef:function(){return useLatestRef},useModernLayoutEffect:function(){return m}});var o=n("./packages/node_modules/@floating-ui/utils/dist/floating-ui.utils.dom.mjs"),s=n("react"),i=n("./packages/node_modules/@floating-ui/utils/dist/floating-ui.utils.mjs"),a=n("./packages/node_modules/tabbable/dist/index.esm.js");function getPlatform(){const e=navigator.userAgentData;return null!=e&&e.platform?e.platform:navigator.platform}function getUserAgent(){const e=navigator.userAgentData;return e&&Array.isArray(e.brands)?e.brands.map(e=>{let{brand:t,version:n}=e;return t+"/"+n}).join(" "):navigator.userAgent}function isSafari(){return/apple/i.test(navigator.vendor)}function isAndroid(){const e=/android/i;return e.test(getPlatform())||e.test(getUserAgent())}function isMac(){return getPlatform().toLowerCase().startsWith("mac")&&!navigator.maxTouchPoints}function isJSDOM(){return getUserAgent().includes("jsdom/")}const c="data-floating-ui-focusable",l="input:not([type='hidden']):not([disabled]),[contenteditable]:not([contenteditable='false']),textarea:not([disabled])",u="ArrowLeft",d="ArrowRight",f="ArrowUp",p="ArrowDown";function activeElement(e){let t=e.activeElement;for(;null!=(null==(n=t)||null==(n=n.shadowRoot)?void 0:n.activeElement);){var n;t=t.shadowRoot.activeElement}return t}function contains(e,t){if(!e||!t)return!1;const n=null==t.getRootNode?void 0:t.getRootNode();if(e.contains(t))return!0;if(n&&(0,o.isShadowRoot)(n)){let n=t;for(;n;){if(e===n)return!0;n=n.parentNode||n.host}}return!1}function getTarget(e){return"composedPath"in e?e.composedPath()[0]:e.target}function isEventTargetWithin(e,t){if(null==t)return!1;if("composedPath"in e)return e.composedPath().includes(t);const n=e;return null!=n.target&&t.contains(n.target)}function isRootElement(e){return e.matches("html,body")}function getDocument(e){return(null==e?void 0:e.ownerDocument)||document}function isTypeableElement(e){return(0,o.isHTMLElement)(e)&&e.matches(l)}function isTypeableCombobox(e){return!!e&&("combobox"===e.getAttribute("role")&&isTypeableElement(e))}function matchesFocusVisible(e){if(!e||isJSDOM())return!0;try{return e.matches(":focus-visible")}catch(e){return!0}}function getFloatingFocusElement(e){return e?e.hasAttribute(c)?e:e.querySelector("["+c+"]")||e:null}function getNodeChildren(e,t,n){void 0===n&&(n=!0);return e.filter(e=>{var r;return e.parentId===t&&(!n||(null==(r=e.context)?void 0:r.open))}).flatMap(t=>[t,...getNodeChildren(e,t.id,n)])}function getDeepestNode(e,t){let n,r=-1;return function findDeepest(t,o){o>r&&(n=t,r=o),getNodeChildren(e,t).forEach(e=>{findDeepest(e.id,o+1)})}(t,0),e.find(e=>e.id===n)}function getNodeAncestors(e,t){var n;let r=[],o=null==(n=e.find(e=>e.id===t))?void 0:n.parentId;for(;o;){const t=e.find(e=>e.id===o);o=null==t?void 0:t.parentId,t&&(r=r.concat(t))}return r}function stopEvent(e){e.preventDefault(),e.stopPropagation()}function isReactEvent(e){return"nativeEvent"in e}function isVirtualClick(e){return!(0!==e.mozInputSource||!e.isTrusted)||(isAndroid()&&e.pointerType?"click"===e.type&&1===e.buttons:0===e.detail&&!e.pointerType)}function isVirtualPointerEvent(e){return!isJSDOM()&&(!isAndroid()&&0===e.width&&0===e.height||isAndroid()&&1===e.width&&1===e.height&&0===e.pressure&&0===e.detail&&"mouse"===e.pointerType||e.width<1&&e.height<1&&0===e.pressure&&0===e.detail&&"touch"===e.pointerType)}function isMouseLikePointerType(e,t){const n=["mouse","pen"];return t||n.push("",void 0),n.includes(e)}var m="undefined"!=typeof document?s.useLayoutEffect:function noop(){};function useLatestRef(e){const t=s.useRef(e);return m(()=>{t.current=e}),t}const g={...r||(r=n.t(s,2))}.useInsertionEffect||(e=>e());function useEffectEvent(e){const t=s.useRef(()=>{throw new Error("Cannot call an event handler while rendering.")});return g(()=>{t.current=e}),s.useCallback(function(){for(var e=arguments.length,n=new Array(e),r=0;r<e;r++)n[r]=arguments[r];return null==t.current?void 0:t.current(...n)},[])}function isDifferentGridRow(e,t,n){return Math.floor(e/t)!==n}function isIndexOutOfListBounds(e,t){return t<0||t>=e.current.length}function getMinListIndex(e,t){return findNonDisabledListIndex(e,{disabledIndices:t})}function getMaxListIndex(e,t){return findNonDisabledListIndex(e,{decrement:!0,startingIndex:e.current.length,disabledIndices:t})}function findNonDisabledListIndex(e,t){let{startingIndex:n=-1,decrement:r=!1,disabledIndices:o,amount:s=1}=void 0===t?{}:t,i=n;do{i+=r?-s:s}while(i>=0&&i<=e.current.length-1&&isListIndexDisabled(e,i,o));return i}function getGridNavigatedIndex(e,t){let{event:n,orientation:r,loop:o,rtl:s,cols:a,disabledIndices:c,minIndex:l,maxIndex:m,prevIndex:g,stopEvent:y=!1}=t,h=g;if(n.key===f){if(y&&stopEvent(n),-1===g)h=m;else if(h=findNonDisabledListIndex(e,{startingIndex:h,amount:a,decrement:!0,disabledIndices:c}),o&&(g-a<l||h<0)){const e=g%a,t=m%a,n=m-(t-e);h=t===e?m:t>e?n:n-a}isIndexOutOfListBounds(e,h)&&(h=g)}if(n.key===p&&(y&&stopEvent(n),-1===g?h=l:(h=findNonDisabledListIndex(e,{startingIndex:g,amount:a,disabledIndices:c}),o&&g+a>m&&(h=findNonDisabledListIndex(e,{startingIndex:g%a-a,amount:a,disabledIndices:c}))),isIndexOutOfListBounds(e,h)&&(h=g)),"both"===r){const t=(0,i.floor)(g/a);n.key===(s?u:d)&&(y&&stopEvent(n),g%a!==a-1?(h=findNonDisabledListIndex(e,{startingIndex:g,disabledIndices:c}),o&&isDifferentGridRow(h,a,t)&&(h=findNonDisabledListIndex(e,{startingIndex:g-g%a-1,disabledIndices:c}))):o&&(h=findNonDisabledListIndex(e,{startingIndex:g-g%a-1,disabledIndices:c})),isDifferentGridRow(h,a,t)&&(h=g)),n.key===(s?d:u)&&(y&&stopEvent(n),g%a!==0?(h=findNonDisabledListIndex(e,{startingIndex:g,decrement:!0,disabledIndices:c}),o&&isDifferentGridRow(h,a,t)&&(h=findNonDisabledListIndex(e,{startingIndex:g+(a-g%a),decrement:!0,disabledIndices:c}))):o&&(h=findNonDisabledListIndex(e,{startingIndex:g+(a-g%a),decrement:!0,disabledIndices:c})),isDifferentGridRow(h,a,t)&&(h=g));const r=(0,i.floor)(m/a)===t;isIndexOutOfListBounds(e,h)&&(h=o&&r?n.key===(s?d:u)?m:findNonDisabledListIndex(e,{startingIndex:g-g%a-1,disabledIndices:c}):g)}return h}function createGridCellMap(e,t,n){const r=[];let o=0;return e.forEach((e,s)=>{let{width:i,height:a}=e;if(i>t)throw new Error("[Floating UI]: Invalid grid - item width at index "+s+" is greater than grid columns");let c=!1;for(n&&(o=0);!c;){const e=[];for(let n=0;n<i;n++)for(let r=0;r<a;r++)e.push(o+n+r*t);o%t+i<=t&&e.every(e=>null==r[e])?(e.forEach(e=>{r[e]=s}),c=!0):o++}}),[...r]}function getGridCellIndexOfCorner(e,t,n,r,o){if(-1===e)return-1;const s=n.indexOf(e),i=t[e];switch(o){case"tl":return s;case"tr":return i?s+i.width-1:s;case"bl":return i?s+(i.height-1)*r:s;case"br":return n.lastIndexOf(e)}}function getGridCellIndices(e,t){return t.flatMap((t,n)=>e.includes(t)?[n]:[])}function isListIndexDisabled(e,t,n){if("function"==typeof n)return n(t);if(n)return n.includes(t);const r=e.current[t];return null==r||r.hasAttribute("disabled")||"true"===r.getAttribute("aria-disabled")}const getTabbableOptions=()=>({getShadowRoot:!0,displayCheck:"function"==typeof ResizeObserver&&ResizeObserver.toString().includes("[native code]")?"full":"none"});function getTabbableIn(e,t){const n=(0,a.tabbable)(e,getTabbableOptions()),r=n.length;if(0===r)return;const o=activeElement(getDocument(e)),s=n.indexOf(o);return n[-1===s?1===t?0:r-1:s+t]}function getNextTabbable(e){return getTabbableIn(getDocument(e).body,1)||e}function getPreviousTabbable(e){return getTabbableIn(getDocument(e).body,-1)||e}function isOutsideEvent(e,t){const n=t||e.currentTarget,r=e.relatedTarget;return!r||!contains(n,r)}function disableFocusInside(e){(0,a.tabbable)(e,getTabbableOptions()).forEach(e=>{e.dataset.tabindex=e.getAttribute("tabindex")||"",e.setAttribute("tabindex","-1")})}function enableFocusInside(e){e.querySelectorAll("[data-tabindex]").forEach(e=>{const t=e.dataset.tabindex;delete e.dataset.tabindex,t?e.setAttribute("tabindex",t):e.removeAttribute("tabindex")})}},"./packages/node_modules/@floating-ui/utils/dist/floating-ui.utils.dom.mjs":function(e,t,n){function hasWindow(){return"undefined"!=typeof window}function getNodeName(e){return isNode(e)?(e.nodeName||"").toLowerCase():"#document"}function getWindow(e){var t;return(null==e||null==(t=e.ownerDocument)?void 0:t.defaultView)||window}function getDocumentElement(e){var t;return null==(t=(isNode(e)?e.ownerDocument:e.document)||window.document)?void 0:t.documentElement}function isNode(e){return!!hasWindow()&&(e instanceof Node||e instanceof getWindow(e).Node)}function isElement(e){return!!hasWindow()&&(e instanceof Element||e instanceof getWindow(e).Element)}function isHTMLElement(e){return!!hasWindow()&&(e instanceof HTMLElement||e instanceof getWindow(e).HTMLElement)}function isShadowRoot(e){return!(!hasWindow()||"undefined"==typeof ShadowRoot)&&(e instanceof ShadowRoot||e instanceof getWindow(e).ShadowRoot)}n.r(t),n.d(t,{getComputedStyle:function(){return getComputedStyle},getContainingBlock:function(){return getContainingBlock},getDocumentElement:function(){return getDocumentElement},getFrameElement:function(){return getFrameElement},getNearestOverflowAncestor:function(){return getNearestOverflowAncestor},getNodeName:function(){return getNodeName},getNodeScroll:function(){return getNodeScroll},getOverflowAncestors:function(){return getOverflowAncestors},getParentNode:function(){return getParentNode},getWindow:function(){return getWindow},isContainingBlock:function(){return isContainingBlock},isElement:function(){return isElement},isHTMLElement:function(){return isHTMLElement},isLastTraversableNode:function(){return isLastTraversableNode},isNode:function(){return isNode},isOverflowElement:function(){return isOverflowElement},isShadowRoot:function(){return isShadowRoot},isTableElement:function(){return isTableElement},isTopLayer:function(){return isTopLayer},isWebKit:function(){return isWebKit}});const r=new Set(["inline","contents"]);function isOverflowElement(e){const{overflow:t,overflowX:n,overflowY:o,display:s}=getComputedStyle(e);return/auto|scroll|overlay|hidden|clip/.test(t+o+n)&&!r.has(s)}const o=new Set(["table","td","th"]);function isTableElement(e){return o.has(getNodeName(e))}const s=[":popover-open",":modal"];function isTopLayer(e){return s.some(t=>{try{return e.matches(t)}catch(e){return!1}})}const i=["transform","translate","scale","rotate","perspective"],a=["transform","translate","scale","rotate","perspective","filter"],c=["paint","layout","strict","content"];function isContainingBlock(e){const t=isWebKit(),n=isElement(e)?getComputedStyle(e):e;return i.some(e=>!!n[e]&&"none"!==n[e])||!!n.containerType&&"normal"!==n.containerType||!t&&!!n.backdropFilter&&"none"!==n.backdropFilter||!t&&!!n.filter&&"none"!==n.filter||a.some(e=>(n.willChange||"").includes(e))||c.some(e=>(n.contain||"").includes(e))}function getContainingBlock(e){let t=getParentNode(e);for(;isHTMLElement(t)&&!isLastTraversableNode(t);){if(isContainingBlock(t))return t;if(isTopLayer(t))return null;t=getParentNode(t)}return null}function isWebKit(){return!("undefined"==typeof CSS||!CSS.supports)&&CSS.supports("-webkit-backdrop-filter","none")}const l=new Set(["html","body","#document"]);function isLastTraversableNode(e){return l.has(getNodeName(e))}function getComputedStyle(e){return getWindow(e).getComputedStyle(e)}function getNodeScroll(e){return isElement(e)?{scrollLeft:e.scrollLeft,scrollTop:e.scrollTop}:{scrollLeft:e.scrollX,scrollTop:e.scrollY}}function getParentNode(e){if("html"===getNodeName(e))return e;const t=e.assignedSlot||e.parentNode||isShadowRoot(e)&&e.host||getDocumentElement(e);return isShadowRoot(t)?t.host:t}function getNearestOverflowAncestor(e){const t=getParentNode(e);return isLastTraversableNode(t)?e.ownerDocument?e.ownerDocument.body:e.body:isHTMLElement(t)&&isOverflowElement(t)?t:getNearestOverflowAncestor(t)}function getOverflowAncestors(e,t,n){var r;void 0===t&&(t=[]),void 0===n&&(n=!0);const o=getNearestOverflowAncestor(e),s=o===(null==(r=e.ownerDocument)?void 0:r.body),i=getWindow(o);if(s){const e=getFrameElement(i);return t.concat(i,i.visualViewport||[],isOverflowElement(o)?o:[],e&&n?getOverflowAncestors(e):[])}return t.concat(o,getOverflowAncestors(o,[],n))}function getFrameElement(e){return e.parent&&Object.getPrototypeOf(e.parent)?e.frameElement:null}},"./packages/node_modules/@floating-ui/utils/dist/floating-ui.utils.mjs":function(e,t,n){n.r(t),n.d(t,{alignments:function(){return o},clamp:function(){return clamp},createCoords:function(){return createCoords},evaluate:function(){return evaluate},expandPaddingObject:function(){return expandPaddingObject},floor:function(){return l},getAlignment:function(){return getAlignment},getAlignmentAxis:function(){return getAlignmentAxis},getAlignmentSides:function(){return getAlignmentSides},getAxisLength:function(){return getAxisLength},getExpandedPlacements:function(){return getExpandedPlacements},getOppositeAlignmentPlacement:function(){return getOppositeAlignmentPlacement},getOppositeAxis:function(){return getOppositeAxis},getOppositeAxisPlacements:function(){return getOppositeAxisPlacements},getOppositePlacement:function(){return getOppositePlacement},getPaddingObject:function(){return getPaddingObject},getSide:function(){return getSide},getSideAxis:function(){return getSideAxis},max:function(){return a},min:function(){return i},placements:function(){return s},rectToClientRect:function(){return rectToClientRect},round:function(){return c},sides:function(){return r}});const r=["top","right","bottom","left"],o=["start","end"],s=r.reduce((e,t)=>e.concat(t,t+"-"+o[0],t+"-"+o[1]),[]),i=Math.min,a=Math.max,c=Math.round,l=Math.floor,createCoords=e=>({x:e,y:e}),u={left:"right",right:"left",bottom:"top",top:"bottom"},d={start:"end",end:"start"};function clamp(e,t,n){return a(e,i(t,n))}function evaluate(e,t){return"function"==typeof e?e(t):e}function getSide(e){return e.split("-")[0]}function getAlignment(e){return e.split("-")[1]}function getOppositeAxis(e){return"x"===e?"y":"x"}function getAxisLength(e){return"y"===e?"height":"width"}const f=new Set(["top","bottom"]);function getSideAxis(e){return f.has(getSide(e))?"y":"x"}function getAlignmentAxis(e){return getOppositeAxis(getSideAxis(e))}function getAlignmentSides(e,t,n){void 0===n&&(n=!1);const r=getAlignment(e),o=getAlignmentAxis(e),s=getAxisLength(o);let i="x"===o?r===(n?"end":"start")?"right":"left":"start"===r?"bottom":"top";return t.reference[s]>t.floating[s]&&(i=getOppositePlacement(i)),[i,getOppositePlacement(i)]}function getExpandedPlacements(e){const t=getOppositePlacement(e);return[getOppositeAlignmentPlacement(e),t,getOppositeAlignmentPlacement(t)]}function getOppositeAlignmentPlacement(e){return e.replace(/start|end/g,e=>d[e])}const p=["left","right"],m=["right","left"],g=["top","bottom"],y=["bottom","top"];function getOppositeAxisPlacements(e,t,n,r){const o=getAlignment(e);let s=function getSideList(e,t,n){switch(e){case"top":case"bottom":return n?t?m:p:t?p:m;case"left":case"right":return t?g:y;default:return[]}}(getSide(e),"start"===n,r);return o&&(s=s.map(e=>e+"-"+o),t&&(s=s.concat(s.map(getOppositeAlignmentPlacement)))),s}function getOppositePlacement(e){return e.replace(/left|right|bottom|top/g,e=>u[e])}function expandPaddingObject(e){return{top:0,right:0,bottom:0,left:0,...e}}function getPaddingObject(e){return"number"!=typeof e?expandPaddingObject(e):{top:e,right:e,bottom:e,left:e}}function rectToClientRect(e){const{x:t,y:n,width:r,height:o}=e;return{width:r,height:o,top:n,left:t,right:t+r,bottom:n+o,x:t,y:n}}},"./packages/node_modules/react/cjs/react-jsx-runtime.development.js":function(e,t,n){(function(){var e=n("react"),r=Symbol.for("react.element"),o=Symbol.for("react.portal"),s=Symbol.for("react.fragment"),i=Symbol.for("react.strict_mode"),a=Symbol.for("react.profiler"),c=Symbol.for("react.provider"),l=Symbol.for("react.context"),u=Symbol.for("react.forward_ref"),d=Symbol.for("react.suspense"),f=Symbol.for("react.suspense_list"),p=Symbol.for("react.memo"),m=Symbol.for("react.lazy"),g=Symbol.for("react.offscreen"),y=Symbol.iterator;var h=e.__SECRET_INTERNALS_DO_NOT_USE_OR_YOU_WILL_BE_FIRED;function error(e){for(var t=arguments.length,n=new Array(t>1?t-1:0),r=1;r<t;r++)n[r-1]=arguments[r];!function printWarning(e,t,n){var r=h.ReactDebugCurrentFrame,o=r.getStackAddendum();""!==o&&(t+="%s",n=n.concat([o]));var s=n.map(function(e){return String(e)});s.unshift("Warning: "+t),Function.prototype.apply.call(console[e],console,s)}("error",e,n)}var v;function getContextName(e){return e.displayName||"Context"}function getComponentNameFromType(e){if(null==e)return null;if("number"==typeof e.tag&&error("Received an unexpected object in getComponentNameFromType(). This is likely a bug in React. Please file an issue."),"function"==typeof e)return e.displayName||e.name||null;if("string"==typeof e)return e;switch(e){case s:return"Fragment";case o:return"Portal";case a:return"Profiler";case i:return"StrictMode";case d:return"Suspense";case f:return"SuspenseList"}if("object"==typeof e)switch(e.$$typeof){case l:return getContextName(e)+".Consumer";case c:return getContextName(e._context)+".Provider";case u:return function getWrappedName(e,t,n){var r=e.displayName;if(r)return r;var o=t.displayName||t.name||"";return""!==o?n+"("+o+")":n}(e,e.render,"ForwardRef");case p:var t=e.displayName||null;return null!==t?t:getComponentNameFromType(e.type)||"Memo";case m:var n=e,r=n._payload,g=n._init;try{return getComponentNameFromType(g(r))}catch(e){return null}}return null}v=Symbol.for("react.module.reference");var b,k,w,E,T,x,R,S=Object.assign,C=0;function disabledLog(){}disabledLog.__reactDisabledLog=!0;var P,I=h.ReactCurrentDispatcher;function describeBuiltInComponentFrame(e,t,n){if(void 0===P)try{throw Error()}catch(e){var r=e.stack.trim().match(/\n( *(at )?)/);P=r&&r[1]||""}return"\n"+P+e}var O,L=!1,M="function"==typeof WeakMap?WeakMap:Map;function describeNativeComponentFrame(e,t){if(!e||L)return"";var n,r=O.get(e);if(void 0!==r)return r;L=!0;var o,s=Error.prepareStackTrace;Error.prepareStackTrace=void 0,o=I.current,I.current=null,function disableLogs(){if(0===C){b=console.log,k=console.info,w=console.warn,E=console.error,T=console.group,x=console.groupCollapsed,R=console.groupEnd;var e={configurable:!0,enumerable:!0,value:disabledLog,writable:!0};Object.defineProperties(console,{info:e,log:e,warn:e,error:e,group:e,groupCollapsed:e,groupEnd:e})}C++}();try{if(t){var Fake=function(){throw Error()};if(Object.defineProperty(Fake.prototype,"props",{set:function(){throw Error()}}),"object"==typeof Reflect&&Reflect.construct){try{Reflect.construct(Fake,[])}catch(e){n=e}Reflect.construct(e,[],Fake)}else{try{Fake.call()}catch(e){n=e}e.call(Fake.prototype)}}else{try{throw Error()}catch(e){n=e}e()}}catch(t){if(t&&n&&"string"==typeof t.stack){for(var i=t.stack.split("\n"),a=n.stack.split("\n"),c=i.length-1,l=a.length-1;c>=1&&l>=0&&i[c]!==a[l];)l--;for(;c>=1&&l>=0;c--,l--)if(i[c]!==a[l]){if(1!==c||1!==l)do{if(c--,--l<0||i[c]!==a[l]){var u="\n"+i[c].replace(" at new "," at ");return e.displayName&&u.includes("<anonymous>")&&(u=u.replace("<anonymous>",e.displayName)),"function"==typeof e&&O.set(e,u),u}}while(c>=1&&l>=0);break}}}finally{L=!1,I.current=o,function reenableLogs(){if(0===--C){var e={configurable:!0,enumerable:!0,writable:!0};Object.defineProperties(console,{log:S({},e,{value:b}),info:S({},e,{value:k}),warn:S({},e,{value:w}),error:S({},e,{value:E}),group:S({},e,{value:T}),groupCollapsed:S({},e,{value:x}),groupEnd:S({},e,{value:R})})}C<0&&error("disabledDepth fell below zero. This is a bug in React. Please file an issue.")}(),Error.prepareStackTrace=s}var d=e?e.displayName||e.name:"",f=d?describeBuiltInComponentFrame(d):"";return"function"==typeof e&&O.set(e,f),f}function describeUnknownElementTypeFrameInDEV(e,t,n){if(null==e)return"";if("function"==typeof e)return describeNativeComponentFrame(e,function shouldConstruct(e){var t=e.prototype;return!(!t||!t.isReactComponent)}(e));if("string"==typeof e)return describeBuiltInComponentFrame(e);switch(e){case d:return describeBuiltInComponentFrame("Suspense");case f:return describeBuiltInComponentFrame("SuspenseList")}if("object"==typeof e)switch(e.$$typeof){case u:return function describeFunctionComponentFrame(e,t,n){return describeNativeComponentFrame(e,!1)}(e.render);case p:return describeUnknownElementTypeFrameInDEV(e.type,t,n);case m:var r=e,o=r._payload,s=r._init;try{return describeUnknownElementTypeFrameInDEV(s(o),t,n)}catch(e){}}return""}O=new M;var A=Object.prototype.hasOwnProperty,_={},D=h.ReactDebugCurrentFrame;function setCurrentlyValidatingElement(e){if(e){var t=e._owner,n=describeUnknownElementTypeFrameInDEV(e.type,e._source,t?t.type:null);D.setExtraStackFrame(n)}else D.setExtraStackFrame(null)}var N=Array.isArray;function isArray(e){return N(e)}function testStringCoercion(e){return""+e}function checkKeyStringCoercion(e){if(function willCoercionThrow(e){try{return testStringCoercion(e),!1}catch(e){return!0}}(e))return error("The provided key is an unsupported type %s. This value must be coerced to a string before before using it here.",function typeName(e){return"function"==typeof Symbol&&Symbol.toStringTag&&e[Symbol.toStringTag]||e.constructor.name||"Object"}(e)),testStringCoercion(e)}var F,j,$,V=h.ReactCurrentOwner,W={key:!0,ref:!0,__self:!0,__source:!0};$={};function jsxDEV(e,t,n,o,s){var i,a={},c=null,l=null;for(i in void 0!==n&&(checkKeyStringCoercion(n),c=""+n),function hasValidKey(e){if(A.call(e,"key")){var t=Object.getOwnPropertyDescriptor(e,"key").get;if(t&&t.isReactWarning)return!1}return void 0!==e.key}(t)&&(checkKeyStringCoercion(t.key),c=""+t.key),function hasValidRef(e){if(A.call(e,"ref")){var t=Object.getOwnPropertyDescriptor(e,"ref").get;if(t&&t.isReactWarning)return!1}return void 0!==e.ref}(t)&&(l=t.ref,function warnIfStringRefCannotBeAutoConverted(e,t){if("string"==typeof e.ref&&V.current&&t&&V.current.stateNode!==t){var n=getComponentNameFromType(V.current.type);$[n]||(error('Component "%s" contains the string ref "%s". Support for string refs will be removed in a future major release. This case cannot be automatically converted to an arrow function. We ask you to manually fix this case by using useRef() or createRef() instead. Learn more about using refs safely here: https://reactjs.org/link/strict-mode-string-ref',getComponentNameFromType(V.current.type),e.ref),$[n]=!0)}}(t,s)),t)A.call(t,i)&&!W.hasOwnProperty(i)&&(a[i]=t[i]);if(e&&e.defaultProps){var u=e.defaultProps;for(i in u)void 0===a[i]&&(a[i]=u[i])}if(c||l){var d="function"==typeof e?e.displayName||e.name||"Unknown":e;c&&function defineKeyPropWarningGetter(e,t){var warnAboutAccessingKey=function(){F||(F=!0,error("%s: `key` is not a prop. Trying to access it will result in `undefined` being returned. If you need to access the same value within the child component, you should pass it as a different prop. (https://reactjs.org/link/special-props)",t))};warnAboutAccessingKey.isReactWarning=!0,Object.defineProperty(e,"key",{get:warnAboutAccessingKey,configurable:!0})}(a,d),l&&function defineRefPropWarningGetter(e,t){var warnAboutAccessingRef=function(){j||(j=!0,error("%s: `ref` is not a prop. Trying to access it will result in `undefined` being returned. If you need to access the same value within the child component, you should pass it as a different prop. (https://reactjs.org/link/special-props)",t))};warnAboutAccessingRef.isReactWarning=!0,Object.defineProperty(e,"ref",{get:warnAboutAccessingRef,configurable:!0})}(a,d)}return function(e,t,n,o,s,i,a){var c={$$typeof:r,type:e,key:t,ref:n,props:a,_owner:i,_store:{}};return Object.defineProperty(c._store,"validated",{configurable:!1,enumerable:!1,writable:!0,value:!1}),Object.defineProperty(c,"_self",{configurable:!1,enumerable:!1,writable:!1,value:o}),Object.defineProperty(c,"_source",{configurable:!1,enumerable:!1,writable:!1,value:s}),Object.freeze&&(Object.freeze(c.props),Object.freeze(c)),c}(e,c,l,s,o,V.current,a)}var B,z=h.ReactCurrentOwner,H=h.ReactDebugCurrentFrame;function setCurrentlyValidatingElement$1(e){if(e){var t=e._owner,n=describeUnknownElementTypeFrameInDEV(e.type,e._source,t?t.type:null);H.setExtraStackFrame(n)}else H.setExtraStackFrame(null)}function isValidElement(e){return"object"==typeof e&&null!==e&&e.$$typeof===r}function getDeclarationErrorAddendum(){if(z.current){var e=getComponentNameFromType(z.current.type);if(e)return"\n\nCheck the render method of `"+e+"`."}return""}B=!1;var U={};function validateExplicitKey(e,t){if(e._store&&!e._store.validated&&null==e.key){e._store.validated=!0;var n=function getCurrentComponentErrorInfo(e){var t=getDeclarationErrorAddendum();if(!t){var n="string"==typeof e?e:e.displayName||e.name;n&&(t="\n\nCheck the top-level render call using <"+n+">.")}return t}(t);if(!U[n]){U[n]=!0;var r="";e&&e._owner&&e._owner!==z.current&&(r=" It was passed a child from "+getComponentNameFromType(e._owner.type)+"."),setCurrentlyValidatingElement$1(e),error('Each child in a list should have a unique "key" prop.%s%s See https://reactjs.org/link/warning-keys for more information.',n,r),setCurrentlyValidatingElement$1(null)}}}function validateChildKeys(e,t){if("object"==typeof e)if(isArray(e))for(var n=0;n<e.length;n++){var r=e[n];isValidElement(r)&&validateExplicitKey(r,t)}else if(isValidElement(e))e._store&&(e._store.validated=!0);else if(e){var o=function getIteratorFn(e){if(null===e||"object"!=typeof e)return null;var t=y&&e[y]||e["@@iterator"];return"function"==typeof t?t:null}(e);if("function"==typeof o&&o!==e.entries)for(var s,i=o.call(e);!(s=i.next()).done;)isValidElement(s.value)&&validateExplicitKey(s.value,t)}}function validatePropTypes(e){var t,n=e.type;if(null!=n&&"string"!=typeof n){if("function"==typeof n)t=n.propTypes;else{if("object"!=typeof n||n.$$typeof!==u&&n.$$typeof!==p)return;t=n.propTypes}if(t){var r=getComponentNameFromType(n);!function checkPropTypes(e,t,n,r,o){var s=Function.call.bind(A);for(var i in e)if(s(e,i)){var a=void 0;try{if("function"!=typeof e[i]){var c=Error((r||"React class")+": "+n+" type `"+i+"` is invalid; it must be a function, usually from the `prop-types` package, but received `"+typeof e[i]+"`.This often happens because of typos such as `PropTypes.function` instead of `PropTypes.func`.");throw c.name="Invariant Violation",c}a=e[i](t,i,r,n,null,"SECRET_DO_NOT_PASS_THIS_OR_YOU_WILL_BE_FIRED")}catch(e){a=e}!a||a instanceof Error||(setCurrentlyValidatingElement(o),error("%s: type specification of %s `%s` is invalid; the type checker function must return `null` or an `Error` but returned a %s. You may have forgotten to pass an argument to the type checker creator (arrayOf, instanceOf, objectOf, oneOf, oneOfType, and shape all require an argument).",r||"React class",n,i,typeof a),setCurrentlyValidatingElement(null)),a instanceof Error&&!(a.message in _)&&(_[a.message]=!0,setCurrentlyValidatingElement(o),error("Failed %s type: %s",n,a.message),setCurrentlyValidatingElement(null))}}(t,e.props,"prop",r,e)}else if(void 0!==n.PropTypes&&!B){B=!0,error("Component %s declared `PropTypes` instead of `propTypes`. Did you misspell the property assignment?",getComponentNameFromType(n)||"Unknown")}"function"!=typeof n.getDefaultProps||n.getDefaultProps.isReactClassApproved||error("getDefaultProps is only used on classic React.createClass definitions. Use a static property named `defaultProps` instead.")}}var q={};function jsxWithValidation(e,t,n,o,y,h){var b=function isValidElementType(e){return"string"==typeof e||"function"==typeof e||e===s||e===a||e===i||e===d||e===f||e===g||"object"==typeof e&&null!==e&&(e.$$typeof===m||e.$$typeof===p||e.$$typeof===c||e.$$typeof===l||e.$$typeof===u||e.$$typeof===v||void 0!==e.getModuleId)}(e);if(!b){var k="";(void 0===e||"object"==typeof e&&null!==e&&0===Object.keys(e).length)&&(k+=" You likely forgot to export your component from the file it's defined in, or you might have mixed up default and named imports.");var w,E=function getSourceInfoErrorAddendum(e){return void 0!==e?"\n\nCheck your code at "+e.fileName.replace(/^.*[\\\/]/,"")+":"+e.lineNumber+".":""}(y);k+=E||getDeclarationErrorAddendum(),null===e?w="null":isArray(e)?w="array":void 0!==e&&e.$$typeof===r?(w="<"+(getComponentNameFromType(e.type)||"Unknown")+" />",k=" Did you accidentally export a JSX literal instead of a component?"):w=typeof e,error("React.jsx: type is invalid -- expected a string (for built-in components) or a class/function (for composite components) but got: %s.%s",w,k)}var T=jsxDEV(e,t,n,y,h);if(null==T)return T;if(b){var x=t.children;if(void 0!==x)if(o)if(isArray(x)){for(var R=0;R<x.length;R++)validateChildKeys(x[R],e);Object.freeze&&Object.freeze(x)}else error("React.jsx: Static children should always be an array. You are likely explicitly calling React.jsxs or React.jsxDEV. Use the Babel transform instead.");else validateChildKeys(x,e)}if(A.call(t,"key")){var S=getComponentNameFromType(e),C=Object.keys(t).filter(function(e){return"key"!==e}),P=C.length>0?"{key: someKey, "+C.join(": ..., ")+": ...}":"{key: someKey}";if(!q[S+P])error('A props object containing a "key" prop is being spread into JSX:\n  let props = %s;\n  <%s {...props} />\nReact keys must be passed directly to JSX without using spread:\n  let props = %s;\n  <%s key={someKey} {...props} />',P,S,C.length>0?"{"+C.join(": ..., ")+": ...}":"{}",S),q[S+P]=!0}return e===s?function validateFragmentProps(e){for(var t=Object.keys(e.props),n=0;n<t.length;n++){var r=t[n];if("children"!==r&&"key"!==r){setCurrentlyValidatingElement$1(e),error("Invalid prop `%s` supplied to `React.Fragment`. React.Fragment can only have `key` and `children` props.",r),setCurrentlyValidatingElement$1(null);break}}null!==e.ref&&(setCurrentlyValidatingElement$1(e),error("Invalid attribute `ref` supplied to `React.Fragment`."),setCurrentlyValidatingElement$1(null))}(T):validatePropTypes(T),T}var K=function jsxWithValidationDynamic(e,t,n){return jsxWithValidation(e,t,n,!1)},G=function jsxWithValidationStatic(e,t,n){return jsxWithValidation(e,t,n,!0)};t.Fragment=s,t.jsx=K,t.jsxs=G})()},"./packages/node_modules/react/jsx-runtime.js":function(e,t,n){e.exports=n("./packages/node_modules/react/cjs/react-jsx-runtime.development.js")},"./packages/node_modules/tabbable/dist/index.esm.js":function(e,t,n){n.r(t),n.d(t,{focusable:function(){return T},getTabIndex:function(){return f},isFocusable:function(){return S},isTabbable:function(){return x},tabbable:function(){return E}});var r=["input:not([inert])","select:not([inert])","textarea:not([inert])","a[href]:not([inert])","button:not([inert])","[tabindex]:not(slot):not([inert])","audio[controls]:not([inert])","video[controls]:not([inert])",'[contenteditable]:not([contenteditable="false"]):not([inert])',"details>summary:first-of-type:not([inert])","details:not([inert])"],o=r.join(","),s="undefined"==typeof Element,i=s?function(){}:Element.prototype.matches||Element.prototype.msMatchesSelector||Element.prototype.webkitMatchesSelector,a=!s&&Element.prototype.getRootNode?function(e){var t;return null==e||null===(t=e.getRootNode)||void 0===t?void 0:t.call(e)}:function(e){return null==e?void 0:e.ownerDocument},c=function isInert(e,t){var n;void 0===t&&(t=!0);var r=null==e||null===(n=e.getAttribute)||void 0===n?void 0:n.call(e,"inert");return""===r||"true"===r||t&&e&&c(e.parentNode)},l=function getCandidates(e,t,n){if(c(e))return[];var r=Array.prototype.slice.apply(e.querySelectorAll(o));return t&&i.call(e,o)&&r.unshift(e),r=r.filter(n)},u=function getCandidatesIteratively(e,t,n){for(var r=[],s=Array.from(e);s.length;){var a=s.shift();if(!c(a,!1))if("SLOT"===a.tagName){var l=a.assignedElements(),d=l.length?l:a.children,f=u(d,!0,n);n.flatten?r.push.apply(r,f):r.push({scopeParent:a,candidates:f})}else{i.call(a,o)&&n.filter(a)&&(t||!e.includes(a))&&r.push(a);var p=a.shadowRoot||"function"==typeof n.getShadowRoot&&n.getShadowRoot(a),m=!c(p,!1)&&(!n.shadowRootFilter||n.shadowRootFilter(a));if(p&&m){var g=u(!0===p?a.children:p.children,!0,n);n.flatten?r.push.apply(r,g):r.push({scopeParent:a,candidates:g})}else s.unshift.apply(s,a.children)}}return r},d=function hasTabIndex(e){return!isNaN(parseInt(e.getAttribute("tabindex"),10))},f=function getTabIndex(e){if(!e)throw new Error("No node provided");return e.tabIndex<0&&(/^(AUDIO|VIDEO|DETAILS)$/.test(e.tagName)||function isContentEditable(e){var t,n=null==e||null===(t=e.getAttribute)||void 0===t?void 0:t.call(e,"contenteditable");return""===n||"true"===n}(e))&&!d(e)?0:e.tabIndex},p=function sortOrderedTabbables(e,t){return e.tabIndex===t.tabIndex?e.documentOrder-t.documentOrder:e.tabIndex-t.tabIndex},m=function isInput(e){return"INPUT"===e.tagName},g=function isNonTabbableRadio(e){return function isRadio(e){return m(e)&&"radio"===e.type}(e)&&!function isTabbableRadio(e){if(!e.name)return!0;var t,n=e.form||a(e),r=function queryRadios(e){return n.querySelectorAll('input[type="radio"][name="'+e+'"]')};if("undefined"!=typeof window&&void 0!==window.CSS&&"function"==typeof window.CSS.escape)t=r(window.CSS.escape(e.name));else try{t=r(e.name)}catch(e){return console.error("Looks like you have a radio button with a name attribute containing invalid CSS selector characters and need the CSS.escape polyfill: %s",e.message),!1}var o=function getCheckedRadio(e,t){for(var n=0;n<e.length;n++)if(e[n].checked&&e[n].form===t)return e[n]}(t,e.form);return!o||o===e}(e)},y=function isZeroArea(e){var t=e.getBoundingClientRect(),n=t.width,r=t.height;return 0===n&&0===r},h=function isHidden(e,t){var n=t.displayCheck,r=t.getShadowRoot;if("full-native"===n&&"checkVisibility"in e)return!e.checkVisibility({checkOpacity:!1,opacityProperty:!1,contentVisibilityAuto:!0,visibilityProperty:!0,checkVisibilityCSS:!0});if("hidden"===getComputedStyle(e).visibility)return!0;var o=i.call(e,"details>summary:first-of-type")?e.parentElement:e;if(i.call(o,"details:not([open]) *"))return!0;if(n&&"full"!==n&&"full-native"!==n&&"legacy-full"!==n){if("non-zero-area"===n)return y(e)}else{if("function"==typeof r){for(var s=e;e;){var c=e.parentElement,l=a(e);if(c&&!c.shadowRoot&&!0===r(c))return y(e);e=e.assignedSlot?e.assignedSlot:c||l===e.ownerDocument?c:l.host}e=s}if(function isNodeAttached(e){var t,n,r,o,s=e&&a(e),i=null===(t=s)||void 0===t?void 0:t.host,c=!1;if(s&&s!==e)for(c=!!(null!==(n=i)&&void 0!==n&&null!==(r=n.ownerDocument)&&void 0!==r&&r.contains(i)||null!=e&&null!==(o=e.ownerDocument)&&void 0!==o&&o.contains(e));!c&&i;){var l,u,d;c=!(null===(u=i=null===(l=s=a(i))||void 0===l?void 0:l.host)||void 0===u||null===(d=u.ownerDocument)||void 0===d||!d.contains(i))}return c}(e))return!e.getClientRects().length;if("legacy-full"!==n)return!0}return!1},v=function isNodeMatchingSelectorFocusable(e,t){return!(t.disabled||c(t)||function isHiddenInput(e){return m(e)&&"hidden"===e.type}(t)||h(t,e)||function isDetailsWithSummary(e){return"DETAILS"===e.tagName&&Array.prototype.slice.apply(e.children).some(function(e){return"SUMMARY"===e.tagName})}(t)||function isDisabledFromFieldset(e){if(/^(INPUT|BUTTON|SELECT|TEXTAREA)$/.test(e.tagName))for(var t=e.parentElement;t;){if("FIELDSET"===t.tagName&&t.disabled){for(var n=0;n<t.children.length;n++){var r=t.children.item(n);if("LEGEND"===r.tagName)return!!i.call(t,"fieldset[disabled] *")||!r.contains(e)}return!0}t=t.parentElement}return!1}(t))},b=function isNodeMatchingSelectorTabbable(e,t){return!(g(t)||f(t)<0||!v(e,t))},k=function isShadowRootTabbable(e){var t=parseInt(e.getAttribute("tabindex"),10);return!!(isNaN(t)||t>=0)},w=function sortByOrder(e){var t=[],n=[];return e.forEach(function(e,r){var o=!!e.scopeParent,s=o?e.scopeParent:e,i=function getSortOrderTabIndex(e,t){var n=f(e);return n<0&&t&&!d(e)?0:n}(s,o),a=o?w(e.candidates):s;0===i?o?t.push.apply(t,a):t.push(s):n.push({documentOrder:r,tabIndex:i,item:e,isScope:o,content:a})}),n.sort(p).reduce(function(e,t){return t.isScope?e.push.apply(e,t.content):e.push(t.content),e},[]).concat(t)},E=function tabbable(e,t){var n;return n=(t=t||{}).getShadowRoot?u([e],t.includeContainer,{filter:b.bind(null,t),flatten:!1,getShadowRoot:t.getShadowRoot,shadowRootFilter:k}):l(e,t.includeContainer,b.bind(null,t)),w(n)},T=function focusable(e,t){return(t=t||{}).getShadowRoot?u([e],t.includeContainer,{filter:v.bind(null,t),flatten:!0,getShadowRoot:t.getShadowRoot}):l(e,t.includeContainer,v.bind(null,t))},x=function isTabbable(e,t){if(t=t||{},!e)throw new Error("No node provided");return!1!==i.call(e,o)&&b(t,e)},R=r.concat("iframe").join(","),S=function isFocusable(e,t){if(t=t||{},!e)throw new Error("No node provided");return!1!==i.call(e,R)&&v(t,e)}},"./packages/packages/core/editor-canvas/src/components/classes-rename.tsx":function(e,t,n){n.r(t),n.d(t,{ClassesRename:function(){return ClassesRename}});var r=n("react"),o=n("@elementor/editor-documents"),s=n("@elementor/editor-styles-repository"),i=n("@elementor/utils");const ClassesRename=()=>((0,r.useEffect)(()=>{const e=subscribeToStylesRepository();return()=>{e()}},[]),null),subscribeToStylesRepository=()=>s.stylesRepository.subscribe((e,t)=>{if(!e||!t)return;Object.keys(t).forEach(n=>{if(!(e[n]&&(0,i.hash)(e[n])!==(0,i.hash)(t[n])))return;const r=e[n],o=t[n];r.label!==o.label&&renameClass(r.label,o.label)})}),renameClass=(e,t)=>{Object.values((0,o.getV1DocumentsManager)().documents).forEach(n=>{const r=n.container;r.view?.el?.querySelectorAll(`.elementor .${e}`).forEach(n=>{n.classList.replace(e,t)})})}},"./packages/packages/core/editor-canvas/src/components/elements-overlays.tsx":function(e,t,n){n.r(t),n.d(t,{ElementsOverlays:function(){return ElementsOverlays}});var r=n("react"),o=n("@elementor/editor-elements"),s=n("@elementor/editor-v1-adapters"),i=n("./packages/packages/core/editor-canvas/src/utils/inline-editing-utils.ts"),a=n("./packages/packages/core/editor-canvas/src/components/inline-editor-overlay.tsx"),c=n("./packages/packages/core/editor-canvas/src/components/outline-overlay.tsx");const l="atomic",u=[{component:c.OutlineOverlay,shouldRender:()=>!0},{component:a.InlineEditorOverlay,shouldRender:({id:e,isSelected:t})=>t&&(0,i.hasInlineEditableProperty)(e)&&(0,s.isExperimentActive)("v4-inline-text-editing")}];function ElementsOverlays(){const e=(0,o.useSelectedElement)(),t=function useElementsDom(){return(0,s.__privateUseListenTo)([(0,s.windowEvent)("elementor/editor/element-rendered"),(0,s.windowEvent)("elementor/editor/element-destroyed")],()=>(0,o.getElements)().filter(e=>l in(e.view?.el?.dataset??{})).map(e=>[e.id,e.view?.getDomElement?.()?.get?.(0)]).filter(e=>!!e[1]))}(),n="edit"===(0,s.useEditMode)(),i=(0,s.__privateUseIsRouteActive)("panel/global");return n&&!i?t.map(([t,n])=>{const o=e.element?.id===t;return u.map(({shouldRender:e,component:s},i)=>e({id:t,element:n,isSelected:o})&&r.createElement(s,{key:`${t}-${i}`,id:t,element:n,isSelected:o}))}):null}},"./packages/packages/core/editor-canvas/src/components/inline-editor-overlay.tsx":function(e,t,n){n.r(t),n.d(t,{InlineEditorOverlay:function(){return InlineEditorOverlay}});var r=n("react"),o=n("@elementor/editor-controls"),s=n("@elementor/editor-elements"),i=n("@elementor/editor-props"),a=n("@elementor/ui"),c=n("@elementor/utils"),l=n("./packages/node_modules/@floating-ui/react/dist/floating-ui.react.mjs"),u=n("./packages/packages/core/editor-canvas/src/hooks/use-floating-on-element.ts"),d=n("./packages/packages/core/editor-canvas/src/utils/inline-editing-utils.ts"),f=n("./packages/packages/core/editor-canvas/src/components/outline-overlay.tsx");const InlineEditorOverlay=({element:e,isSelected:t,id:n})=>{const{floating:p,isVisible:m}=(0,u.useFloatingOnElement)({element:e,isSelected:t}),g=r.useMemo(()=>{const e=(0,s.getContainer)(n);return(0,d.getInlineEditablePropertyName)(e)},[n]),y=(0,s.useElementSetting)(n,g),h=r.useMemo(()=>i.htmlPropTypeUtil.extract(y)||"",[y]),v=r.useRef(null),b=r.useRef("");r.useEffect(()=>(v.current=(0,c.debounce)(e=>{const t=""===e.replace(/<[^>]*>/g,"").trim()?"&nbsp;":e;(0,s.updateElementSettings)({id:n,props:{[g]:i.htmlPropTypeUtil.create(t)},withHistory:!0})},100),()=>{v.current?.cancel?.()}),[n,g]);const k=r.useCallback(e=>{b.current=e,v.current?.(e)},[]);return r.useEffect(()=>{!m&&v.current?.pending?.()&&v.current.flush(b.current)},[m]),m?r.createElement(l.FloatingPortal,{id:f.CANVAS_WRAPPER_ID},r.createElement(a.Box,{ref:p.setRef,style:{...p.styles,zIndex:1e3,pointerEvents:"auto"}},r.createElement(o.InlineEditor,{value:h,setValue:k,showToolbar:t}))):null}},"./packages/packages/core/editor-canvas/src/components/interactions-renderer.tsx":function(e,t,n){n.r(t),n.d(t,{InteractionsRenderer:function(){return InteractionsRenderer}});var r=n("react"),o=n("@elementor/editor-v1-adapters"),s=n("@elementor/ui"),i=n("./packages/packages/core/editor-canvas/src/hooks/use-interactions-items.ts"),a=n("./packages/packages/core/editor-canvas/src/sync/get-canvas-iframe-document.ts");function InteractionsRenderer(){const e=function usePortalContainer(){return(0,o.__privateUseListenTo)((0,o.commandEndEvent)("editor/documents/attach-preview"),()=>(0,a.getCanvasIframeDocument)()?.head)}(),t=(0,i.useInteractionsItems)();if(!e)return null;const n=JSON.stringify(Array.isArray(t)?t:[]);return r.createElement(s.Portal,{container:e},r.createElement("script",{type:"application/json","data-e-interactions":"true",dangerouslySetInnerHTML:{__html:n}}))}},"./packages/packages/core/editor-canvas/src/components/outline-overlay.tsx":function(e,t,n){n.r(t),n.d(t,{CANVAS_WRAPPER_ID:function(){return l},OutlineOverlay:function(){return OutlineOverlay}});var r=n("react"),o=n("@elementor/ui"),s=n("./packages/node_modules/@floating-ui/react/dist/floating-ui.react.mjs"),i=n("./packages/packages/core/editor-canvas/src/hooks/use-bind-react-props-to-element.ts"),a=n("./packages/packages/core/editor-canvas/src/hooks/use-floating-on-element.ts"),c=n("./packages/packages/core/editor-canvas/src/hooks/use-has-overlapping.ts");function _extends(){return _extends=Object.assign?Object.assign.bind():function(e){for(var t=1;t<arguments.length;t++){var n=arguments[t];for(var r in n)({}).hasOwnProperty.call(n,r)&&(e[r]=n[r])}return e},_extends.apply(null,arguments)}const l="elementor-preview-responsive-wrapper",u=(0,o.styled)(o.Box,{shouldForwardProp:e=>"isSelected"!==e&&"isSmallerOffset"!==e})(({theme:e,isSelected:t,isSmallerOffset:n})=>({outline:`${t?"2px":"1px"} solid ${e.palette.primary.light}`,outlineOffset:t&&!n?"-2px":"-1px",pointerEvents:"none"})),OutlineOverlay=({element:e,isSelected:t,id:n})=>{const{context:o,floating:d,isVisible:f}=(0,a.useFloatingOnElement)({element:e,isSelected:t}),{getFloatingProps:p,getReferenceProps:m}=(0,s.useInteractions)([(0,s.useHover)(o)]),g=(0,c.useHasOverlapping)();(0,i.useBindReactPropsToElement)(e,m);const y=e.offsetHeight<=1;return f&&!g&&r.createElement(s.FloatingPortal,{id:l},r.createElement(u,_extends({ref:d.setRef,isSelected:t,style:d.styles,"data-element-overlay":n,role:"presentation",isSmallerOffset:y},p())))}},"./packages/packages/core/editor-canvas/src/components/style-renderer.tsx":function(e,t,n){n.r(t),n.d(t,{StyleRenderer:function(){return StyleRenderer}});var r=n("react"),o=n("@elementor/editor-v1-adapters"),s=n("@elementor/ui"),i=n("./packages/packages/core/editor-canvas/src/hooks/use-documents-css-links.ts"),a=n("./packages/packages/core/editor-canvas/src/hooks/use-style-items.ts"),c=n("./packages/packages/core/editor-canvas/src/sync/get-canvas-iframe-document.ts");function _extends(){return _extends=Object.assign?Object.assign.bind():function(e){for(var t=1;t<arguments.length;t++){var n=arguments[t];for(var r in n)({}).hasOwnProperty.call(n,r)&&(e[r]=n[r])}return e},_extends.apply(null,arguments)}function StyleRenderer(){const e=function usePortalContainer(){return(0,o.__privateUseListenTo)((0,o.commandEndEvent)("editor/documents/attach-preview"),()=>(0,c.getCanvasIframeDocument)()?.head)}(),t=(0,a.useStyleItems)(),n=(0,i.useDocumentsCssLinks)();return e?r.createElement(s.Portal,{container:e},t.map((e,t)=>r.createElement("style",{key:`${e.id}-${t}-${e.breakpoint}`},e.value)),n.map(e=>r.createElement("link",_extends({},e,{key:e.id})))):null}},"./packages/packages/core/editor-canvas/src/hooks/use-bind-react-props-to-element.ts":function(e,t,n){n.r(t),n.d(t,{useBindReactPropsToElement:function(){return useBindReactPropsToElement}});var r=n("react");function useBindReactPropsToElement(e,t){(0,r.useEffect)(()=>{const n=e,{events:r,attrs:o}=function groupProps(e){const t=/^on(?=[A-Z])/;return Object.entries(e).reduce((e,[n,r])=>{if(!t.test(n))return e.attrs.push([n,r]),e;const o=n.replace(t,"").toLowerCase(),s=r;return e.events.push([o,s]),e},{events:[],attrs:[]})}(t());return r.forEach(([e,t])=>n.addEventListener(e,t)),o.forEach(([e,t])=>n.setAttribute(e,t)),()=>{r.forEach(([e,t])=>n.removeEventListener(e,t)),o.forEach(([e])=>n.removeAttribute(e))}},[t,e])}},"./packages/packages/core/editor-canvas/src/hooks/use-documents-css-links.ts":function(e,t,n){n.r(t),n.d(t,{useDocumentsCssLinks:function(){return useDocumentsCssLinks}});var r=n("@elementor/editor-v1-adapters"),o=n("./packages/packages/core/editor-canvas/src/sync/get-canvas-iframe-document.ts");const s="data-e-removed",i="data-elementor-id",a="elementor-post-",c="-css";function useDocumentsCssLinks(){return(0,r.__privateUseListenTo)((0,r.commandEndEvent)("editor/documents/attach-preview"),()=>{const e=(0,o.getCanvasIframeDocument)();if(!e)return[];const t=function getDocumentsIdsInCanvas(e){return[...e.body.querySelectorAll(`[${i}]`)??[]].map(e=>e.getAttribute(i)||"")}(e).map(e=>`${a}${e}${c}`),n=function getDocumentsCssLinks(e){return[...e.head.querySelectorAll(`link[rel="stylesheet"][id^=${a}][id$=${c}]`)??[]]}(e).filter(e=>t.includes(e.getAttribute("id")??""));return n.forEach(e=>{e.hasAttribute(s)||e.remove()}),n.map(e=>({...getLinkAttrs(e),id:e.getAttribute("id")??"",[s]:!0}))})}function getLinkAttrs(e){const t=[...e.attributes].map(e=>[e.name,e.value]);return Object.fromEntries(t)}},"./packages/packages/core/editor-canvas/src/hooks/use-floating-on-element.ts":function(e,t,n){n.r(t),n.d(t,{useFloatingOnElement:function(){return useFloatingOnElement}});var r=n("react"),o=n("./packages/node_modules/@floating-ui/react/dist/floating-ui.react.mjs"),s=n("./packages/node_modules/@floating-ui/dom/dist/floating-ui.dom.mjs"),i=n("./packages/node_modules/@floating-ui/react-dom/dist/floating-ui.react-dom.mjs");function useFloatingOnElement({element:e,isSelected:t}){const[n,a]=(0,r.useState)(!1),{refs:c,floatingStyles:l,context:u}=(0,o.useFloating)({open:n||t,onOpenChange:a,whileElementsMounted:s.autoUpdate,middleware:[(0,i.size)(()=>({apply({elements:e,rects:t}){Object.assign(e.floating.style,{width:`${t.reference.width+2}px`,height:`${t.reference.height+2}px`})}})),(0,i.offset)(({rects:e})=>-e.reference.height/2-e.floating.height/2)]});return(0,r.useEffect)(()=>{c.setReference(e)},[e,c]),{isVisible:n||t,context:u,floating:{setRef:c.setFloating,ref:c.floating,styles:l}}}},"./packages/packages/core/editor-canvas/src/hooks/use-has-overlapping.ts":function(e,t,n){n.r(t),n.d(t,{useHasOverlapping:function(){return useHasOverlapping}});const r=[".e-off-canvas"],useHasOverlapping=()=>{const e=window.elementor?.$preview?.[0];if(!e)return!1;return r.map(t=>Array.from(e?.contentWindow?.document.body.querySelectorAll(t)??[])).flat().some(e=>e.checkVisibility({opacityProperty:!0,visibilityProperty:!0,contentVisibilityAuto:!0}))}},"./packages/packages/core/editor-canvas/src/hooks/use-interactions-items.ts":function(e,t,n){n.r(t),n.d(t,{useInteractionsItems:function(){return useInteractionsItems}});var r=n("react"),o=n("@elementor/editor-interactions"),s=n("@elementor/editor-v1-adapters"),i=n("./packages/packages/core/editor-canvas/src/hooks/use-on-mount.ts");function useInteractionsItems(){const[e,t]=(0,r.useState)({}),n=(0,r.useMemo)(()=>{try{const e=o.interactionsRepository.getProviders();return e.map(e=>({provider:e,subscriber:createProviderSubscriber({provider:e,setInteractionItems:t})}))}catch{return[]}},[]);return(0,r.useEffect)(()=>{if(0===n.length)return;const e=n.map(({provider:e,subscriber:t})=>e.subscribe(()=>{try{t()}catch{}}));return()=>{e.forEach(e=>e())}},[n]),(0,i.useOnMount)(()=>{0!==n.length&&(0,s.registerDataHook)("after","editor/documents/attach-preview",async()=>{n.forEach(({subscriber:e})=>{try{e()}catch{}})})}),(0,r.useMemo)(()=>Object.values(e).sort(sortByProviderPriority).flatMap(({items:e})=>e),[e])}function sortByProviderPriority({provider:e},{provider:t}){return e.priority-t.priority}function createProviderSubscriber({provider:e,setInteractionItems:t}){return()=>{try{const n=e.actions.all(),r=e.getKey();t(t=>({...t,[r]:{provider:e,items:n}}))}catch{}}}},"./packages/packages/core/editor-canvas/src/hooks/use-on-mount.ts":function(e,t,n){n.r(t),n.d(t,{useOnMount:function(){return useOnMount}});var r=n("react");function useOnMount(e){const t=(0,r.useRef)(!1);(0,r.useEffect)(()=>{t.current||(t.current=!0,e())},[])}},"./packages/packages/core/editor-canvas/src/hooks/use-style-items.ts":function(e,t,n){n.r(t),n.d(t,{useStyleItems:function(){return useStyleItems}});var r=n("react"),o=n("@elementor/editor-responsive"),s=n("@elementor/editor-styles"),i=n("@elementor/editor-styles-repository"),a=n("@elementor/editor-v1-adapters"),c=n("./packages/packages/core/editor-canvas/src/utils/abort-previous-runs.ts"),l=n("./packages/packages/core/editor-canvas/src/utils/signalized-process.ts"),u=n("./packages/packages/core/editor-canvas/src/hooks/use-on-mount.ts"),d=n("./packages/packages/core/editor-canvas/src/hooks/use-style-prop-resolver.ts"),f=n("./packages/packages/core/editor-canvas/src/hooks/use-style-renderer.ts");function useStyleItems(){const e=(0,d.useStylePropResolver)(),t=(0,f.useStyleRenderer)(e),[n,s]=(0,r.useState)({}),c=(0,r.useMemo)(()=>i.stylesRepository.getProviders().map(e=>({provider:e,subscriber:createProviderSubscriber({provider:e,renderStyles:t,setStyleItems:s})})),[t]);(0,r.useEffect)(()=>{const e=c.map(({provider:e,subscriber:t})=>e.subscribe(t));return()=>{e.forEach(e=>e())}},[c]),(0,u.useOnMount)(()=>{(0,a.registerDataHook)("after","editor/documents/attach-preview",async()=>{const e=c.map(async({subscriber:e})=>e());await Promise.all(e)})});const l=(0,o.getBreakpoints)().map(e=>e.id);return(0,r.useMemo)(()=>Object.values(n).sort(sortByProviderPriority).flatMap(({items:e})=>e).sort(sortByStateType).sort(function sortByBreakpoint(e){return({breakpoint:t},{breakpoint:n})=>e.indexOf(t)-e.indexOf(n)}(l)),[n,l.join("-")])}function sortByProviderPriority({provider:e},{provider:t}){return e.priority-t.priority}function sortByStateType({state:e},{state:t}){return(0,s.isClassState)(e)&&!(0,s.isClassState)(t)?-1:!(0,s.isClassState)(e)&&(0,s.isClassState)(t)?1:0}function createProviderSubscriber({provider:e,renderStyles:t,setStyleItems:n}){return(0,c.abortPreviousRuns)(r=>(0,l.signalizedProcess)(r.signal).then((n,r)=>{const o=e.actions.all().map((t,n,r)=>{const o=r[r.length-1-n];return{...o,cssName:e.actions.resolveCssName(o.id)}});return t({styles:breakToBreakpoints(o),signal:r})}).then(t=>{n(n=>({...n,[e.getKey()]:{provider:e,items:t}}))}).execute());function breakToBreakpoints(e){return Object.values(e.reduce((e,t)=>(t.variants.forEach(n=>{const r=n.meta.breakpoint||"desktop";e[t.id]||(e[t.id]={}),e[t.id][r]||(e[t.id][r]={...t,variants:[]}),e[t.id][r].variants.push(n)}),e),{})).flatMap(e=>Object.values(e))}}},"./packages/packages/core/editor-canvas/src/hooks/use-style-prop-resolver.ts":function(e,t,n){n.r(t),n.d(t,{useStylePropResolver:function(){return useStylePropResolver}});var r=n("react"),o=n("@elementor/editor-styles"),s=n("./packages/packages/core/editor-canvas/src/renderers/create-props-resolver.ts"),i=n("./packages/packages/core/editor-canvas/src/style-transformers-registry.ts"),a=n("./packages/packages/core/editor-canvas/src/sync/enqueue-font.ts");function useStylePropResolver(){return(0,r.useMemo)(()=>(0,s.createPropsResolver)({transformers:i.styleTransformersRegistry,schema:(0,o.getStylesSchema)(),onPropResolve:({key:e,value:t})=>{"font-family"===e&&"string"==typeof t&&(0,a.enqueueFont)(t)}}),[])}},"./packages/packages/core/editor-canvas/src/hooks/use-style-renderer.ts":function(e,t,n){n.r(t),n.d(t,{useStyleRenderer:function(){return useStyleRenderer}});var r=n("react"),o=n("@elementor/editor-responsive"),s=n("./packages/packages/core/editor-canvas/src/renderers/create-styles-renderer.ts");const i=".elementor";function useStyleRenderer(e){const t=(0,o.useBreakpointsMap)();return(0,r.useMemo)(()=>(0,s.createStylesRenderer)({selectorPrefix:i,breakpoints:t,resolve:e}),[e,t])}},"./packages/packages/core/editor-canvas/src/init-settings-transformers.ts":function(e,t,n){n.r(t),n.d(t,{initSettingsTransformers:function(){return initSettingsTransformers}});var r=n("./packages/packages/core/editor-canvas/src/settings-transformers-registry.ts"),o=n("./packages/packages/core/editor-canvas/src/transformers/settings/attributes-transformer.ts"),s=n("./packages/packages/core/editor-canvas/src/transformers/settings/classes-transformer.ts"),i=n("./packages/packages/core/editor-canvas/src/transformers/settings/date-time-transformer.ts"),a=n("./packages/packages/core/editor-canvas/src/transformers/settings/link-transformer.ts"),c=n("./packages/packages/core/editor-canvas/src/transformers/settings/query-transformer.ts"),l=n("./packages/packages/core/editor-canvas/src/transformers/shared/image-src-transformer.ts"),u=n("./packages/packages/core/editor-canvas/src/transformers/shared/image-transformer.ts"),d=n("./packages/packages/core/editor-canvas/src/transformers/shared/plain-transformer.ts");function initSettingsTransformers(){r.settingsTransformersRegistry.register("classes",(0,s.createClassesTransformer)()).register("link",a.linkTransformer).register("query",c.queryTransformer).register("image",u.imageTransformer).register("image-src",l.imageSrcTransformer).register("attributes",o.attributesTransformer).register("date-time",i.dateTimeTransformer).registerFallback(d.plainTransformer)}},"./packages/packages/core/editor-canvas/src/init-style-transformers.ts":function(e,t,n){n.r(t),n.d(t,{initStyleTransformers:function(){return initStyleTransformers}});var r=n("./packages/packages/core/editor-canvas/src/style-transformers-registry.ts"),o=n("./packages/packages/core/editor-canvas/src/transformers/shared/image-src-transformer.ts"),s=n("./packages/packages/core/editor-canvas/src/transformers/shared/image-transformer.ts"),i=n("./packages/packages/core/editor-canvas/src/transformers/shared/plain-transformer.ts"),a=n("./packages/packages/core/editor-canvas/src/transformers/styles/background-color-overlay-transformer.ts"),c=n("./packages/packages/core/editor-canvas/src/transformers/styles/background-gradient-overlay-transformer.ts"),l=n("./packages/packages/core/editor-canvas/src/transformers/styles/background-image-overlay-transformer.ts"),u=n("./packages/packages/core/editor-canvas/src/transformers/styles/background-image-size-scale-transformer.ts"),d=n("./packages/packages/core/editor-canvas/src/transformers/styles/background-overlay-transformer.ts"),f=n("./packages/packages/core/editor-canvas/src/transformers/styles/background-transformer.ts"),p=n("./packages/packages/core/editor-canvas/src/transformers/styles/color-stop-transformer.ts"),m=n("./packages/packages/core/editor-canvas/src/transformers/styles/create-combine-array-transformer.ts"),g=n("./packages/packages/core/editor-canvas/src/transformers/styles/create-multi-props-transformer.ts"),y=n("./packages/packages/core/editor-canvas/src/transformers/styles/filter-transformer.ts"),h=n("./packages/packages/core/editor-canvas/src/transformers/styles/flex-transformer.ts"),v=n("./packages/packages/core/editor-canvas/src/transformers/styles/perspective-origin-transformer.ts"),b=n("./packages/packages/core/editor-canvas/src/transformers/styles/position-transformer.ts"),k=n("./packages/packages/core/editor-canvas/src/transformers/styles/shadow-transformer.ts"),w=n("./packages/packages/core/editor-canvas/src/transformers/styles/size-transformer.ts"),E=n("./packages/packages/core/editor-canvas/src/transformers/styles/stroke-transformer.ts"),T=n("./packages/packages/core/editor-canvas/src/transformers/styles/transform-functions-transformer.ts"),x=n("./packages/packages/core/editor-canvas/src/transformers/styles/transform-move-transformer.ts"),R=n("./packages/packages/core/editor-canvas/src/transformers/styles/transform-origin-transformer.ts"),S=n("./packages/packages/core/editor-canvas/src/transformers/styles/transform-rotate-transformer.ts"),C=n("./packages/packages/core/editor-canvas/src/transformers/styles/transform-scale-transformer.ts"),P=n("./packages/packages/core/editor-canvas/src/transformers/styles/transform-skew-transformer.ts"),I=n("./packages/packages/core/editor-canvas/src/transformers/styles/transition-transformer.ts");function initStyleTransformers(){r.styleTransformersRegistry.register("size",w.sizeTransformer).register("shadow",k.shadowTransformer).register("stroke",E.strokeTransformer).register("dimensions",(0,g.createMultiPropsTransformer)(["block-start","block-end","inline-start","inline-end"],({propKey:e,key:t})=>`${e}-${t}`)).register("filter",y.filterTransformer).register("backdrop-filter",y.filterTransformer).register("box-shadow",(0,m.createCombineArrayTransformer)(",")).register("background",f.backgroundTransformer).register("background-overlay",d.backgroundOverlayTransformer).register("background-color-overlay",a.backgroundColorOverlayTransformer).register("background-image-overlay",l.backgroundImageOverlayTransformer).register("background-gradient-overlay",c.backgroundGradientOverlayTransformer).register("gradient-color-stop",(0,m.createCombineArrayTransformer)(",")).register("color-stop",p.colorStopTransformer).register("background-image-position-offset",b.positionTransformer).register("background-image-size-scale",u.backgroundImageSizeScaleTransformer).register("image-src",o.imageSrcTransformer).register("image",s.imageTransformer).register("object-position",b.positionTransformer).register("transform-origin",R.transformOriginTransformer).register("perspective-origin",v.perspectiveOriginTransformer).register("transform-move",x.transformMoveTransformer).register("transform-scale",C.transformScaleTransformer).register("transform-rotate",S.transformRotateTransformer).register("transform-skew",P.transformSkewTransformer).register("transform-functions",T.transformFunctionsTransformer).register("transform",(0,g.createMultiPropsTransformer)(["transform-functions","transform-origin","perspective","perspective-origin"],({key:e})=>"transform-functions"===e?"transform":e)).register("transition",I.transitionTransformer).register("layout-direction",(0,g.createMultiPropsTransformer)(["row","column"],({propKey:e,key:t})=>`${t}-${e}`)).register("flex",h.flexTransformer).register("border-width",(0,g.createMultiPropsTransformer)(["block-start","block-end","inline-start","inline-end"],({key:e})=>`border-${e}-width`)).register("border-radius",(0,g.createMultiPropsTransformer)(["start-start","start-end","end-start","end-end"],({key:e})=>`border-${e}-radius`)).registerFallback(i.plainTransformer)}},"./packages/packages/core/editor-canvas/src/init.tsx":function(e,t,n){n.r(t),n.d(t,{init:function(){return init}});var r=n("@elementor/editor"),o=n("@elementor/editor-interactions"),s=n("@elementor/editor-mcp"),i=n("./packages/packages/core/editor-canvas/src/components/classes-rename.tsx"),a=n("./packages/packages/core/editor-canvas/src/components/elements-overlays.tsx"),c=n("./packages/packages/core/editor-canvas/src/components/interactions-renderer.tsx"),l=n("./packages/packages/core/editor-canvas/src/components/style-renderer.tsx"),u=n("./packages/packages/core/editor-canvas/src/init-settings-transformers.ts"),d=n("./packages/packages/core/editor-canvas/src/init-style-transformers.ts"),f=n("./packages/packages/core/editor-canvas/src/legacy/init-legacy-views.ts"),p=n("./packages/packages/core/editor-canvas/src/mcp/canvas-mcp.ts"),m=n("./packages/packages/core/editor-canvas/src/mcp/mcp-description.ts"),g=n("./packages/packages/core/editor-canvas/src/prevent-link-in-link-commands.ts"),y=n("./packages/packages/core/editor-canvas/src/style-commands/init-style-commands.ts");function init(){(0,d.initStyleTransformers)(),(0,y.initStyleCommands)(),(0,g.initLinkInLinkPrevention)(),(0,f.initLegacyViews)(),(0,u.initSettingsTransformers)(),(0,o.init)(),(0,r.injectIntoTop)({id:"elements-overlays",component:a.ElementsOverlays}),(0,r.injectIntoTop)({id:"canvas-style-render",component:l.StyleRenderer}),(0,r.injectIntoTop)({id:"canvas-interactions-render",component:c.InteractionsRenderer}),(0,r.injectIntoLogic)({id:"classes-rename",component:i.ClassesRename}),(0,p.initCanvasMcp)((0,s.getMCPByDomain)("canvas",{instructions:m.mcpDescription}))}},"./packages/packages/core/editor-canvas/src/legacy/create-element-type.ts":function(e,t,n){function createElementType(e){const t=window;return class extends t.elementor.modules.elements.types.Widget{getType(){return e}getView(){return createElementViewClassDeclaration()}}}function createElementViewClassDeclaration(){const e=window;return class extends e.elementor.modules.elements.views.Widget{onRender(...e){super.onRender(...e),this.#e("elementor/preview/atomic-widget/render"),this.#t("elementor/element/render")}onDestroy(...e){super.onDestroy(...e),this.#e("elementor/preview/atomic-widget/destroy"),this.#t("elementor/element/destroy")}attributes(){return{...super.attributes(),"data-atomic":"",style:"display: contents !important;"}}behaviors(){const e=["InlineEditing","Draggable","Resizable"],t=Object.entries(super.behaviors()).filter(([t])=>!e.includes(t));return Object.fromEntries(t)}getDomElement(){return this.$el.find(":first-child")}getHandlesOverlay(){return null}#e(e){window.top?.dispatchEvent(new CustomEvent(e,{detail:{id:this.model.get("id")}}))}#t(t){e.elementor?.$preview?.[0]?.contentWindow.dispatchEvent(new CustomEvent(t,{detail:{id:this.model.get("id"),type:this.model.get("widgetType"),element:this.getDomElement().get(0)}}))}getContextMenuGroups(){return super.getContextMenuGroups().filter(e=>"save"!==e.name)}}}n.r(t),n.d(t,{createElementType:function(){return createElementType},createElementViewClassDeclaration:function(){return createElementViewClassDeclaration}})},"./packages/packages/core/editor-canvas/src/legacy/create-templated-element-type.ts":function(e,t,n){n.r(t),n.d(t,{canBeTemplated:function(){return canBeTemplated},createTemplatedElementType:function(){return createTemplatedElementType},createTemplatedElementView:function(){return createTemplatedElementView}});var r=n("./packages/packages/core/editor-canvas/src/renderers/create-props-resolver.ts"),o=n("./packages/packages/core/editor-canvas/src/settings-transformers-registry.ts"),s=n("./packages/packages/core/editor-canvas/src/utils/signalized-process.ts"),i=n("./packages/packages/core/editor-canvas/src/legacy/create-element-type.ts");function createTemplatedElementType({type:e,renderer:t,element:n}){const r=window;return class extends r.elementor.modules.elements.types.Widget{getType(){return e}getView(){return createTemplatedElementView({type:e,renderer:t,element:n})}}}function canBeTemplated(e){return!!(e.atomic_props_schema&&e.twig_templates&&e.twig_main_template&&e.base_styles_dictionary)}function createTemplatedElementView({type:e,renderer:t,element:n}){const a=(0,i.createElementViewClassDeclaration)(),c=n.twig_main_template,l=n.base_styles_dictionary;Object.entries(n.twig_templates).forEach(([e,n])=>{t.register(e,n)});const u=(0,r.createPropsResolver)({transformers:o.settingsTransformersRegistry,schema:n.atomic_props_schema});return class extends a{#n=null;getTemplateType(){return"twig"}renderOnChange(){this.render()}render(){this.#n?.abort(),this.#n=new AbortController;return(0,s.signalizedProcess)(this.#n.signal).then(()=>this.#r()).then(()=>this._renderTemplate()).then(()=>{this._renderChildren(),this.#o()}).execute()}async _renderTemplate(){this.triggerMethod("before:render:template");const n=(0,s.signalizedProcess)(this.#n?.signal).then((e,t)=>{const n=this.model.get("settings").toJSON();return u({props:n,signal:t})}).then(e=>this.afterSettingsResolve(e)).then(async n=>{const r={id:this.model.get("id"),type:e,settings:n,base_styles:l};return t.render(c,r)}).then(e=>this.$el.html(e));await n.execute(),this.bindUIElements(),this.triggerMethod("render:template")}afterSettingsResolve(e){return e}#r(){this._ensureViewIsIntact(),this._isRendering=!0,this.resetChildViewContainer(),this.triggerMethod("before:render",this)}#o(){this._isRendering=!1,this.isRendered=!0,this.triggerMethod("render",this)}}}},"./packages/packages/core/editor-canvas/src/legacy/init-legacy-views.ts":function(e,t,n){n.r(t),n.d(t,{elementsLegacyTypes:function(){return c},initLegacyViews:function(){return initLegacyViews},registerElementType:function(){return registerElementType}});var r=n("@elementor/editor-elements"),o=n("@elementor/editor-v1-adapters"),s=n("./packages/packages/core/editor-canvas/src/renderers/create-dom-renderer.ts"),i=n("./packages/packages/core/editor-canvas/src/legacy/create-element-type.ts"),a=n("./packages/packages/core/editor-canvas/src/legacy/create-templated-element-type.ts");const c={};function registerElementType(e,t){c[e]=t}function initLegacyViews(){(0,o.__privateListenTo)((0,o.v1ReadyEvent)(),()=>{const e=(0,r.getWidgetsCache)()??{},t=window,n=(0,s.createDomRenderer)();Object.entries(e).forEach(([e,r])=>{if(!r.atomic)return;let o;o=c[e]&&(0,a.canBeTemplated)(r)?c[e]({type:e,renderer:n,element:r}):(0,a.canBeTemplated)(r)?(0,a.createTemplatedElementType)({type:e,renderer:n,element:r}):(0,i.createElementType)(e),t.elementor.elementsManager.registerElementType(new o)})})}},"./packages/packages/core/editor-canvas/src/legacy/types.ts":function(e,t,n){n.r(t)},"./packages/packages/core/editor-canvas/src/mcp/canvas-mcp.ts":function(e,t,n){n.r(t),n.d(t,{initCanvasMcp:function(){return initCanvasMcp}});var r=n("./packages/packages/core/editor-canvas/src/mcp/resources/widgets-schema-resource.ts"),o=n("./packages/packages/core/editor-canvas/src/mcp/tools/build-composition/tool.ts"),s=n("./packages/packages/core/editor-canvas/src/mcp/tools/configure-element/tool.ts"),i=n("./packages/packages/core/editor-canvas/src/mcp/tools/get-element-config/tool.ts");const initCanvasMcp=e=>{const{setMCPDescription:t}=e;t('Everything related to creative design, layout, styling and building the pages, specifically element of type "widget"'),(0,r.initWidgetsSchemaResource)(e),(0,o.initBuildCompositionsTool)(e),(0,i.initGetElementConfigTool)(e),(0,s.initConfigureElementTool)(e)}},"./packages/packages/core/editor-canvas/src/mcp/mcp-description.ts":function(e,t,n){n.r(t),n.d(t,{mcpDescription:function(){return o}});var r=n("./packages/packages/core/editor-canvas/src/mcp/resources/widgets-schema-resource.ts");const o=`Canvas MCP - Working with widgets and styles: how to use the PropType schemas and generate PropValue structures\n\n# Elementor's PropValue configuration system\n\nEvery widget in Elementor has a set of properties that can be configured, defined in a STRICT SCHEMA we call "PropType".\nAll widget configuration values are represented using a structure we call "PropValue".\n\nTo correctly configure a widget's properties, FOLLOW THE PropType schema defined for that widget. This schema outlines the expected structure and types for each property, ensuring that the values you provide are valid and can be properly interpreted by Elementor.\nEvery widget has it's own PropType schema, retreivable from the resource [${r.WIDGET_SCHEMA_URI}].\nALL WIDGETS share a common _styles property with a uniform styles schema, retreivable from the resource [${r.STYLE_SCHEMA_URI}].\nThe style schema is grouped by categories, such as "typography", "background", "border", etc.\n\n# Tools and usage\n- Use the "get-element-configuration-values" tool to retrieve the current configuration of a specific element, including its PropValues and styles. It is recommended to use this tool when you are required to make changes to an existing element, to ensure you have the correct current configuration schema.\n  If a PropValue changes it's type (only on union PropTypes), read the new schema from the resources mentioned above, and adjust the PropValue structure accordingly.\n- Use the "build-composition" tool to create a NEW ELEMENTS in a composition on the page. You can use this tool to also create a new single element.\n- Use the "configure-element" tool to update the configuration of an EXISTING element on the page.\n\nAll array types that can receive union types, are typed as mixed array, which means that each item in the array can be of any of the allowed types defined in the PropType schema.\nExample: the "background" can have a background-overlay property, which can contain multiple overlays, such as color, gradient, image, etc. Each item in the array must follow the PropType schema for each overlay type.\nAll _style properties are OPTIONAL. When a _style is defined, we MERGE the values with existing styles, so only the properties you define will be changed, and the rest will remain as is.\n\n# Styling best practices\nPrefer using "em" and "rem" values for text-related sizes, padding and spacing. Use percentages for dynamic sizing relative to parent containers.\nThis flexboxes are by default "flex" with "stretch" alignment. To ensure proper layout, define the "justify-content" and "align-items" as in the schema.\n\nAdditionaly, some PropTypes have metadata information (meta property) that can help in understaind the PropType usage, such as description or other useful information.\n\nExample of null values:\n{\n  $$type: 'as-defined-for-propValue',\n  value: null\n}\n\nExample of "image" PropValue structure:\n{$$type:'image',value:{src:{$$type:'image-src',value:{url:{$$type:'url',value:'https://example.com/image.jpg'}}},size:{$$type:'string',value:'full'}}}\n\n`},"./packages/packages/core/editor-canvas/src/mcp/resources/widgets-schema-resource.ts":function(e,t,n){n.r(t),n.d(t,{BEST_PRACTICES_URI:function(){return l},STYLE_SCHEMA_URI:function(){return c},WIDGET_SCHEMA_URI:function(){return a},initWidgetsSchemaResource:function(){return initWidgetsSchemaResource}});var r=n("@elementor/editor-elements"),o=n("@elementor/editor-mcp"),s=n("@elementor/editor-props"),i=n("@elementor/editor-styles");const a="elementor://widgets/schema/{widgetType}",c="elementor://styles/schema/{category}",l="elementor://styles/best-practices",initWidgetsSchemaResource=e=>{const{mcpServer:t}=e;t.resource("styles-best-practices",l,async()=>({contents:[{uri:l,text:'# Styling best practices\nPrefer using "em" and "rem" values for text-related sizes, padding and spacing. Use percentages for dynamic sizing relative to parent containers.\nThis flexboxes are by default "flex" with "stretch" alignment. To ensure proper layout, define the "justify-content" and "align-items" as in the schema, or in custom_css, depends on your needs.\n\nWhen applicable for styles, use the "custom_css" property for free-form CSS styling. This property accepts a string of CSS rules that will be applied directly to the element.\nThe css string must follow standard CSS syntax, with properties and values separated by semicolons, no selectors, or nesting rules allowed.'}]})),t.resource("styles-schema",new o.ResourceTemplate(c,{list:()=>({resources:[...Object.keys((0,i.getStylesSchema)()),"custom_css"].map(e=>({uri:`elementor://styles/schema/${e}`,name:"Style schema for "+e}))})}),{description:"Common styles schema for the specified category"},async(e,t)=>{const n="string"==typeof t.category?t.category:t.category?.[0];if("custom_css"===n)return{contents:[{uri:e.toString(),text:"Free style inline CSS string of properties and their values. Applicable for a single element, only the properties and values are accepted. Use this as a last resort for properties that are not covered with the schema."}]};const r=(0,i.getStylesSchema)()[n];if(!r)throw new Error(`No styles schema found for category: ${n}`);const o=cleanupPropType(r),a=s.Schema.propTypeToJsonSchema(o);return{contents:[{uri:e.toString(),text:JSON.stringify(a)}]}}),t.resource("widget-schema-by-type",new o.ResourceTemplate(a,{list:()=>{const e=(0,r.getWidgetsCache)()||{};return{resources:Object.keys(e||{}).filter(t=>e[t]?.atomic_props_schema).map(e=>({uri:`elementor://widgets/schema/${e}`,name:"Widget schema for "+e}))}}}),{description:"PropType schema for the specified widget type"},async(e,t)=>{const n="string"==typeof t.widgetType?t.widgetType:t.widgetType?.[0],o=(0,r.getWidgetsCache)()?.[n]?.atomic_props_schema;if(!o)throw new Error(`No prop schema found for element type: ${n}`);const i=cleanupPropSchema(o),a=Object.fromEntries(Object.entries(i).map(([e,t])=>[e,s.Schema.propTypeToJsonSchema(t)]));return s.Schema.nonConfigurablePropKeys.forEach(e=>{delete a[e]}),{contents:[{uri:e.toString(),text:JSON.stringify(a)}]}})};function cleanupPropSchema(e){const t={};return Object.keys(e).forEach(n=>{t[n]=cleanupPropType(e[n])}),t}function cleanupPropType(e){const t={};if(Object.keys(e).forEach(n=>{switch(n){case"key":case"kind":t[n]=e[n];break;case"meta":case"settings":Object.keys(e[n]||{}).length>0&&(t[n]=e[n])}}),"plain"===t.kind)Object.defineProperty(t,"kind",{value:"string"});else if("array"===t.kind)t.item_prop_type=cleanupPropType(e.item_prop_type);else if("object"===t.kind){const n=cleanupPropSchema(e.shape);t.shape=n}else if("union"===t.kind){const n=e.prop_types,r={};Object.keys(n).forEach(e=>{r[e]=cleanupPropType(n[e])}),t.prop_types=r}return t}},"./packages/packages/core/editor-canvas/src/mcp/tools/build-composition/prompt.ts":function(e,t,n){n.r(t),n.d(t,{generatePrompt:function(){return generatePrompt}});var r=n("@elementor/editor-mcp"),o=n("./packages/packages/core/editor-canvas/src/mcp/resources/widgets-schema-resource.ts");const generatePrompt=()=>{const e=(0,r.toolPrompts)("build-compositions");return e.description(`\nBuild entire elementor widget comositions representing complex structures of nested elements.\n\n# When to use this tool\nAlways prefer this tool when the user requires to build a composition of elements, such as cards, heros, or inspired from other pages or HTML compositions.\nPrefer this tool over any other tool for building HTML structure, unless you are specified to use a different tool.\n\n# **CRITICAL - REQUIRED RESOURCES (Must read before using this tool)**\n1. [${o.WIDGET_SCHEMA_URI}]\n   Required to understand which widgets are available, and what are their configuration schemas.\n   Every widgetType (i.e. e-heading, e-button) that is supported has it's own property schema, that you must follow in order to apply property values correctly.\n2. [${o.STYLE_SCHEMA_URI}]\n   Required to understand the styles schema for the widgets. All widgets share the same styles schema.\n3. List of allowed custom tags for building the structure is derived from the list of widgets schema resources.\n\n# Instructions\n1. Understand the user requirements carefully.\n2. Build a valid XML structure using only the allowed custom tags provided. For example, if you\n   use the "e-button" element, it would be represented as <e-button></e-button> in the XML structure.\n3. Plan the configuration for each element according to the user requirements, using the configuration schema provided for each custom tag.\n   Every widget type has it's own configuration schema, retreivable from the resource [${o.WIDGET_SCHEMA_URI}].\n   PropValues must follow the exact PropType schema provided in the resource.\n4. For every element, provide a "configuration-id" attribute. For example:\n   \`<e-flexbox configuration-id="flex1"><e-heading configuration-id="heading2"></e-heading></e-flexbox>\`\n   In the elementConfig property, provide the actual configuration object for each configuration-id used in the XML structure.\n   In the stylesConfig property, provide the actual styles configuration object for each configuration-id used in the XML structure.\n5. Ensure the XML structure is valid and parsable.\n6. Do not add any attribute nodes, classes, id's, and no text nodes allowed.\n   Layout properties, such as margin, padding, align, etc. must be applied using the [${o.STYLE_SCHEMA_URI}] PropValues.\n7. Some elements allow nesting of other elements, and most of the DO NOT. The allowed elements that can have nested children are "e-div-block" and "e-flexbox".\n8. Make sure that non-container elements do NOT have any nested elements.\n9. Unsless the user specifically requires structure only, BE EXPRESSIVE AND VISUALLY CREATIVE AS POSSIBLE IN APPLYING STYLE CONFIGURATION.\n   In the case of doubt, prefer adding more styles to make the composition visually appealing.\n\n# Additional Guidelines\n- Most users expect the structure to be well designed and visually appealing.\n- Use layout properties, ensure "white space" design approach is followed, and make sure the composition is visually balanced.\n- Use appropriate spacing, alignment, and sizing to create a harmonious layout.\n- Consider the visual hierarchy of elements to guide the user's attention effectively.\n- You are encouraged to use colors, typography, and other style properties to enhance the visual appeal, as long as they are part of the configuration schema for the elements used.\n- Always aim for a clean and professional look that aligns with modern design principles.\n- When you are required to create placeholder texts, use texts that have a length that fits the goal. When long texts are required, use longer placeholder texts. When the user specifies exact texts, use the exact texts.\n- Image size does not affect the actual size on the screen, only which quality to use. If you use images, specifically add _styles PropValues to define the image sizes.\n- Attempt to use layout, margin, padding, size properties from the styles schema.\n- If your elements library is limited, encourage use of nesting containers to achieve complex layouts.\n\n# CONSTRAINTS\nWhen a tool execution fails, retry up to 10 more times, read the error message carefully, and adjust the XML structure or the configurations accordingly.\nIf a "$$type" is missing, update the invalid object, if the XML has parsing errors, fix it, etc. and RETRY.\nVALIDATE the XML structure before delivering it as the final result.\nVALIDATE the JSON structure used in the "configuration" attributes for each element before delivering the final result. The configuration must MATCH the PropValue schemas.\nNO LINKS ALLOWED. Never apply links to elements, even if they appear in the PropType schema.\nelementConfig values must align with the widget's PropType schema, available at the resource [${o.WIDGET_SCHEMA_URI}].\nstylesConfig values must align with the common styles PropType schema, available at the resource [${o.STYLE_SCHEMA_URI}].\n\n# Parameters\nAll parameters are MANDATORY.\n- xmlStructure\n- elementConfig\n- stylesConfig\n\nIf unsure about the configuration of a specific property, read the schema resources carefully.\n\n\n  `),e.example('\nA Heading and a button inside a flexbox\n{\n  xmlStructure: "<e-flexbox configuration-id="flex1"><e-heading configuration-id="heading1"></e-heading><e-button configuration-id="button1"></e-button></e-flexbox>"\n  elementConfig: {\n    "flex1": {\n      "tag": {\n        "$$type": "string",\n        "value": "section"\n      },\n  },\n  stylesConfig: {\n    "heading1": {\n      "font-size": {\n        "$$type": "size",\n        "value": {\n          "size": { "$$type": "number", "value": 24 },\n          "unit": { "$$type": "string", "value": "px" }\n        }\n      },\n      "color": {\n        "$$type": "color",\n        "value": { "$$type": "string", "value": "#333" }\n      }\n    }\n  },\n}\n'),e.parameter("xmlStructure","**MANDATORY** A valid XML structure representing the composition to be built, using custom elementor tags, styling and configuration PropValues."),e.parameter("elementConfig","**MANDATORY** A record mapping configuration IDs to their corresponding configuration objects, defining the PropValues for each element created."),e.parameter("stylesConfig","**MANDATORY** A record mapping style PropTypes to their corresponding style configuration objects, defining the PropValues for styles to be applied to elements."),e.instruction("You will be provided the XML structure with element IDs. These IDs represent the actual elementor widgets created on the page/post.\nYou should use these IDs as reference for further configuration, styling or changing elements later on."),e.instruction("You must use styles/variables/classes that are available in the project resources, you should prefer using them over inline styles, and you are welcome to execute relevant tools AFTER this tool execution, to apply global classes to the created elements."),e.prompt()}},"./packages/packages/core/editor-canvas/src/mcp/tools/build-composition/schema.ts":function(e,t,n){n.r(t),n.d(t,{inputSchema:function(){return s},outputSchema:function(){return i}});var r=n("@elementor/schema"),o=n("./packages/packages/core/editor-canvas/src/mcp/resources/widgets-schema-resource.ts");const s={xmlStructure:r.z.string().describe("The XML structure representing the composition to be built"),elementConfig:r.z.record(r.z.string().describe("The configuration id"),r.z.record(r.z.string().describe("property name"),r.z.any().describe("The PropValue for the property"))).describe("A record mapping element IDs to their configuration objects. REQUIRED"),stylesConfig:r.z.record(r.z.string().describe("The configuration id"),r.z.record(r.z.string().describe("_styles property name"),r.z.any().describe("The PropValue for the style property. MANDATORY"))).describe(`A record mapping element IDs to their styles configuration objects. Use the actual styles schema from [${o.STYLE_SCHEMA_URI}].`).default({})},i={errors:r.z.string().describe("Error message if the composition building failed").optional(),xmlStructure:r.z.string().describe("The built XML structure as a string").optional(),llmInstructions:r.z.string().describe("Instructions used to further actions for you").optional()}},"./packages/packages/core/editor-canvas/src/mcp/tools/build-composition/tool.ts":function(e,t,n){n.r(t),n.d(t,{initBuildCompositionsTool:function(){return initBuildCompositionsTool}});var r=n("@elementor/editor-elements"),o=n("./packages/packages/core/editor-canvas/src/mcp/utils/do-update-element-property.ts"),s=n("./packages/packages/core/editor-canvas/src/mcp/tools/build-composition/prompt.ts"),i=n("./packages/packages/core/editor-canvas/src/mcp/tools/build-composition/schema.ts");const initBuildCompositionsTool=e=>{const{addTool:t}=e;t({name:"build-compositions",description:(0,s.generatePrompt)(),schema:i.inputSchema,outputSchema:i.outputSchema,handler:async e=>{let t=null;const{xmlStructure:n,elementConfig:s,stylesConfig:i}=e,a=[],c=[],l=[],u=(0,r.getWidgetsCache)()||{},d=(0,r.getContainer)("document");try{t=(new DOMParser).parseFromString(n,"application/xml");const e=t.querySelector("parsererror");if(e)throw new Error("Failed to parse XML structure: "+e.textContent);const f=Array.from(t.children),iterate=(e,t=d)=>{const n=e.tagName;u[n]||a.push(new Error(`Unknown widget type: ${n}`));const f="e-flexbox"===n||"e-div-block"===n,p=f?(0,r.createElement)({containerId:t.id,model:{elType:n,id:(0,r.generateElementId)()},options:{useHistory:!1}}):(0,r.createElement)({containerId:t.id,model:{elType:"widget",widgetType:n,id:(0,r.generateElementId)()},options:{useHistory:!1}});t===d&&l.push(p),e.setAttribute("id",p.id);const m=e.getAttribute("configuration-id")||"";try{const t=s[m]||{},r=i[m]||{};t._styles=r;for(const[e,r]of Object.entries(t)){const t=u[n];if(t?.atomic_props_schema?.[e]||"_styles"===e||"custom_css"===e)try{(0,o.doUpdateElementProperty)({elementId:p.id,propertyName:e,propertyValue:"custom_css"===e?{_styles:r}:r,elementType:n})}catch(e){c.push(e)}else c.push(new Error(`Property "${e}" does not exist on element type "${n}".`))}if(f)for(const t of e.children)iterate(t,p);else e.innerHTML="",e.removeAttribute("configuration")}finally{}};for(const e of f)iterate(e,d)}catch(e){a.push(e)}if(a.length&&l.forEach(e=>{(0,r.deleteElement)({elementId:e.id,options:{useHistory:!1}})}),a.length>0){const e=`Failed to build composition with the following errors:\n\n\n${a.map(e=>"string"==typeof e?e:e.message).join("\n\n")}\n"Missing $$type" errors indicate that the configuration objects are invalid. Try again and apply **ALL** object entries with correct $$type.\nNow that you have these errors, fix them and try again. Errors regarding configuration objects, please check again the PropType schemas`;throw new Error(e)}if(!t)throw new Error("XML structure is null after parsing.");return{xmlStructure:(new XMLSerializer).serializeToString(t),llmInstructions:(c.length?`The composition was built successfully, but there were some issues with the provided configurations:\n\n${c.map(e=>`- ${e.message}`).join("\n")}\n\nPlease use confiugure-element tool to fix these issues. Now that you have information about these issues, use the configure-element tool to fix them!`:"")+'\nNext Steps:\n- Use "apply-global-class" tool as there may be global styles ready to be applied to elements.\n- Use "configure-element" tool to further configure elements as needed, including styles.\n'}}})}},"./packages/packages/core/editor-canvas/src/mcp/tools/configure-element/prompt.ts":function(e,t,n){n.r(t),n.d(t,{configureElementToolPrompt:function(){return o}});var r=n("./packages/packages/core/editor-canvas/src/mcp/resources/widgets-schema-resource.ts");const o=`Configure an existing element on the page.\n\n# **CRITICAL - REQUIRED INFORMATION (Must read before using this tool)**\n1. [${r.WIDGET_SCHEMA_URI}]\n   Required to understand which widgets are available, and what are their configuration schemas.\n   Every widgetType (i.e. e-heading, e-button) that is supported has it's own property schema, that you must follow in order to apply property values correctly.\n2. [${r.STYLE_SCHEMA_URI}]\n   Required to understand the styles schema for the widgets. All widgets share the same styles schema, grouped by categories.\n   Use this resource to understand which style properties are available for each element, and how to structure the "_styles" configuration property.\n3. If not sure about the PropValues schema, you can use the "get-element-configuration-values" tool to retreive the current PropValues configuration of the element.\n\nBefore using this tool, check the definitions of the elements PropTypes at the resource "widget-schema-by-type" at editor-canvas__elementor://widgets/schema/{widgetType}\nAll widgets share a common _style property for styling, which uses the common styles schema.\nRetreive and check the common styles schema at the resource list "styles-schema" at editor-canvas__elementor://styles/schema/{category}\n\n# Parameters\n- propertiesToChange: An object containing the properties to change, with their new values. MANDATORY\n- elementId: The ID of the element to configure. MANDATORY\n- elementType: The type of the element to configure (i.e. e-heading, e-button). MANDATORY\n\n# When to use this tool\nWhen a user requires to change anything in an element, such as updating text, colors, sizes, or other configurable properties.\nThis tool handles elements of type "widget".\nThis tool handles styling elements, using the _styles property in the configuration.\n\nThe element's schema must be known before using this tool.\n\nAttached resource link describing how PropType schema should be parsed as PropValue for this tool.\n\nRead carefully the PropType Schema of the element and it's styles, then apply correct PropValue according to the schema.\n\nPropValue structure:\n{\n    "$$type": string, // MANDATORY as defined in the PropType schema under the "key" property\n    value: unknown // The value according to the PropType schema for kinds of "array", use array with PropValues items inside. For "object", read the shape property of the PropType schema. For "plain", use strings.\n}\n\n<IMPORTANT>\nALWAYS MAKE SURE you have the PropType schemas for the element you are configuring, and the common-styles schema for styling. If you are not sure, retreive the schema from the resources mentioned above.\n</IMPORTANT>\n\nYou can use multiple property changes at once by providing multiple entries in the propertiesToChange object, including _style alongside non-style props.\nSome properties are nested, use the root property name, then objects with nested values inside, as the complete schema suggests.\nNested properties, such as for the _styles, should include a "_styles" property with object containing the definitions to change.\n\nMake sure you have the "widget-schema-by-type" resource available to retreive the PropType schema for the element type you are configuring.\n\n# How to configure elements\nWe use a dedicated PropType Schema for configuring elements, including styles. When you configure an element, you must use the EXACT PropType Value as defined in the schema.\nFor _styles, use the style schema provided, as it also uses the PropType format.\nFor all non-primitive types, provide the key property as defined in the schema as $$type in the generated objecct, as it is MANDATORY for parsing.\n\nUse the EXACT "PROP-TYPE" Schema given, and ALWAYS include the "key" property from the original configuration for every property you are changing.\n\n# Example\n\`\`\`json\n{\n  propertiesToChange: {\n    // List of properties TO CHANGE, following the PropType schema for the element as defined in the resource [${r.WIDGET_SCHEMA_URI}]\n    title: {\n      $$type: 'string',\n      value: 'New Title Text'\n    },\n    border: {\n      $$type: 'boolean',\n      value: false\n    },\n    _styles: {\n      // List of available keys available at the [${r.STYLE_SCHEMA_URI}] dynamic resource\n      'line-height': {\n        $$type: 'size', // MANDATORY do not forget to include the correct $$type for every property\n        value: {\n          size: {\n            $$type: 'number',\n            value: 20\n          },\n          unit: {\n            $$type: 'string',\n            value: 'px'\n          }\n        }\n      }\n    }\n  }\n};\n\`\`\`\n\n<IMPORTANT>\nThe $$type property is MANDATORY for every value, it is required to parse the value and apply application-level effects.\n</IMPORTANT>\n`},"./packages/packages/core/editor-canvas/src/mcp/tools/configure-element/schema.ts":function(e,t,n){n.r(t),n.d(t,{inputSchema:function(){return o},outputSchema:function(){return s}});var r=n("@elementor/schema");const o={propertiesToChange:r.z.record(r.z.string().describe("The property name. If nested property, provide the root property name, and the object delta only."),r.z.any().describe("The property's value")).describe("An object record containing property names and their new values to be set on the element").optional(),elementType:r.z.string().describe("The type of the element to retreive the schema"),elementId:r.z.string().describe("The unique id of the element to configure")},s={success:r.z.boolean().describe("Whether the configuration change was successful, only if propertyName and propertyValue are provided")}},"./packages/packages/core/editor-canvas/src/mcp/tools/configure-element/tool.ts":function(e,t,n){n.r(t),n.d(t,{initConfigureElementTool:function(){return initConfigureElementTool}});var r=n("./packages/packages/core/editor-canvas/src/mcp/resources/widgets-schema-resource.ts"),o=n("./packages/packages/core/editor-canvas/src/mcp/utils/do-update-element-property.ts"),s=n("./packages/packages/core/editor-canvas/src/mcp/tools/configure-element/prompt.ts"),i=n("./packages/packages/core/editor-canvas/src/mcp/tools/configure-element/schema.ts");const initConfigureElementTool=e=>{const{addTool:t}=e;t({name:"configure-element",description:s.configureElementToolPrompt,schema:i.inputSchema,outputSchema:i.outputSchema,handler:({elementId:e,propertiesToChange:t,elementType:n})=>{if(!t)throw new Error("propertiesToChange is required to configure an element. Now that you have this information, ensure you have the schema and try again.");const r=Object.entries(t);for(const[t,s]of r){if(!t&&!e&&!n)throw new Error("propertyName, elementId, elementType are required to configure an element. If you want to retreive the schema, use the get-element-configuration-schema tool.");try{(0,o.doUpdateElementProperty)({elementId:e,elementType:n,propertyName:t,propertyValue:s})}catch(r){const o=createUpdateErrorMessage({propertyName:t,elementId:e,elementType:n,error:r});throw new Error(o)}}return{success:!0}}})};function createUpdateErrorMessage(e){const{propertyName:t,elementId:n,elementType:o,error:s}=e;return`Failed to update property "${t}" on element "${n}": ${s.message}.\nCheck the element's PropType schema at the resource [${r.WIDGET_SCHEMA_URI.replace("{widgetType}",o)}] for type "${o}" to ensure the property exists and the value matches the expected PropType.\nNow that you have this information, ensure you have the schema and try again.`}},"./packages/packages/core/editor-canvas/src/mcp/tools/get-element-config/tool.ts":function(e,t,n){n.r(t),n.d(t,{initGetElementConfigTool:function(){return initGetElementConfigTool}});var r=n("@elementor/editor-elements"),o=n("@elementor/editor-props"),s=n("@elementor/schema");const i={elementId:s.z.string()},a={propValues:s.z.record(s.z.string(),s.z.any()).describe("A record mapping PropTypes to their corresponding PropValues, with _styles record for style-related PropValues")},initGetElementConfigTool=e=>{const{addTool:t}=e;t({name:"get-element-configuration-values",description:"Retrieve the element's configuration PropValues for a specific element by unique ID.",schema:i,outputSchema:a,handler:async({elementId:e})=>{const t=(0,r.getContainer)(e);if(!t)throw new Error(`Element with ID ${e} not found.`);const n=t.settings,s=(0,r.getWidgetsCache)()?.[t.model.get("widgetType")||""]?.atomic_props_schema;if(!n||!s)throw new Error(`No settings or prop schema found for element ID: ${e}`);const i={},a={};o.Schema.configurableKeys(s).forEach(e=>{i[e]=structuredClone(n.get(e))});const c=(0,r.getElementStyles)(e)||{},l=Object.values(c).find(e=>"local"===e.label);if(l){const e=l.variants.find(e=>"desktop"===e.meta.breakpoint&&!e.meta.state);if(e){const t=e.props||{};Object.keys(t).forEach(e=>{void 0!==t[e]&&(a[e]=structuredClone(t[e]))})}}return{propValues:{...i,_styles:a}}}})}},"./packages/packages/core/editor-canvas/src/mcp/utils/do-update-element-property.ts":function(e,t,n){n.r(t),n.d(t,{doUpdateElementProperty:function(){return doUpdateElementProperty}});var r=n("@elementor/editor-elements"),o=n("@elementor/editor-props"),s=n("@elementor/editor-styles");function resolvePropValue(e,t){return o.Schema.adjustLlmPropValueSchema(e,t)}const doUpdateElementProperty=e=>{const{elementId:t,propertyName:n,propertyValue:i,elementType:a}=e;if("_styles"===n){const e=(0,r.getElementStyles)(t)||{},n=i,a=(0,s.getStylesSchema)(),c=Object.fromEntries(Object.entries(n).map(([e,t])=>{if("custom_css"===e)return[e,t];const{key:n,kind:r}=a?.[e]||{};if(!n&&"union"!==r)throw new Error(`_styles property ${e} is not supported.`);return[e,resolvePropValue(t,n)]}));let l;Object.keys(n).forEach(e=>{const t=a[e];if("custom_css"===e){let t=n[e];return"object"==typeof t&&(t=o.stringPropTypeUtil.extract(t)||t?.value||""),void(l={raw:btoa(t)})}if(!!!t)throw new Error(`_styles property ${e} is not supported.`);if("plain"===t.kind&&"object"!=typeof n[e]){const r=(0,o.getPropSchemaFromCache)(t.key);if(r){const t=r.create(n[e]);n[e]=t}}});const u=Object.values(e).find(e=>"local"===e.label);return void(u?(0,r.updateElementStyle)({elementId:t,styleId:u.id,meta:{breakpoint:"desktop",state:null},...void 0!==l?{custom_css:l}:{},props:{...c}}):(0,r.createElementStyle)({elementId:t,...void 0!==l?{custom_css:l}:{},classesProp:"classes",label:"local",meta:{breakpoint:"desktop",state:null},props:{...c}}))}const c=(0,r.getWidgetsCache)()?.[a]?.atomic_props_schema;if(!c)throw new Error(`No prop schema found for element type: ${a}`);if(!c[n]){const e=Object.keys(c);throw new Error(`Property "${n}" does not exist on element type "${a}". Available properties are: ${e.join(", ")}`)}const l=resolvePropValue(i);(0,r.updateElementSettings)({id:t,props:{[n]:l},withHistory:!1})}},"./packages/packages/core/editor-canvas/src/prevent-link-in-link-commands.ts":function(e,t,n){n.r(t),n.d(t,{initLinkInLinkPrevention:function(){return initLinkInLinkPrevention}});var r=n("@elementor/editor-elements"),o=n("@elementor/editor-notifications"),s=n("@elementor/editor-v1-adapters"),i=n("@wordpress/i18n");function initLinkInLinkPrevention(){(0,s.blockCommand)({command:"document/elements/paste",condition:blockLinkInLinkPaste}),(0,s.blockCommand)({command:"document/elements/move",condition:blockLinkInLinkMove})}const a={href:"https://go.elementor.com/element-link-inside-link-infotip",target:"_blank",color:"inherit",variant:"text",sx:{marginInlineStart:"20px"},children:"Learn more"};function blockLinkInLinkPaste(e){const{containers:t=[e.container],storageType:n}=e,r=t;if("localstorage"!==n)return!1;const s=window?.elementorCommon?.storage?.get();if(!s?.clipboard?.elements)return!1;const c=s.clipboard.elements,l={type:"default",message:(0,i.__)("To paste a link to this element, first remove the link from it's parent container.","elementor"),id:"paste-in-link-blocked",additionalActionProps:[a]},u=shouldBlock(c,r);return u&&(0,o.notify)(l),u}function blockLinkInLinkMove(e){const{containers:t=[e.container],target:n}=e,r=t,s=n,c={type:"default",message:(0,i.__)("To drag a link to this element, first remove the link from it's parent container.","elementor"),id:"move-in-link-blocked",additionalActionProps:[a]},l=shouldBlock(r,[s]);return l&&(0,o.notify)(c),l}function shouldBlock(e,t){if(!e?.length||!t?.length)return!1;if(!e.some(e=>!!e?.id&&((0,r.isElementAnchored)(e.id)||!!(0,r.getAnchoredDescendantId)(e.id))))return!1;return t.some(e=>!!e?.id&&((0,r.isElementAnchored)(e.id)||!!(0,r.getAnchoredAncestorId)(e.id)))}},"./packages/packages/core/editor-canvas/src/renderers/create-dom-renderer.ts":function(e,t,n){n.r(t),n.d(t,{createDomRenderer:function(){return createDomRenderer}});var r=n("@elementor/twing");function createDomRenderer(){const e=(0,r.createArrayLoader)({}),t=(0,r.createEnvironment)(e);return t.registerEscapingStrategy(escapeHtmlTag,"html_tag"),t.registerEscapingStrategy(escapeURL,"full_url"),{register:e.setTemplate,render:t.render}}function escapeHtmlTag(e){return["a","article","aside","button","div","footer","h1","h2","h3","h4","h5","h6","header","main","nav","p","section","span"].includes(e)?e:"div"}function escapeURL(e){const t=["http:","https:","mailto:","tel:"];try{const n=new URL(e);return t.includes(n.protocol)?e:""}catch{return""}}},"./packages/packages/core/editor-canvas/src/renderers/create-props-resolver.ts":function(e,t,n){n.r(t),n.d(t,{createPropsResolver:function(){return createPropsResolver}});var r=n("@elementor/editor-props"),o=n("./packages/packages/core/editor-canvas/src/renderers/multi-props.ts");const s=3;function createPropsResolver({transformers:e,schema:t,onPropResolve:n}){async function resolve({props:e,schema:r,signal:s}){r=r??t;const i=Promise.all(Object.entries(r).map(async([t,r])=>{const i=e[t]??r.default,a=await transform({value:i,key:t,type:r,signal:s});return n?.({key:t,value:a}),(0,o.isMultiProps)(a)?(0,o.getMultiPropsValue)(a):{[t]:a}}));return Object.assign({},...(await i).filter(Boolean))}async function transform({value:t,key:n,type:o,signal:i,depth:a=0}){if(null==t)return null;if(!(0,r.isTransformable)(t))return t;if(a>s)return null;if(!0===t.disabled)return null;if(t=(0,r.migratePropValue)(t,o),!(0,r.isTransformable)(t))return t;if("union"===o.kind&&!(o=o.prop_types[t.$$type]))return null;if(t.$$type!==o.key)return null;let c=t.value;"object"===o.kind&&(c=await resolve({props:c,schema:o.shape,signal:i})),"array"===o.kind&&(c=await Promise.all(c.map(e=>transform({value:e,key:n,type:o.item_prop_type,depth:a,signal:i}))));const l=e.get(t.$$type);if(!l)return null;try{return transform({value:await l(c,{key:n,signal:i}),key:n,type:o,signal:i,depth:a+1})}catch{return null}}return resolve}},"./packages/packages/core/editor-canvas/src/renderers/create-styles-renderer.ts":function(e,t,n){n.r(t),n.d(t,{createStylesRenderer:function(){return createStylesRenderer}});var r=n("@elementor/editor-styles"),o=n("@elementor/utils"),s=n("./packages/packages/core/editor-canvas/src/renderers/errors.ts");const i={class:"."};function createStylesRenderer({resolve:e,breakpoints:t,selectorPrefix:n=""}){return async({styles:r,signal:s})=>{const i=r.map(async r=>{const i=Object.values(r.variants).map(async i=>{const a=await async function propsToCss({props:e,resolve:t,signal:n}){const r=await t({props:e,signal:n});return Object.entries(r).reduce((e,[t,n])=>(null===n||e.push(t+":"+n+";"),e),[]).join("")}({props:i.props,resolve:e,signal:s}),c=function customCssToString(e){const t=(0,o.decodeString)(e?.raw||"");if(!t.trim())return"";return t+"\n"}(i.custom_css);return createStyleWrapper().for(r.cssName,r.type).withPrefix(n).withState(i.meta.state).withMediaQuery(i.meta.breakpoint?t[i.meta.breakpoint]:null).wrap(a+c)}),a=await Promise.all(i);return{id:r.id,breakpoint:r?.variants[0]?.meta?.breakpoint||"desktop",value:a.join(""),state:r?.variants[0]?.meta?.state||null}});return await Promise.all(i)}}function createStyleWrapper(e="",t){return{for:(n,r)=>{const o=i[r];if(!o)throw new s.UnknownStyleTypeError({context:{type:r}});return createStyleWrapper(`${e}${o}${n}`,t)},withPrefix:n=>createStyleWrapper([n,e].filter(Boolean).join(" "),t),withState:n=>{if(!n)return createStyleWrapper(e,t);if((0,r.isClassState)(n))return createStyleWrapper(`${e}.${n}`,t);if((0,r.isPseudoState)(n))return createStyleWrapper(`${e}:${n}`,t);throw new s.UnknownStyleStateError({context:{state:n}})},withMediaQuery:n=>{if(!n?.type)return createStyleWrapper(e,t);const r=`${n.type}:${n.width}px`;return createStyleWrapper(e,e=>`@media(${r}){${e}}`)},wrap:n=>{const r=`${e}{${n}}`;return t?t(r):r}}}},"./packages/packages/core/editor-canvas/src/renderers/errors.ts":function(e,t,n){n.r(t),n.d(t,{UnknownStyleStateError:function(){return s},UnknownStyleTypeError:function(){return o}});var r=n("@elementor/utils");const o=(0,r.createError)({code:"unknown_style_type",message:"Unknown style type"}),s=(0,r.createError)({code:"unknown_style_state",message:"Unknown style state"})},"./packages/packages/core/editor-canvas/src/renderers/multi-props.ts":function(e,t,n){n.r(t),n.d(t,{createMultiPropsValue:function(){return createMultiPropsValue},getMultiPropsValue:function(){return getMultiPropsValue},isMultiProps:function(){return isMultiProps}});const isMultiProps=e=>!!e&&"object"==typeof e&&"$$multi-props"in e&&!0===e["$$multi-props"],createMultiPropsValue=e=>({"$$multi-props":!0,value:e}),getMultiPropsValue=e=>e.value},"./packages/packages/core/editor-canvas/src/settings-transformers-registry.ts":function(e,t,n){n.r(t),n.d(t,{settingsTransformersRegistry:function(){return r}});const r=(0,n("./packages/packages/core/editor-canvas/src/transformers/create-transformers-registry.ts").createTransformersRegistry)()},"./packages/packages/core/editor-canvas/src/style-commands/init-style-commands.ts":function(e,t,n){n.r(t),n.d(t,{initStyleCommands:function(){return initStyleCommands}});var r=n("./packages/packages/core/editor-canvas/src/style-commands/paste-style.ts"),o=n("./packages/packages/core/editor-canvas/src/style-commands/reset-style.ts");function initStyleCommands(){(0,r.initPasteStyleCommand)(),(0,o.initResetStyleCommand)()}},"./packages/packages/core/editor-canvas/src/style-commands/paste-style.ts":function(e,t,n){n.r(t),n.d(t,{initPasteStyleCommand:function(){return initPasteStyleCommand}});var r=n("@elementor/editor-v1-adapters"),o=n("./packages/packages/core/editor-canvas/src/style-commands/undoable-actions/paste-element-style.ts"),s=n("./packages/packages/core/editor-canvas/src/style-commands/utils.ts");function initPasteStyleCommand(){const e=(0,o.undoablePasteElementStyle)();(0,r.blockCommand)({command:"document/elements/paste-style",condition:s.hasAtomicWidgets}),(0,r.__privateListenTo)((0,r.commandStartEvent)("document/elements/paste-style"),t=>function pasteStyles(e,t){const{containers:n=[e.container],storageKey:r}=e,o=(0,s.getClipboardElements)(r),[i]=o??[];if(!i)return;const a=i.styles,c=Object.values(a??{})[0];if(!c)return;const l=n.filter(s.isAtomicWidget);if(!l.length)return;t({containers:l,newStyle:c})}(t.args,e))}},"./packages/packages/core/editor-canvas/src/style-commands/reset-style.ts":function(e,t,n){n.r(t),n.d(t,{initResetStyleCommand:function(){return initResetStyleCommand}});var r=n("@elementor/editor-v1-adapters"),o=n("./packages/packages/core/editor-canvas/src/style-commands/undoable-actions/reset-element-style.ts"),s=n("./packages/packages/core/editor-canvas/src/style-commands/utils.ts");function initResetStyleCommand(){const e=(0,o.undoableResetElementStyle)();(0,r.blockCommand)({command:"document/elements/reset-style",condition:s.hasAtomicWidgets}),(0,r.__privateListenTo)((0,r.commandStartEvent)("document/elements/reset-style"),t=>function resetStyles(e,t){const{containers:n=[e.container]}=e,r=n.filter(s.isAtomicWidget);if(!r.length)return;t({containers:r})}(t.args,e))}},"./packages/packages/core/editor-canvas/src/style-commands/undoable-actions/paste-element-style.ts":function(e,t,n){n.r(t),n.d(t,{undoablePasteElementStyle:function(){return undoablePasteElementStyle}});var r=n("@elementor/editor-elements"),o=n("@elementor/editor-styles-repository"),s=n("@elementor/editor-v1-adapters"),i=n("@wordpress/i18n"),a=n("./packages/packages/core/editor-canvas/src/style-commands/utils.ts");const undoablePasteElementStyle=()=>(0,s.undoable)({do:({containers:e,newStyle:t})=>e.map(e=>{const n=e.id,s=(0,a.getClassesProp)(e);if(!s)return null;const i=(0,r.getElementStyles)(e.id),[c,l]=Object.entries(i??{})[0]??[],u=Object.keys(l??{}).length?l:null,d={styleId:c,originalStyle:u};if(c)t.variants.forEach(({meta:e,props:t,custom_css:o})=>{(0,r.updateElementStyle)({elementId:n,styleId:c,meta:e,props:t,custom_css:o})});else{const[e]=t.variants,i=t.variants.slice(1);d.styleId=(0,r.createElementStyle)({elementId:n,classesProp:s,label:o.ELEMENTS_STYLES_RESERVED_LABEL,...e,additionalVariants:i})}return d}),undo:({containers:e},t)=>{e.forEach((e,n)=>{const s=t[n];if(!s)return;if(!s.originalStyle)return void(0,r.deleteElementStyle)(e.id,s.styleId);const i=(0,a.getClassesProp)(e);if(!i)return;const[c]=s.originalStyle.variants,l=s.originalStyle.variants.slice(1);(0,r.createElementStyle)({elementId:e.id,classesProp:i,label:o.ELEMENTS_STYLES_RESERVED_LABEL,styleId:s.styleId,...c,additionalVariants:l})})}},{title:({containers:e})=>(0,a.getTitleForContainers)(e),subtitle:(0,i.__)("Style Pasted","elementor")})},"./packages/packages/core/editor-canvas/src/style-commands/undoable-actions/reset-element-style.ts":function(e,t,n){n.r(t),n.d(t,{undoableResetElementStyle:function(){return undoableResetElementStyle}});var r=n("@elementor/editor-elements"),o=n("@elementor/editor-styles-repository"),s=n("@elementor/editor-v1-adapters"),i=n("@wordpress/i18n"),a=n("./packages/packages/core/editor-canvas/src/style-commands/utils.ts");const undoableResetElementStyle=()=>(0,s.undoable)({do:({containers:e})=>e.map(e=>{const t=e.model.get("id"),n=(0,r.getElementStyles)(t);return Object.keys(n??{}).forEach(e=>(0,r.deleteElementStyle)(t,e)),n}),undo:({containers:e},t)=>{e.forEach((e,n)=>{const s=(0,a.getClassesProp)(e);if(!s)return;const i=e.model.get("id"),c=t[n];Object.entries(c??{}).forEach(([e,t])=>{const[n]=t.variants,a=t.variants.slice(1);(0,r.createElementStyle)({elementId:i,classesProp:s,styleId:e,label:o.ELEMENTS_STYLES_RESERVED_LABEL,...n,additionalVariants:a})})})}},{title:({containers:e})=>(0,a.getTitleForContainers)(e),subtitle:(0,i.__)("Style Reset","elementor")})},"./packages/packages/core/editor-canvas/src/style-commands/utils.ts":function(e,t,n){n.r(t),n.d(t,{getClassesProp:function(){return getClassesProp},getClipboardElements:function(){return getClipboardElements},getTitleForContainers:function(){return getTitleForContainers},hasAtomicWidgets:function(){return hasAtomicWidgets},isAtomicWidget:function(){return isAtomicWidget}});var r=n("@elementor/editor-elements"),o=n("@elementor/editor-props"),s=n("@wordpress/i18n");function hasAtomicWidgets(e){const{containers:t=[e.container]}=e;return t.some(isAtomicWidget)}function isAtomicWidget(e){return!!e&&Boolean(getContainerSchema(e))}function getClassesProp(e){const t=getContainerSchema(e);if(!t)return null;const[n]=Object.entries(t).find(([,e])=>"plain"===e.kind&&e.key===o.CLASSES_PROP_KEY)??[];return n??null}function getContainerSchema(e){const t=e?.model.get("widgetType")||e?.model.get("elType"),n=(0,r.getWidgetsCache)(),o=n?.[t];return o?.atomic_props_schema??null}function getClipboardElements(e="clipboard"){try{const t=JSON.parse(localStorage.getItem("elementor")??"{}");return t[e]?.elements}catch{return}}function getTitleForContainers(e){return e.length>1?(0,s.__)("Elements","elementor"):(0,r.getElementLabel)(e[0].id)}},"./packages/packages/core/editor-canvas/src/style-transformers-registry.ts":function(e,t,n){n.r(t),n.d(t,{styleTransformersRegistry:function(){return r}});const r=(0,n("./packages/packages/core/editor-canvas/src/transformers/create-transformers-registry.ts").createTransformersRegistry)()},"./packages/packages/core/editor-canvas/src/sync/drag-element-from-panel.ts":function(e,t,n){n.r(t),n.d(t,{endDragElementFromPanel:function(){return endDragElementFromPanel},startDragElementFromPanel:function(){return startDragElementFromPanel}});const startDragElementFromPanel=e=>{const t=getElementorChannels();t?.editor.reply("element:dragged",null),t?.panelElements.reply("element:selected",getLegacyPanelElementView(e)).trigger("element:drag:start")},endDragElementFromPanel=()=>{getElementorChannels()?.panelElements?.trigger("element:drag:end")},getElementorChannels=()=>{const e=window,t=e.elementor?.channels;if(!t)throw new Error("Elementor channels not found: Elementor editor is not initialized or channels are unavailable.");return t},getLegacyPanelElementView=({settings:e,...t})=>{const n=window,r=n.elementor?.modules?.elements?.models?.Element;if(!r)throw new Error("Elementor legacy Element model not found in editor modules");return{model:new r({...t,custom:{isPreset:!!e,preset_settings:e}})}}},"./packages/packages/core/editor-canvas/src/sync/enqueue-font.ts":function(e,t,n){n.r(t),n.d(t,{enqueueFont:function(){return enqueueFont}});const enqueueFont=(e,t="preview")=>{const n=window;return n.elementor?.helpers?.enqueueFont?.(e,t)??null}},"./packages/packages/core/editor-canvas/src/sync/get-canvas-iframe-document.ts":function(e,t,n){function getCanvasIframeDocument(){const e=window;return e.elementor?.$preview?.[0]?.contentDocument}n.r(t),n.d(t,{getCanvasIframeDocument:function(){return getCanvasIframeDocument}})},"./packages/packages/core/editor-canvas/src/transformers/create-transformer.ts":function(e,t,n){function createTransformer(e){return e}n.r(t),n.d(t,{createTransformer:function(){return createTransformer}})},"./packages/packages/core/editor-canvas/src/transformers/create-transformers-registry.ts":function(e,t,n){function createTransformersRegistry(){const e={};let t=null;return{register(t,n){return e[t]=n,this},registerFallback(e){return t=e,this},get(n){return e[n]??t},all(){return{...e}}}}n.r(t),n.d(t,{createTransformersRegistry:function(){return createTransformersRegistry}})},"./packages/packages/core/editor-canvas/src/transformers/settings/attributes-transformer.ts":function(e,t,n){n.r(t),n.d(t,{attributesTransformer:function(){return r}});const r=(0,n("./packages/packages/core/editor-canvas/src/transformers/create-transformer.ts").createTransformer)(()=>"")},"./packages/packages/core/editor-canvas/src/transformers/settings/classes-transformer.ts":function(e,t,n){n.r(t),n.d(t,{createClassesTransformer:function(){return createClassesTransformer}});var r=n("@elementor/editor-styles-repository"),o=n("./packages/packages/core/editor-canvas/src/transformers/create-transformer.ts");function createClassesTransformer(){const e=new Map;return(0,o.createTransformer)(t=>t.map(t=>function transformClassId(e,t){if(!t.has(e)){const n=r.stylesRepository.getProviders().find(t=>t.actions.all().find(t=>t.id===e));if(!n)return e;t.set(e,n.getKey())}const n=t.get(e),o=r.stylesRepository.getProviderByKey(n);return o?.actions.resolveCssName(e)??e}(t,e)).filter(Boolean))}},"./packages/packages/core/editor-canvas/src/transformers/settings/date-time-transformer.ts":function(e,t,n){n.r(t),n.d(t,{dateTimeTransformer:function(){return r}});const r=(0,n("./packages/packages/core/editor-canvas/src/transformers/create-transformer.ts").createTransformer)(e=>e.map(e=>{const t=(e.date||"").trim(),n=(e.time||"").trim();return t||n?`${t} ${n}`.trim():""}).join(" "))},"./packages/packages/core/editor-canvas/src/transformers/settings/link-transformer.ts":function(e,t,n){n.r(t),n.d(t,{linkTransformer:function(){return r}});const r=(0,n("./packages/packages/core/editor-canvas/src/transformers/create-transformer.ts").createTransformer)(({destination:e,isTargetBlank:t})=>({href:"number"==typeof e?"#post-id-"+e:e,target:t?"_blank":"_self"}))},"./packages/packages/core/editor-canvas/src/transformers/settings/query-transformer.ts":function(e,t,n){n.r(t),n.d(t,{queryTransformer:function(){return r}});const r=(0,n("./packages/packages/core/editor-canvas/src/transformers/create-transformer.ts").createTransformer)(({id:e})=>e??null)},"./packages/packages/core/editor-canvas/src/transformers/shared/image-src-transformer.ts":function(e,t,n){n.r(t),n.d(t,{imageSrcTransformer:function(){return r}});const r=(0,n("./packages/packages/core/editor-canvas/src/transformers/create-transformer.ts").createTransformer)(e=>({id:e.id??null,url:e.url??null}))},"./packages/packages/core/editor-canvas/src/transformers/shared/image-transformer.ts":function(e,t,n){n.r(t),n.d(t,{imageTransformer:function(){return o}});var r=n("@elementor/wp-media");const o=(0,n("./packages/packages/core/editor-canvas/src/transformers/create-transformer.ts").createTransformer)(async e=>{const{src:t,size:n}=e;if(!t?.id)return t?.url?{src:t.url}:null;const o=await(0,r.getMediaAttachment)({id:t.id}),s=o?.sizes?.[n??""];return s?{src:s.url,height:s.height,width:s.width}:o?{src:o.url,height:o.height,width:o.width}:null})},"./packages/packages/core/editor-canvas/src/transformers/shared/plain-transformer.ts":function(e,t,n){n.r(t),n.d(t,{plainTransformer:function(){return r}});const r=(0,n("./packages/packages/core/editor-canvas/src/transformers/create-transformer.ts").createTransformer)(e=>e)},"./packages/packages/core/editor-canvas/src/transformers/styles/background-color-overlay-transformer.ts":function(e,t,n){n.r(t),n.d(t,{backgroundColorOverlayTransformer:function(){return r}});const r=(0,n("./packages/packages/core/editor-canvas/src/transformers/create-transformer.ts").createTransformer)(e=>{const{color:t=null}=e;return t?`linear-gradient(${t}, ${t})`:null})},"./packages/packages/core/editor-canvas/src/transformers/styles/background-gradient-overlay-transformer.ts":function(e,t,n){n.r(t),n.d(t,{backgroundGradientOverlayTransformer:function(){return r}});const r=(0,n("./packages/packages/core/editor-canvas/src/transformers/create-transformer.ts").createTransformer)(e=>"radial"===e.type?`radial-gradient(circle at ${e.positions}, ${e.stops})`:`linear-gradient(${e.angle}deg, ${e.stops})`)},"./packages/packages/core/editor-canvas/src/transformers/styles/background-image-overlay-transformer.ts":function(e,t,n){n.r(t),n.d(t,{backgroundImageOverlayTransformer:function(){return r}});const r=(0,n("./packages/packages/core/editor-canvas/src/transformers/create-transformer.ts").createTransformer)(e=>{const{image:t,size:n=null,position:r=null,repeat:o=null,attachment:s=null}=e;if(!t)return null;return{src:t.src?`url(${t.src})`:null,repeat:o,attachment:s,size:n,position:r}})},"./packages/packages/core/editor-canvas/src/transformers/styles/background-image-size-scale-transformer.ts":function(e,t,n){n.r(t),n.d(t,{backgroundImageSizeScaleTransformer:function(){return r}});const r=(0,n("./packages/packages/core/editor-canvas/src/transformers/create-transformer.ts").createTransformer)(({width:e,height:t})=>`${e??"auto"} ${t??"auto"}`)},"./packages/packages/core/editor-canvas/src/transformers/styles/background-overlay-transformer.ts":function(e,t,n){n.r(t),n.d(t,{backgroundOverlayTransformer:function(){return r}});const r=(0,n("./packages/packages/core/editor-canvas/src/transformers/create-transformer.ts").createTransformer)(e=>{if(!e||0===e.length)return null;const t=function normalizeOverlayValues(e){return e.map(e=>"string"==typeof e?{src:e,repeat:null,attachment:null,size:null,position:null}:e).filter(e=>e&&!!e.src)}(e);if(0===t.length)return null;return{"background-image":getValuesString(t,"src","none",!0),"background-repeat":getValuesString(t,"repeat","repeat"),"background-attachment":getValuesString(t,"attachment","scroll"),"background-size":getValuesString(t,"size","auto auto"),"background-position":getValuesString(t,"position","0% 0%")}});function getValuesString(e,t,n,r=!1){if(0===e.filter(e=>e?.[t]).length)return n;const o=e.map(e=>e[t]??n);if(!r){if(o.every(e=>e===o[0]))return o[0]}return o.join(",")}},"./packages/packages/core/editor-canvas/src/transformers/styles/background-transformer.ts":function(e,t,n){n.r(t),n.d(t,{backgroundTransformer:function(){return o}});var r=n("./packages/packages/core/editor-canvas/src/renderers/multi-props.ts");const o=(0,n("./packages/packages/core/editor-canvas/src/transformers/create-transformer.ts").createTransformer)(e=>{const{color:t=null,"background-overlay":n=null,clip:o=null}=e;return(0,r.createMultiPropsValue)({...n,"background-color":t,"background-clip":o})})},"./packages/packages/core/editor-canvas/src/transformers/styles/color-stop-transformer.ts":function(e,t,n){n.r(t),n.d(t,{colorStopTransformer:function(){return r}});const r=(0,n("./packages/packages/core/editor-canvas/src/transformers/create-transformer.ts").createTransformer)(e=>`${e?.color} ${e?.offset??0}%`)},"./packages/packages/core/editor-canvas/src/transformers/styles/create-combine-array-transformer.ts":function(e,t,n){n.r(t),n.d(t,{createCombineArrayTransformer:function(){return createCombineArrayTransformer}});var r=n("./packages/packages/core/editor-canvas/src/transformers/create-transformer.ts");const createCombineArrayTransformer=e=>(0,r.createTransformer)(t=>t?.length?t.filter(Boolean).join(e):null)},"./packages/packages/core/editor-canvas/src/transformers/styles/create-multi-props-transformer.ts":function(e,t,n){n.r(t),n.d(t,{createMultiPropsTransformer:function(){return createMultiPropsTransformer}});var r=n("./packages/packages/core/editor-canvas/src/renderers/multi-props.ts"),o=n("./packages/packages/core/editor-canvas/src/transformers/create-transformer.ts");const createMultiPropsTransformer=(e,t)=>(0,o.createTransformer)((n,{key:o})=>{const s=e.filter(e=>n[e]).map(e=>[t({propKey:o,key:e}),n[e]]);return(0,r.createMultiPropsValue)(Object.fromEntries(s))})},"./packages/packages/core/editor-canvas/src/transformers/styles/filter-transformer.ts":function(e,t,n){n.r(t),n.d(t,{filterTransformer:function(){return r}});const r=(0,n("./packages/packages/core/editor-canvas/src/transformers/create-transformer.ts").createTransformer)(e=>e?.length<1?null:e.filter(Boolean).map(mapToFilterFunctionString).join(" ")),mapToFilterFunctionString=e=>{if("drop-shadow"===e.func){const{xAxis:t,yAxis:n,blur:r,color:o}=e.args;return`drop-shadow(${t||"0px"} ${n||"0px"} ${r||"10px"} ${o||"transparent"})`}const t=e.args?.size;return e.func&&t?`${e.func}(${t})`:""}},"./packages/packages/core/editor-canvas/src/transformers/styles/flex-transformer.ts":function(e,t,n){n.r(t),n.d(t,{flexTransformer:function(){return r}});const r=(0,n("./packages/packages/core/editor-canvas/src/transformers/create-transformer.ts").createTransformer)(e=>{const t=e.flexGrow,n=e.flexShrink,r=e.flexBasis,o=null!=t,s=null!=n,i=null!=r;return o||s||i?o&&s&&i?`${t} ${n} ${"object"==typeof r&&void 0!==r.size?`${r.size}${r.unit||""}`:r}`:o&&s&&!i?`${t} ${n}`:o&&!s&&i?`${t} 1 ${"object"==typeof r&&void 0!==r.size?`${r.size}${r.unit||""}`:r}`:!o&&s&&i?`0 ${n} ${"object"==typeof r&&void 0!==r.size?`${r.size}${r.unit||""}`:r}`:!o||s||i?o||!s||i?o||s||!i?null:`0 1 ${"object"==typeof r&&void 0!==r.size?`${r.size}${r.unit||""}`:r}`:`0 ${n}`:`${t}`:null})},"./packages/packages/core/editor-canvas/src/transformers/styles/perspective-origin-transformer.ts":function(e,t,n){n.r(t),n.d(t,{perspectiveOriginTransformer:function(){return o}});var r=n("./packages/packages/core/editor-canvas/src/transformers/create-transformer.ts");function getVal(e){return`${e??"0px"}`}const o=(0,r.createTransformer)(e=>`${getVal(e?.x)} ${getVal(e?.y)}`)},"./packages/packages/core/editor-canvas/src/transformers/styles/position-transformer.ts":function(e,t,n){n.r(t),n.d(t,{positionTransformer:function(){return r}});const r=(0,n("./packages/packages/core/editor-canvas/src/transformers/create-transformer.ts").createTransformer)(({x:e,y:t})=>`${e??"0px"} ${t??"0px"}`)},"./packages/packages/core/editor-canvas/src/transformers/styles/shadow-transformer.ts":function(e,t,n){n.r(t),n.d(t,{shadowTransformer:function(){return r}});const r=(0,n("./packages/packages/core/editor-canvas/src/transformers/create-transformer.ts").createTransformer)(e=>[e.hOffset,e.vOffset,e.blur,e.spread,e.color,e.position].filter(Boolean).join(" "))},"./packages/packages/core/editor-canvas/src/transformers/styles/size-transformer.ts":function(e,t,n){n.r(t),n.d(t,{sizeTransformer:function(){return r}});const r=(0,n("./packages/packages/core/editor-canvas/src/transformers/create-transformer.ts").createTransformer)(e=>"custom"===e.unit?e.size:`${e.size}${e.unit}`)},"./packages/packages/core/editor-canvas/src/transformers/styles/stroke-transformer.ts":function(e,t,n){n.r(t),n.d(t,{strokeTransformer:function(){return o}});var r=n("./packages/packages/core/editor-canvas/src/renderers/multi-props.ts");const o=(0,n("./packages/packages/core/editor-canvas/src/transformers/create-transformer.ts").createTransformer)(e=>{const t={"-webkit-text-stroke":`${e.width} ${e.color}`,stroke:`${e.color}`,"stroke-width":`${e.width}`};return(0,r.createMultiPropsValue)(t)})},"./packages/packages/core/editor-canvas/src/transformers/styles/transform-functions-transformer.ts":function(e,t,n){n.r(t),n.d(t,{transformFunctionsTransformer:function(){return r}});const r=(0,n("./packages/packages/core/editor-canvas/src/transformers/create-transformer.ts").createTransformer)(e=>e?.length<1?null:e.join(" "))},"./packages/packages/core/editor-canvas/src/transformers/styles/transform-move-transformer.ts":function(e,t,n){n.r(t),n.d(t,{transformMoveTransformer:function(){return s}});var r=n("./packages/packages/core/editor-canvas/src/transformers/create-transformer.ts");const o="0px",s=(0,r.createTransformer)(e=>`translate3d(${e.x??o}, ${e.y??o}, ${e.z??o})`)},"./packages/packages/core/editor-canvas/src/transformers/styles/transform-origin-transformer.ts":function(e,t,n){n.r(t),n.d(t,{transformOriginTransformer:function(){return o}});var r=n("./packages/packages/core/editor-canvas/src/transformers/create-transformer.ts");function getVal(e){return`${e??"0px"}`}const o=(0,r.createTransformer)(e=>{const t=getVal(e.x),n=getVal(e.y),r=getVal(e.z);return"50%"===t&&"50%"===n&&"0px"===r?null:`${t} ${n} ${r}`})},"./packages/packages/core/editor-canvas/src/transformers/styles/transform-rotate-transformer.ts":function(e,t,n){n.r(t),n.d(t,{transformRotateTransformer:function(){return s}});var r=n("./packages/packages/core/editor-canvas/src/transformers/create-transformer.ts");const o="0deg",s=(0,r.createTransformer)(e=>[`rotateX(${e?.x??o})`,`rotateY(${e?.y??o})`,`rotateZ(${e?.z??o})`].join(" "))},"./packages/packages/core/editor-canvas/src/transformers/styles/transform-scale-transformer.ts":function(e,t,n){n.r(t),n.d(t,{transformScaleTransformer:function(){return r}});const r=(0,n("./packages/packages/core/editor-canvas/src/transformers/create-transformer.ts").createTransformer)(e=>`scale3d(${e.x??1}, ${e.y??1}, ${e.z??1})`)},"./packages/packages/core/editor-canvas/src/transformers/styles/transform-skew-transformer.ts":function(e,t,n){n.r(t),n.d(t,{transformSkewTransformer:function(){return s}});var r=n("./packages/packages/core/editor-canvas/src/transformers/create-transformer.ts");const o="0deg",s=(0,r.createTransformer)(e=>`skew(${e?.x??o}, ${e?.y??o})`)},"./packages/packages/core/editor-canvas/src/transformers/styles/transition-transformer.ts":function(e,t,n){n.r(t),n.d(t,{transitionTransformer:function(){return s}});var r=n("@elementor/editor-controls"),o=n("./packages/packages/core/editor-canvas/src/transformers/create-transformer.ts");const s=(0,o.createTransformer)(e=>{if(e?.length<1)return null;const t=(()=>{const e=new Set;return r.transitionProperties.forEach(t=>{t.properties.forEach(t=>{e.add(t.value)})}),e})(),n=e.map(e=>mapToTransitionString(e,t)).filter(Boolean);return 0===n.length?null:n.join(", ")}),mapToTransitionString=(e,t)=>{if(!e.selection||!e.size)return"";const n=e.selection.value;return t.has(n)?`${n} ${e.size}`:""}},"./packages/packages/core/editor-canvas/src/utils/abort-previous-runs.ts":function(e,t,n){function abortPreviousRuns(e){let t=null;return(...n)=>(t&&t.abort(),t=new AbortController,e(t,...n))}n.r(t),n.d(t,{abortPreviousRuns:function(){return abortPreviousRuns}})},"./packages/packages/core/editor-canvas/src/utils/inline-editing-utils.ts":function(e,t,n){n.r(t),n.d(t,{getInlineEditablePropertyName:function(){return getInlineEditablePropertyName},hasInlineEditableProperty:function(){return hasInlineEditableProperty}});var r=n("@elementor/editor-elements");const o={"e-heading":"title","e-paragraph":"paragraph"},hasInlineEditableProperty=e=>{const t=(0,r.getContainer)(e),n=t?.model?.get("widgetType")??t?.model?.get("elType");return!!n&&n in o},getInlineEditablePropertyName=e=>(e=>{const t=e?.model?.get("widgetType")??e?.model?.get("elType");if(!t)return"";if(o[t])return o[t];const n=(0,r.getElementType)(t)?.propsSchema;if(!n)return"";const s=Object.entries(n).find(([,e])=>"html"===e.key);return s?.[0]??""})(e)},"./packages/packages/core/editor-canvas/src/utils/signalized-process.ts":function(e,t,n){function signalizedProcess(e,t=[]){return{then:n=>(t.push(n),signalizedProcess(e,t)),execute:async()=>{let n;for(const r of t){if(e.aborted)break;n=await r(n,e)}}}}n.r(t),n.d(t,{signalizedProcess:function(){return signalizedProcess}})},"@elementor/editor":function(e){e.exports=window.elementorV2.editor},"@elementor/editor-controls":function(e){e.exports=window.elementorV2.editorControls},"@elementor/editor-documents":function(e){e.exports=window.elementorV2.editorDocuments},"@elementor/editor-elements":function(e){e.exports=window.elementorV2.editorElements},"@elementor/editor-interactions":function(e){e.exports=window.elementorV2.editorInteractions},"@elementor/editor-mcp":function(e){e.exports=window.elementorV2.editorMcp},"@elementor/editor-notifications":function(e){e.exports=window.elementorV2.editorNotifications},"@elementor/editor-props":function(e){e.exports=window.elementorV2.editorProps},"@elementor/editor-responsive":function(e){e.exports=window.elementorV2.editorResponsive},"@elementor/editor-styles":function(e){e.exports=window.elementorV2.editorStyles},"@elementor/editor-styles-repository":function(e){e.exports=window.elementorV2.editorStylesRepository},"@elementor/editor-v1-adapters":function(e){e.exports=window.elementorV2.editorV1Adapters},"@elementor/schema":function(e){e.exports=window.elementorV2.schema},"@elementor/twing":function(e){e.exports=window.elementorV2.twing},"@elementor/ui":function(e){e.exports=window.elementorV2.ui},"@elementor/utils":function(e){e.exports=window.elementorV2.utils},"@elementor/wp-media":function(e){e.exports=window.elementorV2.wpMedia},"@wordpress/i18n":function(e){e.exports=window.wp.i18n},react:function(e){e.exports=window.React},"react-dom":function(e){e.exports=window.ReactDOM}},r={};function __webpack_require__(e){var t=r[e];if(void 0!==t)return t.exports;var o=r[e]={exports:{}};return n[e](o,o.exports,__webpack_require__),o.exports}__webpack_require__.n=function(e){var t=e&&e.__esModule?function(){return e.default}:function(){return e};return __webpack_require__.d(t,{a:t}),t},t=Object.getPrototypeOf?function(e){return Object.getPrototypeOf(e)}:function(e){return e.__proto__},__webpack_require__.t=function(n,r){if(1&r&&(n=this(n)),8&r)return n;if("object"==typeof n&&n){if(4&r&&n.__esModule)return n;if(16&r&&"function"==typeof n.then)return n}var o=Object.create(null);__webpack_require__.r(o);var s={};e=e||[null,t({}),t([]),t(t)];for(var i=2&r&&n;("object"==typeof i||"function"==typeof i)&&!~e.indexOf(i);i=t(i))Object.getOwnPropertyNames(i).forEach(function(e){s[e]=function(){return n[e]}});return s.default=function(){return n},__webpack_require__.d(o,s),o},__webpack_require__.d=function(e,t){for(var n in t)__webpack_require__.o(t,n)&&!__webpack_require__.o(e,n)&&Object.defineProperty(e,n,{enumerable:!0,get:t[n]})},__webpack_require__.o=function(e,t){return Object.prototype.hasOwnProperty.call(e,t)},__webpack_require__.r=function(e){"undefined"!=typeof Symbol&&Symbol.toStringTag&&Object.defineProperty(e,Symbol.toStringTag,{value:"Module"}),Object.defineProperty(e,"__esModule",{value:!0})};var o={};!function(){__webpack_require__.r(o),__webpack_require__.d(o,{createPropsResolver:function(){return i.createPropsResolver},createTemplatedElementView:function(){return l.createTemplatedElementView},createTransformer:function(){return r.createTransformer},createTransformersRegistry:function(){return s.createTransformersRegistry},endDragElementFromPanel:function(){return a.endDragElementFromPanel},getCanvasIframeDocument:function(){return u.getCanvasIframeDocument},init:function(){return e.init},registerElementType:function(){return c.registerElementType},settingsTransformersRegistry:function(){return n.settingsTransformersRegistry},startDragElementFromPanel:function(){return a.startDragElementFromPanel},styleTransformersRegistry:function(){return t.styleTransformersRegistry}});var e=__webpack_require__("./packages/packages/core/editor-canvas/src/init.tsx"),t=__webpack_require__("./packages/packages/core/editor-canvas/src/style-transformers-registry.ts"),n=__webpack_require__("./packages/packages/core/editor-canvas/src/settings-transformers-registry.ts"),r=__webpack_require__("./packages/packages/core/editor-canvas/src/transformers/create-transformer.ts"),s=__webpack_require__("./packages/packages/core/editor-canvas/src/transformers/create-transformers-registry.ts"),i=__webpack_require__("./packages/packages/core/editor-canvas/src/renderers/create-props-resolver.ts"),a=__webpack_require__("./packages/packages/core/editor-canvas/src/sync/drag-element-from-panel.ts"),c=__webpack_require__("./packages/packages/core/editor-canvas/src/legacy/init-legacy-views.ts"),l=__webpack_require__("./packages/packages/core/editor-canvas/src/legacy/create-templated-element-type.ts"),u=__webpack_require__("./packages/packages/core/editor-canvas/src/sync/get-canvas-iframe-document.ts");__webpack_require__("./packages/packages/core/editor-canvas/src/legacy/types.ts")}(),(window.elementorV2=window.elementorV2||{}).editorCanvas=o}(),window.elementorV2.editorCanvas?.init?.();
+(function(_elementor_editor_v1_adapters, _elementor_editor_mcp, _elementor_http_client, _elementor_editor, react, _elementor_editor_documents, _elementor_editor_styles_repository, _elementor_utils, _elementor_editor_elements, _elementor_ui, react_dom, _elementor_editor_interactions, _elementor_editor_responsive, _elementor_editor_styles, _elementor_editor_props, _elementor_editor_notifications, _wordpress_i18n, _elementor_wp_media, _elementor_editor_controls, _elementor_twing, _elementor_schema) {
+
+//#region \0rolldown/runtime.js
+	var __create = Object.create;
+	var __defProp$4 = Object.defineProperty;
+	var __name = (target, value) => __defProp$4(target, "name", {
+		value,
+		configurable: true
+	});
+	var __getOwnPropDesc = Object.getOwnPropertyDescriptor;
+	var __getOwnPropNames = Object.getOwnPropertyNames;
+	var __getProtoOf = Object.getPrototypeOf;
+	var __hasOwnProp = Object.prototype.hasOwnProperty;
+	var __commonJSMin = (cb, mod) => () => (mod || (cb((mod = { exports: {} }).exports, mod), cb = null), mod.exports);
+	var __exportAll = (all, no_symbols) => {
+		let target = {};
+		for (var name in all) {
+			__defProp$4(target, name, {
+				get: all[name],
+				enumerable: true
+			});
+		}
+		if (!no_symbols) {
+			__defProp$4(target, Symbol.toStringTag, { value: "Module" });
+		}
+		return target;
+	};
+	var __copyProps = (to, from, except, desc) => {
+		if (from && typeof from === "object" || typeof from === "function") {
+			for (var keys = __getOwnPropNames(from), i = 0, n = keys.length, key; i < n; i++) {
+				key = keys[i];
+				if (!__hasOwnProp.call(to, key) && key !== except) {
+					__defProp$4(to, key, {
+						get: ((k) => from[k]).bind(null, key),
+						enumerable: !(desc = __getOwnPropDesc(from, key)) || desc.enumerable
+					});
+				}
+			}
+		}
+		return to;
+	};
+	var __toESM = (mod, isNodeMode, target) => (target = mod != null ? __create(__getProtoOf(mod)) : {}, __copyProps(isNodeMode || !mod || !mod.__esModule ? __defProp$4(target, "default", {
+		value: mod,
+		enumerable: true
+	}) : target, mod));
+
+//#endregion
+let react$1 = __toESM(react, 1);
+react = __toESM(react);
+react_dom = __toESM(react_dom, 1);
+
+//#region packages/packages/core/editor-canvas/src/mcp/resources/widgets-schema-resource.ts
+	var CANVAS_SERVER_NAME = "editor-canvas";
+	var WIDGET_SCHEMA_URI = "elementor://widgets/schema/{widgetType}";
+	var WIDGET_SCHEMA_FULL_URI = `${CANVAS_SERVER_NAME}_${WIDGET_SCHEMA_URI}`;
+	var BEST_PRACTICES_URI$1 = "elementor://style/best-practices";
+	var BEST_PRACTICES_FULL_URI = `${CANVAS_SERVER_NAME}_${BEST_PRACTICES_URI$1}`;
+	var MCP_PROXY_URL$4 = "elementor/v1/mcp-proxy";
+	var listWidgetTypes = async () => {
+		const { data } = await (0, _elementor_http_client.httpService)().post(MCP_PROXY_URL$4, {
+			tool: "list-widget-schemas",
+			input: { summary: true }
+		});
+		return (data.data?.widgets ?? []).map((widget) => widget.type);
+	};
+	var fetchWidgetSchema = async (widgetType) => {
+		const { data } = await (0, _elementor_http_client.httpService)().post(MCP_PROXY_URL$4, {
+			tool: "get-widget-schema",
+			input: { widget_type: widgetType }
+		});
+		return data.data ?? {};
+	};
+	var initWidgetsSchemaResource = (reg) => {
+		const { resource } = reg;
+		resource("widget-schema-by-type", new _elementor_editor_mcp.ResourceTemplate(WIDGET_SCHEMA_URI, { list: async () => {
+			return { resources: (await listWidgetTypes()).map((widgetType) => ({
+				uri: `elementor://widgets/schema/${widgetType}`,
+				name: "Widget schema for " + widgetType
+			})) };
+		} }), { description: "PropType schema for the specified widget type" }, async (uri, variables) => {
+			const widgetType = typeof variables.widgetType === "string" ? variables.widgetType : variables.widgetType?.[0];
+			if (!widgetType) throw new Error("No widget type provided.");
+			const schema = await fetchWidgetSchema(widgetType);
+			return { contents: [{
+				uri: uri.toString(),
+				mimeType: "application/json",
+				text: JSON.stringify(schema)
+			}] };
+		});
+	};
+
+//#endregion
+//#region packages/packages/core/editor-canvas/src/mcp/resources/breakpoints-resource.ts
+	var BREAKPOINTS_SCHEMA_URI = "elementor://breakpoints/list";
+	var BREAKPOINTS_SCHEMA_FULL_URI = `${CANVAS_SERVER_NAME}_${BREAKPOINTS_SCHEMA_URI}`;
+	var initBreakpointsResource = (reg) => {
+		const { resource, sendResourceUpdated } = reg;
+		const getBreakpointsList = () => {
+			const { breakpoints } = window.elementor?.config?.responsive || {};
+			if (!breakpoints) return [];
+			return Object.values(breakpoints).filter((bp) => bp.is_enabled).map((bp) => {
+				const { direction: constraint, label, value } = bp;
+				return {
+					label,
+					constraint,
+					value
+				};
+			});
+		};
+		const buildResourceResponse = () => ({ contents: [{
+			uri: BREAKPOINTS_SCHEMA_URI,
+			mimeType: "application/json",
+			text: JSON.stringify(getBreakpointsList())
+		}] });
+		resource("breakpoints ", BREAKPOINTS_SCHEMA_URI, { description: "Breakpoints list." }, () => {
+			return buildResourceResponse();
+		});
+		window.addEventListener((0, _elementor_editor_v1_adapters.v1ReadyEvent)().name, () => {
+			sendResourceUpdated({
+				uri: BREAKPOINTS_SCHEMA_URI,
+				...buildResourceResponse()
+			});
+		});
+	};
+
+//#endregion
+//#region packages/packages/core/editor-canvas/src/mcp/utils/convert-css-to-atomic.ts
+	var CSS_TO_ATOMIC_URL = "elementor/v1/css-to-atomic";
+	var SINGLE_BLOCK_KEY = "default";
+	var convertBlocks = async (blocks) => {
+		const { data } = await (0, _elementor_http_client.httpService)().post(CSS_TO_ATOMIC_URL, { blocks });
+		return data.data;
+	};
+	var convertStyleBlocksToAtomic = async (styleByName) => convertBlocks(styleByName);
+	var convertCssToAtomic = async (style) => {
+		return (await convertStyleBlocksToAtomic({ [SINGLE_BLOCK_KEY]: style }))[SINGLE_BLOCK_KEY];
+	};
+
+//#endregion
+//#region packages/packages/core/editor-canvas/src/components/classes-rename.tsx
+	var ClassesRename = () => {
+		(0, react.useEffect)(() => {
+			const unsubscribe = subscribeToStylesRepository();
+			return () => {
+				unsubscribe();
+			};
+		}, []);
+		return null;
+	};
+	var subscribeToStylesRepository = () => {
+		return _elementor_editor_styles_repository.stylesRepository.subscribe((previous, current) => {
+			if (!previous || !current) return;
+			Object.keys(current).forEach((id) => {
+				if (!(previous[id] && (0, _elementor_utils.hash)(previous[id]) !== (0, _elementor_utils.hash)(current[id]))) return;
+				const previousStyle = previous[id];
+				const currentStyle = current[id];
+				if (previousStyle.label !== currentStyle.label) renameClass(previousStyle.label, currentStyle.label);
+			});
+		});
+	};
+	var renameClass = (oldClassName, newClassName) => {
+		Object.values((0, _elementor_editor_documents.getV1DocumentsManager)().documents).forEach((document) => {
+			document.container.view?.el?.querySelectorAll(`.elementor .${oldClassName}`).forEach((element) => {
+				element.classList.replace(oldClassName, newClassName);
+			});
+		});
+	};
+
+//#endregion
+//#region packages/packages/core/editor-canvas/src/hooks/use-element-rect.ts
+	function useElementRect(element) {
+		const [rect, setRect] = (0, react.useState)(new DOMRect(0, 0, 0, 0));
+		const onChange = (0, _elementor_utils.throttle)(() => {
+			setRect(element?.getBoundingClientRect() ?? new DOMRect(0, 0, 0, 0));
+		}, 20, true);
+		useScrollListener({
+			element,
+			onChange
+		});
+		useResizeListener({
+			element,
+			onChange
+		});
+		useMutationsListener({
+			element,
+			onChange
+		});
+		(0, react.useEffect)(() => () => {
+			onChange.cancel();
+		}, [onChange]);
+		return rect;
+	}
+	function useScrollListener({ element, onChange }) {
+		(0, react.useEffect)(() => {
+			if (!element) return;
+			const win = element.ownerDocument?.defaultView;
+			win?.addEventListener("scroll", onChange, { passive: true });
+			return () => {
+				win?.removeEventListener("scroll", onChange);
+			};
+		}, [element, onChange]);
+	}
+	function useResizeListener({ element, onChange }) {
+		(0, react.useEffect)(() => {
+			if (!element) return;
+			const resizeObserver = new ResizeObserver(onChange);
+			resizeObserver.observe(element);
+			const win = element.ownerDocument?.defaultView;
+			win?.addEventListener("resize", onChange, { passive: true });
+			return () => {
+				resizeObserver.disconnect();
+				win?.removeEventListener("resize", onChange);
+			};
+		}, [element, onChange]);
+	}
+	function useMutationsListener({ element, onChange }) {
+		(0, react.useEffect)(() => {
+			if (!element) return;
+			const mutationObserver = new MutationObserver(onChange);
+			mutationObserver.observe(element, {
+				childList: true,
+				subtree: true
+			});
+			return () => {
+				mutationObserver.disconnect();
+			};
+		}, [element, onChange]);
+	}
+
+//#endregion
+//#region packages/packages/core/editor-canvas/src/utils/grid-outline-utils.ts
+	function toGridTracks(computedStyle) {
+		return {
+			columns: parseTrackList(computedStyle.gridTemplateColumns),
+			rows: parseTrackList(computedStyle.gridTemplateRows),
+			columnGap: resolveGapPx(computedStyle.columnGap, computedStyle.width),
+			rowGap: resolveGapPx(computedStyle.rowGap, computedStyle.height),
+			padding: {
+				top: toPx(computedStyle.paddingTop),
+				right: toPx(computedStyle.paddingRight),
+				bottom: toPx(computedStyle.paddingBottom),
+				left: toPx(computedStyle.paddingLeft)
+			},
+			borderColor: computedStyle.getPropertyValue("--e-a-border-color-bold").trim()
+		};
+	}
+	function computeCellRects(tracks, width, height) {
+		const { columns, rows, columnGap, rowGap, padding } = tracks;
+		const hasColumns = columns.length > 0;
+		const hasRows = rows.length > 0;
+		if (!hasColumns && !hasRows) return [];
+		const columnSegments = hasColumns ? computeTrackSegments(columns, columnGap, padding.left) : [{
+			start: padding.left,
+			size: width - padding.left - padding.right
+		}];
+		const rowSegments = hasRows ? computeTrackSegments(rows, rowGap, padding.top) : [{
+			start: padding.top,
+			size: height - padding.top - padding.bottom
+		}];
+		const cells = [];
+		for (const row of rowSegments) for (const column of columnSegments) cells.push({
+			x: column.start,
+			y: row.start,
+			width: column.size,
+			height: row.size
+		});
+		return cells;
+	}
+	function computeGridLines(tracks, width, height) {
+		const { columns, rows, columnGap, rowGap, padding } = tracks;
+		const hasColumns = columns.length > 0;
+		const hasRows = rows.length > 0;
+		if (!hasColumns && !hasRows) return {
+			vertical: [],
+			horizontal: []
+		};
+		const columnSegments = hasColumns ? computeTrackSegments(columns, columnGap, padding.left) : [{
+			start: padding.left,
+			size: width - padding.left - padding.right
+		}];
+		const rowSegments = hasRows ? computeTrackSegments(rows, rowGap, padding.top) : [{
+			start: padding.top,
+			size: height - padding.top - padding.bottom
+		}];
+		const xs = uniqueSorted(columnSegments.flatMap((s) => [s.start, s.start + s.size]));
+		const ys = uniqueSorted(rowSegments.flatMap((s) => [s.start, s.start + s.size]));
+		const yTop = ys[0];
+		const yBottom = ys[ys.length - 1];
+		const xLeft = xs[0];
+		const xRight = xs[xs.length - 1];
+		return {
+			vertical: xs.map((x) => ({
+				x1: x,
+				y1: yTop,
+				x2: x,
+				y2: yBottom
+			})),
+			horizontal: ys.map((y) => ({
+				x1: xLeft,
+				y1: y,
+				x2: xRight,
+				y2: y
+			}))
+		};
+	}
+	function uniqueSorted(values) {
+		return Array.from(new Set(values)).sort((a, b) => a - b);
+	}
+	function computeTrackSegments(sizes, gap, offset) {
+		const segments = [];
+		let cursor = offset;
+		for (let i = 0; i < sizes.length; i++) {
+			segments.push({
+				start: cursor,
+				size: sizes[i]
+			});
+			cursor += sizes[i];
+			if (i < sizes.length - 1) cursor += gap;
+		}
+		return segments;
+	}
+	function snapToHalfPixel(value) {
+		return Math.round(value) + .5;
+	}
+	function parseTrackList(value) {
+		if (!value || value === "none") return [];
+		return value.trim().split(/\s+/).map(toPx).filter((n) => n > 0);
+	}
+	function toPx(value) {
+		const parsed = parseFloat(value);
+		return Number.isFinite(parsed) ? parsed : 0;
+	}
+	function resolveGapPx(value, referenceSize) {
+		if (value.trim().endsWith("%")) {
+			const percent = parseFloat(value);
+			const reference = parseFloat(referenceSize);
+			return Number.isFinite(percent) && Number.isFinite(reference) ? percent / 100 * reference : 0;
+		}
+		return toPx(value);
+	}
+
+//#endregion
+//#region packages/packages/core/editor-canvas/src/hooks/use-grid-children.ts
+	function useGridChildren(element) {
+		const [signal, setSignal] = (0, react.useState)(0);
+		(0, react.useEffect)(() => {
+			if (!element) return;
+			const bump = () => setSignal((previous) => previous + 1);
+			const resizeObserver = new ResizeObserver(bump);
+			const observed = /* @__PURE__ */ new Set();
+			const syncChildren = () => {
+				for (const child of Array.from(element.children)) if (!observed.has(child)) {
+					resizeObserver.observe(child);
+					observed.add(child);
+				}
+				for (const child of observed) if (child.parentElement !== element) {
+					resizeObserver.unobserve(child);
+					observed.delete(child);
+				}
+			};
+			syncChildren();
+			const mutationObserver = new MutationObserver(() => {
+				syncChildren();
+				bump();
+			});
+			mutationObserver.observe(element, { childList: true });
+			return () => {
+				mutationObserver.disconnect();
+				resizeObserver.disconnect();
+				observed.clear();
+			};
+		}, [element]);
+		return signal;
+	}
+
+//#endregion
+//#region packages/packages/core/editor-canvas/src/hooks/use-grid-tracks.ts
+	var EMPTY = {
+		columns: [],
+		rows: [],
+		columnGap: 0,
+		rowGap: 0,
+		padding: {
+			top: 0,
+			right: 0,
+			bottom: 0,
+			left: 0
+		},
+		borderColor: ""
+	};
+	var DEVICE_MODE_CHANGE_EVENT = "elementor/device-mode/change";
+	function useGridTracks(element, rect) {
+		const [tracks, setTracks] = (0, react.useState)(EMPTY);
+		const trigger = (0, _elementor_editor_v1_adapters.__privateUseListenTo)([(0, _elementor_editor_v1_adapters.windowEvent)(_elementor_editor_elements.ELEMENT_STYLE_CHANGE_EVENT), (0, _elementor_editor_v1_adapters.windowEvent)(DEVICE_MODE_CHANGE_EVENT)], () => ({}));
+		const childrenTrigger = useGridChildren(element);
+		(0, react.useEffect)(() => {
+			const previewWindow = element?.ownerDocument?.defaultView;
+			if (!element || !previewWindow) {
+				setTracks(EMPTY);
+				return;
+			}
+			const frame = previewWindow.requestAnimationFrame(() => {
+				setTracks(toGridTracks(previewWindow.getComputedStyle(element)));
+			});
+			return () => {
+				previewWindow.cancelAnimationFrame(frame);
+			};
+		}, [
+			element,
+			rect.width,
+			rect.height,
+			trigger,
+			childrenTrigger
+		]);
+		return tracks;
+	}
+
+//#endregion
+//#region packages/packages/core/editor-canvas/src/utils/find-first-empty-cell.ts
+	function findFirstEmptyCell(element, columnCount, rowCount) {
+		if (!element || columnCount === 0 || rowCount === 0) return null;
+		const previewWindow = element.ownerDocument?.defaultView;
+		if (!previewWindow) return null;
+		const flowsByColumn = previewWindow.getComputedStyle(element).gridAutoFlow.trim().startsWith("column");
+		const matrix = Array.from({ length: rowCount }, () => new Array(columnCount).fill(false));
+		const explicit = [];
+		const autoPlaced = [];
+		for (const child of Array.from(element.children)) {
+			if (!child.classList.contains("elementor-element")) continue;
+			const style = previewWindow.getComputedStyle(child);
+			if (style.display === "none") continue;
+			const col = resolvePlacement(style.gridColumnStart, style.gridColumnEnd);
+			const row = resolvePlacement(style.gridRowStart, style.gridRowEnd);
+			if (col.start !== null || row.start !== null) explicit.push({
+				col: col.start,
+				colSpan: col.span,
+				row: row.start,
+				rowSpan: row.span
+			});
+			else autoPlaced.push({
+				colSpan: col.span,
+				rowSpan: row.span
+			});
+		}
+		for (const child of explicit) fillMatrix(matrix, child.col ?? 0, child.row ?? 0, child.colSpan, child.rowSpan);
+		for (const child of autoPlaced) {
+			const slot = findNextFreeSlot(matrix, child.colSpan, child.rowSpan, flowsByColumn);
+			if (slot) fillMatrix(matrix, slot.col, slot.row, child.colSpan, child.rowSpan);
+		}
+		return scanFirstEmpty(matrix, flowsByColumn);
+	}
+	function resolvePlacement(startRaw, endRaw) {
+		const start = parseLineValue(startRaw);
+		const end = parseLineValue(endRaw);
+		if (typeof start === "number") {
+			const zeroIndexedStart = start - 1;
+			if (typeof end === "number") return {
+				start: zeroIndexedStart,
+				span: Math.max(1, end - start)
+			};
+			if (isSpan(end)) return {
+				start: zeroIndexedStart,
+				span: end.n
+			};
+			return {
+				start: zeroIndexedStart,
+				span: 1
+			};
+		}
+		if (isSpan(start)) {
+			if (typeof end === "number") {
+				const zeroIndexedStart = end - 1 - start.n;
+				return {
+					start: zeroIndexedStart >= 0 ? zeroIndexedStart : null,
+					span: start.n
+				};
+			}
+			return {
+				start: null,
+				span: start.n
+			};
+		}
+		if (typeof end === "number") {
+			const zeroIndexedStart = end - 2;
+			return {
+				start: zeroIndexedStart >= 0 ? zeroIndexedStart : null,
+				span: 1
+			};
+		}
+		if (isSpan(end)) return {
+			start: null,
+			span: end.n
+		};
+		return {
+			start: null,
+			span: 1
+		};
+	}
+	function parseLineValue(raw) {
+		const trimmed = raw.trim();
+		if (trimmed === "" || trimmed === "auto") return "auto";
+		const spanMatch = trimmed.match(/^span\s+(\d+)$/);
+		if (spanMatch) {
+			const n = parseInt(spanMatch[1], 10);
+			return {
+				kind: "span",
+				n: Math.max(1, n)
+			};
+		}
+		const parsed = parseInt(trimmed, 10);
+		if (Number.isFinite(parsed) && parsed > 0) return parsed;
+		return "auto";
+	}
+	function isSpan(value) {
+		return typeof value === "object" && value !== null && "kind" in value && value.kind === "span";
+	}
+	function fillMatrix(matrix, col, row, colSpan, rowSpan) {
+		const rows = matrix.length;
+		const cols = rows > 0 ? matrix[0].length : 0;
+		const startRow = Math.max(0, row);
+		const startCol = Math.max(0, col);
+		const endRow = Math.min(rows, row + rowSpan);
+		const endCol = Math.min(cols, col + colSpan);
+		for (let r = startRow; r < endRow; r++) for (let c = startCol; c < endCol; c++) matrix[r][c] = true;
+	}
+	function findNextFreeSlot(matrix, colSpan, rowSpan, flowsByColumn) {
+		const rows = matrix.length;
+		const maxCol = (rows > 0 ? matrix[0].length : 0) - colSpan;
+		const maxRow = rows - rowSpan;
+		if (maxCol < 0 || maxRow < 0) return null;
+		if (flowsByColumn) {
+			for (let col = 0; col <= maxCol; col++) for (let row = 0; row <= maxRow; row++) if (canFit(matrix, col, row, colSpan, rowSpan)) return {
+				row,
+				col
+			};
+		} else for (let row = 0; row <= maxRow; row++) for (let col = 0; col <= maxCol; col++) if (canFit(matrix, col, row, colSpan, rowSpan)) return {
+			row,
+			col
+		};
+		return null;
+	}
+	function canFit(matrix, col, row, colSpan, rowSpan) {
+		for (let r = row; r < row + rowSpan; r++) for (let c = col; c < col + colSpan; c++) if (matrix[r][c]) return false;
+		return true;
+	}
+	function scanFirstEmpty(matrix, flowsByColumn) {
+		const rows = matrix.length;
+		const cols = rows > 0 ? matrix[0].length : 0;
+		if (flowsByColumn) {
+			for (let col = 0; col < cols; col++) for (let row = 0; row < rows; row++) if (!matrix[row][col]) return {
+				row,
+				col
+			};
+		} else for (let row = 0; row < rows; row++) for (let col = 0; col < cols; col++) if (!matrix[row][col]) return {
+			row,
+			col
+		};
+		return null;
+	}
+
+//#endregion
+//#region packages/packages/core/editor-canvas/src/components/grid-outline/grid-empty-cell-positioner.tsx
+	var CSS_VAR_ROW = "--e-grid-empty-cell-row";
+	var CSS_VAR_COL = "--e-grid-empty-cell-col";
+	var CSS_VAR_VISIBILITY = "--e-grid-empty-cell-visibility";
+	var clearGridEmptyCellStyles = (target) => {
+		target.style.removeProperty(CSS_VAR_ROW);
+		target.style.removeProperty(CSS_VAR_COL);
+		target.style.removeProperty(CSS_VAR_VISIBILITY);
+	};
+	var GridEmptyCellPositioner = ({ element }) => {
+		const tracks = useGridTracks(element, useElementRect(element));
+		(0, react.useEffect)(() => {
+			if (!element) return;
+			const firstEmpty = findFirstEmptyCell(element, tracks.columns.length, tracks.rows.length);
+			if (!firstEmpty) {
+				element.style.removeProperty(CSS_VAR_ROW);
+				element.style.removeProperty(CSS_VAR_COL);
+				element.style.setProperty(CSS_VAR_VISIBILITY, "hidden");
+				return () => clearGridEmptyCellStyles(element);
+			}
+			element.style.setProperty(CSS_VAR_ROW, String(firstEmpty.row + 1));
+			element.style.setProperty(CSS_VAR_COL, String(firstEmpty.col + 1));
+			element.style.setProperty(CSS_VAR_VISIBILITY, "visible");
+			return () => {
+				clearGridEmptyCellStyles(element);
+			};
+		}, [element, tracks]);
+		return null;
+	};
+
+//#endregion
+//#region node_modules/@floating-ui/utils/dist/floating-ui.utils.dom.mjs
+	function hasWindow() {
+		return typeof window !== "undefined";
+	}
+	function getNodeName(node) {
+		if (isNode(node)) return (node.nodeName || "").toLowerCase();
+		return "#document";
+	}
+	function getWindow(node) {
+		var _node$ownerDocument;
+		return (node == null || (_node$ownerDocument = node.ownerDocument) == null ? void 0 : _node$ownerDocument.defaultView) || window;
+	}
+	function getDocumentElement(node) {
+		var _ref;
+		return (_ref = (isNode(node) ? node.ownerDocument : node.document) || window.document) == null ? void 0 : _ref.documentElement;
+	}
+	function isNode(value) {
+		if (!hasWindow()) return false;
+		return value instanceof Node || value instanceof getWindow(value).Node;
+	}
+	function isElement(value) {
+		if (!hasWindow()) return false;
+		return value instanceof Element || value instanceof getWindow(value).Element;
+	}
+	function isHTMLElement(value) {
+		if (!hasWindow()) return false;
+		return value instanceof HTMLElement || value instanceof getWindow(value).HTMLElement;
+	}
+	function isShadowRoot(value) {
+		if (!hasWindow() || typeof ShadowRoot === "undefined") return false;
+		return value instanceof ShadowRoot || value instanceof getWindow(value).ShadowRoot;
+	}
+	function isOverflowElement(element) {
+		const { overflow, overflowX, overflowY, display } = getComputedStyle$1(element);
+		return /auto|scroll|overlay|hidden|clip/.test(overflow + overflowY + overflowX) && display !== "inline" && display !== "contents";
+	}
+	function isTableElement(element) {
+		return /^(table|td|th)$/.test(getNodeName(element));
+	}
+	function isTopLayer(element) {
+		try {
+			if (element.matches(":popover-open")) return true;
+		} catch (_e) {}
+		try {
+			return element.matches(":modal");
+		} catch (_e) {
+			return false;
+		}
+	}
+	var willChangeRe = /transform|translate|scale|rotate|perspective|filter/;
+	var containRe = /paint|layout|strict|content/;
+	var isNotNone = (value) => !!value && value !== "none";
+	var isWebKitValue;
+	function isContainingBlock(elementOrCss) {
+		const css = isElement(elementOrCss) ? getComputedStyle$1(elementOrCss) : elementOrCss;
+		return isNotNone(css.transform) || isNotNone(css.translate) || isNotNone(css.scale) || isNotNone(css.rotate) || isNotNone(css.perspective) || !isWebKit() && (isNotNone(css.backdropFilter) || isNotNone(css.filter)) || willChangeRe.test(css.willChange || "") || containRe.test(css.contain || "");
+	}
+	function getContainingBlock(element) {
+		let currentNode = getParentNode(element);
+		while (isHTMLElement(currentNode) && !isLastTraversableNode(currentNode)) {
+			if (isContainingBlock(currentNode)) return currentNode;
+			else if (isTopLayer(currentNode)) return null;
+			currentNode = getParentNode(currentNode);
+		}
+		return null;
+	}
+	function isWebKit() {
+		if (isWebKitValue == null) isWebKitValue = typeof CSS !== "undefined" && CSS.supports && CSS.supports("-webkit-backdrop-filter", "none");
+		return isWebKitValue;
+	}
+	function isLastTraversableNode(node) {
+		return /^(html|body|#document)$/.test(getNodeName(node));
+	}
+	function getComputedStyle$1(element) {
+		return getWindow(element).getComputedStyle(element);
+	}
+	__name(getComputedStyle$1, "getComputedStyle");
+	function getNodeScroll(element) {
+		if (isElement(element)) return {
+			scrollLeft: element.scrollLeft,
+			scrollTop: element.scrollTop
+		};
+		return {
+			scrollLeft: element.scrollX,
+			scrollTop: element.scrollY
+		};
+	}
+	function getParentNode(node) {
+		if (getNodeName(node) === "html") return node;
+		const result = node.assignedSlot || node.parentNode || isShadowRoot(node) && node.host || getDocumentElement(node);
+		return isShadowRoot(result) ? result.host : result;
+	}
+	function getNearestOverflowAncestor(node) {
+		const parentNode = getParentNode(node);
+		if (isLastTraversableNode(parentNode)) return node.ownerDocument ? node.ownerDocument.body : node.body;
+		if (isHTMLElement(parentNode) && isOverflowElement(parentNode)) return parentNode;
+		return getNearestOverflowAncestor(parentNode);
+	}
+	function getOverflowAncestors(node, list, traverseIframes) {
+		var _node$ownerDocument2;
+		if (list === void 0) list = [];
+		if (traverseIframes === void 0) traverseIframes = true;
+		const scrollableAncestor = getNearestOverflowAncestor(node);
+		const isBody = scrollableAncestor === ((_node$ownerDocument2 = node.ownerDocument) == null ? void 0 : _node$ownerDocument2.body);
+		const win = getWindow(scrollableAncestor);
+		if (isBody) {
+			const frameElement = getFrameElement(win);
+			return list.concat(win, win.visualViewport || [], isOverflowElement(scrollableAncestor) ? scrollableAncestor : [], frameElement && traverseIframes ? getOverflowAncestors(frameElement) : []);
+		} else return list.concat(scrollableAncestor, getOverflowAncestors(scrollableAncestor, [], traverseIframes));
+	}
+	function getFrameElement(win) {
+		return win.parent && Object.getPrototypeOf(win.parent) ? win.frameElement : null;
+	}
+
+//#endregion
+//#region node_modules/@floating-ui/utils/dist/floating-ui.utils.mjs
+	var min = Math.min;
+	var max = Math.max;
+	var round = Math.round;
+	var floor = Math.floor;
+	var createCoords = (v) => ({
+		x: v,
+		y: v
+	});
+	var oppositeSideMap = {
+		left: "right",
+		right: "left",
+		bottom: "top",
+		top: "bottom"
+	};
+	function evaluate(value, param) {
+		return typeof value === "function" ? value(param) : value;
+	}
+	function getSide(placement) {
+		return placement.split("-")[0];
+	}
+	function getAlignment(placement) {
+		return placement.split("-")[1];
+	}
+	function getOppositeAxis(axis) {
+		return axis === "x" ? "y" : "x";
+	}
+	function getAxisLength(axis) {
+		return axis === "y" ? "height" : "width";
+	}
+	function getSideAxis(placement) {
+		const firstChar = placement[0];
+		return firstChar === "t" || firstChar === "b" ? "y" : "x";
+	}
+	function getAlignmentAxis(placement) {
+		return getOppositeAxis(getSideAxis(placement));
+	}
+	function getAlignmentSides(placement, rects, rtl) {
+		if (rtl === void 0) rtl = false;
+		const alignment = getAlignment(placement);
+		const alignmentAxis = getAlignmentAxis(placement);
+		const length = getAxisLength(alignmentAxis);
+		let mainAlignmentSide = alignmentAxis === "x" ? alignment === (rtl ? "end" : "start") ? "right" : "left" : alignment === "start" ? "bottom" : "top";
+		if (rects.reference[length] > rects.floating[length]) mainAlignmentSide = getOppositePlacement(mainAlignmentSide);
+		return [mainAlignmentSide, getOppositePlacement(mainAlignmentSide)];
+	}
+	function getExpandedPlacements(placement) {
+		const oppositePlacement = getOppositePlacement(placement);
+		return [
+			getOppositeAlignmentPlacement(placement),
+			oppositePlacement,
+			getOppositeAlignmentPlacement(oppositePlacement)
+		];
+	}
+	function getOppositeAlignmentPlacement(placement) {
+		return placement.includes("start") ? placement.replace("start", "end") : placement.replace("end", "start");
+	}
+	var lrPlacement = ["left", "right"];
+	var rlPlacement = ["right", "left"];
+	var tbPlacement = ["top", "bottom"];
+	var btPlacement = ["bottom", "top"];
+	function getSideList(side, isStart, rtl) {
+		switch (side) {
+			case "top":
+			case "bottom":
+				if (rtl) return isStart ? rlPlacement : lrPlacement;
+				return isStart ? lrPlacement : rlPlacement;
+			case "left":
+			case "right": return isStart ? tbPlacement : btPlacement;
+			default: return [];
+		}
+	}
+	function getOppositeAxisPlacements(placement, flipAlignment, direction, rtl) {
+		const alignment = getAlignment(placement);
+		let list = getSideList(getSide(placement), direction === "start", rtl);
+		if (alignment) {
+			list = list.map((side) => side + "-" + alignment);
+			if (flipAlignment) list = list.concat(list.map(getOppositeAlignmentPlacement));
+		}
+		return list;
+	}
+	function getOppositePlacement(placement) {
+		const side = getSide(placement);
+		return oppositeSideMap[side] + placement.slice(side.length);
+	}
+	function expandPaddingObject(padding) {
+		return {
+			top: 0,
+			right: 0,
+			bottom: 0,
+			left: 0,
+			...padding
+		};
+	}
+	function getPaddingObject(padding) {
+		return typeof padding !== "number" ? expandPaddingObject(padding) : {
+			top: padding,
+			right: padding,
+			bottom: padding,
+			left: padding
+		};
+	}
+	function rectToClientRect(rect) {
+		const { x, y, width, height } = rect;
+		return {
+			width,
+			height,
+			top: y,
+			left: x,
+			right: x + width,
+			bottom: y + height,
+			x,
+			y
+		};
+	}
+
+//#endregion
+//#region node_modules/tabbable/dist/index.esm.js
+/*!
+	* tabbable 6.4.0
+	* @license MIT, https://github.com/focus-trap/tabbable/blob/master/LICENSE
+	*/
+	var candidateSelectors = [
+		"input:not([inert]):not([inert] *)",
+		"select:not([inert]):not([inert] *)",
+		"textarea:not([inert]):not([inert] *)",
+		"a[href]:not([inert]):not([inert] *)",
+		"button:not([inert]):not([inert] *)",
+		"[tabindex]:not(slot):not([inert]):not([inert] *)",
+		"audio[controls]:not([inert]):not([inert] *)",
+		"video[controls]:not([inert]):not([inert] *)",
+		"[contenteditable]:not([contenteditable=\"false\"]):not([inert]):not([inert] *)",
+		"details>summary:first-of-type:not([inert]):not([inert] *)",
+		"details:not([inert]):not([inert] *)"
+	];
+	var candidateSelector = /* #__PURE__ */ candidateSelectors.join(",");
+	var NoElement = typeof Element === "undefined";
+	var matches = NoElement ? function() {} : Element.prototype.matches || Element.prototype.msMatchesSelector || Element.prototype.webkitMatchesSelector;
+	var getRootNode = !NoElement && Element.prototype.getRootNode ? function(element) {
+		var _element$getRootNode;
+		return element === null || element === void 0 ? void 0 : (_element$getRootNode = element.getRootNode) === null || _element$getRootNode === void 0 ? void 0 : _element$getRootNode.call(element);
+	} : function(element) {
+		return element === null || element === void 0 ? void 0 : element.ownerDocument;
+	};
+	/**
+	* Determines if a node is inert or in an inert ancestor.
+	* @param {Node} [node]
+	* @param {boolean} [lookUp] If true and `node` is not inert, looks up at ancestors to
+	*  see if any of them are inert. If false, only `node` itself is considered.
+	* @returns {boolean} True if inert itself or by way of being in an inert ancestor.
+	*  False if `node` is falsy.
+	*/
+	var _isInert = function isInert(node, lookUp) {
+		var _node$getAttribute;
+		if (lookUp === void 0) lookUp = true;
+		var inertAtt = node === null || node === void 0 ? void 0 : (_node$getAttribute = node.getAttribute) === null || _node$getAttribute === void 0 ? void 0 : _node$getAttribute.call(node, "inert");
+		return inertAtt === "" || inertAtt === "true" || lookUp && node && (typeof node.closest === "function" ? node.closest("[inert]") : _isInert(node.parentNode));
+	};
+	/**
+	* Determines if a node's content is editable.
+	* @param {Element} [node]
+	* @returns True if it's content-editable; false if it's not or `node` is falsy.
+	*/
+	var isContentEditable = function isContentEditable(node) {
+		var _node$getAttribute2;
+		var attValue = node === null || node === void 0 ? void 0 : (_node$getAttribute2 = node.getAttribute) === null || _node$getAttribute2 === void 0 ? void 0 : _node$getAttribute2.call(node, "contenteditable");
+		return attValue === "" || attValue === "true";
+	};
+	/**
+	* @param {Element} el container to check in
+	* @param {boolean} includeContainer add container to check
+	* @param {(node: Element) => boolean} filter filter candidates
+	* @returns {Element[]}
+	*/
+	var getCandidates = function getCandidates(el, includeContainer, filter) {
+		if (_isInert(el)) return [];
+		var candidates = Array.prototype.slice.apply(el.querySelectorAll(candidateSelector));
+		if (includeContainer && matches.call(el, candidateSelector)) candidates.unshift(el);
+		candidates = candidates.filter(filter);
+		return candidates;
+	};
+	/**
+	* @callback GetShadowRoot
+	* @param {Element} element to check for shadow root
+	* @returns {ShadowRoot|boolean} ShadowRoot if available or boolean indicating if a shadowRoot is attached but not available.
+	*/
+	/**
+	* @callback ShadowRootFilter
+	* @param {Element} shadowHostNode the element which contains shadow content
+	* @returns {boolean} true if a shadow root could potentially contain valid candidates.
+	*/
+	/**
+	* @typedef {Object} CandidateScope
+	* @property {Element} scopeParent contains inner candidates
+	* @property {Element[]} candidates list of candidates found in the scope parent
+	*/
+	/**
+	* @typedef {Object} IterativeOptions
+	* @property {GetShadowRoot|boolean} getShadowRoot true if shadow support is enabled; falsy if not;
+	*  if a function, implies shadow support is enabled and either returns the shadow root of an element
+	*  or a boolean stating if it has an undisclosed shadow root
+	* @property {(node: Element) => boolean} filter filter candidates
+	* @property {boolean} flatten if true then result will flatten any CandidateScope into the returned list
+	* @property {ShadowRootFilter} shadowRootFilter filter shadow roots;
+	*/
+	/**
+	* @param {Element[]} elements list of element containers to match candidates from
+	* @param {boolean} includeContainer add container list to check
+	* @param {IterativeOptions} options
+	* @returns {Array.<Element|CandidateScope>}
+	*/
+	var _getCandidatesIteratively = function getCandidatesIteratively(elements, includeContainer, options) {
+		var candidates = [];
+		var elementsToCheck = Array.from(elements);
+		while (elementsToCheck.length) {
+			var element = elementsToCheck.shift();
+			if (_isInert(element, false)) continue;
+			if (element.tagName === "SLOT") {
+				var assigned = element.assignedElements();
+				var nestedCandidates = _getCandidatesIteratively(assigned.length ? assigned : element.children, true, options);
+				if (options.flatten) candidates.push.apply(candidates, nestedCandidates);
+				else candidates.push({
+					scopeParent: element,
+					candidates: nestedCandidates
+				});
+			} else {
+				if (matches.call(element, candidateSelector) && options.filter(element) && (includeContainer || !elements.includes(element))) candidates.push(element);
+				var shadowRoot = element.shadowRoot || typeof options.getShadowRoot === "function" && options.getShadowRoot(element);
+				var validShadowRoot = !_isInert(shadowRoot, false) && (!options.shadowRootFilter || options.shadowRootFilter(element));
+				if (shadowRoot && validShadowRoot) {
+					var _nestedCandidates = _getCandidatesIteratively(shadowRoot === true ? element.children : shadowRoot.children, true, options);
+					if (options.flatten) candidates.push.apply(candidates, _nestedCandidates);
+					else candidates.push({
+						scopeParent: element,
+						candidates: _nestedCandidates
+					});
+				} else elementsToCheck.unshift.apply(elementsToCheck, element.children);
+			}
+		}
+		return candidates;
+	};
+	/**
+	* @private
+	* Determines if the node has an explicitly specified `tabindex` attribute.
+	* @param {HTMLElement} node
+	* @returns {boolean} True if so; false if not.
+	*/
+	var hasTabIndex = function hasTabIndex(node) {
+		return !isNaN(parseInt(node.getAttribute("tabindex"), 10));
+	};
+	/**
+	* Determine the tab index of a given node.
+	* @param {HTMLElement} node
+	* @returns {number} Tab order (negative, 0, or positive number).
+	* @throws {Error} If `node` is falsy.
+	*/
+	var getTabIndex = function getTabIndex(node) {
+		if (!node) throw new Error("No node provided");
+		if (node.tabIndex < 0) {
+			if ((/^(AUDIO|VIDEO|DETAILS)$/.test(node.tagName) || isContentEditable(node)) && !hasTabIndex(node)) return 0;
+		}
+		return node.tabIndex;
+	};
+	/**
+	* Determine the tab index of a given node __for sort order purposes__.
+	* @param {HTMLElement} node
+	* @param {boolean} [isScope] True for a custom element with shadow root or slot that, by default,
+	*  has tabIndex -1, but needs to be sorted by document order in order for its content to be
+	*  inserted into the correct sort position.
+	* @returns {number} Tab order (negative, 0, or positive number).
+	*/
+	var getSortOrderTabIndex = function getSortOrderTabIndex(node, isScope) {
+		var tabIndex = getTabIndex(node);
+		if (tabIndex < 0 && isScope && !hasTabIndex(node)) return 0;
+		return tabIndex;
+	};
+	var sortOrderedTabbables = function sortOrderedTabbables(a, b) {
+		return a.tabIndex === b.tabIndex ? a.documentOrder - b.documentOrder : a.tabIndex - b.tabIndex;
+	};
+	var isInput = function isInput(node) {
+		return node.tagName === "INPUT";
+	};
+	var isHiddenInput = function isHiddenInput(node) {
+		return isInput(node) && node.type === "hidden";
+	};
+	var isDetailsWithSummary = function isDetailsWithSummary(node) {
+		return node.tagName === "DETAILS" && Array.prototype.slice.apply(node.children).some(function(child) {
+			return child.tagName === "SUMMARY";
+		});
+	};
+	var getCheckedRadio = function getCheckedRadio(nodes, form) {
+		for (var i = 0; i < nodes.length; i++) if (nodes[i].checked && nodes[i].form === form) return nodes[i];
+	};
+	var isTabbableRadio = function isTabbableRadio(node) {
+		if (!node.name) return true;
+		var radioScope = node.form || getRootNode(node);
+		var queryRadios = function queryRadios(name) {
+			return radioScope.querySelectorAll("input[type=\"radio\"][name=\"" + name + "\"]");
+		};
+		var radioSet;
+		if (typeof window !== "undefined" && typeof window.CSS !== "undefined" && typeof window.CSS.escape === "function") radioSet = queryRadios(window.CSS.escape(node.name));
+		else try {
+			radioSet = queryRadios(node.name);
+		} catch (err) {
+			console.error("Looks like you have a radio button with a name attribute containing invalid CSS selector characters and need the CSS.escape polyfill: %s", err.message);
+			return false;
+		}
+		var checked = getCheckedRadio(radioSet, node.form);
+		return !checked || checked === node;
+	};
+	var isRadio = function isRadio(node) {
+		return isInput(node) && node.type === "radio";
+	};
+	var isNonTabbableRadio = function isNonTabbableRadio(node) {
+		return isRadio(node) && !isTabbableRadio(node);
+	};
+	var isNodeAttached = function isNodeAttached(node) {
+		var _nodeRoot;
+		var nodeRoot = node && getRootNode(node);
+		var nodeRootHost = (_nodeRoot = nodeRoot) === null || _nodeRoot === void 0 ? void 0 : _nodeRoot.host;
+		var attached = false;
+		if (nodeRoot && nodeRoot !== node) {
+			var _nodeRootHost;
+			var _nodeRootHost$ownerDo;
+			var _node$ownerDocument;
+			attached = !!((_nodeRootHost = nodeRootHost) !== null && _nodeRootHost !== void 0 && (_nodeRootHost$ownerDo = _nodeRootHost.ownerDocument) !== null && _nodeRootHost$ownerDo !== void 0 && _nodeRootHost$ownerDo.contains(nodeRootHost) || node !== null && node !== void 0 && (_node$ownerDocument = node.ownerDocument) !== null && _node$ownerDocument !== void 0 && _node$ownerDocument.contains(node));
+			while (!attached && nodeRootHost) {
+				var _nodeRoot2;
+				var _nodeRootHost2;
+				var _nodeRootHost2$ownerD;
+				nodeRoot = getRootNode(nodeRootHost);
+				nodeRootHost = (_nodeRoot2 = nodeRoot) === null || _nodeRoot2 === void 0 ? void 0 : _nodeRoot2.host;
+				attached = !!((_nodeRootHost2 = nodeRootHost) !== null && _nodeRootHost2 !== void 0 && (_nodeRootHost2$ownerD = _nodeRootHost2.ownerDocument) !== null && _nodeRootHost2$ownerD !== void 0 && _nodeRootHost2$ownerD.contains(nodeRootHost));
+			}
+		}
+		return attached;
+	};
+	var isZeroArea = function isZeroArea(node) {
+		var _node$getBoundingClie = node.getBoundingClientRect();
+		var width = _node$getBoundingClie.width;
+		var height = _node$getBoundingClie.height;
+		return width === 0 && height === 0;
+	};
+	var isHidden = function isHidden(node, _ref) {
+		var displayCheck = _ref.displayCheck;
+		var getShadowRoot = _ref.getShadowRoot;
+		if (displayCheck === "full-native") {
+			if ("checkVisibility" in node) return !node.checkVisibility({
+				checkOpacity: false,
+				opacityProperty: false,
+				contentVisibilityAuto: true,
+				visibilityProperty: true,
+				checkVisibilityCSS: true
+			});
+		}
+		if (getComputedStyle(node).visibility === "hidden") return true;
+		var nodeUnderDetails = matches.call(node, "details>summary:first-of-type") ? node.parentElement : node;
+		if (matches.call(nodeUnderDetails, "details:not([open]) *")) return true;
+		if (!displayCheck || displayCheck === "full" || displayCheck === "full-native" || displayCheck === "legacy-full") {
+			if (typeof getShadowRoot === "function") {
+				var originalNode = node;
+				while (node) {
+					var parentElement = node.parentElement;
+					var rootNode = getRootNode(node);
+					if (parentElement && !parentElement.shadowRoot && getShadowRoot(parentElement) === true) return isZeroArea(node);
+					else if (node.assignedSlot) node = node.assignedSlot;
+					else if (!parentElement && rootNode !== node.ownerDocument) node = rootNode.host;
+					else node = parentElement;
+				}
+				node = originalNode;
+			}
+			if (isNodeAttached(node)) return !node.getClientRects().length;
+			if (displayCheck !== "legacy-full") return true;
+		} else if (displayCheck === "non-zero-area") return isZeroArea(node);
+		return false;
+	};
+	var isDisabledFromFieldset = function isDisabledFromFieldset(node) {
+		if (/^(INPUT|BUTTON|SELECT|TEXTAREA)$/.test(node.tagName)) {
+			var parentNode = node.parentElement;
+			while (parentNode) {
+				if (parentNode.tagName === "FIELDSET" && parentNode.disabled) {
+					for (var i = 0; i < parentNode.children.length; i++) {
+						var child = parentNode.children.item(i);
+						if (child.tagName === "LEGEND") return matches.call(parentNode, "fieldset[disabled] *") ? true : !child.contains(node);
+					}
+					return true;
+				}
+				parentNode = parentNode.parentElement;
+			}
+		}
+		return false;
+	};
+	var isNodeMatchingSelectorFocusable = function isNodeMatchingSelectorFocusable(options, node) {
+		if (node.disabled || isHiddenInput(node) || isHidden(node, options) || isDetailsWithSummary(node) || isDisabledFromFieldset(node)) return false;
+		return true;
+	};
+	var isNodeMatchingSelectorTabbable = function isNodeMatchingSelectorTabbable(options, node) {
+		if (isNonTabbableRadio(node) || getTabIndex(node) < 0 || !isNodeMatchingSelectorFocusable(options, node)) return false;
+		return true;
+	};
+	var isShadowRootTabbable = function isShadowRootTabbable(shadowHostNode) {
+		var tabIndex = parseInt(shadowHostNode.getAttribute("tabindex"), 10);
+		if (isNaN(tabIndex) || tabIndex >= 0) return true;
+		return false;
+	};
+	/**
+	* @param {Array.<Element|CandidateScope>} candidates
+	* @returns Element[]
+	*/
+	var _sortByOrder = function sortByOrder(candidates) {
+		var regularTabbables = [];
+		var orderedTabbables = [];
+		candidates.forEach(function(item, i) {
+			var isScope = !!item.scopeParent;
+			var element = isScope ? item.scopeParent : item;
+			var candidateTabindex = getSortOrderTabIndex(element, isScope);
+			var elements = isScope ? _sortByOrder(item.candidates) : element;
+			if (candidateTabindex === 0) isScope ? regularTabbables.push.apply(regularTabbables, elements) : regularTabbables.push(element);
+			else orderedTabbables.push({
+				documentOrder: i,
+				tabIndex: candidateTabindex,
+				item,
+				isScope,
+				content: elements
+			});
+		});
+		return orderedTabbables.sort(sortOrderedTabbables).reduce(function(acc, sortable) {
+			sortable.isScope ? acc.push.apply(acc, sortable.content) : acc.push(sortable.content);
+			return acc;
+		}, []).concat(regularTabbables);
+	};
+	var tabbable = function tabbable(container, options) {
+		options = options || {};
+		var candidates;
+		if (options.getShadowRoot) candidates = _getCandidatesIteratively([container], options.includeContainer, {
+			filter: isNodeMatchingSelectorTabbable.bind(null, options),
+			flatten: false,
+			getShadowRoot: options.getShadowRoot,
+			shadowRootFilter: isShadowRootTabbable
+		});
+		else candidates = getCandidates(container, options.includeContainer, isNodeMatchingSelectorTabbable.bind(null, options));
+		return _sortByOrder(candidates);
+	};
+
+//#endregion
+//#region node_modules/@floating-ui/react/dist/floating-ui.react.utils.mjs
+	function isSafari() {
+		return /apple/i.test(navigator.vendor);
+	}
+	function activeElement(doc) {
+		let activeElement = doc.activeElement;
+		while (((_activeElement = activeElement) == null || (_activeElement = _activeElement.shadowRoot) == null ? void 0 : _activeElement.activeElement) != null) {
+			var _activeElement;
+			activeElement = activeElement.shadowRoot.activeElement;
+		}
+		return activeElement;
+	}
+	function contains(parent, child) {
+		if (!parent || !child) return false;
+		const rootNode = child.getRootNode == null ? void 0 : child.getRootNode();
+		if (parent.contains(child)) return true;
+		if (rootNode && isShadowRoot(rootNode)) {
+			let next = child;
+			while (next) {
+				if (parent === next) return true;
+				next = next.parentNode || next.host;
+			}
+		}
+		return false;
+	}
+	function getDocument(node) {
+		return (node == null ? void 0 : node.ownerDocument) || document;
+	}
+	function isMouseLikePointerType(pointerType, strict) {
+		const values = ["mouse", "pen"];
+		if (!strict) values.push("", void 0);
+		return values.includes(pointerType);
+	}
+	var index$1 = typeof document !== "undefined" ? react$1.useLayoutEffect : function noop() {};
+	var SafeReact$1 = { ...react$1 };
+	function useLatestRef$1(value) {
+		const ref = react$1.useRef(value);
+		index$1(() => {
+			ref.current = value;
+		});
+		return ref;
+	}
+	__name(useLatestRef$1, "useLatestRef");
+	var useSafeInsertionEffect = SafeReact$1.useInsertionEffect || ((fn) => fn());
+	function useEffectEvent(callback) {
+		const ref = react$1.useRef(() => {
+			throw new Error("Cannot call an event handler while rendering.");
+		});
+		useSafeInsertionEffect(() => {
+			ref.current = callback;
+		});
+		return react$1.useCallback(function() {
+			for (var _len = arguments.length, args = new Array(_len), _key = 0; _key < _len; _key++) args[_key] = arguments[_key];
+			return ref.current == null ? void 0 : ref.current(...args);
+		}, []);
+	}
+	var getTabbableOptions = () => ({
+		getShadowRoot: true,
+		displayCheck: typeof ResizeObserver === "function" && ResizeObserver.toString().includes("[native code]") ? "full" : "none"
+	});
+	function getTabbableIn(container, dir) {
+		const list = tabbable(container, getTabbableOptions());
+		const len = list.length;
+		if (len === 0) return;
+		const active = activeElement(getDocument(container));
+		const index = list.indexOf(active);
+		return list[index === -1 ? dir === 1 ? 0 : len - 1 : index + dir];
+	}
+	function getNextTabbable(referenceElement) {
+		return getTabbableIn(getDocument(referenceElement).body, 1) || referenceElement;
+	}
+	function getPreviousTabbable(referenceElement) {
+		return getTabbableIn(getDocument(referenceElement).body, -1) || referenceElement;
+	}
+	function isOutsideEvent(event, container) {
+		const containerElement = container || event.currentTarget;
+		const relatedTarget = event.relatedTarget;
+		return !relatedTarget || !contains(containerElement, relatedTarget);
+	}
+	function disableFocusInside(container) {
+		tabbable(container, getTabbableOptions()).forEach((element) => {
+			element.dataset.tabindex = element.getAttribute("tabindex") || "";
+			element.setAttribute("tabindex", "-1");
+		});
+	}
+	function enableFocusInside(container) {
+		container.querySelectorAll("[data-tabindex]").forEach((element) => {
+			const tabindex = element.dataset.tabindex;
+			delete element.dataset.tabindex;
+			if (tabindex) element.setAttribute("tabindex", tabindex);
+			else element.removeAttribute("tabindex");
+		});
+	}
+
+//#endregion
+//#region node_modules/react/cjs/react-jsx-runtime.development.js
+/**
+	* @license React
+	* react-jsx-runtime.development.js
+	*
+	* Copyright (c) Facebook, Inc. and its affiliates.
+	*
+	* This source code is licensed under the MIT license found in the
+	* LICENSE file in the root directory of this source tree.
+	*/
+	var require_react_jsx_runtime_development = /* @__PURE__ */ __commonJSMin(((exports) => {
+		(function() {
+			"use strict";
+			var React = (globalThis.React);
+			var REACT_ELEMENT_TYPE = Symbol.for("react.element");
+			var REACT_PORTAL_TYPE = Symbol.for("react.portal");
+			var REACT_FRAGMENT_TYPE = Symbol.for("react.fragment");
+			var REACT_STRICT_MODE_TYPE = Symbol.for("react.strict_mode");
+			var REACT_PROFILER_TYPE = Symbol.for("react.profiler");
+			var REACT_PROVIDER_TYPE = Symbol.for("react.provider");
+			var REACT_CONTEXT_TYPE = Symbol.for("react.context");
+			var REACT_FORWARD_REF_TYPE = Symbol.for("react.forward_ref");
+			var REACT_SUSPENSE_TYPE = Symbol.for("react.suspense");
+			var REACT_SUSPENSE_LIST_TYPE = Symbol.for("react.suspense_list");
+			var REACT_MEMO_TYPE = Symbol.for("react.memo");
+			var REACT_LAZY_TYPE = Symbol.for("react.lazy");
+			var REACT_OFFSCREEN_TYPE = Symbol.for("react.offscreen");
+			var MAYBE_ITERATOR_SYMBOL = Symbol.iterator;
+			var FAUX_ITERATOR_SYMBOL = "@@iterator";
+			function getIteratorFn(maybeIterable) {
+				if (maybeIterable === null || typeof maybeIterable !== "object") return null;
+				var maybeIterator = MAYBE_ITERATOR_SYMBOL && maybeIterable[MAYBE_ITERATOR_SYMBOL] || maybeIterable[FAUX_ITERATOR_SYMBOL];
+				if (typeof maybeIterator === "function") return maybeIterator;
+				return null;
+			}
+			var ReactSharedInternals = React.__SECRET_INTERNALS_DO_NOT_USE_OR_YOU_WILL_BE_FIRED;
+			function error(format) {
+				for (var _len2 = arguments.length, args = new Array(_len2 > 1 ? _len2 - 1 : 0), _key2 = 1; _key2 < _len2; _key2++) args[_key2 - 1] = arguments[_key2];
+				printWarning("error", format, args);
+			}
+			function printWarning(level, format, args) {
+				var stack = ReactSharedInternals.ReactDebugCurrentFrame.getStackAddendum();
+				if (stack !== "") {
+					format += "%s";
+					args = args.concat([stack]);
+				}
+				var argsWithFormat = args.map(function(item) {
+					return String(item);
+				});
+				argsWithFormat.unshift("Warning: " + format);
+				Function.prototype.apply.call(console[level], console, argsWithFormat);
+			}
+			var enableScopeAPI = false;
+			var enableCacheElement = false;
+			var enableTransitionTracing = false;
+			var enableLegacyHidden = false;
+			var enableDebugTracing = false;
+			var REACT_MODULE_REFERENCE = Symbol.for("react.module.reference");
+			function isValidElementType(type) {
+				if (typeof type === "string" || typeof type === "function") return true;
+				if (type === REACT_FRAGMENT_TYPE || type === REACT_PROFILER_TYPE || enableDebugTracing || type === REACT_STRICT_MODE_TYPE || type === REACT_SUSPENSE_TYPE || type === REACT_SUSPENSE_LIST_TYPE || enableLegacyHidden || type === REACT_OFFSCREEN_TYPE || enableScopeAPI || enableCacheElement || enableTransitionTracing) return true;
+				if (typeof type === "object" && type !== null) {
+					if (type.$$typeof === REACT_LAZY_TYPE || type.$$typeof === REACT_MEMO_TYPE || type.$$typeof === REACT_PROVIDER_TYPE || type.$$typeof === REACT_CONTEXT_TYPE || type.$$typeof === REACT_FORWARD_REF_TYPE || type.$$typeof === REACT_MODULE_REFERENCE || type.getModuleId !== void 0) return true;
+				}
+				return false;
+			}
+			function getWrappedName(outerType, innerType, wrapperName) {
+				var displayName = outerType.displayName;
+				if (displayName) return displayName;
+				var functionName = innerType.displayName || innerType.name || "";
+				return functionName !== "" ? wrapperName + "(" + functionName + ")" : wrapperName;
+			}
+			function getContextName(type) {
+				return type.displayName || "Context";
+			}
+			function getComponentNameFromType(type) {
+				if (type == null) return null;
+				if (typeof type.tag === "number") error("Received an unexpected object in getComponentNameFromType(). This is likely a bug in React. Please file an issue.");
+				if (typeof type === "function") return type.displayName || type.name || null;
+				if (typeof type === "string") return type;
+				switch (type) {
+					case REACT_FRAGMENT_TYPE: return "Fragment";
+					case REACT_PORTAL_TYPE: return "Portal";
+					case REACT_PROFILER_TYPE: return "Profiler";
+					case REACT_STRICT_MODE_TYPE: return "StrictMode";
+					case REACT_SUSPENSE_TYPE: return "Suspense";
+					case REACT_SUSPENSE_LIST_TYPE: return "SuspenseList";
+				}
+				if (typeof type === "object") switch (type.$$typeof) {
+					case REACT_CONTEXT_TYPE: return getContextName(type) + ".Consumer";
+					case REACT_PROVIDER_TYPE: return getContextName(type._context) + ".Provider";
+					case REACT_FORWARD_REF_TYPE: return getWrappedName(type, type.render, "ForwardRef");
+					case REACT_MEMO_TYPE:
+						var outerName = type.displayName || null;
+						if (outerName !== null) return outerName;
+						return getComponentNameFromType(type.type) || "Memo";
+					case REACT_LAZY_TYPE:
+						var lazyComponent = type;
+						var payload = lazyComponent._payload;
+						var init = lazyComponent._init;
+						try {
+							return getComponentNameFromType(init(payload));
+						} catch (x) {
+							return null;
+						}
+				}
+				return null;
+			}
+			var assign = Object.assign;
+			var disabledDepth = 0;
+			var prevLog;
+			var prevInfo;
+			var prevWarn;
+			var prevError;
+			var prevGroup;
+			var prevGroupCollapsed;
+			var prevGroupEnd;
+			function disabledLog() {}
+			disabledLog.__reactDisabledLog = true;
+			function disableLogs() {
+				if (disabledDepth === 0) {
+					prevLog = console.log;
+					prevInfo = console.info;
+					prevWarn = console.warn;
+					prevError = console.error;
+					prevGroup = console.group;
+					prevGroupCollapsed = console.groupCollapsed;
+					prevGroupEnd = console.groupEnd;
+					var props = {
+						configurable: true,
+						enumerable: true,
+						value: disabledLog,
+						writable: true
+					};
+					Object.defineProperties(console, {
+						info: props,
+						log: props,
+						warn: props,
+						error: props,
+						group: props,
+						groupCollapsed: props,
+						groupEnd: props
+					});
+				}
+				disabledDepth++;
+			}
+			function reenableLogs() {
+				disabledDepth--;
+				if (disabledDepth === 0) {
+					var props = {
+						configurable: true,
+						enumerable: true,
+						writable: true
+					};
+					Object.defineProperties(console, {
+						log: assign({}, props, { value: prevLog }),
+						info: assign({}, props, { value: prevInfo }),
+						warn: assign({}, props, { value: prevWarn }),
+						error: assign({}, props, { value: prevError }),
+						group: assign({}, props, { value: prevGroup }),
+						groupCollapsed: assign({}, props, { value: prevGroupCollapsed }),
+						groupEnd: assign({}, props, { value: prevGroupEnd })
+					});
+				}
+				if (disabledDepth < 0) error("disabledDepth fell below zero. This is a bug in React. Please file an issue.");
+			}
+			var ReactCurrentDispatcher = ReactSharedInternals.ReactCurrentDispatcher;
+			var prefix;
+			function describeBuiltInComponentFrame(name, source, ownerFn) {
+				if (prefix === void 0) try {
+					throw Error();
+				} catch (x) {
+					var match = x.stack.trim().match(/\n( *(at )?)/);
+					prefix = match && match[1] || "";
+				}
+				return "\n" + prefix + name;
+			}
+			var reentry = false;
+			var componentFrameCache = new (typeof WeakMap === "function" ? WeakMap : Map)();
+			function describeNativeComponentFrame(fn, construct) {
+				if (!fn || reentry) return "";
+				var frame = componentFrameCache.get(fn);
+				if (frame !== void 0) return frame;
+				var control;
+				reentry = true;
+				var previousPrepareStackTrace = Error.prepareStackTrace;
+				Error.prepareStackTrace = void 0;
+				var previousDispatcher = ReactCurrentDispatcher.current;
+				ReactCurrentDispatcher.current = null;
+				disableLogs();
+				try {
+					if (construct) {
+						var Fake = function() {
+							throw Error();
+						};
+						Object.defineProperty(Fake.prototype, "props", { set: function() {
+							throw Error();
+						} });
+						if (typeof Reflect === "object" && Reflect.construct) {
+							try {
+								Reflect.construct(Fake, []);
+							} catch (x) {
+								control = x;
+							}
+							Reflect.construct(fn, [], Fake);
+						} else {
+							try {
+								Fake.call();
+							} catch (x) {
+								control = x;
+							}
+							fn.call(Fake.prototype);
+						}
+					} else {
+						try {
+							throw Error();
+						} catch (x) {
+							control = x;
+						}
+						fn();
+					}
+				} catch (sample) {
+					if (sample && control && typeof sample.stack === "string") {
+						var sampleLines = sample.stack.split("\n");
+						var controlLines = control.stack.split("\n");
+						var s = sampleLines.length - 1;
+						var c = controlLines.length - 1;
+						while (s >= 1 && c >= 0 && sampleLines[s] !== controlLines[c]) c--;
+						for (; s >= 1 && c >= 0; s--, c--) if (sampleLines[s] !== controlLines[c]) {
+							if (s !== 1 || c !== 1) do {
+								s--;
+								c--;
+								if (c < 0 || sampleLines[s] !== controlLines[c]) {
+									var _frame = "\n" + sampleLines[s].replace(" at new ", " at ");
+									if (fn.displayName && _frame.includes("<anonymous>")) _frame = _frame.replace("<anonymous>", fn.displayName);
+									if (typeof fn === "function") componentFrameCache.set(fn, _frame);
+									return _frame;
+								}
+							} while (s >= 1 && c >= 0);
+							break;
+						}
+					}
+				} finally {
+					reentry = false;
+					ReactCurrentDispatcher.current = previousDispatcher;
+					reenableLogs();
+					Error.prepareStackTrace = previousPrepareStackTrace;
+				}
+				var name = fn ? fn.displayName || fn.name : "";
+				var syntheticFrame = name ? describeBuiltInComponentFrame(name) : "";
+				if (typeof fn === "function") componentFrameCache.set(fn, syntheticFrame);
+				return syntheticFrame;
+			}
+			function describeFunctionComponentFrame(fn, source, ownerFn) {
+				return describeNativeComponentFrame(fn, false);
+			}
+			function shouldConstruct(Component) {
+				var prototype = Component.prototype;
+				return !!(prototype && prototype.isReactComponent);
+			}
+			function describeUnknownElementTypeFrameInDEV(type, source, ownerFn) {
+				if (type == null) return "";
+				if (typeof type === "function") return describeNativeComponentFrame(type, shouldConstruct(type));
+				if (typeof type === "string") return describeBuiltInComponentFrame(type);
+				switch (type) {
+					case REACT_SUSPENSE_TYPE: return describeBuiltInComponentFrame("Suspense");
+					case REACT_SUSPENSE_LIST_TYPE: return describeBuiltInComponentFrame("SuspenseList");
+				}
+				if (typeof type === "object") switch (type.$$typeof) {
+					case REACT_FORWARD_REF_TYPE: return describeFunctionComponentFrame(type.render);
+					case REACT_MEMO_TYPE: return describeUnknownElementTypeFrameInDEV(type.type, source, ownerFn);
+					case REACT_LAZY_TYPE:
+						var lazyComponent = type;
+						var payload = lazyComponent._payload;
+						var init = lazyComponent._init;
+						try {
+							return describeUnknownElementTypeFrameInDEV(init(payload), source, ownerFn);
+						} catch (x) {}
+				}
+				return "";
+			}
+			var hasOwnProperty = Object.prototype.hasOwnProperty;
+			var loggedTypeFailures = {};
+			var ReactDebugCurrentFrame = ReactSharedInternals.ReactDebugCurrentFrame;
+			function setCurrentlyValidatingElement(element) {
+				if (element) {
+					var owner = element._owner;
+					var stack = describeUnknownElementTypeFrameInDEV(element.type, element._source, owner ? owner.type : null);
+					ReactDebugCurrentFrame.setExtraStackFrame(stack);
+				} else ReactDebugCurrentFrame.setExtraStackFrame(null);
+			}
+			function checkPropTypes(typeSpecs, values, location, componentName, element) {
+				var has = Function.call.bind(hasOwnProperty);
+				for (var typeSpecName in typeSpecs) if (has(typeSpecs, typeSpecName)) {
+					var error$1 = void 0;
+					try {
+						if (typeof typeSpecs[typeSpecName] !== "function") {
+							var err = Error((componentName || "React class") + ": " + location + " type `" + typeSpecName + "` is invalid; it must be a function, usually from the `prop-types` package, but received `" + typeof typeSpecs[typeSpecName] + "`.This often happens because of typos such as `PropTypes.function` instead of `PropTypes.func`.");
+							err.name = "Invariant Violation";
+							throw err;
+						}
+						error$1 = typeSpecs[typeSpecName](values, typeSpecName, componentName, location, null, "SECRET_DO_NOT_PASS_THIS_OR_YOU_WILL_BE_FIRED");
+					} catch (ex) {
+						error$1 = ex;
+					}
+					if (error$1 && !(error$1 instanceof Error)) {
+						setCurrentlyValidatingElement(element);
+						error("%s: type specification of %s `%s` is invalid; the type checker function must return `null` or an `Error` but returned a %s. You may have forgotten to pass an argument to the type checker creator (arrayOf, instanceOf, objectOf, oneOf, oneOfType, and shape all require an argument).", componentName || "React class", location, typeSpecName, typeof error$1);
+						setCurrentlyValidatingElement(null);
+					}
+					if (error$1 instanceof Error && !(error$1.message in loggedTypeFailures)) {
+						loggedTypeFailures[error$1.message] = true;
+						setCurrentlyValidatingElement(element);
+						error("Failed %s type: %s", location, error$1.message);
+						setCurrentlyValidatingElement(null);
+					}
+				}
+			}
+			var isArrayImpl = Array.isArray;
+			function isArray(a) {
+				return isArrayImpl(a);
+			}
+			function typeName(value) {
+				return typeof Symbol === "function" && Symbol.toStringTag && value[Symbol.toStringTag] || value.constructor.name || "Object";
+			}
+			function willCoercionThrow(value) {
+				try {
+					testStringCoercion(value);
+					return false;
+				} catch (e) {
+					return true;
+				}
+			}
+			function testStringCoercion(value) {
+				return "" + value;
+			}
+			function checkKeyStringCoercion(value) {
+				if (willCoercionThrow(value)) {
+					error("The provided key is an unsupported type %s. This value must be coerced to a string before before using it here.", typeName(value));
+					return testStringCoercion(value);
+				}
+			}
+			var ReactCurrentOwner = ReactSharedInternals.ReactCurrentOwner;
+			var RESERVED_PROPS = {
+				key: true,
+				ref: true,
+				__self: true,
+				__source: true
+			};
+			var specialPropKeyWarningShown;
+			var specialPropRefWarningShown;
+			var didWarnAboutStringRefs = {};
+			function hasValidRef(config) {
+				if (hasOwnProperty.call(config, "ref")) {
+					var getter = Object.getOwnPropertyDescriptor(config, "ref").get;
+					if (getter && getter.isReactWarning) return false;
+				}
+				return config.ref !== void 0;
+			}
+			function hasValidKey(config) {
+				if (hasOwnProperty.call(config, "key")) {
+					var getter = Object.getOwnPropertyDescriptor(config, "key").get;
+					if (getter && getter.isReactWarning) return false;
+				}
+				return config.key !== void 0;
+			}
+			function warnIfStringRefCannotBeAutoConverted(config, self) {
+				if (typeof config.ref === "string" && ReactCurrentOwner.current && self && ReactCurrentOwner.current.stateNode !== self) {
+					var componentName = getComponentNameFromType(ReactCurrentOwner.current.type);
+					if (!didWarnAboutStringRefs[componentName]) {
+						error("Component \"%s\" contains the string ref \"%s\". Support for string refs will be removed in a future major release. This case cannot be automatically converted to an arrow function. We ask you to manually fix this case by using useRef() or createRef() instead. Learn more about using refs safely here: https://reactjs.org/link/strict-mode-string-ref", getComponentNameFromType(ReactCurrentOwner.current.type), config.ref);
+						didWarnAboutStringRefs[componentName] = true;
+					}
+				}
+			}
+			function defineKeyPropWarningGetter(props, displayName) {
+				var warnAboutAccessingKey = function() {
+					if (!specialPropKeyWarningShown) {
+						specialPropKeyWarningShown = true;
+						error("%s: `key` is not a prop. Trying to access it will result in `undefined` being returned. If you need to access the same value within the child component, you should pass it as a different prop. (https://reactjs.org/link/special-props)", displayName);
+					}
+				};
+				warnAboutAccessingKey.isReactWarning = true;
+				Object.defineProperty(props, "key", {
+					get: warnAboutAccessingKey,
+					configurable: true
+				});
+			}
+			function defineRefPropWarningGetter(props, displayName) {
+				var warnAboutAccessingRef = function() {
+					if (!specialPropRefWarningShown) {
+						specialPropRefWarningShown = true;
+						error("%s: `ref` is not a prop. Trying to access it will result in `undefined` being returned. If you need to access the same value within the child component, you should pass it as a different prop. (https://reactjs.org/link/special-props)", displayName);
+					}
+				};
+				warnAboutAccessingRef.isReactWarning = true;
+				Object.defineProperty(props, "ref", {
+					get: warnAboutAccessingRef,
+					configurable: true
+				});
+			}
+			/**
+			* Factory method to create a new React element. This no longer adheres to
+			* the class pattern, so do not use new to call it. Also, instanceof check
+			* will not work. Instead test $$typeof field against Symbol.for('react.element') to check
+			* if something is a React Element.
+			*
+			* @param {*} type
+			* @param {*} props
+			* @param {*} key
+			* @param {string|object} ref
+			* @param {*} owner
+			* @param {*} self A *temporary* helper to detect places where `this` is
+			* different from the `owner` when React.createElement is called, so that we
+			* can warn. We want to get rid of owner and replace string `ref`s with arrow
+			* functions, and as long as `this` and owner are the same, there will be no
+			* change in behavior.
+			* @param {*} source An annotation object (added by a transpiler or otherwise)
+			* indicating filename, line number, and/or other information.
+			* @internal
+			*/
+			var ReactElement = function(type, key, ref, self, source, owner, props) {
+				var element = {
+					$$typeof: REACT_ELEMENT_TYPE,
+					type,
+					key,
+					ref,
+					props,
+					_owner: owner
+				};
+				element._store = {};
+				Object.defineProperty(element._store, "validated", {
+					configurable: false,
+					enumerable: false,
+					writable: true,
+					value: false
+				});
+				Object.defineProperty(element, "_self", {
+					configurable: false,
+					enumerable: false,
+					writable: false,
+					value: self
+				});
+				Object.defineProperty(element, "_source", {
+					configurable: false,
+					enumerable: false,
+					writable: false,
+					value: source
+				});
+				if (Object.freeze) {
+					Object.freeze(element.props);
+					Object.freeze(element);
+				}
+				return element;
+			};
+			/**
+			* https://github.com/reactjs/rfcs/pull/107
+			* @param {*} type
+			* @param {object} props
+			* @param {string} key
+			*/
+			function jsxDEV(type, config, maybeKey, source, self) {
+				var propName;
+				var props = {};
+				var key = null;
+				var ref = null;
+				if (maybeKey !== void 0) {
+					checkKeyStringCoercion(maybeKey);
+					key = "" + maybeKey;
+				}
+				if (hasValidKey(config)) {
+					checkKeyStringCoercion(config.key);
+					key = "" + config.key;
+				}
+				if (hasValidRef(config)) {
+					ref = config.ref;
+					warnIfStringRefCannotBeAutoConverted(config, self);
+				}
+				for (propName in config) if (hasOwnProperty.call(config, propName) && !RESERVED_PROPS.hasOwnProperty(propName)) props[propName] = config[propName];
+				if (type && type.defaultProps) {
+					var defaultProps = type.defaultProps;
+					for (propName in defaultProps) if (props[propName] === void 0) props[propName] = defaultProps[propName];
+				}
+				if (key || ref) {
+					var displayName = typeof type === "function" ? type.displayName || type.name || "Unknown" : type;
+					if (key) defineKeyPropWarningGetter(props, displayName);
+					if (ref) defineRefPropWarningGetter(props, displayName);
+				}
+				return ReactElement(type, key, ref, self, source, ReactCurrentOwner.current, props);
+			}
+			var ReactCurrentOwner$1 = ReactSharedInternals.ReactCurrentOwner;
+			var ReactDebugCurrentFrame$1 = ReactSharedInternals.ReactDebugCurrentFrame;
+			function setCurrentlyValidatingElement$1(element) {
+				if (element) {
+					var owner = element._owner;
+					var stack = describeUnknownElementTypeFrameInDEV(element.type, element._source, owner ? owner.type : null);
+					ReactDebugCurrentFrame$1.setExtraStackFrame(stack);
+				} else ReactDebugCurrentFrame$1.setExtraStackFrame(null);
+			}
+			var propTypesMisspellWarningShown = false;
+			/**
+			* Verifies the object is a ReactElement.
+			* See https://reactjs.org/docs/react-api.html#isvalidelement
+			* @param {?object} object
+			* @return {boolean} True if `object` is a ReactElement.
+			* @final
+			*/
+			function isValidElement(object) {
+				return typeof object === "object" && object !== null && object.$$typeof === REACT_ELEMENT_TYPE;
+			}
+			function getDeclarationErrorAddendum() {
+				if (ReactCurrentOwner$1.current) {
+					var name = getComponentNameFromType(ReactCurrentOwner$1.current.type);
+					if (name) return "\n\nCheck the render method of `" + name + "`.";
+				}
+				return "";
+			}
+			function getSourceInfoErrorAddendum(source) {
+				if (source !== void 0) {
+					var fileName = source.fileName.replace(/^.*[\\\/]/, "");
+					var lineNumber = source.lineNumber;
+					return "\n\nCheck your code at " + fileName + ":" + lineNumber + ".";
+				}
+				return "";
+			}
+			/**
+			* Warn if there's no key explicitly set on dynamic arrays of children or
+			* object keys are not valid. This allows us to keep track of children between
+			* updates.
+			*/
+			var ownerHasKeyUseWarning = {};
+			function getCurrentComponentErrorInfo(parentType) {
+				var info = getDeclarationErrorAddendum();
+				if (!info) {
+					var parentName = typeof parentType === "string" ? parentType : parentType.displayName || parentType.name;
+					if (parentName) info = "\n\nCheck the top-level render call using <" + parentName + ">.";
+				}
+				return info;
+			}
+			/**
+			* Warn if the element doesn't have an explicit key assigned to it.
+			* This element is in an array. The array could grow and shrink or be
+			* reordered. All children that haven't already been validated are required to
+			* have a "key" property assigned to it. Error statuses are cached so a warning
+			* will only be shown once.
+			*
+			* @internal
+			* @param {ReactElement} element Element that requires a key.
+			* @param {*} parentType element's parent's type.
+			*/
+			function validateExplicitKey(element, parentType) {
+				if (!element._store || element._store.validated || element.key != null) return;
+				element._store.validated = true;
+				var currentComponentErrorInfo = getCurrentComponentErrorInfo(parentType);
+				if (ownerHasKeyUseWarning[currentComponentErrorInfo]) return;
+				ownerHasKeyUseWarning[currentComponentErrorInfo] = true;
+				var childOwner = "";
+				if (element && element._owner && element._owner !== ReactCurrentOwner$1.current) childOwner = " It was passed a child from " + getComponentNameFromType(element._owner.type) + ".";
+				setCurrentlyValidatingElement$1(element);
+				error("Each child in a list should have a unique \"key\" prop.%s%s See https://reactjs.org/link/warning-keys for more information.", currentComponentErrorInfo, childOwner);
+				setCurrentlyValidatingElement$1(null);
+			}
+			/**
+			* Ensure that every element either is passed in a static location, in an
+			* array with an explicit keys property defined, or in an object literal
+			* with valid key property.
+			*
+			* @internal
+			* @param {ReactNode} node Statically passed child of any type.
+			* @param {*} parentType node's parent's type.
+			*/
+			function validateChildKeys(node, parentType) {
+				if (typeof node !== "object") return;
+				if (isArray(node)) for (var i = 0; i < node.length; i++) {
+					var child = node[i];
+					if (isValidElement(child)) validateExplicitKey(child, parentType);
+				}
+				else if (isValidElement(node)) {
+					if (node._store) node._store.validated = true;
+				} else if (node) {
+					var iteratorFn = getIteratorFn(node);
+					if (typeof iteratorFn === "function") {
+						if (iteratorFn !== node.entries) {
+							var iterator = iteratorFn.call(node);
+							var step;
+							while (!(step = iterator.next()).done) if (isValidElement(step.value)) validateExplicitKey(step.value, parentType);
+						}
+					}
+				}
+			}
+			/**
+			* Given an element, validate that its props follow the propTypes definition,
+			* provided by the type.
+			*
+			* @param {ReactElement} element
+			*/
+			function validatePropTypes(element) {
+				var type = element.type;
+				if (type === null || type === void 0 || typeof type === "string") return;
+				var propTypes;
+				if (typeof type === "function") propTypes = type.propTypes;
+				else if (typeof type === "object" && (type.$$typeof === REACT_FORWARD_REF_TYPE || type.$$typeof === REACT_MEMO_TYPE)) propTypes = type.propTypes;
+				else return;
+				if (propTypes) {
+					var name = getComponentNameFromType(type);
+					checkPropTypes(propTypes, element.props, "prop", name, element);
+				} else if (type.PropTypes !== void 0 && !propTypesMisspellWarningShown) {
+					propTypesMisspellWarningShown = true;
+					error("Component %s declared `PropTypes` instead of `propTypes`. Did you misspell the property assignment?", getComponentNameFromType(type) || "Unknown");
+				}
+				if (typeof type.getDefaultProps === "function" && !type.getDefaultProps.isReactClassApproved) error("getDefaultProps is only used on classic React.createClass definitions. Use a static property named `defaultProps` instead.");
+			}
+			/**
+			* Given a fragment, validate that it can only be provided with fragment props
+			* @param {ReactElement} fragment
+			*/
+			function validateFragmentProps(fragment) {
+				var keys = Object.keys(fragment.props);
+				for (var i = 0; i < keys.length; i++) {
+					var key = keys[i];
+					if (key !== "children" && key !== "key") {
+						setCurrentlyValidatingElement$1(fragment);
+						error("Invalid prop `%s` supplied to `React.Fragment`. React.Fragment can only have `key` and `children` props.", key);
+						setCurrentlyValidatingElement$1(null);
+						break;
+					}
+				}
+				if (fragment.ref !== null) {
+					setCurrentlyValidatingElement$1(fragment);
+					error("Invalid attribute `ref` supplied to `React.Fragment`.");
+					setCurrentlyValidatingElement$1(null);
+				}
+			}
+			var didWarnAboutKeySpread = {};
+			function jsxWithValidation(type, props, key, isStaticChildren, source, self) {
+				var validType = isValidElementType(type);
+				if (!validType) {
+					var info = "";
+					if (type === void 0 || typeof type === "object" && type !== null && Object.keys(type).length === 0) info += " You likely forgot to export your component from the file it's defined in, or you might have mixed up default and named imports.";
+					var sourceInfo = getSourceInfoErrorAddendum(source);
+					if (sourceInfo) info += sourceInfo;
+					else info += getDeclarationErrorAddendum();
+					var typeString;
+					if (type === null) typeString = "null";
+					else if (isArray(type)) typeString = "array";
+					else if (type !== void 0 && type.$$typeof === REACT_ELEMENT_TYPE) {
+						typeString = "<" + (getComponentNameFromType(type.type) || "Unknown") + " />";
+						info = " Did you accidentally export a JSX literal instead of a component?";
+					} else typeString = typeof type;
+					error("React.jsx: type is invalid -- expected a string (for built-in components) or a class/function (for composite components) but got: %s.%s", typeString, info);
+				}
+				var element = jsxDEV(type, props, key, source, self);
+				if (element == null) return element;
+				if (validType) {
+					var children = props.children;
+					if (children !== void 0) if (isStaticChildren) if (isArray(children)) {
+						for (var i = 0; i < children.length; i++) validateChildKeys(children[i], type);
+						if (Object.freeze) Object.freeze(children);
+					} else error("React.jsx: Static children should always be an array. You are likely explicitly calling React.jsxs or React.jsxDEV. Use the Babel transform instead.");
+					else validateChildKeys(children, type);
+				}
+				if (hasOwnProperty.call(props, "key")) {
+					var componentName = getComponentNameFromType(type);
+					var keys = Object.keys(props).filter(function(k) {
+						return k !== "key";
+					});
+					var beforeExample = keys.length > 0 ? "{key: someKey, " + keys.join(": ..., ") + ": ...}" : "{key: someKey}";
+					if (!didWarnAboutKeySpread[componentName + beforeExample]) {
+						error("A props object containing a \"key\" prop is being spread into JSX:\n  let props = %s;\n  <%s {...props} />\nReact keys must be passed directly to JSX without using spread:\n  let props = %s;\n  <%s key={someKey} {...props} />", beforeExample, componentName, keys.length > 0 ? "{" + keys.join(": ..., ") + ": ...}" : "{}", componentName);
+						didWarnAboutKeySpread[componentName + beforeExample] = true;
+					}
+				}
+				if (type === REACT_FRAGMENT_TYPE) validateFragmentProps(element);
+				else validatePropTypes(element);
+				return element;
+			}
+			function jsxWithValidationStatic(type, props, key) {
+				return jsxWithValidation(type, props, key, true);
+			}
+			function jsxWithValidationDynamic(type, props, key) {
+				return jsxWithValidation(type, props, key, false);
+			}
+			var jsx = jsxWithValidationDynamic;
+			var jsxs = jsxWithValidationStatic;
+			exports.Fragment = REACT_FRAGMENT_TYPE;
+			exports.jsx = jsx;
+			exports.jsxs = jsxs;
+		})();
+	}));
+
+//#endregion
+//#region node_modules/react/jsx-runtime.js
+	var require_jsx_runtime = /* @__PURE__ */ __commonJSMin(((exports, module) => {
+		module.exports = require_react_jsx_runtime_development();
+	}));
+
+//#endregion
+//#region node_modules/@floating-ui/core/dist/floating-ui.core.mjs
+var import_jsx_runtime = require_jsx_runtime();
+	function computeCoordsFromPlacement(_ref, placement, rtl) {
+		let { reference, floating } = _ref;
+		const sideAxis = getSideAxis(placement);
+		const alignmentAxis = getAlignmentAxis(placement);
+		const alignLength = getAxisLength(alignmentAxis);
+		const side = getSide(placement);
+		const isVertical = sideAxis === "y";
+		const commonX = reference.x + reference.width / 2 - floating.width / 2;
+		const commonY = reference.y + reference.height / 2 - floating.height / 2;
+		const commonAlign = reference[alignLength] / 2 - floating[alignLength] / 2;
+		let coords;
+		switch (side) {
+			case "top":
+				coords = {
+					x: commonX,
+					y: reference.y - floating.height
+				};
+				break;
+			case "bottom":
+				coords = {
+					x: commonX,
+					y: reference.y + reference.height
+				};
+				break;
+			case "right":
+				coords = {
+					x: reference.x + reference.width,
+					y: commonY
+				};
+				break;
+			case "left":
+				coords = {
+					x: reference.x - floating.width,
+					y: commonY
+				};
+				break;
+			default: coords = {
+				x: reference.x,
+				y: reference.y
+			};
+		}
+		switch (getAlignment(placement)) {
+			case "start":
+				coords[alignmentAxis] -= commonAlign * (rtl && isVertical ? -1 : 1);
+				break;
+			case "end":
+				coords[alignmentAxis] += commonAlign * (rtl && isVertical ? -1 : 1);
+				break;
+		}
+		return coords;
+	}
+	/**
+	* Resolves with an object of overflow side offsets that determine how much the
+	* element is overflowing a given clipping boundary on each side.
+	* - positive = overflowing the boundary by that number of pixels
+	* - negative = how many pixels left before it will overflow
+	* - 0 = lies flush with the boundary
+	* @see https://floating-ui.com/docs/detectOverflow
+	*/
+	async function detectOverflow(state, options) {
+		var _await$platform$isEle;
+		if (options === void 0) options = {};
+		const { x, y, platform, rects, elements, strategy } = state;
+		const { boundary = "clippingAncestors", rootBoundary = "viewport", elementContext = "floating", altBoundary = false, padding = 0 } = evaluate(options, state);
+		const paddingObject = getPaddingObject(padding);
+		const element = elements[altBoundary ? elementContext === "floating" ? "reference" : "floating" : elementContext];
+		const clippingClientRect = rectToClientRect(await platform.getClippingRect({
+			element: ((_await$platform$isEle = await (platform.isElement == null ? void 0 : platform.isElement(element))) != null ? _await$platform$isEle : true) ? element : element.contextElement || await (platform.getDocumentElement == null ? void 0 : platform.getDocumentElement(elements.floating)),
+			boundary,
+			rootBoundary,
+			strategy
+		}));
+		const rect = elementContext === "floating" ? {
+			x,
+			y,
+			width: rects.floating.width,
+			height: rects.floating.height
+		} : rects.reference;
+		const offsetParent = await (platform.getOffsetParent == null ? void 0 : platform.getOffsetParent(elements.floating));
+		const offsetScale = await (platform.isElement == null ? void 0 : platform.isElement(offsetParent)) ? await (platform.getScale == null ? void 0 : platform.getScale(offsetParent)) || {
+			x: 1,
+			y: 1
+		} : {
+			x: 1,
+			y: 1
+		};
+		const elementClientRect = rectToClientRect(platform.convertOffsetParentRelativeRectToViewportRelativeRect ? await platform.convertOffsetParentRelativeRectToViewportRelativeRect({
+			elements,
+			rect,
+			offsetParent,
+			strategy
+		}) : rect);
+		return {
+			top: (clippingClientRect.top - elementClientRect.top + paddingObject.top) / offsetScale.y,
+			bottom: (elementClientRect.bottom - clippingClientRect.bottom + paddingObject.bottom) / offsetScale.y,
+			left: (clippingClientRect.left - elementClientRect.left + paddingObject.left) / offsetScale.x,
+			right: (elementClientRect.right - clippingClientRect.right + paddingObject.right) / offsetScale.x
+		};
+	}
+	var MAX_RESET_COUNT = 50;
+	/**
+	* Computes the `x` and `y` coordinates that will place the floating element
+	* next to a given reference element.
+	*
+	* This export does not have any `platform` interface logic. You will need to
+	* write one for the platform you are using Floating UI with.
+	*/
+	var computePosition$1 = /* @__PURE__ */ __name(async (reference, floating, config) => {
+		const { placement = "bottom", strategy = "absolute", middleware = [], platform } = config;
+		const platformWithDetectOverflow = platform.detectOverflow ? platform : {
+			...platform,
+			detectOverflow
+		};
+		const rtl = await (platform.isRTL == null ? void 0 : platform.isRTL(floating));
+		let rects = await platform.getElementRects({
+			reference,
+			floating,
+			strategy
+		});
+		let { x, y } = computeCoordsFromPlacement(rects, placement, rtl);
+		let statefulPlacement = placement;
+		let resetCount = 0;
+		const middlewareData = {};
+		for (let i = 0; i < middleware.length; i++) {
+			const currentMiddleware = middleware[i];
+			if (!currentMiddleware) continue;
+			const { name, fn } = currentMiddleware;
+			const { x: nextX, y: nextY, data, reset } = await fn({
+				x,
+				y,
+				initialPlacement: placement,
+				placement: statefulPlacement,
+				strategy,
+				middlewareData,
+				rects,
+				platform: platformWithDetectOverflow,
+				elements: {
+					reference,
+					floating
+				}
+			});
+			x = nextX != null ? nextX : x;
+			y = nextY != null ? nextY : y;
+			middlewareData[name] = {
+				...middlewareData[name],
+				...data
+			};
+			if (reset && resetCount < MAX_RESET_COUNT) {
+				resetCount++;
+				if (typeof reset === "object") {
+					if (reset.placement) statefulPlacement = reset.placement;
+					if (reset.rects) rects = reset.rects === true ? await platform.getElementRects({
+						reference,
+						floating,
+						strategy
+					}) : reset.rects;
+					({x, y} = computeCoordsFromPlacement(rects, statefulPlacement, rtl));
+				}
+				i = -1;
+			}
+		}
+		return {
+			x,
+			y,
+			placement: statefulPlacement,
+			strategy,
+			middlewareData
+		};
+	}, "computePosition");
+	/**
+	* Optimizes the visibility of the floating element by flipping the `placement`
+	* in order to keep it in view when the preferred placement(s) will overflow the
+	* clipping boundary. Alternative to `autoPlacement`.
+	* @see https://floating-ui.com/docs/flip
+	*/
+	var flip$2 = /* @__PURE__ */ __name(function(options) {
+		if (options === void 0) options = {};
+		return {
+			name: "flip",
+			options,
+			async fn(state) {
+				var _middlewareData$arrow;
+				var _middlewareData$flip;
+				const { placement, middlewareData, rects, initialPlacement, platform, elements } = state;
+				const { mainAxis: checkMainAxis = true, crossAxis: checkCrossAxis = true, fallbackPlacements: specifiedFallbackPlacements, fallbackStrategy = "bestFit", fallbackAxisSideDirection = "none", flipAlignment = true, ...detectOverflowOptions } = evaluate(options, state);
+				if ((_middlewareData$arrow = middlewareData.arrow) != null && _middlewareData$arrow.alignmentOffset) return {};
+				const side = getSide(placement);
+				const initialSideAxis = getSideAxis(initialPlacement);
+				const isBasePlacement = getSide(initialPlacement) === initialPlacement;
+				const rtl = await (platform.isRTL == null ? void 0 : platform.isRTL(elements.floating));
+				const fallbackPlacements = specifiedFallbackPlacements || (isBasePlacement || !flipAlignment ? [getOppositePlacement(initialPlacement)] : getExpandedPlacements(initialPlacement));
+				const hasFallbackAxisSideDirection = fallbackAxisSideDirection !== "none";
+				if (!specifiedFallbackPlacements && hasFallbackAxisSideDirection) fallbackPlacements.push(...getOppositeAxisPlacements(initialPlacement, flipAlignment, fallbackAxisSideDirection, rtl));
+				const placements = [initialPlacement, ...fallbackPlacements];
+				const overflow = await platform.detectOverflow(state, detectOverflowOptions);
+				const overflows = [];
+				let overflowsData = ((_middlewareData$flip = middlewareData.flip) == null ? void 0 : _middlewareData$flip.overflows) || [];
+				if (checkMainAxis) overflows.push(overflow[side]);
+				if (checkCrossAxis) {
+					const sides = getAlignmentSides(placement, rects, rtl);
+					overflows.push(overflow[sides[0]], overflow[sides[1]]);
+				}
+				overflowsData = [...overflowsData, {
+					placement,
+					overflows
+				}];
+				if (!overflows.every((side) => side <= 0)) {
+					var _middlewareData$flip2;
+					var _overflowsData$filter;
+					const nextIndex = (((_middlewareData$flip2 = middlewareData.flip) == null ? void 0 : _middlewareData$flip2.index) || 0) + 1;
+					const nextPlacement = placements[nextIndex];
+					if (nextPlacement) {
+						if (!(checkCrossAxis === "alignment" ? initialSideAxis !== getSideAxis(nextPlacement) : false) || overflowsData.every((d) => getSideAxis(d.placement) === initialSideAxis ? d.overflows[0] > 0 : true)) return {
+							data: {
+								index: nextIndex,
+								overflows: overflowsData
+							},
+							reset: { placement: nextPlacement }
+						};
+					}
+					let resetPlacement = (_overflowsData$filter = overflowsData.filter((d) => d.overflows[0] <= 0).sort((a, b) => a.overflows[1] - b.overflows[1])[0]) == null ? void 0 : _overflowsData$filter.placement;
+					if (!resetPlacement) switch (fallbackStrategy) {
+						case "bestFit": {
+							var _overflowsData$filter2;
+							const placement = (_overflowsData$filter2 = overflowsData.filter((d) => {
+								if (hasFallbackAxisSideDirection) {
+									const currentSideAxis = getSideAxis(d.placement);
+									return currentSideAxis === initialSideAxis || currentSideAxis === "y";
+								}
+								return true;
+							}).map((d) => [d.placement, d.overflows.filter((overflow) => overflow > 0).reduce((acc, overflow) => acc + overflow, 0)]).sort((a, b) => a[1] - b[1])[0]) == null ? void 0 : _overflowsData$filter2[0];
+							if (placement) resetPlacement = placement;
+							break;
+						}
+						case "initialPlacement":
+							resetPlacement = initialPlacement;
+							break;
+					}
+					if (placement !== resetPlacement) return { reset: { placement: resetPlacement } };
+				}
+				return {};
+			}
+		};
+	}, "flip");
+	var originSides = /*#__PURE__*/ new Set(["left", "top"]);
+	async function convertValueToCoords(state, options) {
+		const { placement, platform, elements } = state;
+		const rtl = await (platform.isRTL == null ? void 0 : platform.isRTL(elements.floating));
+		const side = getSide(placement);
+		const alignment = getAlignment(placement);
+		const isVertical = getSideAxis(placement) === "y";
+		const mainAxisMulti = originSides.has(side) ? -1 : 1;
+		const crossAxisMulti = rtl && isVertical ? -1 : 1;
+		const rawValue = evaluate(options, state);
+		let { mainAxis, crossAxis, alignmentAxis } = typeof rawValue === "number" ? {
+			mainAxis: rawValue,
+			crossAxis: 0,
+			alignmentAxis: null
+		} : {
+			mainAxis: rawValue.mainAxis || 0,
+			crossAxis: rawValue.crossAxis || 0,
+			alignmentAxis: rawValue.alignmentAxis
+		};
+		if (alignment && typeof alignmentAxis === "number") crossAxis = alignment === "end" ? alignmentAxis * -1 : alignmentAxis;
+		return isVertical ? {
+			x: crossAxis * crossAxisMulti,
+			y: mainAxis * mainAxisMulti
+		} : {
+			x: mainAxis * mainAxisMulti,
+			y: crossAxis * crossAxisMulti
+		};
+	}
+	/**
+	* Modifies the placement by translating the floating element along the
+	* specified axes.
+	* A number (shorthand for `mainAxis` or distance), or an axes configuration
+	* object may be passed.
+	* @see https://floating-ui.com/docs/offset
+	*/
+	var offset$2 = /* @__PURE__ */ __name(function(options) {
+		if (options === void 0) options = 0;
+		return {
+			name: "offset",
+			options,
+			async fn(state) {
+				var _middlewareData$offse;
+				var _middlewareData$arrow;
+				const { x, y, placement, middlewareData } = state;
+				const diffCoords = await convertValueToCoords(state, options);
+				if (placement === ((_middlewareData$offse = middlewareData.offset) == null ? void 0 : _middlewareData$offse.placement) && (_middlewareData$arrow = middlewareData.arrow) != null && _middlewareData$arrow.alignmentOffset) return {};
+				return {
+					x: x + diffCoords.x,
+					y: y + diffCoords.y,
+					data: {
+						...diffCoords,
+						placement
+					}
+				};
+			}
+		};
+	}, "offset");
+	/**
+	* Provides data that allows you to change the size of the floating element —
+	* for instance, prevent it from overflowing the clipping boundary or match the
+	* width of the reference element.
+	* @see https://floating-ui.com/docs/size
+	*/
+	var size$2 = /* @__PURE__ */ __name(function(options) {
+		if (options === void 0) options = {};
+		return {
+			name: "size",
+			options,
+			async fn(state) {
+				var _state$middlewareData;
+				var _state$middlewareData2;
+				const { placement, rects, platform, elements } = state;
+				const { apply = () => {}, ...detectOverflowOptions } = evaluate(options, state);
+				const overflow = await platform.detectOverflow(state, detectOverflowOptions);
+				const side = getSide(placement);
+				const alignment = getAlignment(placement);
+				const isYAxis = getSideAxis(placement) === "y";
+				const { width, height } = rects.floating;
+				let heightSide;
+				let widthSide;
+				if (side === "top" || side === "bottom") {
+					heightSide = side;
+					widthSide = alignment === (await (platform.isRTL == null ? void 0 : platform.isRTL(elements.floating)) ? "start" : "end") ? "left" : "right";
+				} else {
+					widthSide = side;
+					heightSide = alignment === "end" ? "top" : "bottom";
+				}
+				const maximumClippingHeight = height - overflow.top - overflow.bottom;
+				const maximumClippingWidth = width - overflow.left - overflow.right;
+				const overflowAvailableHeight = min(height - overflow[heightSide], maximumClippingHeight);
+				const overflowAvailableWidth = min(width - overflow[widthSide], maximumClippingWidth);
+				const noShift = !state.middlewareData.shift;
+				let availableHeight = overflowAvailableHeight;
+				let availableWidth = overflowAvailableWidth;
+				if ((_state$middlewareData = state.middlewareData.shift) != null && _state$middlewareData.enabled.x) availableWidth = maximumClippingWidth;
+				if ((_state$middlewareData2 = state.middlewareData.shift) != null && _state$middlewareData2.enabled.y) availableHeight = maximumClippingHeight;
+				if (noShift && !alignment) {
+					const xMin = max(overflow.left, 0);
+					const xMax = max(overflow.right, 0);
+					const yMin = max(overflow.top, 0);
+					const yMax = max(overflow.bottom, 0);
+					if (isYAxis) availableWidth = width - 2 * (xMin !== 0 || xMax !== 0 ? xMin + xMax : max(overflow.left, overflow.right));
+					else availableHeight = height - 2 * (yMin !== 0 || yMax !== 0 ? yMin + yMax : max(overflow.top, overflow.bottom));
+				}
+				await apply({
+					...state,
+					availableWidth,
+					availableHeight
+				});
+				const nextDimensions = await platform.getDimensions(elements.floating);
+				if (width !== nextDimensions.width || height !== nextDimensions.height) return { reset: { rects: true } };
+				return {};
+			}
+		};
+	}, "size");
+
+//#endregion
+//#region node_modules/@floating-ui/dom/dist/floating-ui.dom.mjs
+	function getCssDimensions(element) {
+		const css = getComputedStyle$1(element);
+		let width = parseFloat(css.width) || 0;
+		let height = parseFloat(css.height) || 0;
+		const hasOffset = isHTMLElement(element);
+		const offsetWidth = hasOffset ? element.offsetWidth : width;
+		const offsetHeight = hasOffset ? element.offsetHeight : height;
+		const shouldFallback = round(width) !== offsetWidth || round(height) !== offsetHeight;
+		if (shouldFallback) {
+			width = offsetWidth;
+			height = offsetHeight;
+		}
+		return {
+			width,
+			height,
+			$: shouldFallback
+		};
+	}
+	function unwrapElement(element) {
+		return !isElement(element) ? element.contextElement : element;
+	}
+	function getScale(element) {
+		const domElement = unwrapElement(element);
+		if (!isHTMLElement(domElement)) return createCoords(1);
+		const rect = domElement.getBoundingClientRect();
+		const { width, height, $ } = getCssDimensions(domElement);
+		let x = ($ ? round(rect.width) : rect.width) / width;
+		let y = ($ ? round(rect.height) : rect.height) / height;
+		if (!x || !Number.isFinite(x)) x = 1;
+		if (!y || !Number.isFinite(y)) y = 1;
+		return {
+			x,
+			y
+		};
+	}
+	var noOffsets = /*#__PURE__*/ createCoords(0);
+	function getVisualOffsets(element) {
+		const win = getWindow(element);
+		if (!isWebKit() || !win.visualViewport) return noOffsets;
+		return {
+			x: win.visualViewport.offsetLeft,
+			y: win.visualViewport.offsetTop
+		};
+	}
+	function shouldAddVisualOffsets(element, isFixed, floatingOffsetParent) {
+		if (isFixed === void 0) isFixed = false;
+		if (!floatingOffsetParent || isFixed && floatingOffsetParent !== getWindow(element)) return false;
+		return isFixed;
+	}
+	function getBoundingClientRect(element, includeScale, isFixedStrategy, offsetParent) {
+		if (includeScale === void 0) includeScale = false;
+		if (isFixedStrategy === void 0) isFixedStrategy = false;
+		const clientRect = element.getBoundingClientRect();
+		const domElement = unwrapElement(element);
+		let scale = createCoords(1);
+		if (includeScale) if (offsetParent) {
+			if (isElement(offsetParent)) scale = getScale(offsetParent);
+		} else scale = getScale(element);
+		const visualOffsets = shouldAddVisualOffsets(domElement, isFixedStrategy, offsetParent) ? getVisualOffsets(domElement) : createCoords(0);
+		let x = (clientRect.left + visualOffsets.x) / scale.x;
+		let y = (clientRect.top + visualOffsets.y) / scale.y;
+		let width = clientRect.width / scale.x;
+		let height = clientRect.height / scale.y;
+		if (domElement) {
+			const win = getWindow(domElement);
+			const offsetWin = offsetParent && isElement(offsetParent) ? getWindow(offsetParent) : offsetParent;
+			let currentWin = win;
+			let currentIFrame = getFrameElement(currentWin);
+			while (currentIFrame && offsetParent && offsetWin !== currentWin) {
+				const iframeScale = getScale(currentIFrame);
+				const iframeRect = currentIFrame.getBoundingClientRect();
+				const css = getComputedStyle$1(currentIFrame);
+				const left = iframeRect.left + (currentIFrame.clientLeft + parseFloat(css.paddingLeft)) * iframeScale.x;
+				const top = iframeRect.top + (currentIFrame.clientTop + parseFloat(css.paddingTop)) * iframeScale.y;
+				x *= iframeScale.x;
+				y *= iframeScale.y;
+				width *= iframeScale.x;
+				height *= iframeScale.y;
+				x += left;
+				y += top;
+				currentWin = getWindow(currentIFrame);
+				currentIFrame = getFrameElement(currentWin);
+			}
+		}
+		return rectToClientRect({
+			width,
+			height,
+			x,
+			y
+		});
+	}
+	function getWindowScrollBarX(element, rect) {
+		const leftScroll = getNodeScroll(element).scrollLeft;
+		if (!rect) return getBoundingClientRect(getDocumentElement(element)).left + leftScroll;
+		return rect.left + leftScroll;
+	}
+	function getHTMLOffset(documentElement, scroll) {
+		const htmlRect = documentElement.getBoundingClientRect();
+		return {
+			x: htmlRect.left + scroll.scrollLeft - getWindowScrollBarX(documentElement, htmlRect),
+			y: htmlRect.top + scroll.scrollTop
+		};
+	}
+	function convertOffsetParentRelativeRectToViewportRelativeRect(_ref) {
+		let { elements, rect, offsetParent, strategy } = _ref;
+		const isFixed = strategy === "fixed";
+		const documentElement = getDocumentElement(offsetParent);
+		const topLayer = elements ? isTopLayer(elements.floating) : false;
+		if (offsetParent === documentElement || topLayer && isFixed) return rect;
+		let scroll = {
+			scrollLeft: 0,
+			scrollTop: 0
+		};
+		let scale = createCoords(1);
+		const offsets = createCoords(0);
+		const isOffsetParentAnElement = isHTMLElement(offsetParent);
+		if (isOffsetParentAnElement || !isOffsetParentAnElement && !isFixed) {
+			if (getNodeName(offsetParent) !== "body" || isOverflowElement(documentElement)) scroll = getNodeScroll(offsetParent);
+			if (isOffsetParentAnElement) {
+				const offsetRect = getBoundingClientRect(offsetParent);
+				scale = getScale(offsetParent);
+				offsets.x = offsetRect.x + offsetParent.clientLeft;
+				offsets.y = offsetRect.y + offsetParent.clientTop;
+			}
+		}
+		const htmlOffset = documentElement && !isOffsetParentAnElement && !isFixed ? getHTMLOffset(documentElement, scroll) : createCoords(0);
+		return {
+			width: rect.width * scale.x,
+			height: rect.height * scale.y,
+			x: rect.x * scale.x - scroll.scrollLeft * scale.x + offsets.x + htmlOffset.x,
+			y: rect.y * scale.y - scroll.scrollTop * scale.y + offsets.y + htmlOffset.y
+		};
+	}
+	function getClientRects(element) {
+		return Array.from(element.getClientRects());
+	}
+	function getDocumentRect(element) {
+		const html = getDocumentElement(element);
+		const scroll = getNodeScroll(element);
+		const body = element.ownerDocument.body;
+		const width = max(html.scrollWidth, html.clientWidth, body.scrollWidth, body.clientWidth);
+		const height = max(html.scrollHeight, html.clientHeight, body.scrollHeight, body.clientHeight);
+		let x = -scroll.scrollLeft + getWindowScrollBarX(element);
+		const y = -scroll.scrollTop;
+		if (getComputedStyle$1(body).direction === "rtl") x += max(html.clientWidth, body.clientWidth) - width;
+		return {
+			width,
+			height,
+			x,
+			y
+		};
+	}
+	var SCROLLBAR_MAX = 25;
+	function getViewportRect(element, strategy) {
+		const win = getWindow(element);
+		const html = getDocumentElement(element);
+		const visualViewport = win.visualViewport;
+		let width = html.clientWidth;
+		let height = html.clientHeight;
+		let x = 0;
+		let y = 0;
+		if (visualViewport) {
+			width = visualViewport.width;
+			height = visualViewport.height;
+			const visualViewportBased = isWebKit();
+			if (!visualViewportBased || visualViewportBased && strategy === "fixed") {
+				x = visualViewport.offsetLeft;
+				y = visualViewport.offsetTop;
+			}
+		}
+		const windowScrollbarX = getWindowScrollBarX(html);
+		if (windowScrollbarX <= 0) {
+			const doc = html.ownerDocument;
+			const body = doc.body;
+			const bodyStyles = getComputedStyle(body);
+			const bodyMarginInline = doc.compatMode === "CSS1Compat" ? parseFloat(bodyStyles.marginLeft) + parseFloat(bodyStyles.marginRight) || 0 : 0;
+			const clippingStableScrollbarWidth = Math.abs(html.clientWidth - body.clientWidth - bodyMarginInline);
+			if (clippingStableScrollbarWidth <= SCROLLBAR_MAX) width -= clippingStableScrollbarWidth;
+		} else if (windowScrollbarX <= SCROLLBAR_MAX) width += windowScrollbarX;
+		return {
+			width,
+			height,
+			x,
+			y
+		};
+	}
+	function getInnerBoundingClientRect(element, strategy) {
+		const clientRect = getBoundingClientRect(element, true, strategy === "fixed");
+		const top = clientRect.top + element.clientTop;
+		const left = clientRect.left + element.clientLeft;
+		const scale = isHTMLElement(element) ? getScale(element) : createCoords(1);
+		return {
+			width: element.clientWidth * scale.x,
+			height: element.clientHeight * scale.y,
+			x: left * scale.x,
+			y: top * scale.y
+		};
+	}
+	function getClientRectFromClippingAncestor(element, clippingAncestor, strategy) {
+		let rect;
+		if (clippingAncestor === "viewport") rect = getViewportRect(element, strategy);
+		else if (clippingAncestor === "document") rect = getDocumentRect(getDocumentElement(element));
+		else if (isElement(clippingAncestor)) rect = getInnerBoundingClientRect(clippingAncestor, strategy);
+		else {
+			const visualOffsets = getVisualOffsets(element);
+			rect = {
+				x: clippingAncestor.x - visualOffsets.x,
+				y: clippingAncestor.y - visualOffsets.y,
+				width: clippingAncestor.width,
+				height: clippingAncestor.height
+			};
+		}
+		return rectToClientRect(rect);
+	}
+	function hasFixedPositionAncestor(element, stopNode) {
+		const parentNode = getParentNode(element);
+		if (parentNode === stopNode || !isElement(parentNode) || isLastTraversableNode(parentNode)) return false;
+		return getComputedStyle$1(parentNode).position === "fixed" || hasFixedPositionAncestor(parentNode, stopNode);
+	}
+	function getClippingElementAncestors(element, cache) {
+		const cachedResult = cache.get(element);
+		if (cachedResult) return cachedResult;
+		let result = getOverflowAncestors(element, [], false).filter((el) => isElement(el) && getNodeName(el) !== "body");
+		let currentContainingBlockComputedStyle = null;
+		const elementIsFixed = getComputedStyle$1(element).position === "fixed";
+		let currentNode = elementIsFixed ? getParentNode(element) : element;
+		while (isElement(currentNode) && !isLastTraversableNode(currentNode)) {
+			const computedStyle = getComputedStyle$1(currentNode);
+			const currentNodeIsContaining = isContainingBlock(currentNode);
+			if (!currentNodeIsContaining && computedStyle.position === "fixed") currentContainingBlockComputedStyle = null;
+			if (elementIsFixed ? !currentNodeIsContaining && !currentContainingBlockComputedStyle : !currentNodeIsContaining && computedStyle.position === "static" && !!currentContainingBlockComputedStyle && (currentContainingBlockComputedStyle.position === "absolute" || currentContainingBlockComputedStyle.position === "fixed") || isOverflowElement(currentNode) && !currentNodeIsContaining && hasFixedPositionAncestor(element, currentNode)) result = result.filter((ancestor) => ancestor !== currentNode);
+			else currentContainingBlockComputedStyle = computedStyle;
+			currentNode = getParentNode(currentNode);
+		}
+		cache.set(element, result);
+		return result;
+	}
+	function getClippingRect(_ref) {
+		let { element, boundary, rootBoundary, strategy } = _ref;
+		const clippingAncestors = [...boundary === "clippingAncestors" ? isTopLayer(element) ? [] : getClippingElementAncestors(element, this._c) : [].concat(boundary), rootBoundary];
+		const firstRect = getClientRectFromClippingAncestor(element, clippingAncestors[0], strategy);
+		let top = firstRect.top;
+		let right = firstRect.right;
+		let bottom = firstRect.bottom;
+		let left = firstRect.left;
+		for (let i = 1; i < clippingAncestors.length; i++) {
+			const rect = getClientRectFromClippingAncestor(element, clippingAncestors[i], strategy);
+			top = max(rect.top, top);
+			right = min(rect.right, right);
+			bottom = min(rect.bottom, bottom);
+			left = max(rect.left, left);
+		}
+		return {
+			width: right - left,
+			height: bottom - top,
+			x: left,
+			y: top
+		};
+	}
+	function getDimensions(element) {
+		const { width, height } = getCssDimensions(element);
+		return {
+			width,
+			height
+		};
+	}
+	function getRectRelativeToOffsetParent(element, offsetParent, strategy) {
+		const isOffsetParentAnElement = isHTMLElement(offsetParent);
+		const documentElement = getDocumentElement(offsetParent);
+		const isFixed = strategy === "fixed";
+		const rect = getBoundingClientRect(element, true, isFixed, offsetParent);
+		let scroll = {
+			scrollLeft: 0,
+			scrollTop: 0
+		};
+		const offsets = createCoords(0);
+		function setLeftRTLScrollbarOffset() {
+			offsets.x = getWindowScrollBarX(documentElement);
+		}
+		if (isOffsetParentAnElement || !isOffsetParentAnElement && !isFixed) {
+			if (getNodeName(offsetParent) !== "body" || isOverflowElement(documentElement)) scroll = getNodeScroll(offsetParent);
+			if (isOffsetParentAnElement) {
+				const offsetRect = getBoundingClientRect(offsetParent, true, isFixed, offsetParent);
+				offsets.x = offsetRect.x + offsetParent.clientLeft;
+				offsets.y = offsetRect.y + offsetParent.clientTop;
+			} else if (documentElement) setLeftRTLScrollbarOffset();
+		}
+		if (isFixed && !isOffsetParentAnElement && documentElement) setLeftRTLScrollbarOffset();
+		const htmlOffset = documentElement && !isOffsetParentAnElement && !isFixed ? getHTMLOffset(documentElement, scroll) : createCoords(0);
+		return {
+			x: rect.left + scroll.scrollLeft - offsets.x - htmlOffset.x,
+			y: rect.top + scroll.scrollTop - offsets.y - htmlOffset.y,
+			width: rect.width,
+			height: rect.height
+		};
+	}
+	function isStaticPositioned(element) {
+		return getComputedStyle$1(element).position === "static";
+	}
+	function getTrueOffsetParent(element, polyfill) {
+		if (!isHTMLElement(element) || getComputedStyle$1(element).position === "fixed") return null;
+		if (polyfill) return polyfill(element);
+		let rawOffsetParent = element.offsetParent;
+		if (getDocumentElement(element) === rawOffsetParent) rawOffsetParent = rawOffsetParent.ownerDocument.body;
+		return rawOffsetParent;
+	}
+	function getOffsetParent(element, polyfill) {
+		const win = getWindow(element);
+		if (isTopLayer(element)) return win;
+		if (!isHTMLElement(element)) {
+			let svgOffsetParent = getParentNode(element);
+			while (svgOffsetParent && !isLastTraversableNode(svgOffsetParent)) {
+				if (isElement(svgOffsetParent) && !isStaticPositioned(svgOffsetParent)) return svgOffsetParent;
+				svgOffsetParent = getParentNode(svgOffsetParent);
+			}
+			return win;
+		}
+		let offsetParent = getTrueOffsetParent(element, polyfill);
+		while (offsetParent && isTableElement(offsetParent) && isStaticPositioned(offsetParent)) offsetParent = getTrueOffsetParent(offsetParent, polyfill);
+		if (offsetParent && isLastTraversableNode(offsetParent) && isStaticPositioned(offsetParent) && !isContainingBlock(offsetParent)) return win;
+		return offsetParent || getContainingBlock(element) || win;
+	}
+	var getElementRects = async function(data) {
+		const getOffsetParentFn = this.getOffsetParent || getOffsetParent;
+		const getDimensionsFn = this.getDimensions;
+		const floatingDimensions = await getDimensionsFn(data.floating);
+		return {
+			reference: getRectRelativeToOffsetParent(data.reference, await getOffsetParentFn(data.floating), data.strategy),
+			floating: {
+				x: 0,
+				y: 0,
+				width: floatingDimensions.width,
+				height: floatingDimensions.height
+			}
+		};
+	};
+	function isRTL(element) {
+		return getComputedStyle$1(element).direction === "rtl";
+	}
+	var platform = {
+		convertOffsetParentRelativeRectToViewportRelativeRect,
+		getDocumentElement,
+		getClippingRect,
+		getOffsetParent,
+		getElementRects,
+		getClientRects,
+		getDimensions,
+		getScale,
+		isElement,
+		isRTL
+	};
+	function rectsAreEqual(a, b) {
+		return a.x === b.x && a.y === b.y && a.width === b.width && a.height === b.height;
+	}
+	function observeMove(element, onMove) {
+		let io = null;
+		let timeoutId;
+		const root = getDocumentElement(element);
+		function cleanup() {
+			var _io;
+			clearTimeout(timeoutId);
+			(_io = io) == null || _io.disconnect();
+			io = null;
+		}
+		function refresh(skip, threshold) {
+			if (skip === void 0) skip = false;
+			if (threshold === void 0) threshold = 1;
+			cleanup();
+			const elementRectForRootMargin = element.getBoundingClientRect();
+			const { left, top, width, height } = elementRectForRootMargin;
+			if (!skip) onMove();
+			if (!width || !height) return;
+			const insetTop = floor(top);
+			const insetRight = floor(root.clientWidth - (left + width));
+			const insetBottom = floor(root.clientHeight - (top + height));
+			const insetLeft = floor(left);
+			const options = {
+				rootMargin: -insetTop + "px " + -insetRight + "px " + -insetBottom + "px " + -insetLeft + "px",
+				threshold: max(0, min(1, threshold)) || 1
+			};
+			let isFirstUpdate = true;
+			function handleObserve(entries) {
+				const ratio = entries[0].intersectionRatio;
+				if (ratio !== threshold) {
+					if (!isFirstUpdate) return refresh();
+					if (!ratio) timeoutId = setTimeout(() => {
+						refresh(false, 1e-7);
+					}, 1e3);
+					else refresh(false, ratio);
+				}
+				if (ratio === 1 && !rectsAreEqual(elementRectForRootMargin, element.getBoundingClientRect())) refresh();
+				isFirstUpdate = false;
+			}
+			try {
+				io = new IntersectionObserver(handleObserve, {
+					...options,
+					root: root.ownerDocument
+				});
+			} catch (_e) {
+				io = new IntersectionObserver(handleObserve, options);
+			}
+			io.observe(element);
+		}
+		refresh(true);
+		return cleanup;
+	}
+	/**
+	* Automatically updates the position of the floating element when necessary.
+	* Should only be called when the floating element is mounted on the DOM or
+	* visible on the screen.
+	* @returns cleanup function that should be invoked when the floating element is
+	* removed from the DOM or hidden from the screen.
+	* @see https://floating-ui.com/docs/autoUpdate
+	*/
+	function autoUpdate(reference, floating, update, options) {
+		if (options === void 0) options = {};
+		const { ancestorScroll = true, ancestorResize = true, elementResize = typeof ResizeObserver === "function", layoutShift = typeof IntersectionObserver === "function", animationFrame = false } = options;
+		const referenceEl = unwrapElement(reference);
+		const ancestors = ancestorScroll || ancestorResize ? [...referenceEl ? getOverflowAncestors(referenceEl) : [], ...floating ? getOverflowAncestors(floating) : []] : [];
+		ancestors.forEach((ancestor) => {
+			ancestorScroll && ancestor.addEventListener("scroll", update, { passive: true });
+			ancestorResize && ancestor.addEventListener("resize", update);
+		});
+		const cleanupIo = referenceEl && layoutShift ? observeMove(referenceEl, update) : null;
+		let reobserveFrame = -1;
+		let resizeObserver = null;
+		if (elementResize) {
+			resizeObserver = new ResizeObserver((_ref) => {
+				let [firstEntry] = _ref;
+				if (firstEntry && firstEntry.target === referenceEl && resizeObserver && floating) {
+					resizeObserver.unobserve(floating);
+					cancelAnimationFrame(reobserveFrame);
+					reobserveFrame = requestAnimationFrame(() => {
+						var _resizeObserver;
+						(_resizeObserver = resizeObserver) == null || _resizeObserver.observe(floating);
+					});
+				}
+				update();
+			});
+			if (referenceEl && !animationFrame) resizeObserver.observe(referenceEl);
+			if (floating) resizeObserver.observe(floating);
+		}
+		let frameId;
+		let prevRefRect = animationFrame ? getBoundingClientRect(reference) : null;
+		if (animationFrame) frameLoop();
+		function frameLoop() {
+			const nextRefRect = getBoundingClientRect(reference);
+			if (prevRefRect && !rectsAreEqual(prevRefRect, nextRefRect)) update();
+			prevRefRect = nextRefRect;
+			frameId = requestAnimationFrame(frameLoop);
+		}
+		update();
+		return () => {
+			var _resizeObserver2;
+			ancestors.forEach((ancestor) => {
+				ancestorScroll && ancestor.removeEventListener("scroll", update);
+				ancestorResize && ancestor.removeEventListener("resize", update);
+			});
+			cleanupIo?.();
+			(_resizeObserver2 = resizeObserver) == null || _resizeObserver2.disconnect();
+			resizeObserver = null;
+			if (animationFrame) cancelAnimationFrame(frameId);
+		};
+	}
+	/**
+	* Modifies the placement by translating the floating element along the
+	* specified axes.
+	* A number (shorthand for `mainAxis` or distance), or an axes configuration
+	* object may be passed.
+	* @see https://floating-ui.com/docs/offset
+	*/
+	var offset$1 = offset$2;
+	/**
+	* Optimizes the visibility of the floating element by flipping the `placement`
+	* in order to keep it in view when the preferred placement(s) will overflow the
+	* clipping boundary. Alternative to `autoPlacement`.
+	* @see https://floating-ui.com/docs/flip
+	*/
+	var flip$1 = flip$2;
+	/**
+	* Provides data that allows you to change the size of the floating element —
+	* for instance, prevent it from overflowing the clipping boundary or match the
+	* width of the reference element.
+	* @see https://floating-ui.com/docs/size
+	*/
+	var size$1 = size$2;
+	/**
+	* Computes the `x` and `y` coordinates that will place the floating element
+	* next to a given reference element.
+	*/
+	var computePosition = (reference, floating, options) => {
+		const cache = /* @__PURE__ */ new Map();
+		const mergedOptions = {
+			platform,
+			...options
+		};
+		const platformWithCache = {
+			...mergedOptions.platform,
+			_c: cache
+		};
+		return computePosition$1(reference, floating, {
+			...mergedOptions,
+			platform: platformWithCache
+		});
+	};
+
+//#endregion
+//#region node_modules/@floating-ui/react-dom/dist/floating-ui.react-dom.mjs
+	var index = typeof document !== "undefined" ? react$1.useLayoutEffect : function noop() {};
+	function deepEqual(a, b) {
+		if (a === b) return true;
+		if (typeof a !== typeof b) return false;
+		if (typeof a === "function" && a.toString() === b.toString()) return true;
+		let length;
+		let i;
+		let keys;
+		if (a && b && typeof a === "object") {
+			if (Array.isArray(a)) {
+				length = a.length;
+				if (length !== b.length) return false;
+				for (i = length; i-- !== 0;) if (!deepEqual(a[i], b[i])) return false;
+				return true;
+			}
+			keys = Object.keys(a);
+			length = keys.length;
+			if (length !== Object.keys(b).length) return false;
+			for (i = length; i-- !== 0;) if (!{}.hasOwnProperty.call(b, keys[i])) return false;
+			for (i = length; i-- !== 0;) {
+				const key = keys[i];
+				if (key === "_owner" && a.$$typeof) continue;
+				if (!deepEqual(a[key], b[key])) return false;
+			}
+			return true;
+		}
+		return a !== a && b !== b;
+	}
+	function getDPR(element) {
+		if (typeof window === "undefined") return 1;
+		return (element.ownerDocument.defaultView || window).devicePixelRatio || 1;
+	}
+	function roundByDPR(element, value) {
+		const dpr = getDPR(element);
+		return Math.round(value * dpr) / dpr;
+	}
+	function useLatestRef(value) {
+		const ref = react$1.useRef(value);
+		index(() => {
+			ref.current = value;
+		});
+		return ref;
+	}
+	/**
+	* Provides data to position a floating element.
+	* @see https://floating-ui.com/docs/useFloating
+	*/
+	function useFloating$1(options) {
+		if (options === void 0) options = {};
+		const { placement = "bottom", strategy = "absolute", middleware = [], platform, elements: { reference: externalReference, floating: externalFloating } = {}, transform = true, whileElementsMounted, open } = options;
+		const [data, setData] = react$1.useState({
+			x: 0,
+			y: 0,
+			strategy,
+			placement,
+			middlewareData: {},
+			isPositioned: false
+		});
+		const [latestMiddleware, setLatestMiddleware] = react$1.useState(middleware);
+		if (!deepEqual(latestMiddleware, middleware)) setLatestMiddleware(middleware);
+		const [_reference, _setReference] = react$1.useState(null);
+		const [_floating, _setFloating] = react$1.useState(null);
+		const setReference = react$1.useCallback((node) => {
+			if (node !== referenceRef.current) {
+				referenceRef.current = node;
+				_setReference(node);
+			}
+		}, []);
+		const setFloating = react$1.useCallback((node) => {
+			if (node !== floatingRef.current) {
+				floatingRef.current = node;
+				_setFloating(node);
+			}
+		}, []);
+		const referenceEl = externalReference || _reference;
+		const floatingEl = externalFloating || _floating;
+		const referenceRef = react$1.useRef(null);
+		const floatingRef = react$1.useRef(null);
+		const dataRef = react$1.useRef(data);
+		const hasWhileElementsMounted = whileElementsMounted != null;
+		const whileElementsMountedRef = useLatestRef(whileElementsMounted);
+		const platformRef = useLatestRef(platform);
+		const openRef = useLatestRef(open);
+		const update = react$1.useCallback(() => {
+			if (!referenceRef.current || !floatingRef.current) return;
+			const config = {
+				placement,
+				strategy,
+				middleware: latestMiddleware
+			};
+			if (platformRef.current) config.platform = platformRef.current;
+			computePosition(referenceRef.current, floatingRef.current, config).then((data) => {
+				const fullData = {
+					...data,
+					isPositioned: openRef.current !== false
+				};
+				if (isMountedRef.current && !deepEqual(dataRef.current, fullData)) {
+					dataRef.current = fullData;
+					react_dom.flushSync(() => {
+						setData(fullData);
+					});
+				}
+			});
+		}, [
+			latestMiddleware,
+			placement,
+			strategy,
+			platformRef,
+			openRef
+		]);
+		index(() => {
+			if (open === false && dataRef.current.isPositioned) {
+				dataRef.current.isPositioned = false;
+				setData((data) => ({
+					...data,
+					isPositioned: false
+				}));
+			}
+		}, [open]);
+		const isMountedRef = react$1.useRef(false);
+		index(() => {
+			isMountedRef.current = true;
+			return () => {
+				isMountedRef.current = false;
+			};
+		}, []);
+		index(() => {
+			if (referenceEl) referenceRef.current = referenceEl;
+			if (floatingEl) floatingRef.current = floatingEl;
+			if (referenceEl && floatingEl) {
+				if (whileElementsMountedRef.current) return whileElementsMountedRef.current(referenceEl, floatingEl, update);
+				update();
+			}
+		}, [
+			referenceEl,
+			floatingEl,
+			update,
+			whileElementsMountedRef,
+			hasWhileElementsMounted
+		]);
+		const refs = react$1.useMemo(() => ({
+			reference: referenceRef,
+			floating: floatingRef,
+			setReference,
+			setFloating
+		}), [setReference, setFloating]);
+		const elements = react$1.useMemo(() => ({
+			reference: referenceEl,
+			floating: floatingEl
+		}), [referenceEl, floatingEl]);
+		const floatingStyles = react$1.useMemo(() => {
+			const initialStyles = {
+				position: strategy,
+				left: 0,
+				top: 0
+			};
+			if (!elements.floating) return initialStyles;
+			const x = roundByDPR(elements.floating, data.x);
+			const y = roundByDPR(elements.floating, data.y);
+			if (transform) return {
+				...initialStyles,
+				transform: "translate(" + x + "px, " + y + "px)",
+				...getDPR(elements.floating) >= 1.5 && { willChange: "transform" }
+			};
+			return {
+				position: strategy,
+				left: x,
+				top: y
+			};
+		}, [
+			strategy,
+			transform,
+			elements.floating,
+			data.x,
+			data.y
+		]);
+		return react$1.useMemo(() => ({
+			...data,
+			update,
+			refs,
+			elements,
+			floatingStyles
+		}), [
+			data,
+			update,
+			refs,
+			elements,
+			floatingStyles
+		]);
+	}
+	__name(useFloating$1, "useFloating");
+	/**
+	* Modifies the placement by translating the floating element along the
+	* specified axes.
+	* A number (shorthand for `mainAxis` or distance), or an axes configuration
+	* object may be passed.
+	* @see https://floating-ui.com/docs/offset
+	*/
+	var offset = (options, deps) => {
+		const result = offset$1(options);
+		return {
+			name: result.name,
+			fn: result.fn,
+			options: [options, deps]
+		};
+	};
+	/**
+	* Optimizes the visibility of the floating element by flipping the `placement`
+	* in order to keep it in view when the preferred placement(s) will overflow the
+	* clipping boundary. Alternative to `autoPlacement`.
+	* @see https://floating-ui.com/docs/flip
+	*/
+	var flip = (options, deps) => {
+		const result = flip$1(options);
+		return {
+			name: result.name,
+			fn: result.fn,
+			options: [options, deps]
+		};
+	};
+	/**
+	* Provides data that allows you to change the size of the floating element —
+	* for instance, prevent it from overflowing the clipping boundary or match the
+	* width of the reference element.
+	* @see https://floating-ui.com/docs/size
+	*/
+	var size = (options, deps) => {
+		const result = size$1(options);
+		return {
+			name: result.name,
+			fn: result.fn,
+			options: [options, deps]
+		};
+	};
+
+//#endregion
+//#region node_modules/@floating-ui/react/dist/floating-ui.react.mjs
+	var FOCUSABLE_ATTRIBUTE = "data-floating-ui-focusable";
+	var ACTIVE_KEY = "active";
+	var SELECTED_KEY = "selected";
+	var ARROW_LEFT = "ArrowLeft";
+	var ARROW_RIGHT = "ArrowRight";
+	var ARROW_UP = "ArrowUp";
+	var ARROW_DOWN = "ArrowDown";
+	var horizontalKeys = [ARROW_LEFT, ARROW_RIGHT];
+	var verticalKeys = [ARROW_UP, ARROW_DOWN];
+	var allKeys = [...horizontalKeys, ...verticalKeys];
+	var SafeReact = { ...react$1 };
+	var serverHandoffComplete = false;
+	var count = 0;
+	var genId = () => "floating-ui-" + Math.random().toString(36).slice(2, 6) + count++;
+	function useFloatingId() {
+		const [id, setId] = react$1.useState(() => serverHandoffComplete ? genId() : void 0);
+		index$1(() => {
+			if (id == null) setId(genId());
+		}, []);
+		react$1.useEffect(() => {
+			serverHandoffComplete = true;
+		}, []);
+		return id;
+	}
+	/**
+	* Uses React 18's built-in `useId()` when available, or falls back to a
+	* slightly less performant (requiring a double render) implementation for
+	* earlier React versions.
+	* @see https://floating-ui.com/docs/react-utils#useid
+	*/
+	var useId = SafeReact.useId || useFloatingId;
+	var devMessageSet;
+	devMessageSet = /*#__PURE__*/ new Set();
+	function error() {
+		var _devMessageSet3;
+		for (var _len2 = arguments.length, messages = new Array(_len2), _key2 = 0; _key2 < _len2; _key2++) messages[_key2] = arguments[_key2];
+		const message = "Floating UI: " + messages.join(" ");
+		if (!((_devMessageSet3 = devMessageSet) != null && _devMessageSet3.has(message))) {
+			var _devMessageSet4;
+			(_devMessageSet4 = devMessageSet) == null || _devMessageSet4.add(message);
+			console.error(message);
+		}
+	}
+	function createEventEmitter() {
+		const map = /* @__PURE__ */ new Map();
+		return {
+			emit(event, data) {
+				var _map$get;
+				(_map$get = map.get(event)) == null || _map$get.forEach((listener) => listener(data));
+			},
+			on(event, listener) {
+				if (!map.has(event)) map.set(event, /* @__PURE__ */ new Set());
+				map.get(event).add(listener);
+			},
+			off(event, listener) {
+				var _map$get2;
+				(_map$get2 = map.get(event)) == null || _map$get2.delete(listener);
+			}
+		};
+	}
+	var FloatingNodeContext = /*#__PURE__*/ react$1.createContext(null);
+	var FloatingTreeContext = /*#__PURE__*/ react$1.createContext(null);
+	/**
+	* Returns the parent node id for nested floating elements, if available.
+	* Returns `null` for top-level floating elements.
+	*/
+	var useFloatingParentNodeId = () => {
+		var _React$useContext;
+		return ((_React$useContext = react$1.useContext(FloatingNodeContext)) == null ? void 0 : _React$useContext.id) || null;
+	};
+	/**
+	* Returns the nearest floating tree context, if available.
+	*/
+	var useFloatingTree = () => react$1.useContext(FloatingTreeContext);
+	function createAttribute(name) {
+		return "data-floating-ui-" + name;
+	}
+	function clearTimeoutIfSet(timeoutRef) {
+		if (timeoutRef.current !== -1) {
+			clearTimeout(timeoutRef.current);
+			timeoutRef.current = -1;
+		}
+	}
+	var safePolygonIdentifier = /*#__PURE__*/ createAttribute("safe-polygon");
+	function getDelay(value, prop, pointerType) {
+		if (pointerType && !isMouseLikePointerType(pointerType)) return 0;
+		if (typeof value === "number") return value;
+		if (typeof value === "function") {
+			const result = value();
+			if (typeof result === "number") return result;
+			return result == null ? void 0 : result[prop];
+		}
+		return value == null ? void 0 : value[prop];
+	}
+	function getRestMs(value) {
+		if (typeof value === "function") return value();
+		return value;
+	}
+	/**
+	* Opens the floating element while hovering over the reference element, like
+	* CSS `:hover`.
+	* @see https://floating-ui.com/docs/useHover
+	*/
+	function useHover(context, props) {
+		if (props === void 0) props = {};
+		const { open, onOpenChange, dataRef, events, elements } = context;
+		const { enabled = true, delay = 0, handleClose = null, mouseOnly = false, restMs = 0, move = true } = props;
+		const tree = useFloatingTree();
+		const parentId = useFloatingParentNodeId();
+		const handleCloseRef = useLatestRef$1(handleClose);
+		const delayRef = useLatestRef$1(delay);
+		const openRef = useLatestRef$1(open);
+		const restMsRef = useLatestRef$1(restMs);
+		const pointerTypeRef = react$1.useRef();
+		const timeoutRef = react$1.useRef(-1);
+		const handlerRef = react$1.useRef();
+		const restTimeoutRef = react$1.useRef(-1);
+		const blockMouseMoveRef = react$1.useRef(true);
+		const performedPointerEventsMutationRef = react$1.useRef(false);
+		const unbindMouseMoveRef = react$1.useRef(() => {});
+		const restTimeoutPendingRef = react$1.useRef(false);
+		const isHoverOpen = useEffectEvent(() => {
+			var _dataRef$current$open;
+			const type = (_dataRef$current$open = dataRef.current.openEvent) == null ? void 0 : _dataRef$current$open.type;
+			return (type == null ? void 0 : type.includes("mouse")) && type !== "mousedown";
+		});
+		react$1.useEffect(() => {
+			if (!enabled) return;
+			function onOpenChange(_ref) {
+				let { open } = _ref;
+				if (!open) {
+					clearTimeoutIfSet(timeoutRef);
+					clearTimeoutIfSet(restTimeoutRef);
+					blockMouseMoveRef.current = true;
+					restTimeoutPendingRef.current = false;
+				}
+			}
+			events.on("openchange", onOpenChange);
+			return () => {
+				events.off("openchange", onOpenChange);
+			};
+		}, [enabled, events]);
+		react$1.useEffect(() => {
+			if (!enabled) return;
+			if (!handleCloseRef.current) return;
+			if (!open) return;
+			function onLeave(event) {
+				if (isHoverOpen()) onOpenChange(false, event, "hover");
+			}
+			const html = getDocument(elements.floating).documentElement;
+			html.addEventListener("mouseleave", onLeave);
+			return () => {
+				html.removeEventListener("mouseleave", onLeave);
+			};
+		}, [
+			elements.floating,
+			open,
+			onOpenChange,
+			enabled,
+			handleCloseRef,
+			isHoverOpen
+		]);
+		const closeWithDelay = react$1.useCallback(function(event, runElseBranch, reason) {
+			if (runElseBranch === void 0) runElseBranch = true;
+			if (reason === void 0) reason = "hover";
+			const closeDelay = getDelay(delayRef.current, "close", pointerTypeRef.current);
+			if (closeDelay && !handlerRef.current) {
+				clearTimeoutIfSet(timeoutRef);
+				timeoutRef.current = window.setTimeout(() => onOpenChange(false, event, reason), closeDelay);
+			} else if (runElseBranch) {
+				clearTimeoutIfSet(timeoutRef);
+				onOpenChange(false, event, reason);
+			}
+		}, [delayRef, onOpenChange]);
+		const cleanupMouseMoveHandler = useEffectEvent(() => {
+			unbindMouseMoveRef.current();
+			handlerRef.current = void 0;
+		});
+		const clearPointerEvents = useEffectEvent(() => {
+			if (performedPointerEventsMutationRef.current) {
+				const body = getDocument(elements.floating).body;
+				body.style.pointerEvents = "";
+				body.removeAttribute(safePolygonIdentifier);
+				performedPointerEventsMutationRef.current = false;
+			}
+		});
+		const isClickLikeOpenEvent = useEffectEvent(() => {
+			return dataRef.current.openEvent ? ["click", "mousedown"].includes(dataRef.current.openEvent.type) : false;
+		});
+		react$1.useEffect(() => {
+			if (!enabled) return;
+			function onReferenceMouseEnter(event) {
+				clearTimeoutIfSet(timeoutRef);
+				blockMouseMoveRef.current = false;
+				if (mouseOnly && !isMouseLikePointerType(pointerTypeRef.current) || getRestMs(restMsRef.current) > 0 && !getDelay(delayRef.current, "open")) return;
+				const openDelay = getDelay(delayRef.current, "open", pointerTypeRef.current);
+				if (openDelay) timeoutRef.current = window.setTimeout(() => {
+					if (!openRef.current) onOpenChange(true, event, "hover");
+				}, openDelay);
+				else if (!open) onOpenChange(true, event, "hover");
+			}
+			function onReferenceMouseLeave(event) {
+				if (isClickLikeOpenEvent()) {
+					clearPointerEvents();
+					return;
+				}
+				unbindMouseMoveRef.current();
+				const doc = getDocument(elements.floating);
+				clearTimeoutIfSet(restTimeoutRef);
+				restTimeoutPendingRef.current = false;
+				if (handleCloseRef.current && dataRef.current.floatingContext) {
+					if (!open) clearTimeoutIfSet(timeoutRef);
+					handlerRef.current = handleCloseRef.current({
+						...dataRef.current.floatingContext,
+						tree,
+						x: event.clientX,
+						y: event.clientY,
+						onClose() {
+							clearPointerEvents();
+							cleanupMouseMoveHandler();
+							if (!isClickLikeOpenEvent()) closeWithDelay(event, true, "safe-polygon");
+						}
+					});
+					const handler = handlerRef.current;
+					doc.addEventListener("mousemove", handler);
+					unbindMouseMoveRef.current = () => {
+						doc.removeEventListener("mousemove", handler);
+					};
+					return;
+				}
+				if (pointerTypeRef.current === "touch" ? !contains(elements.floating, event.relatedTarget) : true) closeWithDelay(event);
+			}
+			function onScrollMouseLeave(event) {
+				if (isClickLikeOpenEvent()) return;
+				if (!dataRef.current.floatingContext) return;
+				handleCloseRef.current == null || handleCloseRef.current({
+					...dataRef.current.floatingContext,
+					tree,
+					x: event.clientX,
+					y: event.clientY,
+					onClose() {
+						clearPointerEvents();
+						cleanupMouseMoveHandler();
+						if (!isClickLikeOpenEvent()) closeWithDelay(event);
+					}
+				})(event);
+			}
+			function onFloatingMouseEnter() {
+				clearTimeoutIfSet(timeoutRef);
+			}
+			function onFloatingMouseLeave(event) {
+				if (!isClickLikeOpenEvent()) closeWithDelay(event, false);
+			}
+			if (isElement(elements.domReference)) {
+				const reference = elements.domReference;
+				const floating = elements.floating;
+				if (open) reference.addEventListener("mouseleave", onScrollMouseLeave);
+				if (move) reference.addEventListener("mousemove", onReferenceMouseEnter, { once: true });
+				reference.addEventListener("mouseenter", onReferenceMouseEnter);
+				reference.addEventListener("mouseleave", onReferenceMouseLeave);
+				if (floating) {
+					floating.addEventListener("mouseleave", onScrollMouseLeave);
+					floating.addEventListener("mouseenter", onFloatingMouseEnter);
+					floating.addEventListener("mouseleave", onFloatingMouseLeave);
+				}
+				return () => {
+					if (open) reference.removeEventListener("mouseleave", onScrollMouseLeave);
+					if (move) reference.removeEventListener("mousemove", onReferenceMouseEnter);
+					reference.removeEventListener("mouseenter", onReferenceMouseEnter);
+					reference.removeEventListener("mouseleave", onReferenceMouseLeave);
+					if (floating) {
+						floating.removeEventListener("mouseleave", onScrollMouseLeave);
+						floating.removeEventListener("mouseenter", onFloatingMouseEnter);
+						floating.removeEventListener("mouseleave", onFloatingMouseLeave);
+					}
+				};
+			}
+		}, [
+			elements,
+			enabled,
+			context,
+			mouseOnly,
+			move,
+			closeWithDelay,
+			cleanupMouseMoveHandler,
+			clearPointerEvents,
+			onOpenChange,
+			open,
+			openRef,
+			tree,
+			delayRef,
+			handleCloseRef,
+			dataRef,
+			isClickLikeOpenEvent,
+			restMsRef
+		]);
+		index$1(() => {
+			var _handleCloseRef$curre;
+			if (!enabled) return;
+			if (open && (_handleCloseRef$curre = handleCloseRef.current) != null && (_handleCloseRef$curre = _handleCloseRef$curre.__options) != null && _handleCloseRef$curre.blockPointerEvents && isHoverOpen()) {
+				performedPointerEventsMutationRef.current = true;
+				const floatingEl = elements.floating;
+				if (isElement(elements.domReference) && floatingEl) {
+					var _tree$nodesRef$curren;
+					const body = getDocument(elements.floating).body;
+					body.setAttribute(safePolygonIdentifier, "");
+					const ref = elements.domReference;
+					const parentFloating = tree == null || (_tree$nodesRef$curren = tree.nodesRef.current.find((node) => node.id === parentId)) == null || (_tree$nodesRef$curren = _tree$nodesRef$curren.context) == null ? void 0 : _tree$nodesRef$curren.elements.floating;
+					if (parentFloating) parentFloating.style.pointerEvents = "";
+					body.style.pointerEvents = "none";
+					ref.style.pointerEvents = "auto";
+					floatingEl.style.pointerEvents = "auto";
+					return () => {
+						body.style.pointerEvents = "";
+						ref.style.pointerEvents = "";
+						floatingEl.style.pointerEvents = "";
+					};
+				}
+			}
+		}, [
+			enabled,
+			open,
+			parentId,
+			elements,
+			tree,
+			handleCloseRef,
+			isHoverOpen
+		]);
+		index$1(() => {
+			if (!open) {
+				pointerTypeRef.current = void 0;
+				restTimeoutPendingRef.current = false;
+				cleanupMouseMoveHandler();
+				clearPointerEvents();
+			}
+		}, [
+			open,
+			cleanupMouseMoveHandler,
+			clearPointerEvents
+		]);
+		react$1.useEffect(() => {
+			return () => {
+				cleanupMouseMoveHandler();
+				clearTimeoutIfSet(timeoutRef);
+				clearTimeoutIfSet(restTimeoutRef);
+				clearPointerEvents();
+			};
+		}, [
+			enabled,
+			elements.domReference,
+			cleanupMouseMoveHandler,
+			clearPointerEvents
+		]);
+		const reference = react$1.useMemo(() => {
+			function setPointerRef(event) {
+				pointerTypeRef.current = event.pointerType;
+			}
+			return {
+				onPointerDown: setPointerRef,
+				onPointerEnter: setPointerRef,
+				onMouseMove(event) {
+					const { nativeEvent } = event;
+					function handleMouseMove() {
+						if (!blockMouseMoveRef.current && !openRef.current) onOpenChange(true, nativeEvent, "hover");
+					}
+					if (mouseOnly && !isMouseLikePointerType(pointerTypeRef.current)) return;
+					if (open || getRestMs(restMsRef.current) === 0) return;
+					if (restTimeoutPendingRef.current && event.movementX ** 2 + event.movementY ** 2 < 2) return;
+					clearTimeoutIfSet(restTimeoutRef);
+					if (pointerTypeRef.current === "touch") handleMouseMove();
+					else {
+						restTimeoutPendingRef.current = true;
+						restTimeoutRef.current = window.setTimeout(handleMouseMove, getRestMs(restMsRef.current));
+					}
+				}
+			};
+		}, [
+			mouseOnly,
+			onOpenChange,
+			open,
+			openRef,
+			restMsRef
+		]);
+		return react$1.useMemo(() => enabled ? { reference } : {}, [enabled, reference]);
+	}
+	var HIDDEN_STYLES = {
+		border: 0,
+		clip: "rect(0 0 0 0)",
+		height: "1px",
+		margin: "-1px",
+		overflow: "hidden",
+		padding: 0,
+		position: "fixed",
+		whiteSpace: "nowrap",
+		width: "1px",
+		top: 0,
+		left: 0
+	};
+	var FocusGuard = /*#__PURE__*/ react$1.forwardRef(function FocusGuard(props, ref) {
+		const [role, setRole] = react$1.useState();
+		index$1(() => {
+			if (isSafari()) setRole("button");
+		}, []);
+		const restProps = {
+			ref,
+			tabIndex: 0,
+			role,
+			"aria-hidden": role ? void 0 : true,
+			[createAttribute("focus-guard")]: "",
+			style: HIDDEN_STYLES
+		};
+		return /*#__PURE__*/ (0, import_jsx_runtime.jsx)("span", {
+			...props,
+			...restProps
+		});
+	});
+	var HIDDEN_OWNER_STYLES = {
+		clipPath: "inset(50%)",
+		position: "fixed",
+		top: 0,
+		left: 0
+	};
+	var PortalContext = /*#__PURE__*/ react$1.createContext(null);
+	var attr = /*#__PURE__*/ createAttribute("portal");
+	/**
+	* @see https://floating-ui.com/docs/FloatingPortal#usefloatingportalnode
+	*/
+	function useFloatingPortalNode(props) {
+		if (props === void 0) props = {};
+		const { id, root } = props;
+		const uniqueId = useId();
+		const portalContext = usePortalContext();
+		const [portalNode, setPortalNode] = react$1.useState(null);
+		const portalNodeRef = react$1.useRef(null);
+		index$1(() => {
+			return () => {
+				portalNode?.remove();
+				queueMicrotask(() => {
+					portalNodeRef.current = null;
+				});
+			};
+		}, [portalNode]);
+		index$1(() => {
+			if (!uniqueId) return;
+			if (portalNodeRef.current) return;
+			const existingIdRoot = id ? document.getElementById(id) : null;
+			if (!existingIdRoot) return;
+			const subRoot = document.createElement("div");
+			subRoot.id = uniqueId;
+			subRoot.setAttribute(attr, "");
+			existingIdRoot.appendChild(subRoot);
+			portalNodeRef.current = subRoot;
+			setPortalNode(subRoot);
+		}, [id, uniqueId]);
+		index$1(() => {
+			if (root === null) return;
+			if (!uniqueId) return;
+			if (portalNodeRef.current) return;
+			let container = root || (portalContext == null ? void 0 : portalContext.portalNode);
+			if (container && !isNode(container)) container = container.current;
+			container = container || document.body;
+			let idWrapper = null;
+			if (id) {
+				idWrapper = document.createElement("div");
+				idWrapper.id = id;
+				container.appendChild(idWrapper);
+			}
+			const subRoot = document.createElement("div");
+			subRoot.id = uniqueId;
+			subRoot.setAttribute(attr, "");
+			container = idWrapper || container;
+			container.appendChild(subRoot);
+			portalNodeRef.current = subRoot;
+			setPortalNode(subRoot);
+		}, [
+			id,
+			root,
+			uniqueId,
+			portalContext
+		]);
+		return portalNode;
+	}
+	/**
+	* Portals the floating element into a given container element — by default,
+	* outside of the app root and into the body.
+	* This is necessary to ensure the floating element can appear outside any
+	* potential parent containers that cause clipping (such as `overflow: hidden`),
+	* while retaining its location in the React tree.
+	* @see https://floating-ui.com/docs/FloatingPortal
+	*/
+	function FloatingPortal(props) {
+		const { children, id, root, preserveTabOrder = true } = props;
+		const portalNode = useFloatingPortalNode({
+			id,
+			root
+		});
+		const [focusManagerState, setFocusManagerState] = react$1.useState(null);
+		const beforeOutsideRef = react$1.useRef(null);
+		const afterOutsideRef = react$1.useRef(null);
+		const beforeInsideRef = react$1.useRef(null);
+		const afterInsideRef = react$1.useRef(null);
+		const modal = focusManagerState == null ? void 0 : focusManagerState.modal;
+		const open = focusManagerState == null ? void 0 : focusManagerState.open;
+		const shouldRenderGuards = !!focusManagerState && !focusManagerState.modal && focusManagerState.open && preserveTabOrder && !!(root || portalNode);
+		react$1.useEffect(() => {
+			if (!portalNode || !preserveTabOrder || modal) return;
+			function onFocus(event) {
+				if (portalNode && isOutsideEvent(event)) (event.type === "focusin" ? enableFocusInside : disableFocusInside)(portalNode);
+			}
+			portalNode.addEventListener("focusin", onFocus, true);
+			portalNode.addEventListener("focusout", onFocus, true);
+			return () => {
+				portalNode.removeEventListener("focusin", onFocus, true);
+				portalNode.removeEventListener("focusout", onFocus, true);
+			};
+		}, [
+			portalNode,
+			preserveTabOrder,
+			modal
+		]);
+		react$1.useEffect(() => {
+			if (!portalNode) return;
+			if (open) return;
+			enableFocusInside(portalNode);
+		}, [open, portalNode]);
+		return /*#__PURE__*/ (0, import_jsx_runtime.jsxs)(PortalContext.Provider, {
+			value: react$1.useMemo(() => ({
+				preserveTabOrder,
+				beforeOutsideRef,
+				afterOutsideRef,
+				beforeInsideRef,
+				afterInsideRef,
+				portalNode,
+				setFocusManagerState
+			}), [preserveTabOrder, portalNode]),
+			children: [
+				shouldRenderGuards && portalNode && /*#__PURE__*/ (0, import_jsx_runtime.jsx)(FocusGuard, {
+					"data-type": "outside",
+					ref: beforeOutsideRef,
+					onFocus: (event) => {
+						if (isOutsideEvent(event, portalNode)) {
+							var _beforeInsideRef$curr;
+							(_beforeInsideRef$curr = beforeInsideRef.current) == null || _beforeInsideRef$curr.focus();
+						} else getPreviousTabbable(focusManagerState ? focusManagerState.domReference : null)?.focus();
+					}
+				}),
+				shouldRenderGuards && portalNode && /*#__PURE__*/ (0, import_jsx_runtime.jsx)("span", {
+					"aria-owns": portalNode.id,
+					style: HIDDEN_OWNER_STYLES
+				}),
+				portalNode && /*#__PURE__*/ react_dom.createPortal(children, portalNode),
+				shouldRenderGuards && portalNode && /*#__PURE__*/ (0, import_jsx_runtime.jsx)(FocusGuard, {
+					"data-type": "outside",
+					ref: afterOutsideRef,
+					onFocus: (event) => {
+						if (isOutsideEvent(event, portalNode)) {
+							var _afterInsideRef$curre;
+							(_afterInsideRef$curre = afterInsideRef.current) == null || _afterInsideRef$curre.focus();
+						} else {
+							getNextTabbable(focusManagerState ? focusManagerState.domReference : null)?.focus();
+							focusManagerState != null && focusManagerState.closeOnFocusOut && focusManagerState?.onOpenChange(false, event.nativeEvent, "focus-out");
+						}
+					}
+				})
+			]
+		});
+	}
+	var usePortalContext = () => react$1.useContext(PortalContext);
+	function useFloatingRootContext(options) {
+		const { open = false, onOpenChange: onOpenChangeProp, elements: elementsProp } = options;
+		const floatingId = useId();
+		const dataRef = react$1.useRef({});
+		const [events] = react$1.useState(() => createEventEmitter());
+		const nested = useFloatingParentNodeId() != null;
+		{
+			const optionDomReference = elementsProp.reference;
+			if (optionDomReference && !isElement(optionDomReference)) error("Cannot pass a virtual element to the `elements.reference` option,", "as it must be a real DOM element. Use `refs.setPositionReference()`", "instead.");
+		}
+		const [positionReference, setPositionReference] = react$1.useState(elementsProp.reference);
+		const onOpenChange = useEffectEvent((open, event, reason) => {
+			dataRef.current.openEvent = open ? event : void 0;
+			events.emit("openchange", {
+				open,
+				event,
+				reason,
+				nested
+			});
+			onOpenChangeProp?.(open, event, reason);
+		});
+		const refs = react$1.useMemo(() => ({ setPositionReference }), []);
+		const elements = react$1.useMemo(() => ({
+			reference: positionReference || elementsProp.reference || null,
+			floating: elementsProp.floating || null,
+			domReference: elementsProp.reference
+		}), [
+			positionReference,
+			elementsProp.reference,
+			elementsProp.floating
+		]);
+		return react$1.useMemo(() => ({
+			dataRef,
+			open,
+			onOpenChange,
+			elements,
+			events,
+			floatingId,
+			refs
+		}), [
+			open,
+			onOpenChange,
+			elements,
+			events,
+			floatingId,
+			refs
+		]);
+	}
+	/**
+	* Provides data to position a floating element and context to add interactions.
+	* @see https://floating-ui.com/docs/useFloating
+	*/
+	function useFloating(options) {
+		if (options === void 0) options = {};
+		const { nodeId } = options;
+		const internalRootContext = useFloatingRootContext({
+			...options,
+			elements: {
+				reference: null,
+				floating: null,
+				...options.elements
+			}
+		});
+		const rootContext = options.rootContext || internalRootContext;
+		const computedElements = rootContext.elements;
+		const [_domReference, setDomReference] = react$1.useState(null);
+		const [positionReference, _setPositionReference] = react$1.useState(null);
+		const domReference = (computedElements == null ? void 0 : computedElements.domReference) || _domReference;
+		const domReferenceRef = react$1.useRef(null);
+		const tree = useFloatingTree();
+		index$1(() => {
+			if (domReference) domReferenceRef.current = domReference;
+		}, [domReference]);
+		const position = useFloating$1({
+			...options,
+			elements: {
+				...computedElements,
+				...positionReference && { reference: positionReference }
+			}
+		});
+		const setPositionReference = react$1.useCallback((node) => {
+			const computedPositionReference = isElement(node) ? {
+				getBoundingClientRect: () => node.getBoundingClientRect(),
+				getClientRects: () => node.getClientRects(),
+				contextElement: node
+			} : node;
+			_setPositionReference(computedPositionReference);
+			position.refs.setReference(computedPositionReference);
+		}, [position.refs]);
+		const setReference = react$1.useCallback((node) => {
+			if (isElement(node) || node === null) {
+				domReferenceRef.current = node;
+				setDomReference(node);
+			}
+			if (isElement(position.refs.reference.current) || position.refs.reference.current === null || node !== null && !isElement(node)) position.refs.setReference(node);
+		}, [position.refs]);
+		const refs = react$1.useMemo(() => ({
+			...position.refs,
+			setReference,
+			setPositionReference,
+			domReference: domReferenceRef
+		}), [
+			position.refs,
+			setReference,
+			setPositionReference
+		]);
+		const elements = react$1.useMemo(() => ({
+			...position.elements,
+			domReference
+		}), [position.elements, domReference]);
+		const context = react$1.useMemo(() => ({
+			...position,
+			...rootContext,
+			refs,
+			elements,
+			nodeId
+		}), [
+			position,
+			refs,
+			elements,
+			nodeId,
+			rootContext
+		]);
+		index$1(() => {
+			rootContext.dataRef.current.floatingContext = context;
+			const node = tree == null ? void 0 : tree.nodesRef.current.find((node) => node.id === nodeId);
+			if (node) node.context = context;
+		});
+		return react$1.useMemo(() => ({
+			...position,
+			context,
+			refs,
+			elements
+		}), [
+			position,
+			refs,
+			elements,
+			context
+		]);
+	}
+	function mergeProps(userProps, propsList, elementKey) {
+		const map = /* @__PURE__ */ new Map();
+		const isItem = elementKey === "item";
+		let domUserProps = userProps;
+		if (isItem && userProps) {
+			const { [ACTIVE_KEY]: _, [SELECTED_KEY]: __, ...validProps } = userProps;
+			domUserProps = validProps;
+		}
+		return {
+			...elementKey === "floating" && {
+				tabIndex: -1,
+				[FOCUSABLE_ATTRIBUTE]: ""
+			},
+			...domUserProps,
+			...propsList.map((value) => {
+				const propsOrGetProps = value ? value[elementKey] : null;
+				if (typeof propsOrGetProps === "function") return userProps ? propsOrGetProps(userProps) : null;
+				return propsOrGetProps;
+			}).concat(userProps).reduce((acc, props) => {
+				if (!props) return acc;
+				Object.entries(props).forEach((_ref) => {
+					let [key, value] = _ref;
+					if (isItem && [ACTIVE_KEY, SELECTED_KEY].includes(key)) return;
+					if (key.indexOf("on") === 0) {
+						if (!map.has(key)) map.set(key, []);
+						if (typeof value === "function") {
+							var _map$get;
+							(_map$get = map.get(key)) == null || _map$get.push(value);
+							acc[key] = function() {
+								var _map$get2;
+								for (var _len = arguments.length, args = new Array(_len), _key = 0; _key < _len; _key++) args[_key] = arguments[_key];
+								return (_map$get2 = map.get(key)) == null ? void 0 : _map$get2.map((fn) => fn(...args)).find((val) => val !== void 0);
+							};
+						}
+					} else acc[key] = value;
+				});
+				return acc;
+			}, {})
+		};
+	}
+	/**
+	* Merges an array of interaction hooks' props into prop getters, allowing
+	* event handler functions to be composed together without overwriting one
+	* another.
+	* @see https://floating-ui.com/docs/useInteractions
+	*/
+	function useInteractions(propsList) {
+		if (propsList === void 0) propsList = [];
+		const referenceDeps = propsList.map((key) => key == null ? void 0 : key.reference);
+		const floatingDeps = propsList.map((key) => key == null ? void 0 : key.floating);
+		const itemDeps = propsList.map((key) => key == null ? void 0 : key.item);
+		const getReferenceProps = react$1.useCallback((userProps) => mergeProps(userProps, propsList, "reference"), referenceDeps);
+		const getFloatingProps = react$1.useCallback((userProps) => mergeProps(userProps, propsList, "floating"), floatingDeps);
+		const getItemProps = react$1.useCallback((userProps) => mergeProps(userProps, propsList, "item"), itemDeps);
+		return react$1.useMemo(() => ({
+			getReferenceProps,
+			getFloatingProps,
+			getItemProps
+		}), [
+			getReferenceProps,
+			getFloatingProps,
+			getItemProps
+		]);
+	}
+
+//#endregion
+//#region packages/packages/core/editor-canvas/src/hooks/use-floating-on-element.ts
+	function useFloatingOnElement({ element, isSelected }) {
+		const [isOpen, setIsOpen] = (0, react.useState)(false);
+		const sizeModifier = 2;
+		const { refs, floatingStyles, context } = useFloating({
+			open: isOpen || isSelected,
+			onOpenChange: setIsOpen,
+			whileElementsMounted: autoUpdate,
+			middleware: [size(() => {
+				return { apply({ elements, rects }) {
+					Object.assign(elements.floating.style, {
+						width: `${rects.reference.width + sizeModifier}px`,
+						height: `${rects.reference.height + sizeModifier}px`
+					});
+				} };
+			}), offset(({ rects }) => -rects.reference.height / 2 - rects.floating.height / 2)]
+		});
+		(0, react.useEffect)(() => {
+			refs.setReference(element);
+		}, [element, refs]);
+		return {
+			isVisible: isOpen || isSelected,
+			context,
+			floating: {
+				setRef: refs.setFloating,
+				ref: refs.floating,
+				styles: floatingStyles
+			}
+		};
+	}
+
+//#endregion
+//#region packages/packages/core/editor-canvas/src/hooks/use-bind-react-props-to-element.ts
+	function useBindReactPropsToElement(element, getProps) {
+		(0, react.useEffect)(() => {
+			const el = element;
+			const { events, attrs } = groupProps(getProps());
+			events.forEach(([eventName, listener]) => el.addEventListener(eventName, listener));
+			attrs.forEach(([attrName, attrValue]) => el.setAttribute(attrName, attrValue));
+			return () => {
+				events.forEach(([eventName, listener]) => el.removeEventListener(eventName, listener));
+				attrs.forEach(([attrName]) => el.removeAttribute(attrName));
+			};
+		}, [getProps, element]);
+	}
+	function groupProps(props) {
+		const eventRegex = /^on(?=[A-Z])/;
+		return Object.entries(props).reduce((acc, [propName, propValue]) => {
+			if (!eventRegex.test(propName)) {
+				acc.attrs.push([propName, propValue]);
+				return acc;
+			}
+			const eventName = propName.replace(eventRegex, "").toLowerCase();
+			const listener = propValue;
+			acc.events.push([eventName, listener]);
+			return acc;
+		}, {
+			events: [],
+			attrs: []
+		});
+	}
+
+//#endregion
+//#region packages/packages/core/editor-canvas/src/hooks/use-has-overlapping.ts
+	var possibleOverlappingSelectors = [".e-off-canvas"];
+	var useHasOverlapping = () => {
+		const preview = window.elementor?.$preview?.[0];
+		if (!preview) return false;
+		return possibleOverlappingSelectors.map((selector) => Array.from(preview?.contentWindow?.document.body.querySelectorAll(selector) ?? [])).flat().some((elem) => elem.checkVisibility({
+			opacityProperty: true,
+			visibilityProperty: true,
+			contentVisibilityAuto: true
+		}));
+	};
+
+//#endregion
+//#region packages/packages/core/editor-canvas/src/utils/outline-offset-utils.ts
+	var THIN_ELEMENT_MAX_HEIGHT_PX = 1;
+	var SMALLER_OUTLINE_OFFSET_WIDGET_TYPES = /* @__PURE__ */ new Set(["e-form-input"]);
+	function shouldUseSmallerOutlineOffset(element, widgetType) {
+		if (element.offsetHeight <= 1) return true;
+		return widgetType !== void 0 && SMALLER_OUTLINE_OFFSET_WIDGET_TYPES.has(widgetType);
+	}
+
+//#endregion
+//#region packages/packages/core/editor-canvas/src/components/outline-overlay.tsx
+	var CANVAS_WRAPPER_ID = "elementor-preview-responsive-wrapper";
+	var OverlayBox = (0, _elementor_ui.styled)(_elementor_ui.Box, { shouldForwardProp: (prop) => prop !== "isSelected" && prop !== "isSmallerOffset" && prop !== "isGlobal" })(({ theme, isSelected, isSmallerOffset, isGlobal }) => ({
+		outline: `${isSelected ? "2px" : "1px"} solid ${isGlobal ? theme.palette.global.main : theme.palette.primary.light}`,
+		outlineOffset: isSelected && !isSmallerOffset ? "-2px" : "-1px",
+		pointerEvents: "none"
+	}));
+	var OutlineOverlay = ({ element, isSelected, id, isGlobal = false, widgetType }) => {
+		const { context, floating, isVisible } = useFloatingOnElement({
+			element,
+			isSelected
+		});
+		const { getFloatingProps, getReferenceProps } = useInteractions([useHover(context)]);
+		const hasOverlapping = useHasOverlapping();
+		useBindReactPropsToElement(element, getReferenceProps);
+		const isSmallerOffset = shouldUseSmallerOutlineOffset(element, widgetType);
+		return isVisible && !hasOverlapping && /* @__PURE__ */ react.createElement(FloatingPortal, { id: "elementor-preview-responsive-wrapper" }, /* @__PURE__ */ react.createElement(OverlayBox, {
+			ref: floating.setRef,
+			isSelected,
+			isGlobal,
+			style: floating.styles,
+			"data-element-overlay": id,
+			role: "presentation",
+			isSmallerOffset,
+			...getFloatingProps()
+		}));
+	};
+
+//#endregion
+//#region packages/packages/core/editor-canvas/src/components/grid-outline/cell.tsx
+	var FALLBACK_COLOR$1 = "rgba(0, 0, 0, 0.12)";
+	function Cell({ x, y, width, height, color }) {
+		return /* @__PURE__ */ react.createElement("rect", {
+			x,
+			y,
+			width,
+			height,
+			fill: "none",
+			stroke: color || FALLBACK_COLOR$1,
+			strokeWidth: 1,
+			strokeDasharray: "2 2",
+			vectorEffect: "non-scaling-stroke"
+		});
+	}
+
+//#endregion
+//#region packages/packages/core/editor-canvas/src/components/grid-outline/first-empty-cell.tsx
+	var GLYPH_SIZE = 19;
+	function FirstEmptyCell({ rect, color }) {
+		const size = Math.min(GLYPH_SIZE, rect.width, rect.height);
+		if (size <= 0) return null;
+		const centerX = rect.x + rect.width / 2;
+		const centerY = rect.y + rect.height / 2;
+		return /* @__PURE__ */ react.createElement("i", {
+			className: "eicon-plus",
+			"aria-hidden": "true",
+			style: {
+				position: "absolute",
+				left: centerX,
+				top: centerY,
+				transform: "translate(-50%, -50%)",
+				fontSize: size,
+				color,
+				lineHeight: 1,
+				pointerEvents: "none"
+			}
+		});
+	}
+
+//#endregion
+//#region packages/packages/core/editor-canvas/src/components/grid-outline/line.tsx
+	var FALLBACK_COLOR = "rgba(0, 0, 0, 0.12)";
+	function Line({ x1, y1, x2, y2, color }) {
+		return /* @__PURE__ */ react.createElement("line", {
+			x1,
+			y1,
+			x2,
+			y2,
+			stroke: color || FALLBACK_COLOR,
+			strokeWidth: 1,
+			strokeDasharray: "2 2",
+			vectorEffect: "non-scaling-stroke"
+		});
+	}
+
+//#endregion
+//#region packages/packages/core/editor-canvas/src/components/grid-outline/grid-outline.tsx
+	var renderCells = (cells, color) => cells.map((cell, i) => /* @__PURE__ */ react.createElement(Cell, {
+		key: i,
+		x: snapToHalfPixel(cell.x),
+		y: snapToHalfPixel(cell.y),
+		width: Math.round(cell.width),
+		height: Math.round(cell.height),
+		color
+	}));
+	var renderLines = (tracks, width, height) => {
+		const { vertical, horizontal } = computeGridLines(tracks, width, height);
+		return [...vertical.map((line, i) => /* @__PURE__ */ react.createElement(Line, {
+			key: `v${i}`,
+			x1: snapToHalfPixel(line.x1),
+			y1: Math.round(line.y1),
+			x2: snapToHalfPixel(line.x2),
+			y2: Math.round(line.y2),
+			color: tracks.borderColor
+		})), ...horizontal.map((line, i) => /* @__PURE__ */ react.createElement(Line, {
+			key: `h${i}`,
+			x1: Math.round(line.x1),
+			y1: snapToHalfPixel(line.y1),
+			x2: Math.round(line.x2),
+			y2: snapToHalfPixel(line.y2),
+			color: tracks.borderColor
+		}))];
+	};
+	var isDragActiveFromDom = (element) => {
+		return Boolean(element?.querySelector(".e-dragging-over, .elementor-dragging-on-child, .elementor-draggable-over, .elementor-widget-placeholder, .elementor-sortable-placeholder"));
+	};
+	function GridOutline({ element, tracks, width, height }) {
+		const cells = (0, react.useMemo)(() => computeCellRects(tracks, width, height), [
+			tracks,
+			width,
+			height
+		]);
+		const hasGap = tracks.columnGap > 0 || tracks.rowGap > 0;
+		const firstEmpty = (0, react.useMemo)(() => findFirstEmptyCell(element, tracks.columns.length, tracks.rows.length), [element, tracks]);
+		const emptyCellRect = firstEmpty && tracks.columns.length > 0 ? cells[firstEmpty.row * tracks.columns.length + firstEmpty.col] : null;
+		return /* @__PURE__ */ react.createElement(react.Fragment, null, /* @__PURE__ */ react.createElement("svg", {
+			width,
+			height,
+			style: {
+				position: "absolute",
+				inset: 0,
+				overflow: "visible"
+			},
+			xmlns: "http://www.w3.org/2000/svg"
+		}, hasGap ? renderCells(cells, tracks.borderColor) : renderLines(tracks, width, height)), emptyCellRect && !isDragActiveFromDom(element) && /* @__PURE__ */ react.createElement(FirstEmptyCell, {
+			rect: emptyCellRect,
+			color: tracks.borderColor
+		}));
+	}
+
+//#endregion
+//#region packages/packages/core/editor-canvas/src/components/grid-outline/grid-outline-overlay.tsx
+	var GridOutlineOverlay = ({ element, id, isSelected }) => {
+		const enabled = (0, _elementor_editor_elements.useElementEditorSettings)(id)?.grid_outline;
+		const rect = useElementRect(element);
+		const tracks = useGridTracks(element, rect);
+		const { floating } = useFloatingOnElement({
+			element,
+			isSelected
+		});
+		if (enabled === false) return null;
+		if (tracks.columns.length === 0 && tracks.rows.length === 0) return null;
+		return /* @__PURE__ */ react.createElement(FloatingPortal, { id: CANVAS_WRAPPER_ID }, /* @__PURE__ */ react.createElement(_elementor_ui.Box, {
+			ref: floating.setRef,
+			style: {
+				...floating.styles,
+				pointerEvents: "none"
+			},
+			"data-grid-outline": id,
+			role: "presentation"
+		}, /* @__PURE__ */ react.createElement(GridOutline, {
+			element,
+			tracks,
+			width: rect.width,
+			height: rect.height
+		})));
+	};
+
+//#endregion
+//#region packages/packages/core/editor-canvas/src/components/elements-overlays.tsx
+	var hasGridStyleDisplay = (element) => {
+		return element.computedStyleMap().get("display")?.toString() === "grid";
+	};
+	var ELEMENTS_DATA_ATTR = "atomic";
+	var overlayRegistry = [
+		{
+			component: OutlineOverlay,
+			shouldRender: () => true
+		},
+		{
+			component: GridEmptyCellPositioner,
+			shouldRender: ({ element }) => hasGridStyleDisplay(element)
+		},
+		{
+			component: GridOutlineOverlay,
+			shouldRender: ({ isSelected, element }) => isSelected && hasGridStyleDisplay(element)
+		}
+	];
+	function ElementsOverlays() {
+		const selected = (0, _elementor_editor_elements.useSelectedElement)();
+		const elements = useElementsDom();
+		const isEditMode = (0, _elementor_editor_v1_adapters.useEditMode)() === "edit";
+		const isKitRouteActive = (0, _elementor_editor_v1_adapters.__privateUseIsRouteActive)("panel/global");
+		if (!(isEditMode && !isKitRouteActive)) return null;
+		return elements.map(({ id, domElement, isGlobal, widgetType }) => {
+			const isSelected = selected.element?.id === id;
+			return overlayRegistry.map(({ shouldRender, component: Overlay }, index) => shouldRender({
+				id,
+				element: domElement,
+				isSelected,
+				widgetType
+			}) && /* @__PURE__ */ react.createElement(Overlay, {
+				key: `${id}-${index}`,
+				id,
+				element: domElement,
+				isSelected,
+				isGlobal,
+				widgetType
+			}));
+		});
+	}
+	function useElementsDom() {
+		return (0, _elementor_editor_v1_adapters.__privateUseListenTo)([(0, _elementor_editor_v1_adapters.windowEvent)("elementor/editor/element-rendered"), (0, _elementor_editor_v1_adapters.windowEvent)("elementor/editor/element-destroyed")], () => {
+			return (0, _elementor_editor_elements.getElements)().filter((el) => isV4Element(el.view?.el?.dataset)).map((element) => ({
+				id: element.id,
+				domElement: element.view?.getDomElement?.()?.get?.(0),
+				isGlobal: element.model.get("isGlobal") ?? false,
+				widgetType: element.model.get("widgetType")
+			})).filter((item) => !!item.domElement);
+		});
+	}
+	function isV4Element(dataset) {
+		if (!dataset) return false;
+		return ELEMENTS_DATA_ATTR in dataset || "eType" in dataset;
+	}
+
+//#endregion
+//#region packages/packages/core/editor-canvas/src/hooks/use-on-mount.ts
+	function useOnMount(cb) {
+		const mounted = (0, react.useRef)(false);
+		(0, react.useEffect)(() => {
+			if (!mounted.current) {
+				mounted.current = true;
+				cb();
+			}
+		}, []);
+	}
+
+//#endregion
+//#region packages/packages/core/editor-canvas/src/hooks/use-interactions-items.ts
+	function useInteractionsItems() {
+		const [interactionItems, setInteractionItems] = (0, react.useState)({});
+		const providerAndSubscribers = (0, react.useMemo)(() => {
+			try {
+				return _elementor_editor_interactions.interactionsRepository.getProviders().map((provider) => {
+					return {
+						provider,
+						subscriber: createProviderSubscriber$1({
+							provider,
+							setInteractionItems
+						})
+					};
+				});
+			} catch {
+				return [];
+			}
+		}, []);
+		(0, react.useEffect)(() => {
+			if (providerAndSubscribers.length === 0) return;
+			const unsubscribes = providerAndSubscribers.map(({ provider, subscriber }) => {
+				const safeSubscriber = () => {
+					try {
+						subscriber();
+					} catch {}
+				};
+				return provider.subscribe(safeSubscriber);
+			});
+			return () => {
+				unsubscribes.forEach((unsubscribe) => unsubscribe());
+			};
+		}, [providerAndSubscribers]);
+		useOnMount(() => {
+			if (providerAndSubscribers.length === 0) return;
+			(0, _elementor_editor_v1_adapters.registerDataHook)("after", "editor/documents/attach-preview", async () => {
+				providerAndSubscribers.forEach(({ subscriber }) => {
+					try {
+						subscriber();
+					} catch {}
+				});
+			});
+		});
+		return (0, react.useMemo)(() => {
+			return Object.values(interactionItems).sort(sortByProviderPriority).flatMap(({ items }) => items);
+		}, [interactionItems]);
+	}
+	function sortByProviderPriority({ provider: providerA }, { provider: providerB }) {
+		return providerA.priority - providerB.priority;
+	}
+	function createProviderSubscriber$1({ provider, setInteractionItems }) {
+		return () => {
+			try {
+				const items = provider.actions.all();
+				const providerKey = provider.getKey();
+				setInteractionItems((prev) => ({
+					...prev,
+					[providerKey]: {
+						provider,
+						items
+					}
+				}));
+			} catch {}
+		};
+	}
+	__name(createProviderSubscriber$1, "createProviderSubscriber");
+
+//#endregion
+//#region packages/packages/core/editor-canvas/src/components/interactions-renderer.tsx
+	function InteractionsRenderer() {
+		const container = usePortalContainer$1();
+		const interactionItems = useInteractionsItems();
+		if (!container) return null;
+		const interactionsData = JSON.stringify(Array.isArray(interactionItems) ? interactionItems : []);
+		return /* @__PURE__ */ react.createElement(_elementor_ui.Portal, { container }, /* @__PURE__ */ react.createElement("script", {
+			type: "application/json",
+			"data-e-interactions": "true",
+			dangerouslySetInnerHTML: { __html: interactionsData }
+		}));
+	}
+	function usePortalContainer$1() {
+		return (0, _elementor_editor_v1_adapters.__privateUseListenTo)((0, _elementor_editor_v1_adapters.commandEndEvent)("editor/documents/attach-preview"), () => (0, _elementor_editor_v1_adapters.getCanvasIframeDocument)()?.head);
+	}
+	__name(usePortalContainer$1, "usePortalContainer");
+
+//#endregion
+//#region packages/packages/core/editor-canvas/src/hooks/use-documents-css-links.ts
+	var REMOVED_ATTR = "data-e-removed";
+	var DOCUMENT_WRAPPER_ATTR = "data-elementor-id";
+	var CSS_LINK_ID_PREFIX = "elementor-post-";
+	var CSS_LINK_ID_SUFFIX = "-css";
+	function useDocumentsCssLinks() {
+		return (0, _elementor_editor_v1_adapters.__privateUseListenTo)((0, _elementor_editor_v1_adapters.commandEndEvent)("editor/documents/attach-preview"), () => {
+			const iframeDocument = (0, _elementor_editor_v1_adapters.getCanvasIframeDocument)();
+			if (!iframeDocument) return [];
+			const relevantLinkIds = getDocumentsIdsInCanvas(iframeDocument).map((id) => `${CSS_LINK_ID_PREFIX}${id}${CSS_LINK_ID_SUFFIX}`);
+			const links = getDocumentsCssLinks(iframeDocument).filter((link) => relevantLinkIds.includes(link.getAttribute("id") ?? ""));
+			links.forEach((link) => {
+				if (!link.hasAttribute(REMOVED_ATTR)) link.remove();
+			});
+			return links.map((link) => ({
+				...getLinkAttrs(link),
+				id: link.getAttribute("id") ?? "",
+				[REMOVED_ATTR]: true
+			}));
+		});
+	}
+	function getDocumentsIdsInCanvas(document) {
+		return [...document.body.querySelectorAll(`[${DOCUMENT_WRAPPER_ATTR}]`) ?? []].map((el) => el.getAttribute(DOCUMENT_WRAPPER_ATTR) || "");
+	}
+	function getDocumentsCssLinks(document) {
+		return [...document.head.querySelectorAll(`link[rel="stylesheet"][id^=${CSS_LINK_ID_PREFIX}][id$=${CSS_LINK_ID_SUFFIX}]`) ?? []];
+	}
+	function getLinkAttrs(el) {
+		const entries = [...el.attributes].map((attr) => [attr.name, attr.value]);
+		return Object.fromEntries(entries);
+	}
+
+//#endregion
+//#region packages/packages/core/editor-canvas/src/utils/abort-previous-runs.ts
+	function abortPreviousRuns(cb) {
+		let abortController = null;
+		return (...args) => {
+			if (abortController) abortController.abort();
+			abortController = new AbortController();
+			return cb(abortController, ...args);
+		};
+	}
+
+//#endregion
+//#region packages/packages/core/editor-canvas/src/utils/pregenerated-links-removal.ts
+	var removedProviderKeys = /* @__PURE__ */ new Set();
+	function removeProviderPregeneratedLinks(providerKey, removePregeneratedLink) {
+		if (removedProviderKeys.has(providerKey)) return;
+		const iframeDocument = (0, _elementor_editor_v1_adapters.getCanvasIframeDocument)();
+		if (!iframeDocument) return;
+		iframeDocument.head.querySelectorAll("link[rel=\"stylesheet\"]").forEach((link) => {
+			const { id, href, media } = link;
+			if (removePregeneratedLink({
+				id,
+				href,
+				media
+			})) link.remove();
+		});
+		removedProviderKeys.add(providerKey);
+	}
+	function resetRemovedProviders() {
+		removedProviderKeys.clear();
+	}
+
+//#endregion
+//#region packages/packages/core/editor-canvas/src/utils/signalized-process.ts
+	function signalizedProcess(signal, steps = []) {
+		return {
+			then: (cb) => {
+				steps.push(cb);
+				return signalizedProcess(signal, steps);
+			},
+			execute: async () => {
+				let lastResult;
+				for (const step of steps) {
+					if (signal.aborted) break;
+					lastResult = await step(lastResult, signal);
+				}
+			}
+		};
+	}
+
+//#endregion
+//#region packages/packages/core/editor-canvas/src/renderers/multi-props.ts
+	var isMultiProps = (propValue) => {
+		return !!propValue && typeof propValue === "object" && "$$multi-props" in propValue && propValue["$$multi-props"] === true;
+	};
+	var createMultiPropsValue = (props) => {
+		return {
+			"$$multi-props": true,
+			value: props
+		};
+	};
+	var getMultiPropsValue = (multiProps) => {
+		return multiProps.value;
+	};
+
+//#endregion
+//#region packages/packages/core/editor-canvas/src/renderers/create-props-resolver.ts
+	var TRANSFORM_DEPTH_LIMIT = 3;
+	function createPropsResolver({ transformers, schema: initialSchema, onPropResolve }) {
+		async function resolve({ props, schema, signal, renderContext }) {
+			schema = schema ?? initialSchema;
+			const promises = Promise.all(Object.entries(schema).map(async ([key, type]) => {
+				const value = props[key] ?? type.default;
+				const transformed = await transform({
+					value,
+					key,
+					type,
+					signal,
+					renderContext
+				});
+				onPropResolve?.({
+					key,
+					value: transformed,
+					propValue: value,
+					propType: type
+				});
+				if (isMultiProps(transformed)) return getMultiPropsValue(transformed);
+				return { [key]: transformed };
+			}));
+			return Object.assign({}, ...(await promises).filter(Boolean));
+		}
+		async function transform({ value, key, type, signal, depth = 0, renderContext }) {
+			if (value === null || value === void 0) return null;
+			if (!(0, _elementor_editor_props.isTransformable)(value)) return value;
+			if (depth > TRANSFORM_DEPTH_LIMIT) return null;
+			if (value.disabled === true) return null;
+			let transformablePropType = type;
+			if (type.kind === "union") {
+				transformablePropType = type.prop_types[value.$$type];
+				if (!transformablePropType) return null;
+			}
+			transformablePropType = transformablePropType;
+			if (value.$$type !== transformablePropType.key) return null;
+			let resolvedValue = value.value;
+			if (transformablePropType.kind === "object") resolvedValue = await resolve({
+				props: resolvedValue,
+				schema: transformablePropType.shape,
+				signal,
+				renderContext
+			});
+			if (transformablePropType.kind === "array") resolvedValue = await Promise.all(resolvedValue.map((item) => transform({
+				value: item,
+				key,
+				type: transformablePropType.item_prop_type,
+				depth,
+				signal,
+				renderContext
+			})));
+			const transformer = transformers.get(value.$$type);
+			if (!transformer) return null;
+			try {
+				return transform({
+					value: await transformer(resolvedValue, {
+						key,
+						signal,
+						renderContext,
+						propType: type
+					}),
+					key,
+					type,
+					signal,
+					depth: depth + 1,
+					renderContext
+				});
+			} catch {
+				return null;
+			}
+		}
+		return resolve;
+	}
+
+//#endregion
+//#region packages/packages/core/editor-canvas/src/renderers/enqueue-font-from-style-prop.ts
+	var maybeEnqueueFontFromStyleProp = (propType, propValue, enqueue) => {
+		if (!(0, _elementor_editor_props.isTransformable)(propValue) || propValue.disabled) return;
+		const propTypeUtil = (0, _elementor_editor_props.getPropSchemaFromCache)(propType.kind === "union" ? propValue.$$type : propType.key);
+		if (!propTypeUtil || !("getEnqueueFontFamily" in propTypeUtil) || typeof propTypeUtil.getEnqueueFontFamily !== "function") return;
+		const stored = propValue.value;
+		if (typeof stored !== "string") return;
+		const font = propTypeUtil.getEnqueueFontFamily(stored);
+		if (font) enqueue(font);
+	};
+
+//#endregion
+//#region packages/packages/core/editor-canvas/src/transformers/create-transformers-registry.ts
+	function createTransformersRegistry() {
+		const transformers = {};
+		let fallbackTransformer = null;
+		return {
+			register(type, transformer) {
+				transformers[type] = transformer;
+				return this;
+			},
+			registerFallback(transformer) {
+				fallbackTransformer = transformer;
+				return this;
+			},
+			get(type) {
+				return transformers[type] ?? fallbackTransformer;
+			},
+			all() {
+				return { ...transformers };
+			}
+		};
+	}
+	var stylesInheritanceTransformersRegistry = createTransformersRegistry();
+
+//#endregion
+//#region packages/packages/core/editor-canvas/src/style-transformers-registry.ts
+	var styleTransformersRegistry = createTransformersRegistry();
+
+//#endregion
+//#region packages/packages/core/editor-canvas/src/hooks/use-style-prop-resolver.ts
+	function useStylePropResolver() {
+		return (0, react.useMemo)(() => {
+			return createPropsResolver({
+				transformers: styleTransformersRegistry,
+				schema: (0, _elementor_editor_styles.getStylesSchema)(),
+				onPropResolve: ({ propValue, propType }) => {
+					maybeEnqueueFontFromStyleProp(propType, propValue, _elementor_editor_v1_adapters.enqueueFont);
+				}
+			});
+		}, []);
+	}
+
+//#endregion
+//#region packages/packages/core/editor-canvas/src/renderers/errors.ts
+	var UnknownStyleTypeError = (0, _elementor_utils.createError)({
+		code: "unknown_style_type",
+		message: "Unknown style type"
+	});
+	var UnknownStyleStateError = (0, _elementor_utils.createError)({
+		code: "unknown_style_state",
+		message: "Unknown style state"
+	});
+
+//#endregion
+//#region packages/packages/core/editor-canvas/src/renderers/create-styles-renderer.ts
+	var SELECTORS_MAP = { class: "." };
+	var DEFAULT_BREAKPOINT = "desktop";
+	var DEFAULT_STATE = "normal";
+	function getStyleUniqueKey(style) {
+		const breakpoint = style.variants[0]?.meta?.breakpoint ?? DEFAULT_BREAKPOINT;
+		const state = style.variants[0]?.meta?.state ?? DEFAULT_STATE;
+		return `${style.id}-${breakpoint}-${state}`;
+	}
+	function createStylesRenderer({ resolve, breakpoints, selectorPrefix = "" }) {
+		return async ({ styles, signal }) => {
+			const seenKeys = /* @__PURE__ */ new Set();
+			const stylesCssPromises = styles.filter((style) => {
+				const key = getStyleUniqueKey(style);
+				if (seenKeys.has(key)) return false;
+				seenKeys.add(key);
+				return true;
+			}).map(async (style) => {
+				const variantCssPromises = Object.values(style.variants).map(async (variant) => {
+					const css = await propsToCss({
+						props: variant.props,
+						resolve,
+						signal
+					});
+					const customCss = customCssToString(variant.custom_css);
+					return createStyleWrapper().for(style.cssName, style.type).withPrefix(selectorPrefix).withState(variant.meta.state).withMediaQuery(variant.meta.breakpoint ? breakpoints[variant.meta.breakpoint] : null).wrap(css + customCss);
+				});
+				const variantsCss = await Promise.all(variantCssPromises);
+				return {
+					id: style.id,
+					breakpoint: style?.variants[0]?.meta?.breakpoint || "desktop",
+					value: variantsCss.join(""),
+					state: style?.variants[0]?.meta?.state || null
+				};
+			});
+			return await Promise.all(stylesCssPromises);
+		};
+	}
+	function createStyleWrapper(value = "", wrapper) {
+		return {
+			for: (cssName, type) => {
+				const symbol = SELECTORS_MAP[type];
+				if (!symbol) throw new UnknownStyleTypeError({ context: { type } });
+				return createStyleWrapper(`${value}${symbol}${cssName}`, wrapper);
+			},
+			withPrefix: (prefix) => createStyleWrapper([prefix, value].filter(Boolean).join(" "), wrapper),
+			withState: (state) => {
+				return createStyleWrapper((0, _elementor_editor_styles.getSelectorWithState)(value, state), wrapper);
+			},
+			withMediaQuery: (breakpoint) => {
+				if (!breakpoint?.type) return createStyleWrapper(value, wrapper);
+				const size = `${breakpoint.type}:${breakpoint.width}px`;
+				return createStyleWrapper(value, (css) => `@media(${size}){${css}}`);
+			},
+			wrap: (css) => {
+				const res = `${value}{${css}}`;
+				if (!wrapper) return res;
+				return wrapper(res);
+			}
+		};
+	}
+	async function propsToCss({ props, resolve, signal }) {
+		const transformed = await resolve({
+			props,
+			signal
+		});
+		return Object.entries(transformed).reduce((acc, [propName, propValue]) => {
+			if (propValue === null) return acc;
+			acc.push(propName + ":" + propValue + ";");
+			return acc;
+		}, []).join("");
+	}
+	function customCssToString(customCss) {
+		const decoded = (0, _elementor_utils.decodeString)(customCss?.raw || "");
+		if (!decoded.trim()) return "";
+		return decoded + "\n";
+	}
+
+//#endregion
+//#region packages/packages/core/editor-canvas/src/hooks/use-style-renderer.ts
+	var SELECTOR_PREFIX = ".elementor";
+	function useStyleRenderer(resolve) {
+		const breakpoints = (0, _elementor_editor_responsive.useBreakpointsMap)();
+		return (0, react.useMemo)(() => {
+			return createStylesRenderer({
+				selectorPrefix: SELECTOR_PREFIX,
+				breakpoints,
+				resolve
+			});
+		}, [resolve, breakpoints]);
+	}
+
+//#endregion
+//#region packages/packages/core/editor-canvas/src/hooks/use-style-items.ts
+	function useStyleItems() {
+		const renderStyles = useStyleRenderer(useStylePropResolver());
+		const breakpoints = (0, _elementor_editor_responsive.useBreakpoints)();
+		const [styleItems, setStyleItems] = (0, react.useState)({});
+		const styleItemsCacheRef = (0, react.useRef)(/* @__PURE__ */ new Map());
+		const providerAndSubscribers = (0, react.useMemo)(() => {
+			const createEmptyCache = () => {
+				return {
+					orderedIds: [],
+					itemsById: /* @__PURE__ */ new Map()
+				};
+			};
+			const getCache = (provider) => {
+				const providerKey = safeGetKey(provider);
+				if (!providerKey) return createEmptyCache();
+				if (!styleItemsCacheRef.current.has(providerKey)) styleItemsCacheRef.current.set(providerKey, createEmptyCache());
+				return styleItemsCacheRef.current.get(providerKey);
+			};
+			return _elementor_editor_styles_repository.stylesRepository.getProviders().map((provider) => ({
+				provider,
+				subscriber: createProviderSubscriber({
+					provider,
+					renderStyles,
+					setStyleItems,
+					getCache: () => getCache(provider)
+				})
+			}));
+		}, [renderStyles]);
+		(0, react.useEffect)(() => {
+			const unsubscribes = providerAndSubscribers.map(({ provider, subscriber }) => provider.subscribe(subscriber));
+			return () => {
+				unsubscribes.forEach((unsubscribe) => unsubscribe());
+			};
+		}, [providerAndSubscribers]);
+		useOnMount(() => {
+			(0, _elementor_editor_v1_adapters.registerDataHook)("after", "editor/documents/attach-preview", async () => {
+				resetRemovedProviders();
+				const promises = providerAndSubscribers.map(async ({ subscriber }) => subscriber());
+				await Promise.all(promises);
+			});
+		});
+		const breakpointSorter = (0, react.useMemo)(() => createBreakpointSorter(breakpoints.map((breakpoint) => breakpoint.id)), [breakpoints]);
+		return (0, react.useMemo)(() => Object.values(styleItems).sort(prioritySorter).flatMap(({ items }) => items).sort(stateSorter).sort(breakpointSorter), [styleItems, breakpointSorter]);
+	}
+	function prioritySorter({ provider: providerA }, { provider: providerB }) {
+		return providerA.priority - providerB.priority;
+	}
+	function stateSorter({ state: stateA }, { state: stateB }) {
+		if ((0, _elementor_editor_styles.isClassState)(stateA) && !(0, _elementor_editor_styles.isClassState)(stateB)) return -1;
+		if (!(0, _elementor_editor_styles.isClassState)(stateA) && (0, _elementor_editor_styles.isClassState)(stateB)) return 1;
+		return 0;
+	}
+	function createBreakpointSorter(breakpointsOrder) {
+		return ({ breakpoint: breakpointA }, { breakpoint: breakpointB }) => breakpointsOrder.indexOf(breakpointA) - breakpointsOrder.indexOf(breakpointB);
+	}
+	function safeGetKey(provider) {
+		try {
+			return provider.getKey();
+		} catch {
+			return null;
+		}
+	}
+	function createProviderSubscriber({ provider, renderStyles, setStyleItems, getCache }) {
+		return abortPreviousRuns((abortController, previous, current) => signalizedProcess(abortController.signal).then((_, signal) => {
+			const cache = getCache();
+			const hasDiffInfo = current !== void 0 && previous !== void 0;
+			const hasCache = cache.orderedIds.length > 0;
+			if (hasCache && provider.isPregeneratedLink) removeProviderPregeneratedLinks(provider.getKey(), provider.isPregeneratedLink);
+			if (hasDiffInfo && hasCache) return updateItems(cache, previous, current, signal);
+			return createItems(cache, signal);
+		}).then((items) => {
+			setStyleItems((prev) => ({
+				...prev,
+				[provider.getKey()]: {
+					provider,
+					items
+				}
+			}));
+		}).execute());
+		async function updateItems(cache, previous, current, signal) {
+			const changedIds = getChangedStyleIds(previous, current);
+			cache.orderedIds = provider.actions.all().map((style) => style.id).reverse();
+			if (changedIds.length > 0) return renderStyles({
+				styles: breakToBreakpoints(changedIds.map((id) => provider.actions.get(id)).filter((style) => !!style).map((style) => ({
+					...style,
+					cssName: provider.actions.resolveCssName(style.id)
+				}))),
+				signal
+			}).then((rendered) => {
+				updateCacheItems(cache, changedIds, rendered);
+				return getOrderedItems(cache);
+			});
+			return getOrderedItems(cache);
+		}
+		async function createItems(cache, signal) {
+			const allStyles = provider.actions.all();
+			return renderStyles({
+				styles: breakToBreakpoints([...allStyles].reverse().map((style) => {
+					return {
+						...style,
+						cssName: provider.actions.resolveCssName(style.id)
+					};
+				})),
+				signal
+			}).then((rendered) => {
+				rebuildCache(cache, allStyles, rendered);
+				return getOrderedItems(cache);
+			});
+		}
+		function breakToBreakpoints(styles) {
+			return Object.values(styles.reduce((acc, style) => {
+				style.variants.forEach((variant) => {
+					const breakpoint = variant.meta.breakpoint || "desktop";
+					if (!acc[style.id]) acc[style.id] = {};
+					if (!acc[style.id][breakpoint]) acc[style.id][breakpoint] = {
+						...style,
+						variants: []
+					};
+					acc[style.id][breakpoint].variants.push(variant);
+				});
+				return acc;
+			}, {})).flatMap((breakpointMap) => Object.values(breakpointMap));
+		}
+	}
+	function getChangedStyleIds(previous, current) {
+		const changedIds = [];
+		for (const id of Object.keys(current)) {
+			const currentStyle = current[id];
+			const previousStyle = previous[id];
+			if (!previousStyle || currentStyle !== previousStyle) changedIds.push(id);
+		}
+		return changedIds;
+	}
+	function getOrderedItems(cache) {
+		return cache.orderedIds.map((id) => cache.itemsById.get(id)).filter((items) => items !== void 0).flat();
+	}
+	function updateCacheItems(cache, changedIds, changedItems) {
+		for (const id of changedIds) cache.itemsById.delete(id);
+		for (const item of changedItems) {
+			const existing = cache.itemsById.get(item.id) || [];
+			existing.push(item);
+			cache.itemsById.set(item.id, existing);
+		}
+	}
+	function rebuildCache(cache, allStyles, items) {
+		cache.orderedIds = allStyles.map((style) => style.id).reverse();
+		cache.itemsById.clear();
+		for (const item of items) {
+			const existing = cache.itemsById.get(item.id) || [];
+			existing.push(item);
+			cache.itemsById.set(item.id, existing);
+		}
+	}
+
+//#endregion
+//#region packages/packages/core/editor-canvas/src/components/style-renderer.tsx
+	function StyleRenderer() {
+		const container = usePortalContainer();
+		const styleItems = useStyleItems();
+		const linksAttrs = useDocumentsCssLinks();
+		if (!container) return null;
+		return /* @__PURE__ */ react.createElement(_elementor_ui.Portal, { container }, filterUniqueStyleDefinitions(styleItems).map((item) => /* @__PURE__ */ react.createElement("style", { key: `${item.id}-${item.breakpoint}-${item.state ?? "normal"}` }, item.value)), linksAttrs.map((attrs) => /* @__PURE__ */ react.createElement("link", {
+			...attrs,
+			key: attrs.id
+		})));
+	}
+	function usePortalContainer() {
+		return (0, _elementor_editor_v1_adapters.__privateUseListenTo)((0, _elementor_editor_v1_adapters.commandEndEvent)("editor/documents/attach-preview"), () => (0, _elementor_editor_v1_adapters.getCanvasIframeDocument)()?.head);
+	}
+	function filterUniqueStyleDefinitions(styleItems) {
+		const seen = /* @__PURE__ */ new Map();
+		return styleItems.filter((style) => {
+			const existingStyle = seen.get(style.id);
+			if (existingStyle) {
+				if (existingStyle.find((s) => s.breakpoint === style.breakpoint && s.state === style.state)) return false;
+				existingStyle.push(style);
+				return true;
+			}
+			seen.set(style.id, [style]);
+			return true;
+		});
+	}
+
+//#endregion
+//#region packages/packages/core/editor-canvas/src/form-structure/utils.ts
+	var FORM_ELEMENT_TYPE = "e-form";
+	var FORM_FIELD_ELEMENT_TYPES = /* @__PURE__ */ new Set([
+		"e-form-input",
+		"e-form-textarea",
+		"e-form-label",
+		"e-form-checkbox",
+		"e-form-submit-button",
+		"e-form-select",
+		"e-form-radio-button",
+		"e-form-file-upload",
+		"e-form-date-picker",
+		"e-form-time-picker"
+	]);
+	function getArgsElementType(args) {
+		return args.model?.widgetType || args.model?.elType;
+	}
+	function getElementType$1(element) {
+		return element?.model.get("widgetType") || element?.model.get("elType");
+	}
+	__name(getElementType$1, "getElementType");
+	function getClipboardElementType(element) {
+		return element?.widgetType || element?.elType;
+	}
+	function isElementWithinFormSelector(element) {
+		return !!element?.view?.el?.closest("form,[data-element_type=\"e-form\"]");
+	}
+	function isWithinForm(element) {
+		return isElementWithinFormSelector(element);
+	}
+	function hasElementType(element, type) {
+		return (0, _elementor_editor_elements.getAllDescendants)(element).some((item) => getElementType$1(item) === type);
+	}
+	function hasElementTypes(element, types) {
+		return (0, _elementor_editor_elements.getAllDescendants)(element).some((item) => {
+			const itemType = getElementType$1(item);
+			return itemType ? types.has(itemType) : false;
+		});
+	}
+	function hasClipboardElementType(elements, type) {
+		return elements.some((element) => {
+			if (getClipboardElementType(element) === type) return true;
+			return element.elements ? hasClipboardElementType(element.elements, type) : false;
+		});
+	}
+	function hasClipboardElementTypes(elements, types) {
+		return elements.some((element) => {
+			const elementType = getClipboardElementType(element);
+			if (elementType && types.has(elementType)) return true;
+			return element.elements ? hasClipboardElementTypes(element.elements, types) : false;
+		});
+	}
+	function movedContainersIncludeAtomicFormRoot(containers) {
+		return containers.some((container) => getElementType$1(container) === FORM_ELEMENT_TYPE);
+	}
+	function clipboardRootsAreAtomicForms(elements) {
+		if (!elements.length) return false;
+		return elements.every((el) => getClipboardElementType(el) === FORM_ELEMENT_TYPE);
+	}
+
+//#endregion
+//#region packages/packages/core/editor-canvas/src/form-structure/enforce-form-ancestor-commands.ts
+	var FORM_FIELDS_OUTSIDE_ALERT = {
+		type: "default",
+		message: (0, _wordpress_i18n.__)("Form elements must be placed inside a form.", "elementor"),
+		id: "form-fields-outside-form-blocked"
+	};
+	function initFormAncestorEnforcement() {
+		(0, _elementor_editor_v1_adapters.blockCommand)({
+			command: "document/elements/create",
+			condition: blockFormFieldCreate
+		});
+		(0, _elementor_editor_v1_adapters.blockCommand)({
+			command: "document/elements/move",
+			condition: blockFormFieldMove
+		});
+		(0, _elementor_editor_v1_adapters.blockCommand)({
+			command: "document/elements/paste",
+			condition: blockFormFieldPaste
+		});
+	}
+	function blockFormFieldCreate(args) {
+		const elementType = getArgsElementType(args);
+		if (!elementType || !FORM_FIELD_ELEMENT_TYPES.has(elementType)) return false;
+		if ((args.containers ?? [args.container]).some((container) => !isWithinForm(container))) {
+			handleBlockedFormField$1();
+			return true;
+		}
+		return false;
+	}
+	function blockFormFieldMove(args) {
+		const { containers = [args.container], target } = args;
+		if (containers.some((container) => container ? !hasElementType(container, "e-form") && hasElementTypes(container, FORM_FIELD_ELEMENT_TYPES) : false) && !isWithinForm(target) && !movedContainersIncludeAtomicFormRoot(containers)) {
+			handleBlockedFormField$1();
+			return true;
+		}
+		return false;
+	}
+	function blockFormFieldPaste(args) {
+		const { storageType } = args;
+		if (storageType !== "localstorage") return false;
+		const data = window?.elementorCommon?.storage?.get();
+		if (!data?.clipboard?.elements) return false;
+		if (hasClipboardElementTypes(data.clipboard.elements, FORM_FIELD_ELEMENT_TYPES) && !isWithinForm(args.container) && !clipboardRootsAreAtomicForms(data.clipboard.elements)) {
+			handleBlockedFormField$1();
+			return true;
+		}
+		return false;
+	}
+	function handleBlockedFormField$1() {
+		(0, _elementor_editor_notifications.notify)(FORM_FIELDS_OUTSIDE_ALERT);
+	}
+	__name(handleBlockedFormField$1, "handleBlockedFormField");
+
+//#endregion
+//#region packages/packages/core/editor-canvas/src/form-structure/prevent-form-nesting-commands.ts
+	var FORM_NESTING_ALERT = {
+		type: "default",
+		message: (0, _wordpress_i18n.__)("Forms can't be nested. Create separate forms instead.", "elementor"),
+		id: "form-nesting-blocked"
+	};
+	function initFormNestingPrevention() {
+		(0, _elementor_editor_v1_adapters.blockCommand)({
+			command: "document/elements/create",
+			condition: blockFormCreate
+		});
+		(0, _elementor_editor_v1_adapters.blockCommand)({
+			command: "document/elements/move",
+			condition: blockFormMove
+		});
+		(0, _elementor_editor_v1_adapters.blockCommand)({
+			command: "document/elements/paste",
+			condition: blockFormPaste
+		});
+	}
+	function blockFormCreate(args) {
+		const elementType = getArgsElementType(args);
+		if (!elementType) return false;
+		if (elementType === "e-form" && isWithinForm(args.container)) {
+			handleBlockedFormField();
+			return true;
+		}
+		return false;
+	}
+	function blockFormMove(args) {
+		const { containers = [args.container], target } = args;
+		if (containers.some((container) => container ? hasElementType(container, "e-form") : false) && isWithinForm(target)) {
+			handleBlockedFormField();
+			return true;
+		}
+		return false;
+	}
+	function blockFormPaste(args) {
+		const { storageType } = args;
+		if (storageType !== "localstorage") return false;
+		const data = window?.elementorCommon?.storage?.get();
+		if (!data?.clipboard?.elements) return false;
+		if (hasClipboardElementType(data.clipboard.elements, "e-form") && isWithinForm(args.container)) {
+			handleBlockedFormField();
+			return true;
+		}
+		return false;
+	}
+	function handleBlockedFormField() {
+		(0, _elementor_editor_notifications.notify)(FORM_NESTING_ALERT);
+	}
+
+//#endregion
+//#region packages/packages/core/editor-canvas/src/settings-transformers-registry.ts
+	var settingsTransformersRegistry = createTransformersRegistry();
+
+//#endregion
+//#region packages/packages/core/editor-canvas/src/transformers/create-transformer.ts
+	function createTransformer(cb) {
+		return cb;
+	}
+
+//#endregion
+//#region packages/packages/core/editor-canvas/src/transformers/settings/attributes-transformer.ts
+	var attributesTransformer = createTransformer(() => "");
+
+//#endregion
+//#region packages/packages/core/editor-canvas/src/transformers/settings/classes-transformer.ts
+	function transformClassId(id, cache) {
+		if (!cache.has(id)) {
+			const provider2 = _elementor_editor_styles_repository.stylesRepository.getProviders().find((p) => {
+				return p.actions.all().find((style) => style.id === id);
+			});
+			if (!provider2) return id;
+			cache.set(id, provider2.getKey());
+		}
+		const providerKey = cache.get(id);
+		return _elementor_editor_styles_repository.stylesRepository.getProviderByKey(providerKey)?.actions.resolveCssName(id) ?? id;
+	}
+	function createClassesTransformer() {
+		const cache = /* @__PURE__ */ new Map();
+		return createTransformer((value) => {
+			return value.map((id) => transformClassId(id, cache)).filter(Boolean);
+		});
+	}
+
+//#endregion
+//#region packages/packages/core/editor-canvas/src/transformers/settings/date-range-transformer.ts
+	var dateRangeTransformer = createTransformer((value) => {
+		if (!value || Object.keys(value).length === 0) return null;
+		return {
+			min: value.min || null,
+			max: value.max || null
+		};
+	});
+
+//#endregion
+//#region packages/packages/core/editor-canvas/src/transformers/settings/date-time-transformer.ts
+	var dateTimeTransformer = createTransformer((values) => {
+		return values.map((value) => {
+			const date = (value.date || "").trim();
+			const time = (value.time || "").trim();
+			return !date && !time ? "" : `${date} ${time}`.trim();
+		}).join(" ");
+	});
+
+//#endregion
+//#region node_modules/dompurify/dist/purify.es.mjs
+/*! @license DOMPurify 3.3.0 | (c) Cure53 and other contributors | Released under the Apache license 2.0 and Mozilla Public License 2.0 | github.com/cure53/DOMPurify/blob/3.3.0/LICENSE */
+	var { entries, setPrototypeOf, isFrozen, getPrototypeOf, getOwnPropertyDescriptor } = Object;
+	var { freeze, seal, create } = Object;
+	var { apply, construct } = typeof Reflect !== "undefined" && Reflect;
+	if (!freeze) freeze = function freeze(x) {
+		return x;
+	};
+	if (!seal) seal = function seal(x) {
+		return x;
+	};
+	if (!apply) apply = function apply(func, thisArg) {
+		for (var _len = arguments.length, args = new Array(_len > 2 ? _len - 2 : 0), _key = 2; _key < _len; _key++) args[_key - 2] = arguments[_key];
+		return func.apply(thisArg, args);
+	};
+	if (!construct) construct = function construct(Func) {
+		for (var _len2 = arguments.length, args = new Array(_len2 > 1 ? _len2 - 1 : 0), _key2 = 1; _key2 < _len2; _key2++) args[_key2 - 1] = arguments[_key2];
+		return new Func(...args);
+	};
+	var arrayForEach = unapply(Array.prototype.forEach);
+	var arrayLastIndexOf = unapply(Array.prototype.lastIndexOf);
+	var arrayPop = unapply(Array.prototype.pop);
+	var arrayPush = unapply(Array.prototype.push);
+	var arraySplice = unapply(Array.prototype.splice);
+	var stringToLowerCase = unapply(String.prototype.toLowerCase);
+	var stringToString = unapply(String.prototype.toString);
+	var stringMatch = unapply(String.prototype.match);
+	var stringReplace = unapply(String.prototype.replace);
+	var stringIndexOf = unapply(String.prototype.indexOf);
+	var stringTrim = unapply(String.prototype.trim);
+	var objectHasOwnProperty = unapply(Object.prototype.hasOwnProperty);
+	var regExpTest = unapply(RegExp.prototype.test);
+	var typeErrorCreate = unconstruct(TypeError);
+	/**
+	* Creates a new function that calls the given function with a specified thisArg and arguments.
+	*
+	* @param func - The function to be wrapped and called.
+	* @returns A new function that calls the given function with a specified thisArg and arguments.
+	*/
+	function unapply(func) {
+		return function(thisArg) {
+			if (thisArg instanceof RegExp) thisArg.lastIndex = 0;
+			for (var _len3 = arguments.length, args = new Array(_len3 > 1 ? _len3 - 1 : 0), _key3 = 1; _key3 < _len3; _key3++) args[_key3 - 1] = arguments[_key3];
+			return apply(func, thisArg, args);
+		};
+	}
+	/**
+	* Creates a new function that constructs an instance of the given constructor function with the provided arguments.
+	*
+	* @param func - The constructor function to be wrapped and called.
+	* @returns A new function that constructs an instance of the given constructor function with the provided arguments.
+	*/
+	function unconstruct(Func) {
+		return function() {
+			for (var _len4 = arguments.length, args = new Array(_len4), _key4 = 0; _key4 < _len4; _key4++) args[_key4] = arguments[_key4];
+			return construct(Func, args);
+		};
+	}
+	/**
+	* Add properties to a lookup table
+	*
+	* @param set - The set to which elements will be added.
+	* @param array - The array containing elements to be added to the set.
+	* @param transformCaseFunc - An optional function to transform the case of each element before adding to the set.
+	* @returns The modified set with added elements.
+	*/
+	function addToSet(set, array) {
+		let transformCaseFunc = arguments.length > 2 && arguments[2] !== void 0 ? arguments[2] : stringToLowerCase;
+		if (setPrototypeOf) setPrototypeOf(set, null);
+		let l = array.length;
+		while (l--) {
+			let element = array[l];
+			if (typeof element === "string") {
+				const lcElement = transformCaseFunc(element);
+				if (lcElement !== element) {
+					if (!isFrozen(array)) array[l] = lcElement;
+					element = lcElement;
+				}
+			}
+			set[element] = true;
+		}
+		return set;
+	}
+	/**
+	* Clean up an array to harden against CSPP
+	*
+	* @param array - The array to be cleaned.
+	* @returns The cleaned version of the array
+	*/
+	function cleanArray(array) {
+		for (let index = 0; index < array.length; index++) if (!objectHasOwnProperty(array, index)) array[index] = null;
+		return array;
+	}
+	/**
+	* Shallow clone an object
+	*
+	* @param object - The object to be cloned.
+	* @returns A new object that copies the original.
+	*/
+	function clone(object) {
+		const newObject = create(null);
+		for (const [property, value] of entries(object)) if (objectHasOwnProperty(object, property)) if (Array.isArray(value)) newObject[property] = cleanArray(value);
+		else if (value && typeof value === "object" && value.constructor === Object) newObject[property] = clone(value);
+		else newObject[property] = value;
+		return newObject;
+	}
+	/**
+	* This method automatically checks if the prop is function or getter and behaves accordingly.
+	*
+	* @param object - The object to look up the getter function in its prototype chain.
+	* @param prop - The property name for which to find the getter function.
+	* @returns The getter function found in the prototype chain or a fallback function.
+	*/
+	function lookupGetter(object, prop) {
+		while (object !== null) {
+			const desc = getOwnPropertyDescriptor(object, prop);
+			if (desc) {
+				if (desc.get) return unapply(desc.get);
+				if (typeof desc.value === "function") return unapply(desc.value);
+			}
+			object = getPrototypeOf(object);
+		}
+		function fallbackValue() {
+			return null;
+		}
+		return fallbackValue;
+	}
+	var html$1 = freeze([
+		"a",
+		"abbr",
+		"acronym",
+		"address",
+		"area",
+		"article",
+		"aside",
+		"audio",
+		"b",
+		"bdi",
+		"bdo",
+		"big",
+		"blink",
+		"blockquote",
+		"body",
+		"br",
+		"button",
+		"canvas",
+		"caption",
+		"center",
+		"cite",
+		"code",
+		"col",
+		"colgroup",
+		"content",
+		"data",
+		"datalist",
+		"dd",
+		"decorator",
+		"del",
+		"details",
+		"dfn",
+		"dialog",
+		"dir",
+		"div",
+		"dl",
+		"dt",
+		"element",
+		"em",
+		"fieldset",
+		"figcaption",
+		"figure",
+		"font",
+		"footer",
+		"form",
+		"h1",
+		"h2",
+		"h3",
+		"h4",
+		"h5",
+		"h6",
+		"head",
+		"header",
+		"hgroup",
+		"hr",
+		"html",
+		"i",
+		"img",
+		"input",
+		"ins",
+		"kbd",
+		"label",
+		"legend",
+		"li",
+		"main",
+		"map",
+		"mark",
+		"marquee",
+		"menu",
+		"menuitem",
+		"meter",
+		"nav",
+		"nobr",
+		"ol",
+		"optgroup",
+		"option",
+		"output",
+		"p",
+		"picture",
+		"pre",
+		"progress",
+		"q",
+		"rp",
+		"rt",
+		"ruby",
+		"s",
+		"samp",
+		"search",
+		"section",
+		"select",
+		"shadow",
+		"slot",
+		"small",
+		"source",
+		"spacer",
+		"span",
+		"strike",
+		"strong",
+		"style",
+		"sub",
+		"summary",
+		"sup",
+		"table",
+		"tbody",
+		"td",
+		"template",
+		"textarea",
+		"tfoot",
+		"th",
+		"thead",
+		"time",
+		"tr",
+		"track",
+		"tt",
+		"u",
+		"ul",
+		"var",
+		"video",
+		"wbr"
+	]);
+	var svg$1 = freeze([
+		"svg",
+		"a",
+		"altglyph",
+		"altglyphdef",
+		"altglyphitem",
+		"animatecolor",
+		"animatemotion",
+		"animatetransform",
+		"circle",
+		"clippath",
+		"defs",
+		"desc",
+		"ellipse",
+		"enterkeyhint",
+		"exportparts",
+		"filter",
+		"font",
+		"g",
+		"glyph",
+		"glyphref",
+		"hkern",
+		"image",
+		"inputmode",
+		"line",
+		"lineargradient",
+		"marker",
+		"mask",
+		"metadata",
+		"mpath",
+		"part",
+		"path",
+		"pattern",
+		"polygon",
+		"polyline",
+		"radialgradient",
+		"rect",
+		"stop",
+		"style",
+		"switch",
+		"symbol",
+		"text",
+		"textpath",
+		"title",
+		"tref",
+		"tspan",
+		"view",
+		"vkern"
+	]);
+	var svgFilters = freeze([
+		"feBlend",
+		"feColorMatrix",
+		"feComponentTransfer",
+		"feComposite",
+		"feConvolveMatrix",
+		"feDiffuseLighting",
+		"feDisplacementMap",
+		"feDistantLight",
+		"feDropShadow",
+		"feFlood",
+		"feFuncA",
+		"feFuncB",
+		"feFuncG",
+		"feFuncR",
+		"feGaussianBlur",
+		"feImage",
+		"feMerge",
+		"feMergeNode",
+		"feMorphology",
+		"feOffset",
+		"fePointLight",
+		"feSpecularLighting",
+		"feSpotLight",
+		"feTile",
+		"feTurbulence"
+	]);
+	var svgDisallowed = freeze([
+		"animate",
+		"color-profile",
+		"cursor",
+		"discard",
+		"font-face",
+		"font-face-format",
+		"font-face-name",
+		"font-face-src",
+		"font-face-uri",
+		"foreignobject",
+		"hatch",
+		"hatchpath",
+		"mesh",
+		"meshgradient",
+		"meshpatch",
+		"meshrow",
+		"missing-glyph",
+		"script",
+		"set",
+		"solidcolor",
+		"unknown",
+		"use"
+	]);
+	var mathMl$1 = freeze([
+		"math",
+		"menclose",
+		"merror",
+		"mfenced",
+		"mfrac",
+		"mglyph",
+		"mi",
+		"mlabeledtr",
+		"mmultiscripts",
+		"mn",
+		"mo",
+		"mover",
+		"mpadded",
+		"mphantom",
+		"mroot",
+		"mrow",
+		"ms",
+		"mspace",
+		"msqrt",
+		"mstyle",
+		"msub",
+		"msup",
+		"msubsup",
+		"mtable",
+		"mtd",
+		"mtext",
+		"mtr",
+		"munder",
+		"munderover",
+		"mprescripts"
+	]);
+	var mathMlDisallowed = freeze([
+		"maction",
+		"maligngroup",
+		"malignmark",
+		"mlongdiv",
+		"mscarries",
+		"mscarry",
+		"msgroup",
+		"mstack",
+		"msline",
+		"msrow",
+		"semantics",
+		"annotation",
+		"annotation-xml",
+		"mprescripts",
+		"none"
+	]);
+	var text = freeze(["#text"]);
+	var html = freeze([
+		"accept",
+		"action",
+		"align",
+		"alt",
+		"autocapitalize",
+		"autocomplete",
+		"autopictureinpicture",
+		"autoplay",
+		"background",
+		"bgcolor",
+		"border",
+		"capture",
+		"cellpadding",
+		"cellspacing",
+		"checked",
+		"cite",
+		"class",
+		"clear",
+		"color",
+		"cols",
+		"colspan",
+		"controls",
+		"controlslist",
+		"coords",
+		"crossorigin",
+		"datetime",
+		"decoding",
+		"default",
+		"dir",
+		"disabled",
+		"disablepictureinpicture",
+		"disableremoteplayback",
+		"download",
+		"draggable",
+		"enctype",
+		"enterkeyhint",
+		"exportparts",
+		"face",
+		"for",
+		"headers",
+		"height",
+		"hidden",
+		"high",
+		"href",
+		"hreflang",
+		"id",
+		"inert",
+		"inputmode",
+		"integrity",
+		"ismap",
+		"kind",
+		"label",
+		"lang",
+		"list",
+		"loading",
+		"loop",
+		"low",
+		"max",
+		"maxlength",
+		"media",
+		"method",
+		"min",
+		"minlength",
+		"multiple",
+		"muted",
+		"name",
+		"nonce",
+		"noshade",
+		"novalidate",
+		"nowrap",
+		"open",
+		"optimum",
+		"part",
+		"pattern",
+		"placeholder",
+		"playsinline",
+		"popover",
+		"popovertarget",
+		"popovertargetaction",
+		"poster",
+		"preload",
+		"pubdate",
+		"radiogroup",
+		"readonly",
+		"rel",
+		"required",
+		"rev",
+		"reversed",
+		"role",
+		"rows",
+		"rowspan",
+		"spellcheck",
+		"scope",
+		"selected",
+		"shape",
+		"size",
+		"sizes",
+		"slot",
+		"span",
+		"srclang",
+		"start",
+		"src",
+		"srcset",
+		"step",
+		"style",
+		"summary",
+		"tabindex",
+		"title",
+		"translate",
+		"type",
+		"usemap",
+		"valign",
+		"value",
+		"width",
+		"wrap",
+		"xmlns",
+		"slot"
+	]);
+	var svg = freeze([
+		"accent-height",
+		"accumulate",
+		"additive",
+		"alignment-baseline",
+		"amplitude",
+		"ascent",
+		"attributename",
+		"attributetype",
+		"azimuth",
+		"basefrequency",
+		"baseline-shift",
+		"begin",
+		"bias",
+		"by",
+		"class",
+		"clip",
+		"clippathunits",
+		"clip-path",
+		"clip-rule",
+		"color",
+		"color-interpolation",
+		"color-interpolation-filters",
+		"color-profile",
+		"color-rendering",
+		"cx",
+		"cy",
+		"d",
+		"dx",
+		"dy",
+		"diffuseconstant",
+		"direction",
+		"display",
+		"divisor",
+		"dur",
+		"edgemode",
+		"elevation",
+		"end",
+		"exponent",
+		"fill",
+		"fill-opacity",
+		"fill-rule",
+		"filter",
+		"filterunits",
+		"flood-color",
+		"flood-opacity",
+		"font-family",
+		"font-size",
+		"font-size-adjust",
+		"font-stretch",
+		"font-style",
+		"font-variant",
+		"font-weight",
+		"fx",
+		"fy",
+		"g1",
+		"g2",
+		"glyph-name",
+		"glyphref",
+		"gradientunits",
+		"gradienttransform",
+		"height",
+		"href",
+		"id",
+		"image-rendering",
+		"in",
+		"in2",
+		"intercept",
+		"k",
+		"k1",
+		"k2",
+		"k3",
+		"k4",
+		"kerning",
+		"keypoints",
+		"keysplines",
+		"keytimes",
+		"lang",
+		"lengthadjust",
+		"letter-spacing",
+		"kernelmatrix",
+		"kernelunitlength",
+		"lighting-color",
+		"local",
+		"marker-end",
+		"marker-mid",
+		"marker-start",
+		"markerheight",
+		"markerunits",
+		"markerwidth",
+		"maskcontentunits",
+		"maskunits",
+		"max",
+		"mask",
+		"mask-type",
+		"media",
+		"method",
+		"mode",
+		"min",
+		"name",
+		"numoctaves",
+		"offset",
+		"operator",
+		"opacity",
+		"order",
+		"orient",
+		"orientation",
+		"origin",
+		"overflow",
+		"paint-order",
+		"path",
+		"pathlength",
+		"patterncontentunits",
+		"patterntransform",
+		"patternunits",
+		"points",
+		"preservealpha",
+		"preserveaspectratio",
+		"primitiveunits",
+		"r",
+		"rx",
+		"ry",
+		"radius",
+		"refx",
+		"refy",
+		"repeatcount",
+		"repeatdur",
+		"restart",
+		"result",
+		"rotate",
+		"scale",
+		"seed",
+		"shape-rendering",
+		"slope",
+		"specularconstant",
+		"specularexponent",
+		"spreadmethod",
+		"startoffset",
+		"stddeviation",
+		"stitchtiles",
+		"stop-color",
+		"stop-opacity",
+		"stroke-dasharray",
+		"stroke-dashoffset",
+		"stroke-linecap",
+		"stroke-linejoin",
+		"stroke-miterlimit",
+		"stroke-opacity",
+		"stroke",
+		"stroke-width",
+		"style",
+		"surfacescale",
+		"systemlanguage",
+		"tabindex",
+		"tablevalues",
+		"targetx",
+		"targety",
+		"transform",
+		"transform-origin",
+		"text-anchor",
+		"text-decoration",
+		"text-rendering",
+		"textlength",
+		"type",
+		"u1",
+		"u2",
+		"unicode",
+		"values",
+		"viewbox",
+		"visibility",
+		"version",
+		"vert-adv-y",
+		"vert-origin-x",
+		"vert-origin-y",
+		"width",
+		"word-spacing",
+		"wrap",
+		"writing-mode",
+		"xchannelselector",
+		"ychannelselector",
+		"x",
+		"x1",
+		"x2",
+		"xmlns",
+		"y",
+		"y1",
+		"y2",
+		"z",
+		"zoomandpan"
+	]);
+	var mathMl = freeze([
+		"accent",
+		"accentunder",
+		"align",
+		"bevelled",
+		"close",
+		"columnsalign",
+		"columnlines",
+		"columnspan",
+		"denomalign",
+		"depth",
+		"dir",
+		"display",
+		"displaystyle",
+		"encoding",
+		"fence",
+		"frame",
+		"height",
+		"href",
+		"id",
+		"largeop",
+		"length",
+		"linethickness",
+		"lspace",
+		"lquote",
+		"mathbackground",
+		"mathcolor",
+		"mathsize",
+		"mathvariant",
+		"maxsize",
+		"minsize",
+		"movablelimits",
+		"notation",
+		"numalign",
+		"open",
+		"rowalign",
+		"rowlines",
+		"rowspacing",
+		"rowspan",
+		"rspace",
+		"rquote",
+		"scriptlevel",
+		"scriptminsize",
+		"scriptsizemultiplier",
+		"selection",
+		"separator",
+		"separators",
+		"stretchy",
+		"subscriptshift",
+		"supscriptshift",
+		"symmetric",
+		"voffset",
+		"width",
+		"xmlns"
+	]);
+	var xml = freeze([
+		"xlink:href",
+		"xml:id",
+		"xlink:title",
+		"xml:space",
+		"xmlns:xlink"
+	]);
+	var MUSTACHE_EXPR = seal(/\{\{[\w\W]*|[\w\W]*\}\}/gm);
+	var ERB_EXPR = seal(/<%[\w\W]*|[\w\W]*%>/gm);
+	var TMPLIT_EXPR = seal(/\$\{[\w\W]*/gm);
+	var DATA_ATTR = seal(/^data-[\-\w.\u00B7-\uFFFF]+$/);
+	var ARIA_ATTR = seal(/^aria-[\-\w]+$/);
+	var IS_ALLOWED_URI = seal(/^(?:(?:(?:f|ht)tps?|mailto|tel|callto|sms|cid|xmpp|matrix):|[^a-z]|[a-z+.\-]+(?:[^a-z+.\-:]|$))/i);
+	var IS_SCRIPT_OR_DATA = seal(/^(?:\w+script|data):/i);
+	var ATTR_WHITESPACE = seal(/[\u0000-\u0020\u00A0\u1680\u180E\u2000-\u2029\u205F\u3000]/g);
+	var DOCTYPE_NAME = seal(/^html$/i);
+	var CUSTOM_ELEMENT = seal(/^[a-z][.\w]*(-[.\w]+)+$/i);
+	var EXPRESSIONS = /*#__PURE__*/ Object.freeze({
+		__proto__: null,
+		ARIA_ATTR,
+		ATTR_WHITESPACE,
+		CUSTOM_ELEMENT,
+		DATA_ATTR,
+		DOCTYPE_NAME,
+		ERB_EXPR,
+		IS_ALLOWED_URI,
+		IS_SCRIPT_OR_DATA,
+		MUSTACHE_EXPR,
+		TMPLIT_EXPR
+	});
+	var NODE_TYPE = {
+		element: 1,
+		attribute: 2,
+		text: 3,
+		cdataSection: 4,
+		entityReference: 5,
+		entityNode: 6,
+		progressingInstruction: 7,
+		comment: 8,
+		document: 9,
+		documentType: 10,
+		documentFragment: 11,
+		notation: 12
+	};
+	var getGlobal = function getGlobal() {
+		return typeof window === "undefined" ? null : window;
+	};
+	/**
+	* Creates a no-op policy for internal use only.
+	* Don't export this function outside this module!
+	* @param trustedTypes The policy factory.
+	* @param purifyHostElement The Script element used to load DOMPurify (to determine policy name suffix).
+	* @return The policy created (or null, if Trusted Types
+	* are not supported or creating the policy failed).
+	*/
+	var _createTrustedTypesPolicy = function _createTrustedTypesPolicy(trustedTypes, purifyHostElement) {
+		if (typeof trustedTypes !== "object" || typeof trustedTypes.createPolicy !== "function") return null;
+		let suffix = null;
+		const ATTR_NAME = "data-tt-policy-suffix";
+		if (purifyHostElement && purifyHostElement.hasAttribute(ATTR_NAME)) suffix = purifyHostElement.getAttribute(ATTR_NAME);
+		const policyName = "dompurify" + (suffix ? "#" + suffix : "");
+		try {
+			return trustedTypes.createPolicy(policyName, {
+				createHTML(html) {
+					return html;
+				},
+				createScriptURL(scriptUrl) {
+					return scriptUrl;
+				}
+			});
+		} catch (_) {
+			console.warn("TrustedTypes policy " + policyName + " could not be created.");
+			return null;
+		}
+	};
+	var _createHooksMap = function _createHooksMap() {
+		return {
+			afterSanitizeAttributes: [],
+			afterSanitizeElements: [],
+			afterSanitizeShadowDOM: [],
+			beforeSanitizeAttributes: [],
+			beforeSanitizeElements: [],
+			beforeSanitizeShadowDOM: [],
+			uponSanitizeAttribute: [],
+			uponSanitizeElement: [],
+			uponSanitizeShadowNode: []
+		};
+	};
+	function createDOMPurify() {
+		let window = arguments.length > 0 && arguments[0] !== void 0 ? arguments[0] : getGlobal();
+		const DOMPurify = (root) => createDOMPurify(root);
+		DOMPurify.version = "3.3.0";
+		DOMPurify.removed = [];
+		if (!window || !window.document || window.document.nodeType !== NODE_TYPE.document || !window.Element) {
+			DOMPurify.isSupported = false;
+			return DOMPurify;
+		}
+		let { document } = window;
+		const originalDocument = document;
+		const currentScript = originalDocument.currentScript;
+		const { DocumentFragment, HTMLTemplateElement, Node, Element, NodeFilter, NamedNodeMap = window.NamedNodeMap || window.MozNamedAttrMap, HTMLFormElement, DOMParser, trustedTypes } = window;
+		const ElementPrototype = Element.prototype;
+		const cloneNode = lookupGetter(ElementPrototype, "cloneNode");
+		const remove = lookupGetter(ElementPrototype, "remove");
+		const getNextSibling = lookupGetter(ElementPrototype, "nextSibling");
+		const getChildNodes = lookupGetter(ElementPrototype, "childNodes");
+		const getParentNode = lookupGetter(ElementPrototype, "parentNode");
+		if (typeof HTMLTemplateElement === "function") {
+			const template = document.createElement("template");
+			if (template.content && template.content.ownerDocument) document = template.content.ownerDocument;
+		}
+		let trustedTypesPolicy;
+		let emptyHTML = "";
+		const { implementation, createNodeIterator, createDocumentFragment, getElementsByTagName } = document;
+		const { importNode } = originalDocument;
+		let hooks = _createHooksMap();
+		/**
+		* Expose whether this browser supports running the full DOMPurify.
+		*/
+		DOMPurify.isSupported = typeof entries === "function" && typeof getParentNode === "function" && implementation && implementation.createHTMLDocument !== void 0;
+		const { MUSTACHE_EXPR, ERB_EXPR, TMPLIT_EXPR, DATA_ATTR, ARIA_ATTR, IS_SCRIPT_OR_DATA, ATTR_WHITESPACE, CUSTOM_ELEMENT } = EXPRESSIONS;
+		let { IS_ALLOWED_URI: IS_ALLOWED_URI$1 } = EXPRESSIONS;
+		/**
+		* We consider the elements and attributes below to be safe. Ideally
+		* don't add any new ones but feel free to remove unwanted ones.
+		*/
+		let ALLOWED_TAGS = null;
+		const DEFAULT_ALLOWED_TAGS = addToSet({}, [
+			...html$1,
+			...svg$1,
+			...svgFilters,
+			...mathMl$1,
+			...text
+		]);
+		let ALLOWED_ATTR = null;
+		const DEFAULT_ALLOWED_ATTR = addToSet({}, [
+			...html,
+			...svg,
+			...mathMl,
+			...xml
+		]);
+		let CUSTOM_ELEMENT_HANDLING = Object.seal(create(null, {
+			tagNameCheck: {
+				writable: true,
+				configurable: false,
+				enumerable: true,
+				value: null
+			},
+			attributeNameCheck: {
+				writable: true,
+				configurable: false,
+				enumerable: true,
+				value: null
+			},
+			allowCustomizedBuiltInElements: {
+				writable: true,
+				configurable: false,
+				enumerable: true,
+				value: false
+			}
+		}));
+		let FORBID_TAGS = null;
+		let FORBID_ATTR = null;
+		const EXTRA_ELEMENT_HANDLING = Object.seal(create(null, {
+			tagCheck: {
+				writable: true,
+				configurable: false,
+				enumerable: true,
+				value: null
+			},
+			attributeCheck: {
+				writable: true,
+				configurable: false,
+				enumerable: true,
+				value: null
+			}
+		}));
+		let ALLOW_ARIA_ATTR = true;
+		let ALLOW_DATA_ATTR = true;
+		let ALLOW_UNKNOWN_PROTOCOLS = false;
+		let ALLOW_SELF_CLOSE_IN_ATTR = true;
+		let SAFE_FOR_TEMPLATES = false;
+		let SAFE_FOR_XML = true;
+		let WHOLE_DOCUMENT = false;
+		let SET_CONFIG = false;
+		let FORCE_BODY = false;
+		let RETURN_DOM = false;
+		let RETURN_DOM_FRAGMENT = false;
+		let RETURN_TRUSTED_TYPE = false;
+		let SANITIZE_DOM = true;
+		let SANITIZE_NAMED_PROPS = false;
+		const SANITIZE_NAMED_PROPS_PREFIX = "user-content-";
+		let KEEP_CONTENT = true;
+		let IN_PLACE = false;
+		let USE_PROFILES = {};
+		let FORBID_CONTENTS = null;
+		const DEFAULT_FORBID_CONTENTS = addToSet({}, [
+			"annotation-xml",
+			"audio",
+			"colgroup",
+			"desc",
+			"foreignobject",
+			"head",
+			"iframe",
+			"math",
+			"mi",
+			"mn",
+			"mo",
+			"ms",
+			"mtext",
+			"noembed",
+			"noframes",
+			"noscript",
+			"plaintext",
+			"script",
+			"style",
+			"svg",
+			"template",
+			"thead",
+			"title",
+			"video",
+			"xmp"
+		]);
+		let DATA_URI_TAGS = null;
+		const DEFAULT_DATA_URI_TAGS = addToSet({}, [
+			"audio",
+			"video",
+			"img",
+			"source",
+			"image",
+			"track"
+		]);
+		let URI_SAFE_ATTRIBUTES = null;
+		const DEFAULT_URI_SAFE_ATTRIBUTES = addToSet({}, [
+			"alt",
+			"class",
+			"for",
+			"id",
+			"label",
+			"name",
+			"pattern",
+			"placeholder",
+			"role",
+			"summary",
+			"title",
+			"value",
+			"style",
+			"xmlns"
+		]);
+		const MATHML_NAMESPACE = "http://www.w3.org/1998/Math/MathML";
+		const SVG_NAMESPACE = "http://www.w3.org/2000/svg";
+		const HTML_NAMESPACE = "http://www.w3.org/1999/xhtml";
+		let NAMESPACE = HTML_NAMESPACE;
+		let IS_EMPTY_INPUT = false;
+		let ALLOWED_NAMESPACES = null;
+		const DEFAULT_ALLOWED_NAMESPACES = addToSet({}, [
+			MATHML_NAMESPACE,
+			SVG_NAMESPACE,
+			HTML_NAMESPACE
+		], stringToString);
+		let MATHML_TEXT_INTEGRATION_POINTS = addToSet({}, [
+			"mi",
+			"mo",
+			"mn",
+			"ms",
+			"mtext"
+		]);
+		let HTML_INTEGRATION_POINTS = addToSet({}, ["annotation-xml"]);
+		const COMMON_SVG_AND_HTML_ELEMENTS = addToSet({}, [
+			"title",
+			"style",
+			"font",
+			"a",
+			"script"
+		]);
+		let PARSER_MEDIA_TYPE = null;
+		const SUPPORTED_PARSER_MEDIA_TYPES = ["application/xhtml+xml", "text/html"];
+		const DEFAULT_PARSER_MEDIA_TYPE = "text/html";
+		let transformCaseFunc = null;
+		let CONFIG = null;
+		const formElement = document.createElement("form");
+		const isRegexOrFunction = function isRegexOrFunction(testValue) {
+			return testValue instanceof RegExp || testValue instanceof Function;
+		};
+		/**
+		* _parseConfig
+		*
+		* @param cfg optional config literal
+		*/
+		const _parseConfig = function _parseConfig() {
+			let cfg = arguments.length > 0 && arguments[0] !== void 0 ? arguments[0] : {};
+			if (CONFIG && CONFIG === cfg) return;
+			if (!cfg || typeof cfg !== "object") cfg = {};
+			cfg = clone(cfg);
+			PARSER_MEDIA_TYPE = SUPPORTED_PARSER_MEDIA_TYPES.indexOf(cfg.PARSER_MEDIA_TYPE) === -1 ? DEFAULT_PARSER_MEDIA_TYPE : cfg.PARSER_MEDIA_TYPE;
+			transformCaseFunc = PARSER_MEDIA_TYPE === "application/xhtml+xml" ? stringToString : stringToLowerCase;
+			ALLOWED_TAGS = objectHasOwnProperty(cfg, "ALLOWED_TAGS") ? addToSet({}, cfg.ALLOWED_TAGS, transformCaseFunc) : DEFAULT_ALLOWED_TAGS;
+			ALLOWED_ATTR = objectHasOwnProperty(cfg, "ALLOWED_ATTR") ? addToSet({}, cfg.ALLOWED_ATTR, transformCaseFunc) : DEFAULT_ALLOWED_ATTR;
+			ALLOWED_NAMESPACES = objectHasOwnProperty(cfg, "ALLOWED_NAMESPACES") ? addToSet({}, cfg.ALLOWED_NAMESPACES, stringToString) : DEFAULT_ALLOWED_NAMESPACES;
+			URI_SAFE_ATTRIBUTES = objectHasOwnProperty(cfg, "ADD_URI_SAFE_ATTR") ? addToSet(clone(DEFAULT_URI_SAFE_ATTRIBUTES), cfg.ADD_URI_SAFE_ATTR, transformCaseFunc) : DEFAULT_URI_SAFE_ATTRIBUTES;
+			DATA_URI_TAGS = objectHasOwnProperty(cfg, "ADD_DATA_URI_TAGS") ? addToSet(clone(DEFAULT_DATA_URI_TAGS), cfg.ADD_DATA_URI_TAGS, transformCaseFunc) : DEFAULT_DATA_URI_TAGS;
+			FORBID_CONTENTS = objectHasOwnProperty(cfg, "FORBID_CONTENTS") ? addToSet({}, cfg.FORBID_CONTENTS, transformCaseFunc) : DEFAULT_FORBID_CONTENTS;
+			FORBID_TAGS = objectHasOwnProperty(cfg, "FORBID_TAGS") ? addToSet({}, cfg.FORBID_TAGS, transformCaseFunc) : clone({});
+			FORBID_ATTR = objectHasOwnProperty(cfg, "FORBID_ATTR") ? addToSet({}, cfg.FORBID_ATTR, transformCaseFunc) : clone({});
+			USE_PROFILES = objectHasOwnProperty(cfg, "USE_PROFILES") ? cfg.USE_PROFILES : false;
+			ALLOW_ARIA_ATTR = cfg.ALLOW_ARIA_ATTR !== false;
+			ALLOW_DATA_ATTR = cfg.ALLOW_DATA_ATTR !== false;
+			ALLOW_UNKNOWN_PROTOCOLS = cfg.ALLOW_UNKNOWN_PROTOCOLS || false;
+			ALLOW_SELF_CLOSE_IN_ATTR = cfg.ALLOW_SELF_CLOSE_IN_ATTR !== false;
+			SAFE_FOR_TEMPLATES = cfg.SAFE_FOR_TEMPLATES || false;
+			SAFE_FOR_XML = cfg.SAFE_FOR_XML !== false;
+			WHOLE_DOCUMENT = cfg.WHOLE_DOCUMENT || false;
+			RETURN_DOM = cfg.RETURN_DOM || false;
+			RETURN_DOM_FRAGMENT = cfg.RETURN_DOM_FRAGMENT || false;
+			RETURN_TRUSTED_TYPE = cfg.RETURN_TRUSTED_TYPE || false;
+			FORCE_BODY = cfg.FORCE_BODY || false;
+			SANITIZE_DOM = cfg.SANITIZE_DOM !== false;
+			SANITIZE_NAMED_PROPS = cfg.SANITIZE_NAMED_PROPS || false;
+			KEEP_CONTENT = cfg.KEEP_CONTENT !== false;
+			IN_PLACE = cfg.IN_PLACE || false;
+			IS_ALLOWED_URI$1 = cfg.ALLOWED_URI_REGEXP || IS_ALLOWED_URI;
+			NAMESPACE = cfg.NAMESPACE || HTML_NAMESPACE;
+			MATHML_TEXT_INTEGRATION_POINTS = cfg.MATHML_TEXT_INTEGRATION_POINTS || MATHML_TEXT_INTEGRATION_POINTS;
+			HTML_INTEGRATION_POINTS = cfg.HTML_INTEGRATION_POINTS || HTML_INTEGRATION_POINTS;
+			CUSTOM_ELEMENT_HANDLING = cfg.CUSTOM_ELEMENT_HANDLING || {};
+			if (cfg.CUSTOM_ELEMENT_HANDLING && isRegexOrFunction(cfg.CUSTOM_ELEMENT_HANDLING.tagNameCheck)) CUSTOM_ELEMENT_HANDLING.tagNameCheck = cfg.CUSTOM_ELEMENT_HANDLING.tagNameCheck;
+			if (cfg.CUSTOM_ELEMENT_HANDLING && isRegexOrFunction(cfg.CUSTOM_ELEMENT_HANDLING.attributeNameCheck)) CUSTOM_ELEMENT_HANDLING.attributeNameCheck = cfg.CUSTOM_ELEMENT_HANDLING.attributeNameCheck;
+			if (cfg.CUSTOM_ELEMENT_HANDLING && typeof cfg.CUSTOM_ELEMENT_HANDLING.allowCustomizedBuiltInElements === "boolean") CUSTOM_ELEMENT_HANDLING.allowCustomizedBuiltInElements = cfg.CUSTOM_ELEMENT_HANDLING.allowCustomizedBuiltInElements;
+			if (SAFE_FOR_TEMPLATES) ALLOW_DATA_ATTR = false;
+			if (RETURN_DOM_FRAGMENT) RETURN_DOM = true;
+			if (USE_PROFILES) {
+				ALLOWED_TAGS = addToSet({}, text);
+				ALLOWED_ATTR = [];
+				if (USE_PROFILES.html === true) {
+					addToSet(ALLOWED_TAGS, html$1);
+					addToSet(ALLOWED_ATTR, html);
+				}
+				if (USE_PROFILES.svg === true) {
+					addToSet(ALLOWED_TAGS, svg$1);
+					addToSet(ALLOWED_ATTR, svg);
+					addToSet(ALLOWED_ATTR, xml);
+				}
+				if (USE_PROFILES.svgFilters === true) {
+					addToSet(ALLOWED_TAGS, svgFilters);
+					addToSet(ALLOWED_ATTR, svg);
+					addToSet(ALLOWED_ATTR, xml);
+				}
+				if (USE_PROFILES.mathMl === true) {
+					addToSet(ALLOWED_TAGS, mathMl$1);
+					addToSet(ALLOWED_ATTR, mathMl);
+					addToSet(ALLOWED_ATTR, xml);
+				}
+			}
+			if (cfg.ADD_TAGS) if (typeof cfg.ADD_TAGS === "function") EXTRA_ELEMENT_HANDLING.tagCheck = cfg.ADD_TAGS;
+			else {
+				if (ALLOWED_TAGS === DEFAULT_ALLOWED_TAGS) ALLOWED_TAGS = clone(ALLOWED_TAGS);
+				addToSet(ALLOWED_TAGS, cfg.ADD_TAGS, transformCaseFunc);
+			}
+			if (cfg.ADD_ATTR) if (typeof cfg.ADD_ATTR === "function") EXTRA_ELEMENT_HANDLING.attributeCheck = cfg.ADD_ATTR;
+			else {
+				if (ALLOWED_ATTR === DEFAULT_ALLOWED_ATTR) ALLOWED_ATTR = clone(ALLOWED_ATTR);
+				addToSet(ALLOWED_ATTR, cfg.ADD_ATTR, transformCaseFunc);
+			}
+			if (cfg.ADD_URI_SAFE_ATTR) addToSet(URI_SAFE_ATTRIBUTES, cfg.ADD_URI_SAFE_ATTR, transformCaseFunc);
+			if (cfg.FORBID_CONTENTS) {
+				if (FORBID_CONTENTS === DEFAULT_FORBID_CONTENTS) FORBID_CONTENTS = clone(FORBID_CONTENTS);
+				addToSet(FORBID_CONTENTS, cfg.FORBID_CONTENTS, transformCaseFunc);
+			}
+			if (KEEP_CONTENT) ALLOWED_TAGS["#text"] = true;
+			if (WHOLE_DOCUMENT) addToSet(ALLOWED_TAGS, [
+				"html",
+				"head",
+				"body"
+			]);
+			if (ALLOWED_TAGS.table) {
+				addToSet(ALLOWED_TAGS, ["tbody"]);
+				delete FORBID_TAGS.tbody;
+			}
+			if (cfg.TRUSTED_TYPES_POLICY) {
+				if (typeof cfg.TRUSTED_TYPES_POLICY.createHTML !== "function") throw typeErrorCreate("TRUSTED_TYPES_POLICY configuration option must provide a \"createHTML\" hook.");
+				if (typeof cfg.TRUSTED_TYPES_POLICY.createScriptURL !== "function") throw typeErrorCreate("TRUSTED_TYPES_POLICY configuration option must provide a \"createScriptURL\" hook.");
+				trustedTypesPolicy = cfg.TRUSTED_TYPES_POLICY;
+				emptyHTML = trustedTypesPolicy.createHTML("");
+			} else {
+				if (trustedTypesPolicy === void 0) trustedTypesPolicy = _createTrustedTypesPolicy(trustedTypes, currentScript);
+				if (trustedTypesPolicy !== null && typeof emptyHTML === "string") emptyHTML = trustedTypesPolicy.createHTML("");
+			}
+			if (freeze) freeze(cfg);
+			CONFIG = cfg;
+		};
+		const ALL_SVG_TAGS = addToSet({}, [
+			...svg$1,
+			...svgFilters,
+			...svgDisallowed
+		]);
+		const ALL_MATHML_TAGS = addToSet({}, [...mathMl$1, ...mathMlDisallowed]);
+		/**
+		* @param element a DOM element whose namespace is being checked
+		* @returns Return false if the element has a
+		*  namespace that a spec-compliant parser would never
+		*  return. Return true otherwise.
+		*/
+		const _checkValidNamespace = function _checkValidNamespace(element) {
+			let parent = getParentNode(element);
+			if (!parent || !parent.tagName) parent = {
+				namespaceURI: NAMESPACE,
+				tagName: "template"
+			};
+			const tagName = stringToLowerCase(element.tagName);
+			const parentTagName = stringToLowerCase(parent.tagName);
+			if (!ALLOWED_NAMESPACES[element.namespaceURI]) return false;
+			if (element.namespaceURI === SVG_NAMESPACE) {
+				if (parent.namespaceURI === HTML_NAMESPACE) return tagName === "svg";
+				if (parent.namespaceURI === MATHML_NAMESPACE) return tagName === "svg" && (parentTagName === "annotation-xml" || MATHML_TEXT_INTEGRATION_POINTS[parentTagName]);
+				return Boolean(ALL_SVG_TAGS[tagName]);
+			}
+			if (element.namespaceURI === MATHML_NAMESPACE) {
+				if (parent.namespaceURI === HTML_NAMESPACE) return tagName === "math";
+				if (parent.namespaceURI === SVG_NAMESPACE) return tagName === "math" && HTML_INTEGRATION_POINTS[parentTagName];
+				return Boolean(ALL_MATHML_TAGS[tagName]);
+			}
+			if (element.namespaceURI === HTML_NAMESPACE) {
+				if (parent.namespaceURI === SVG_NAMESPACE && !HTML_INTEGRATION_POINTS[parentTagName]) return false;
+				if (parent.namespaceURI === MATHML_NAMESPACE && !MATHML_TEXT_INTEGRATION_POINTS[parentTagName]) return false;
+				return !ALL_MATHML_TAGS[tagName] && (COMMON_SVG_AND_HTML_ELEMENTS[tagName] || !ALL_SVG_TAGS[tagName]);
+			}
+			if (PARSER_MEDIA_TYPE === "application/xhtml+xml" && ALLOWED_NAMESPACES[element.namespaceURI]) return true;
+			return false;
+		};
+		/**
+		* _forceRemove
+		*
+		* @param node a DOM node
+		*/
+		const _forceRemove = function _forceRemove(node) {
+			arrayPush(DOMPurify.removed, { element: node });
+			try {
+				getParentNode(node).removeChild(node);
+			} catch (_) {
+				remove(node);
+			}
+		};
+		/**
+		* _removeAttribute
+		*
+		* @param name an Attribute name
+		* @param element a DOM node
+		*/
+		const _removeAttribute = function _removeAttribute(name, element) {
+			try {
+				arrayPush(DOMPurify.removed, {
+					attribute: element.getAttributeNode(name),
+					from: element
+				});
+			} catch (_) {
+				arrayPush(DOMPurify.removed, {
+					attribute: null,
+					from: element
+				});
+			}
+			element.removeAttribute(name);
+			if (name === "is") if (RETURN_DOM || RETURN_DOM_FRAGMENT) try {
+				_forceRemove(element);
+			} catch (_) {}
+			else try {
+				element.setAttribute(name, "");
+			} catch (_) {}
+		};
+		/**
+		* _initDocument
+		*
+		* @param dirty - a string of dirty markup
+		* @return a DOM, filled with the dirty markup
+		*/
+		const _initDocument = function _initDocument(dirty) {
+			let doc = null;
+			let leadingWhitespace = null;
+			if (FORCE_BODY) dirty = "<remove></remove>" + dirty;
+			else {
+				const matches = stringMatch(dirty, /^[\r\n\t ]+/);
+				leadingWhitespace = matches && matches[0];
+			}
+			if (PARSER_MEDIA_TYPE === "application/xhtml+xml" && NAMESPACE === HTML_NAMESPACE) dirty = "<html xmlns=\"http://www.w3.org/1999/xhtml\"><head></head><body>" + dirty + "</body></html>";
+			const dirtyPayload = trustedTypesPolicy ? trustedTypesPolicy.createHTML(dirty) : dirty;
+			if (NAMESPACE === HTML_NAMESPACE) try {
+				doc = new DOMParser().parseFromString(dirtyPayload, PARSER_MEDIA_TYPE);
+			} catch (_) {}
+			if (!doc || !doc.documentElement) {
+				doc = implementation.createDocument(NAMESPACE, "template", null);
+				try {
+					doc.documentElement.innerHTML = IS_EMPTY_INPUT ? emptyHTML : dirtyPayload;
+				} catch (_) {}
+			}
+			const body = doc.body || doc.documentElement;
+			if (dirty && leadingWhitespace) body.insertBefore(document.createTextNode(leadingWhitespace), body.childNodes[0] || null);
+			if (NAMESPACE === HTML_NAMESPACE) return getElementsByTagName.call(doc, WHOLE_DOCUMENT ? "html" : "body")[0];
+			return WHOLE_DOCUMENT ? doc.documentElement : body;
+		};
+		/**
+		* Creates a NodeIterator object that you can use to traverse filtered lists of nodes or elements in a document.
+		*
+		* @param root The root element or node to start traversing on.
+		* @return The created NodeIterator
+		*/
+		const _createNodeIterator = function _createNodeIterator(root) {
+			return createNodeIterator.call(root.ownerDocument || root, root, NodeFilter.SHOW_ELEMENT | NodeFilter.SHOW_COMMENT | NodeFilter.SHOW_TEXT | NodeFilter.SHOW_PROCESSING_INSTRUCTION | NodeFilter.SHOW_CDATA_SECTION, null);
+		};
+		/**
+		* _isClobbered
+		*
+		* @param element element to check for clobbering attacks
+		* @return true if clobbered, false if safe
+		*/
+		const _isClobbered = function _isClobbered(element) {
+			return element instanceof HTMLFormElement && (typeof element.nodeName !== "string" || typeof element.textContent !== "string" || typeof element.removeChild !== "function" || !(element.attributes instanceof NamedNodeMap) || typeof element.removeAttribute !== "function" || typeof element.setAttribute !== "function" || typeof element.namespaceURI !== "string" || typeof element.insertBefore !== "function" || typeof element.hasChildNodes !== "function");
+		};
+		/**
+		* Checks whether the given object is a DOM node.
+		*
+		* @param value object to check whether it's a DOM node
+		* @return true is object is a DOM node
+		*/
+		const _isNode = function _isNode(value) {
+			return typeof Node === "function" && value instanceof Node;
+		};
+		function _executeHooks(hooks, currentNode, data) {
+			arrayForEach(hooks, (hook) => {
+				hook.call(DOMPurify, currentNode, data, CONFIG);
+			});
+		}
+		/**
+		* _sanitizeElements
+		*
+		* @protect nodeName
+		* @protect textContent
+		* @protect removeChild
+		* @param currentNode to check for permission to exist
+		* @return true if node was killed, false if left alive
+		*/
+		const _sanitizeElements = function _sanitizeElements(currentNode) {
+			let content = null;
+			_executeHooks(hooks.beforeSanitizeElements, currentNode, null);
+			if (_isClobbered(currentNode)) {
+				_forceRemove(currentNode);
+				return true;
+			}
+			const tagName = transformCaseFunc(currentNode.nodeName);
+			_executeHooks(hooks.uponSanitizeElement, currentNode, {
+				tagName,
+				allowedTags: ALLOWED_TAGS
+			});
+			if (SAFE_FOR_XML && currentNode.hasChildNodes() && !_isNode(currentNode.firstElementChild) && regExpTest(/<[/\w!]/g, currentNode.innerHTML) && regExpTest(/<[/\w!]/g, currentNode.textContent)) {
+				_forceRemove(currentNode);
+				return true;
+			}
+			if (currentNode.nodeType === NODE_TYPE.progressingInstruction) {
+				_forceRemove(currentNode);
+				return true;
+			}
+			if (SAFE_FOR_XML && currentNode.nodeType === NODE_TYPE.comment && regExpTest(/<[/\w]/g, currentNode.data)) {
+				_forceRemove(currentNode);
+				return true;
+			}
+			if (!(EXTRA_ELEMENT_HANDLING.tagCheck instanceof Function && EXTRA_ELEMENT_HANDLING.tagCheck(tagName)) && (!ALLOWED_TAGS[tagName] || FORBID_TAGS[tagName])) {
+				if (!FORBID_TAGS[tagName] && _isBasicCustomElement(tagName)) {
+					if (CUSTOM_ELEMENT_HANDLING.tagNameCheck instanceof RegExp && regExpTest(CUSTOM_ELEMENT_HANDLING.tagNameCheck, tagName)) return false;
+					if (CUSTOM_ELEMENT_HANDLING.tagNameCheck instanceof Function && CUSTOM_ELEMENT_HANDLING.tagNameCheck(tagName)) return false;
+				}
+				if (KEEP_CONTENT && !FORBID_CONTENTS[tagName]) {
+					const parentNode = getParentNode(currentNode) || currentNode.parentNode;
+					const childNodes = getChildNodes(currentNode) || currentNode.childNodes;
+					if (childNodes && parentNode) {
+						const childCount = childNodes.length;
+						for (let i = childCount - 1; i >= 0; --i) {
+							const childClone = cloneNode(childNodes[i], true);
+							childClone.__removalCount = (currentNode.__removalCount || 0) + 1;
+							parentNode.insertBefore(childClone, getNextSibling(currentNode));
+						}
+					}
+				}
+				_forceRemove(currentNode);
+				return true;
+			}
+			if (currentNode instanceof Element && !_checkValidNamespace(currentNode)) {
+				_forceRemove(currentNode);
+				return true;
+			}
+			if ((tagName === "noscript" || tagName === "noembed" || tagName === "noframes") && regExpTest(/<\/no(script|embed|frames)/i, currentNode.innerHTML)) {
+				_forceRemove(currentNode);
+				return true;
+			}
+			if (SAFE_FOR_TEMPLATES && currentNode.nodeType === NODE_TYPE.text) {
+				content = currentNode.textContent;
+				arrayForEach([
+					MUSTACHE_EXPR,
+					ERB_EXPR,
+					TMPLIT_EXPR
+				], (expr) => {
+					content = stringReplace(content, expr, " ");
+				});
+				if (currentNode.textContent !== content) {
+					arrayPush(DOMPurify.removed, { element: currentNode.cloneNode() });
+					currentNode.textContent = content;
+				}
+			}
+			_executeHooks(hooks.afterSanitizeElements, currentNode, null);
+			return false;
+		};
+		/**
+		* _isValidAttribute
+		*
+		* @param lcTag Lowercase tag name of containing element.
+		* @param lcName Lowercase attribute name.
+		* @param value Attribute value.
+		* @return Returns true if `value` is valid, otherwise false.
+		*/
+		const _isValidAttribute = function _isValidAttribute(lcTag, lcName, value) {
+			if (SANITIZE_DOM && (lcName === "id" || lcName === "name") && (value in document || value in formElement)) return false;
+			if (ALLOW_DATA_ATTR && !FORBID_ATTR[lcName] && regExpTest(DATA_ATTR, lcName));
+			else if (ALLOW_ARIA_ATTR && regExpTest(ARIA_ATTR, lcName));
+			else if (EXTRA_ELEMENT_HANDLING.attributeCheck instanceof Function && EXTRA_ELEMENT_HANDLING.attributeCheck(lcName, lcTag));
+			else if (!ALLOWED_ATTR[lcName] || FORBID_ATTR[lcName]) if (_isBasicCustomElement(lcTag) && (CUSTOM_ELEMENT_HANDLING.tagNameCheck instanceof RegExp && regExpTest(CUSTOM_ELEMENT_HANDLING.tagNameCheck, lcTag) || CUSTOM_ELEMENT_HANDLING.tagNameCheck instanceof Function && CUSTOM_ELEMENT_HANDLING.tagNameCheck(lcTag)) && (CUSTOM_ELEMENT_HANDLING.attributeNameCheck instanceof RegExp && regExpTest(CUSTOM_ELEMENT_HANDLING.attributeNameCheck, lcName) || CUSTOM_ELEMENT_HANDLING.attributeNameCheck instanceof Function && CUSTOM_ELEMENT_HANDLING.attributeNameCheck(lcName, lcTag)) || lcName === "is" && CUSTOM_ELEMENT_HANDLING.allowCustomizedBuiltInElements && (CUSTOM_ELEMENT_HANDLING.tagNameCheck instanceof RegExp && regExpTest(CUSTOM_ELEMENT_HANDLING.tagNameCheck, value) || CUSTOM_ELEMENT_HANDLING.tagNameCheck instanceof Function && CUSTOM_ELEMENT_HANDLING.tagNameCheck(value)));
+			else return false;
+			else if (URI_SAFE_ATTRIBUTES[lcName]);
+			else if (regExpTest(IS_ALLOWED_URI$1, stringReplace(value, ATTR_WHITESPACE, "")));
+			else if ((lcName === "src" || lcName === "xlink:href" || lcName === "href") && lcTag !== "script" && stringIndexOf(value, "data:") === 0 && DATA_URI_TAGS[lcTag]);
+			else if (ALLOW_UNKNOWN_PROTOCOLS && !regExpTest(IS_SCRIPT_OR_DATA, stringReplace(value, ATTR_WHITESPACE, "")));
+			else if (value) return false;
+			return true;
+		};
+		/**
+		* _isBasicCustomElement
+		* checks if at least one dash is included in tagName, and it's not the first char
+		* for more sophisticated checking see https://github.com/sindresorhus/validate-element-name
+		*
+		* @param tagName name of the tag of the node to sanitize
+		* @returns Returns true if the tag name meets the basic criteria for a custom element, otherwise false.
+		*/
+		const _isBasicCustomElement = function _isBasicCustomElement(tagName) {
+			return tagName !== "annotation-xml" && stringMatch(tagName, CUSTOM_ELEMENT);
+		};
+		/**
+		* _sanitizeAttributes
+		*
+		* @protect attributes
+		* @protect nodeName
+		* @protect removeAttribute
+		* @protect setAttribute
+		*
+		* @param currentNode to sanitize
+		*/
+		const _sanitizeAttributes = function _sanitizeAttributes(currentNode) {
+			_executeHooks(hooks.beforeSanitizeAttributes, currentNode, null);
+			const { attributes } = currentNode;
+			if (!attributes || _isClobbered(currentNode)) return;
+			const hookEvent = {
+				attrName: "",
+				attrValue: "",
+				keepAttr: true,
+				allowedAttributes: ALLOWED_ATTR,
+				forceKeepAttr: void 0
+			};
+			let l = attributes.length;
+			while (l--) {
+				const { name, namespaceURI, value: attrValue } = attributes[l];
+				const lcName = transformCaseFunc(name);
+				const initValue = attrValue;
+				let value = name === "value" ? initValue : stringTrim(initValue);
+				hookEvent.attrName = lcName;
+				hookEvent.attrValue = value;
+				hookEvent.keepAttr = true;
+				hookEvent.forceKeepAttr = void 0;
+				_executeHooks(hooks.uponSanitizeAttribute, currentNode, hookEvent);
+				value = hookEvent.attrValue;
+				if (SANITIZE_NAMED_PROPS && (lcName === "id" || lcName === "name")) {
+					_removeAttribute(name, currentNode);
+					value = SANITIZE_NAMED_PROPS_PREFIX + value;
+				}
+				if (SAFE_FOR_XML && regExpTest(/((--!?|])>)|<\/(style|title|textarea)/i, value)) {
+					_removeAttribute(name, currentNode);
+					continue;
+				}
+				if (lcName === "attributename" && stringMatch(value, "href")) {
+					_removeAttribute(name, currentNode);
+					continue;
+				}
+				if (hookEvent.forceKeepAttr) continue;
+				if (!hookEvent.keepAttr) {
+					_removeAttribute(name, currentNode);
+					continue;
+				}
+				if (!ALLOW_SELF_CLOSE_IN_ATTR && regExpTest(/\/>/i, value)) {
+					_removeAttribute(name, currentNode);
+					continue;
+				}
+				if (SAFE_FOR_TEMPLATES) arrayForEach([
+					MUSTACHE_EXPR,
+					ERB_EXPR,
+					TMPLIT_EXPR
+				], (expr) => {
+					value = stringReplace(value, expr, " ");
+				});
+				const lcTag = transformCaseFunc(currentNode.nodeName);
+				if (!_isValidAttribute(lcTag, lcName, value)) {
+					_removeAttribute(name, currentNode);
+					continue;
+				}
+				if (trustedTypesPolicy && typeof trustedTypes === "object" && typeof trustedTypes.getAttributeType === "function") if (namespaceURI);
+				else switch (trustedTypes.getAttributeType(lcTag, lcName)) {
+					case "TrustedHTML":
+						value = trustedTypesPolicy.createHTML(value);
+						break;
+					case "TrustedScriptURL":
+						value = trustedTypesPolicy.createScriptURL(value);
+						break;
+				}
+				if (value !== initValue) try {
+					if (namespaceURI) currentNode.setAttributeNS(namespaceURI, name, value);
+					else currentNode.setAttribute(name, value);
+					if (_isClobbered(currentNode)) _forceRemove(currentNode);
+					else arrayPop(DOMPurify.removed);
+				} catch (_) {
+					_removeAttribute(name, currentNode);
+				}
+			}
+			_executeHooks(hooks.afterSanitizeAttributes, currentNode, null);
+		};
+		/**
+		* _sanitizeShadowDOM
+		*
+		* @param fragment to iterate over recursively
+		*/
+		const _sanitizeShadowDOM = function _sanitizeShadowDOM(fragment) {
+			let shadowNode = null;
+			const shadowIterator = _createNodeIterator(fragment);
+			_executeHooks(hooks.beforeSanitizeShadowDOM, fragment, null);
+			while (shadowNode = shadowIterator.nextNode()) {
+				_executeHooks(hooks.uponSanitizeShadowNode, shadowNode, null);
+				_sanitizeElements(shadowNode);
+				_sanitizeAttributes(shadowNode);
+				if (shadowNode.content instanceof DocumentFragment) _sanitizeShadowDOM(shadowNode.content);
+			}
+			_executeHooks(hooks.afterSanitizeShadowDOM, fragment, null);
+		};
+		DOMPurify.sanitize = function(dirty) {
+			let cfg = arguments.length > 1 && arguments[1] !== void 0 ? arguments[1] : {};
+			let body = null;
+			let importedNode = null;
+			let currentNode = null;
+			let returnNode = null;
+			IS_EMPTY_INPUT = !dirty;
+			if (IS_EMPTY_INPUT) dirty = "<!-->";
+			if (typeof dirty !== "string" && !_isNode(dirty)) if (typeof dirty.toString === "function") {
+				dirty = dirty.toString();
+				if (typeof dirty !== "string") throw typeErrorCreate("dirty is not a string, aborting");
+			} else throw typeErrorCreate("toString is not a function");
+			if (!DOMPurify.isSupported) return dirty;
+			if (!SET_CONFIG) _parseConfig(cfg);
+			DOMPurify.removed = [];
+			if (typeof dirty === "string") IN_PLACE = false;
+			if (IN_PLACE) {
+				if (dirty.nodeName) {
+					const tagName = transformCaseFunc(dirty.nodeName);
+					if (!ALLOWED_TAGS[tagName] || FORBID_TAGS[tagName]) throw typeErrorCreate("root node is forbidden and cannot be sanitized in-place");
+				}
+			} else if (dirty instanceof Node) {
+				body = _initDocument("<!---->");
+				importedNode = body.ownerDocument.importNode(dirty, true);
+				if (importedNode.nodeType === NODE_TYPE.element && importedNode.nodeName === "BODY") body = importedNode;
+				else if (importedNode.nodeName === "HTML") body = importedNode;
+				else body.appendChild(importedNode);
+			} else {
+				if (!RETURN_DOM && !SAFE_FOR_TEMPLATES && !WHOLE_DOCUMENT && dirty.indexOf("<") === -1) return trustedTypesPolicy && RETURN_TRUSTED_TYPE ? trustedTypesPolicy.createHTML(dirty) : dirty;
+				body = _initDocument(dirty);
+				if (!body) return RETURN_DOM ? null : RETURN_TRUSTED_TYPE ? emptyHTML : "";
+			}
+			if (body && FORCE_BODY) _forceRemove(body.firstChild);
+			const nodeIterator = _createNodeIterator(IN_PLACE ? dirty : body);
+			while (currentNode = nodeIterator.nextNode()) {
+				_sanitizeElements(currentNode);
+				_sanitizeAttributes(currentNode);
+				if (currentNode.content instanceof DocumentFragment) _sanitizeShadowDOM(currentNode.content);
+			}
+			if (IN_PLACE) return dirty;
+			if (RETURN_DOM) {
+				if (RETURN_DOM_FRAGMENT) {
+					returnNode = createDocumentFragment.call(body.ownerDocument);
+					while (body.firstChild) returnNode.appendChild(body.firstChild);
+				} else returnNode = body;
+				if (ALLOWED_ATTR.shadowroot || ALLOWED_ATTR.shadowrootmode) returnNode = importNode.call(originalDocument, returnNode, true);
+				return returnNode;
+			}
+			let serializedHTML = WHOLE_DOCUMENT ? body.outerHTML : body.innerHTML;
+			if (WHOLE_DOCUMENT && ALLOWED_TAGS["!doctype"] && body.ownerDocument && body.ownerDocument.doctype && body.ownerDocument.doctype.name && regExpTest(DOCTYPE_NAME, body.ownerDocument.doctype.name)) serializedHTML = "<!DOCTYPE " + body.ownerDocument.doctype.name + ">\n" + serializedHTML;
+			if (SAFE_FOR_TEMPLATES) arrayForEach([
+				MUSTACHE_EXPR,
+				ERB_EXPR,
+				TMPLIT_EXPR
+			], (expr) => {
+				serializedHTML = stringReplace(serializedHTML, expr, " ");
+			});
+			return trustedTypesPolicy && RETURN_TRUSTED_TYPE ? trustedTypesPolicy.createHTML(serializedHTML) : serializedHTML;
+		};
+		DOMPurify.setConfig = function() {
+			let cfg = arguments.length > 0 && arguments[0] !== void 0 ? arguments[0] : {};
+			_parseConfig(cfg);
+			SET_CONFIG = true;
+		};
+		DOMPurify.clearConfig = function() {
+			CONFIG = null;
+			SET_CONFIG = false;
+		};
+		DOMPurify.isValidAttribute = function(tag, attr, value) {
+			if (!CONFIG) _parseConfig({});
+			const lcTag = transformCaseFunc(tag);
+			const lcName = transformCaseFunc(attr);
+			return _isValidAttribute(lcTag, lcName, value);
+		};
+		DOMPurify.addHook = function(entryPoint, hookFunction) {
+			if (typeof hookFunction !== "function") return;
+			arrayPush(hooks[entryPoint], hookFunction);
+		};
+		DOMPurify.removeHook = function(entryPoint, hookFunction) {
+			if (hookFunction !== void 0) {
+				const index = arrayLastIndexOf(hooks[entryPoint], hookFunction);
+				return index === -1 ? void 0 : arraySplice(hooks[entryPoint], index, 1)[0];
+			}
+			return arrayPop(hooks[entryPoint]);
+		};
+		DOMPurify.removeHooks = function(entryPoint) {
+			hooks[entryPoint] = [];
+		};
+		DOMPurify.removeAllHooks = function() {
+			hooks = _createHooksMap();
+		};
+		return DOMPurify;
+	}
+	var purify = createDOMPurify();
+
+//#endregion
+//#region packages/packages/core/editor-canvas/src/utils/sanitize-escaped-html.ts
+	var ALLOWED_NON_OPERATIONAL_ATTRS = [
+		"href",
+		"target",
+		"class",
+		"id",
+		"style",
+		"title",
+		"lang",
+		"dir",
+		"role"
+	];
+	function getAllowedHtmlWrapperTags$1() {
+		return window.elementorCommon?.config?.allowedHTMLWrapperTags ?? [];
+	}
+	__name(getAllowedHtmlWrapperTags$1, "getAllowedHtmlWrapperTags");
+	function sanitizeEscapedHtml(value) {
+		if (!value) return "";
+		const allowedTags = [...getAllowedHtmlWrapperTags$1()];
+		return purify.sanitize(value, {
+			ALLOWED_TAGS: allowedTags,
+			ALLOWED_ATTR: [...ALLOWED_NON_OPERATIONAL_ATTRS],
+			ALLOW_DATA_ATTR: true,
+			ALLOW_ARIA_ATTR: true
+		});
+	}
+
+//#endregion
+//#region packages/packages/core/editor-canvas/src/transformers/settings/escaped-html-transformer.ts
+	var escapedHtmlTransformer = createTransformer((value) => {
+		return sanitizeEscapedHtml(value);
+	});
+
+//#endregion
+//#region packages/packages/core/editor-canvas/src/transformers/settings/html-v2-transformer.ts
+	var htmlV2Transformer = createTransformer((value) => {
+		return value?.content ?? "";
+	});
+
+//#endregion
+//#region packages/packages/core/editor-canvas/src/transformers/settings/html-v3-transformer.ts
+	var htmlV3Transformer = createTransformer((value) => {
+		return value?.content ?? "";
+	});
+
+//#endregion
+//#region packages/packages/core/editor-canvas/src/transformers/settings/link-transformer.ts
+	var linkTransformer = createTransformer(({ destination, isTargetBlank, tag }) => {
+		return {
+			href: typeof destination === "number" ? "#post-id-" + destination : destination,
+			target: isTargetBlank ? "_blank" : "_self",
+			tag: tag ?? "a"
+		};
+	});
+
+//#endregion
+//#region packages/packages/core/editor-canvas/src/transformers/settings/query-transformer.ts
+	var queryTransformer = createTransformer(({ id }) => {
+		return id ?? null;
+	});
+
+//#endregion
+//#region packages/packages/core/editor-canvas/src/transformers/settings/time-range-transformer.ts
+	var timeRangeTransformer = createTransformer((value) => {
+		if (!value || Object.keys(value).length === 0) return null;
+		return {
+			min: value.min || null,
+			max: value.max || null
+		};
+	});
+
+//#endregion
+//#region packages/packages/core/editor-canvas/src/transformers/shared/process-svg-content.ts
+	var SVG_INLINE_STYLES = "width: 100%; height: 100%; overflow: unset;";
+	function processSvgContent(svgText) {
+		const sanitized = purify.sanitize(svgText, { USE_PROFILES: {
+			svg: true,
+			svgFilters: true
+		} });
+		const svgElement = new DOMParser().parseFromString(sanitized, "image/svg+xml").querySelector("svg");
+		if (!svgElement) return null;
+		svgElement.setAttribute("fill", "currentColor");
+		const trimmed = (svgElement.getAttribute("style") ?? "").trim();
+		const merged = trimmed ? `${trimmed.replace(/;$/, "")}; ${SVG_INLINE_STYLES}` : SVG_INLINE_STYLES;
+		svgElement.setAttribute("style", merged);
+		return svgElement.outerHTML;
+	}
+
+//#endregion
+//#region packages/packages/core/editor-canvas/src/transformers/shared/icon-transformer.ts
+	var FONT_AWESOME_JSON = {
+		width: 0,
+		height: 1,
+		path: 4
+	};
+	var fontAwesomeJsonCache = /* @__PURE__ */ new Map();
+	var iconTransformer = createTransformer(async (value, { signal }) => {
+		const iconValue = typeof value.value === "string" ? value.value : null;
+		const library = typeof value.library === "string" ? value.library : null;
+		if (!iconValue || !library) return {
+			html: null,
+			url: null
+		};
+		const iconName = getFontAwesomeIconName(iconValue);
+		const jsonFileName = getFontAwesomeJsonFileName(library);
+		if (!iconName || !jsonFileName) return {
+			html: null,
+			url: null
+		};
+		const iconData = (await fetchFontAwesomeIcons(jsonFileName, signal))?.[iconName];
+		if (!iconData) return {
+			html: null,
+			url: null
+		};
+		return {
+			html: processSvgContent(buildFontAwesomeSvg(iconData)),
+			url: null
+		};
+	});
+	function getFontAwesomeIconName(iconValue) {
+		return iconValue.match(/^fa\S*\s+fa-(.+)$/)?.[1] ?? null;
+	}
+	function getFontAwesomeJsonFileName(library) {
+		if (!library.startsWith("fa-")) return null;
+		return library.replace(/^fa-/, "");
+	}
+	function getAssetsBaseUrl() {
+		const assetsUrl = window.elementorCommon?.config?.urls?.assets;
+		return typeof assetsUrl === "string" && assetsUrl !== "" ? assetsUrl : null;
+	}
+	async function fetchFontAwesomeIcons(jsonFileName, signal) {
+		const cached = fontAwesomeJsonCache.get(jsonFileName);
+		if (cached) return cached;
+		const icons = await loadFontAwesomeIcons(jsonFileName, signal);
+		if (icons) fontAwesomeJsonCache.set(jsonFileName, icons);
+		return icons;
+	}
+	async function loadFontAwesomeIcons(jsonFileName, signal) {
+		const assetsUrl = getAssetsBaseUrl();
+		if (!assetsUrl) return null;
+		try {
+			const response = await fetch(`${assetsUrl}lib/font-awesome/json/${jsonFileName}.json`, { signal });
+			if (!response.ok) return null;
+			return (await response.json()).icons ?? null;
+		} catch {
+			return null;
+		}
+	}
+	function buildFontAwesomeSvg(iconData) {
+		return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${iconData[FONT_AWESOME_JSON.width]} ${iconData[FONT_AWESOME_JSON.height]}"><path d="${iconData[FONT_AWESOME_JSON.path]}"></path></svg>`;
+	}
+
+//#endregion
+//#region packages/packages/core/editor-canvas/src/transformers/shared/image-src-transformer.ts
+	var imageSrcTransformer = createTransformer((value) => ({
+		id: value.id ?? null,
+		url: value.url ?? null,
+		alt: value.alt ?? null
+	}));
+
+//#endregion
+//#region packages/packages/core/editor-canvas/src/transformers/shared/image-transformer.ts
+	var imageTransformer = createTransformer(async (value) => {
+		const { src, size } = value;
+		if (!src?.id) return src?.url ? {
+			src: src.url,
+			alt: src.alt ?? ""
+		} : null;
+		const attachment = await (0, _elementor_wp_media.getMediaAttachment)({ id: src.id });
+		const sizedAttachment = attachment?.sizes?.[size ?? ""];
+		if (sizedAttachment) return {
+			src: sizedAttachment.url,
+			height: sizedAttachment.height,
+			width: sizedAttachment.width,
+			alt: attachment.alt
+		};
+		if (attachment) return {
+			src: attachment.url,
+			height: attachment.height,
+			width: attachment.width,
+			alt: attachment.alt
+		};
+		return null;
+	});
+
+//#endregion
+//#region packages/packages/core/editor-canvas/src/transformers/shared/plain-transformer.ts
+	var plainTransformer = createTransformer((value) => {
+		return value;
+	});
+
+//#endregion
+//#region packages/packages/core/editor-canvas/src/transformers/shared/svg-src-transformer.ts
+	async function fetchSvgContent(url, signal) {
+		try {
+			const response = await fetch(url, { signal });
+			if (!response.ok) return null;
+			const contentType = response.headers.get("content-type") ?? "";
+			if (!(contentType.includes("svg") || contentType.includes("xml") || url.endsWith(".svg"))) return null;
+			return await response.text();
+		} catch {
+			return null;
+		}
+	}
+	function resolveSvgSrcId(id) {
+		if (typeof id !== "number" || id <= 0) return null;
+		return id;
+	}
+	var svgSrcTransformer = createTransformer(async (value, { signal }) => {
+		const id = resolveSvgSrcId(value.id);
+		const urlFromValue = typeof value.url === "string" ? value.url : null;
+		let url = urlFromValue;
+		if (id && !urlFromValue) url = (await (0, _elementor_wp_media.getMediaAttachment)({ id }))?.url ?? null;
+		const resolvedUrl = typeof url === "string" ? url : null;
+		if (!resolvedUrl) return {
+			html: null,
+			url: null
+		};
+		const svgText = await fetchSvgContent(resolvedUrl, signal);
+		return {
+			html: svgText ? processSvgContent(svgText) : null,
+			url: resolvedUrl
+		};
+	});
+
+//#endregion
+//#region packages/packages/core/editor-canvas/src/transformers/shared/video-src-transformer.ts
+	var videoSrcTransformer = createTransformer(async (value) => {
+		const { id, url } = value;
+		if (!id) return {
+			id: null,
+			url
+		};
+		return {
+			id,
+			url: (await (0, _elementor_wp_media.getMediaAttachment)({ id }))?.url ?? url
+		};
+	});
+
+//#endregion
+//#region packages/packages/core/editor-canvas/src/init-settings-transformers.ts
+	function initSettingsTransformers() {
+		settingsTransformersRegistry.register("classes", createClassesTransformer()).register("link", linkTransformer).register("query", queryTransformer).register("image", imageTransformer).register("image-src", imageSrcTransformer).register("svg-src", svgSrcTransformer).register("icon", iconTransformer).register("video-src", videoSrcTransformer).register("attributes", attributesTransformer).register("date-time", dateTimeTransformer).register("html-v2", htmlV2Transformer).register("html-v3", htmlV3Transformer).register("escaped-html", escapedHtmlTransformer).register("date-range", dateRangeTransformer).register("time-range", timeRangeTransformer).registerFallback(plainTransformer);
+	}
+
+//#endregion
+//#region packages/packages/core/editor-canvas/src/transformers/styles/background-color-overlay-transformer.ts
+	var backgroundColorOverlayTransformer = createTransformer((value) => {
+		const { color = null } = value;
+		if (!color) return null;
+		return `linear-gradient(${color}, ${color})`;
+	});
+
+//#endregion
+//#region packages/packages/core/editor-canvas/src/transformers/styles/background-gradient-overlay-transformer.ts
+	var backgroundGradientOverlayTransformer = createTransformer((value) => {
+		if (value.type === "radial") return `radial-gradient(circle at ${value.positions}, ${value.stops})`;
+		return `linear-gradient(${value.angle}deg, ${value.stops})`;
+	});
+
+//#endregion
+//#region packages/packages/core/editor-canvas/src/transformers/styles/background-image-overlay-transformer.ts
+	var backgroundImageOverlayTransformer = createTransformer((value) => {
+		const { image, size = null, position = null, repeat = null, attachment = null } = value;
+		if (!image) return null;
+		return {
+			src: image.src ? `url(${image.src})` : null,
+			repeat,
+			attachment,
+			size,
+			position
+		};
+	});
+
+//#endregion
+//#region packages/packages/core/editor-canvas/src/transformers/styles/background-image-size-scale-transformer.ts
+	var backgroundImageSizeScaleTransformer = createTransformer(({ width, height }) => `${width ?? "auto"} ${height ?? "auto"}`);
+
+//#endregion
+//#region packages/packages/core/editor-canvas/src/transformers/styles/background-overlay-transformer.ts
+	var backgroundOverlayTransformer = createTransformer((value) => {
+		if (!value || value.length === 0) return null;
+		const normalizedValues = normalizeOverlayValues(value);
+		if (normalizedValues.length === 0) return null;
+		return {
+			"background-image": getValuesString(normalizedValues, "src", "none", true),
+			"background-repeat": getValuesString(normalizedValues, "repeat", "repeat"),
+			"background-attachment": getValuesString(normalizedValues, "attachment", "scroll"),
+			"background-size": getValuesString(normalizedValues, "size", "auto auto"),
+			"background-position": getValuesString(normalizedValues, "position", "0% 0%")
+		};
+	});
+	function normalizeOverlayValues(overlays) {
+		return overlays.map((item) => {
+			if (typeof item === "string") return {
+				src: item,
+				repeat: null,
+				attachment: null,
+				size: null,
+				position: null
+			};
+			return item;
+		}).filter((item) => item && !!item.src);
+	}
+	function getValuesString(items, prop, defaultValue, preventUnification = false) {
+		if (items.filter((item) => item?.[prop]).length === 0) return defaultValue;
+		const formattedValues = items.map((item) => item[prop] ?? defaultValue);
+		if (!preventUnification) {
+			if (formattedValues.every((value) => value === formattedValues[0])) return formattedValues[0];
+		}
+		return formattedValues.join(",");
+	}
+
+//#endregion
+//#region packages/packages/core/editor-canvas/src/transformers/styles/background-transformer.ts
+	var backgroundTransformer = createTransformer((value) => {
+		const { color = null, "background-overlay": overlays = null, clip = null } = value;
+		return createMultiPropsValue({
+			...overlays,
+			"background-color": color,
+			"background-clip": clip
+		});
+	});
+
+//#endregion
+//#region packages/packages/core/editor-canvas/src/transformers/styles/color-stop-transformer.ts
+	var colorStopTransformer = createTransformer((value) => `${value?.color} ${value?.offset ?? 0}%`);
+
+//#endregion
+//#region packages/packages/core/editor-canvas/src/transformers/styles/create-combine-array-transformer.ts
+	var createCombineArrayTransformer = (delimiter) => {
+		return createTransformer((value) => value?.length ? value.filter(Boolean).join(delimiter) : null);
+	};
+
+//#endregion
+//#region packages/packages/core/editor-canvas/src/transformers/styles/create-multi-props-transformer.ts
+	var createMultiPropsTransformer = (keys, keyGenerator) => {
+		return createTransformer((value, { key: propKey }) => {
+			const entries = keys.filter((key) => value[key]).map((key) => [keyGenerator({
+				propKey,
+				key
+			}), value[key]]);
+			return createMultiPropsValue(Object.fromEntries(entries));
+		});
+	};
+
+//#endregion
+//#region packages/packages/core/editor-canvas/src/transformers/styles/filter-transformer.ts
+	var filterTransformer = createTransformer((filterValues) => {
+		if (filterValues?.length < 1) return null;
+		return filterValues.filter(Boolean).map(mapToFilterFunctionString).join(" ");
+	});
+	var mapToFilterFunctionString = (value) => {
+		if (value.func === "drop-shadow") {
+			const { xAxis, yAxis, blur, color } = value.args;
+			return `drop-shadow(${xAxis || "0px"} ${yAxis || "0px"} ${blur || "10px"} ${color || "transparent"})`;
+		}
+		const size = value.args?.size;
+		if (!value.func || !size) return "";
+		return `${value.func}(${size})`;
+	};
+
+//#endregion
+//#region packages/packages/core/editor-canvas/src/transformers/styles/flex-transformer.ts
+	var DEFAULT_FLEX_GROW = 0;
+	var DEFAULT_FLEX_SHRINK = 1;
+	var DEFAULT_FLEX_BASIS = "auto";
+	var formatBasis = (basis) => typeof basis === "object" && basis.size !== void 0 ? `${basis.size}${basis.unit || ""}` : basis;
+	var flexTransformer = createTransformer((value) => {
+		const grow = value.flexGrow;
+		const shrink = value.flexShrink;
+		const basis = value.flexBasis;
+		const hasGrow = grow !== void 0 && grow !== null;
+		const hasShrink = shrink !== void 0 && shrink !== null;
+		const hasBasis = basis !== void 0 && basis !== null;
+		if (!hasGrow && !hasShrink && !hasBasis) return null;
+		return `${hasGrow ? grow : DEFAULT_FLEX_GROW} ${hasShrink ? shrink : DEFAULT_FLEX_SHRINK} ${hasBasis ? formatBasis(basis) : DEFAULT_FLEX_BASIS}`;
+	});
+
+//#endregion
+//#region packages/packages/core/editor-canvas/src/transformers/styles/font-family-transformer.ts
+	var fontFamilyTransformer = createTransformer((value) => {
+		if (typeof value !== "string" || !value.trim()) return null;
+		const trimmed = value.trim();
+		if (trimmed.startsWith("\"") && trimmed.endsWith("\"") || trimmed.startsWith("'") && trimmed.endsWith("'")) return trimmed;
+		return `"${trimmed}"`;
+	});
+
+//#endregion
+//#region packages/packages/core/editor-canvas/src/transformers/styles/grid-track-renderer.ts
+	var GRID_TRACK_PROPERTIES = /* @__PURE__ */ new Set(["grid-template-columns", "grid-template-rows"]);
+	var isGridTrackProperty = (cssProperty) => GRID_TRACK_PROPERTIES.has(cssProperty);
+	var formatGridTrackRepeat = (count) => {
+		if (!Number.isFinite(count) || count < 1) return null;
+		return `repeat(${count}, 1fr)`;
+	};
+
+//#endregion
+//#region packages/packages/core/editor-canvas/src/transformers/styles/grid-track-size-transformer.ts
+	var gridTrackSizeTransformer = createTransformer((value) => {
+		if (value.unit === "custom") return value.size;
+		if (value.unit === "fr") return formatGridTrackRepeat(Math.trunc(Number(value.size)));
+		return `${value.size}${value.unit}`;
+	});
+
+//#endregion
+//#region packages/packages/core/editor-canvas/src/transformers/styles/perspective-origin-transformer.ts
+	var FALLBACK = "0px";
+	function getVal$1(val) {
+		return `${val ?? FALLBACK}`;
+	}
+	__name(getVal$1, "getVal");
+	var perspectiveOriginTransformer = createTransformer((value) => `${getVal$1(value?.x)} ${getVal$1(value?.y)}`);
+
+//#endregion
+//#region packages/packages/core/editor-canvas/src/transformers/styles/position-transformer.ts
+	var positionTransformer = createTransformer(({ x, y }) => `${x ?? "0px"} ${y ?? "0px"}`);
+
+//#endregion
+//#region packages/packages/core/editor-canvas/src/transformers/styles/shadow-transformer.ts
+	var shadowTransformer = createTransformer((value) => {
+		return [
+			value.hOffset,
+			value.vOffset,
+			value.blur,
+			value.spread,
+			value.color,
+			value.position
+		].filter(Boolean).join(" ");
+	});
+
+//#endregion
+//#region packages/packages/core/editor-canvas/src/transformers/styles/size-transformer.ts
+	var sizeTransformer = createTransformer((value) => {
+		if (value.unit === "auto") return "auto";
+		return value.unit === "custom" ? value.size : `${value.size}${value.unit}`;
+	});
+
+//#endregion
+//#region packages/packages/core/editor-canvas/src/transformers/styles/span-transformer.ts
+	var spanTransformer = createTransformer((value) => {
+		return value?.trim() || null;
+	});
+
+//#endregion
+//#region packages/packages/core/editor-canvas/src/transformers/styles/stroke-transformer.ts
+	var strokeTransformer = createTransformer((value) => {
+		return createMultiPropsValue({
+			"-webkit-text-stroke": `${value.width} ${value.color}`,
+			stroke: `${value.color}`,
+			"stroke-width": `${value.width}`
+		});
+	});
+
+//#endregion
+//#region packages/packages/core/editor-canvas/src/transformers/styles/transform-functions-transformer.ts
+	var transformFunctionsTransformer = createTransformer((values) => {
+		if (values?.length < 1) return null;
+		return values.join(" ");
+	});
+
+//#endregion
+//#region packages/packages/core/editor-canvas/src/transformers/styles/transform-move-transformer.ts
+	var defaultMove = "0px";
+	var transformMoveTransformer = createTransformer((value) => {
+		return `translate3d(${value.x ?? defaultMove}, ${value.y ?? defaultMove}, ${value.z ?? defaultMove})`;
+	});
+
+//#endregion
+//#region packages/packages/core/editor-canvas/src/transformers/styles/transform-origin-transformer.ts
+	var EMPTY_VALUE = "0px";
+	var DEFAULT_XY = "50%";
+	var DEFAULT_Z = EMPTY_VALUE;
+	function getVal(val) {
+		return `${val ?? EMPTY_VALUE}`;
+	}
+	var transformOriginTransformer = createTransformer((value) => {
+		const x = getVal(value.x);
+		const y = getVal(value.y);
+		const z = getVal(value.z);
+		if (x === DEFAULT_XY && y === DEFAULT_XY && z === DEFAULT_Z) return null;
+		return `${x} ${y} ${z}`;
+	});
+
+//#endregion
+//#region packages/packages/core/editor-canvas/src/transformers/styles/transform-rotate-transformer.ts
+	var defaultRotate = "0deg";
+	var transformRotateTransformer = createTransformer((value) => {
+		return [
+			`rotateX(${value?.x ?? defaultRotate})`,
+			`rotateY(${value?.y ?? defaultRotate})`,
+			`rotateZ(${value?.z ?? defaultRotate})`
+		].join(" ");
+	});
+
+//#endregion
+//#region packages/packages/core/editor-canvas/src/transformers/styles/transform-scale-transformer.ts
+	var transformScaleTransformer = createTransformer((value) => {
+		return `scale3d(${value.x ?? 1}, ${value.y ?? 1}, ${value.z ?? 1})`;
+	});
+
+//#endregion
+//#region packages/packages/core/editor-canvas/src/transformers/styles/transform-skew-transformer.ts
+	var defaultSkew = "0deg";
+	var transformSkewTransformer = createTransformer((value) => {
+		return `skew(${value?.x ?? defaultSkew}, ${value?.y ?? defaultSkew})`;
+	});
+
+//#endregion
+//#region packages/packages/core/editor-canvas/src/transformers/styles/transition-transformer.ts
+	var getAllowedProperties = () => {
+		const allowedProperties = /* @__PURE__ */ new Set();
+		_elementor_editor_controls.transitionProperties.forEach((category) => {
+			category.properties.forEach((property) => {
+				allowedProperties.add(property.value);
+			});
+		});
+		return allowedProperties;
+	};
+	var transitionTransformer = createTransformer((transitionValues) => {
+		if (transitionValues?.length < 1) return null;
+		const allowedProperties = getAllowedProperties();
+		const validTransitions = transitionValues.map((value) => mapToTransitionString(value, allowedProperties)).filter(Boolean);
+		if (validTransitions.length === 0) return null;
+		return validTransitions.join(", ");
+	});
+	var mapToTransitionString = (value, allowedProperties) => {
+		if (!value.selection || !value.size) return "";
+		const property = value.selection.value;
+		if (!allowedProperties.has(property)) return "";
+		return `${property} ${value.size}`;
+	};
+
+//#endregion
+//#region packages/packages/core/editor-canvas/src/init-style-transformers.ts
+	function initStyleTransformers() {
+		styleTransformersRegistry.register("font-family", fontFamilyTransformer).register("size", sizeTransformer).register("grid-track-size", gridTrackSizeTransformer).register("shadow", shadowTransformer).register("stroke", strokeTransformer).register("dimensions", createMultiPropsTransformer([
+			"block-start",
+			"block-end",
+			"inline-start",
+			"inline-end"
+		], ({ propKey, key }) => `${propKey}-${key}`)).register("filter", filterTransformer).register("backdrop-filter", filterTransformer).register("box-shadow", createCombineArrayTransformer(",")).register("background", backgroundTransformer).register("background-overlay", backgroundOverlayTransformer).register("background-color-overlay", backgroundColorOverlayTransformer).register("background-image-overlay", backgroundImageOverlayTransformer).register("background-gradient-overlay", backgroundGradientOverlayTransformer).register("gradient-color-stop", createCombineArrayTransformer(",")).register("color-stop", colorStopTransformer).register("background-image-position-offset", positionTransformer).register("background-image-size-scale", backgroundImageSizeScaleTransformer).register("image-src", imageSrcTransformer).register("image", imageTransformer).register("object-position", positionTransformer).register("span", spanTransformer).register("transform-origin", transformOriginTransformer).register("perspective-origin", perspectiveOriginTransformer).register("transform-move", transformMoveTransformer).register("transform-scale", transformScaleTransformer).register("transform-rotate", transformRotateTransformer).register("transform-skew", transformSkewTransformer).register("transform-functions", transformFunctionsTransformer).register("transform", createMultiPropsTransformer([
+			"transform-functions",
+			"transform-origin",
+			"perspective",
+			"perspective-origin"
+		], ({ key }) => key === "transform-functions" ? "transform" : key)).register("transition", transitionTransformer).register("layout-direction", createMultiPropsTransformer(["row", "column"], ({ propKey, key }) => `${key}-${propKey}`)).register("flex", flexTransformer).register("border-width-v2", createMultiPropsTransformer([
+			"block-start",
+			"block-end",
+			"inline-start",
+			"inline-end"
+		], ({ key }) => `border-${key}-width`)).register("border-radius-v2", createMultiPropsTransformer([
+			"start-start",
+			"start-end",
+			"end-start",
+			"end-end"
+		], ({ key }) => `border-${key}-radius`)).registerFallback(plainTransformer);
+	}
+
+//#endregion
+//#region packages/packages/core/editor-canvas/src/renderers/create-dom-renderer.ts
+	function createDomRenderer() {
+		const loader = (0, _elementor_twing.createArrayLoader)({});
+		const environment = (0, _elementor_twing.createEnvironment)(loader);
+		environment.registerEscapingStrategy(escapeHtmlTag, "html_tag");
+		environment.registerEscapingStrategy(escapeURL, "full_url");
+		return {
+			register: loader.setTemplate,
+			render: environment.render
+		};
+	}
+	function getAllowedHtmlWrapperTags() {
+		return window.elementorCommon?.config?.allowedHTMLWrapperTags ?? [];
+	}
+	function escapeHtmlTag(value) {
+		const allowedTags = getAllowedHtmlWrapperTags();
+		const normalizedTag = value?.toLowerCase?.() ?? "";
+		return allowedTags.includes(normalizedTag) ? value : "div";
+	}
+	function escapeURL(value) {
+		const allowedProtocols = [
+			"http:",
+			"https:",
+			"mailto:",
+			"tel:"
+		];
+		try {
+			const parsed = new URL(value);
+			return allowedProtocols.includes(parsed.protocol) ? value : "";
+		} catch {
+			return "";
+		}
+	}
+
+//#endregion
+//#region packages/packages/core/editor-canvas/src/legacy/create-element-type.ts
+	var __typeError$1 = /* @__PURE__ */ __name((msg) => {
+		throw TypeError(msg);
+	}, "__typeError");
+	var __accessCheck$1 = /* @__PURE__ */ __name((obj, member, msg) => member.has(obj) || __typeError$1("Cannot " + msg), "__accessCheck");
+	var __privateAdd$1 = /* @__PURE__ */ __name((obj, member, value) => member.has(obj) ? __typeError$1("Cannot add the same private member more than once") : member instanceof WeakSet ? member.add(obj) : member.set(obj, value), "__privateAdd");
+	var __privateMethod$1 = /* @__PURE__ */ __name((obj, member, method) => (__accessCheck$1(obj, member, "access private method"), method), "__privateMethod");
+	function createElementType(type) {
+		const legacyWindow = window;
+		return class extends legacyWindow.elementor.modules.elements.types.Widget {
+			getType() {
+				return type;
+			}
+			getView() {
+				return createElementViewClassDeclaration();
+			}
+		};
+	}
+	function createElementViewClassDeclaration() {
+		var _instances;
+		var dispatchEvent_fn;
+		var dispatchPreviewEvent_fn;
+		var _a;
+		const legacyWindow = window;
+		return _a = class extends legacyWindow.elementor.modules.elements.views.Widget {
+			constructor() {
+				super(...arguments);
+				__privateAdd$1(this, _instances);
+			}
+			onRender(...args) {
+				super.onRender(...args);
+				__privateMethod$1(this, _instances, dispatchEvent_fn).call(this, "elementor/preview/atomic-widget/render");
+				__privateMethod$1(this, _instances, dispatchPreviewEvent_fn).call(this, "elementor/element/render");
+			}
+			onDestroy(...args) {
+				super.onDestroy(...args);
+				__privateMethod$1(this, _instances, dispatchEvent_fn).call(this, "elementor/preview/atomic-widget/destroy");
+				__privateMethod$1(this, _instances, dispatchPreviewEvent_fn).call(this, "elementor/element/destroy");
+			}
+			attributes() {
+				return {
+					...super.attributes(),
+					"data-atomic": "",
+					style: "display: contents !important;"
+				};
+			}
+			behaviors() {
+				const disabledBehaviors = [
+					"InlineEditing",
+					"Draggable",
+					"Resizable"
+				];
+				const behaviorsAsEntries = Object.entries(super.behaviors()).filter(([key]) => !disabledBehaviors.includes(key));
+				return Object.fromEntries(behaviorsAsEntries);
+			}
+			getDomElement() {
+				return this.$el.find(":first-child");
+			}
+			getHandlesOverlay() {
+				return null;
+			}
+			getContextMenuGroups() {
+				return super.getContextMenuGroups().filter((group) => group.name !== "save");
+			}
+		}, _instances = /* @__PURE__ */ new WeakSet(), dispatchEvent_fn = function(eventType) {
+			window.top?.dispatchEvent(new CustomEvent(eventType, { detail: { id: this.model.get("id") } }));
+		}, dispatchPreviewEvent_fn = function(eventType) {
+			const element = this.getDomElement().get(0);
+			if (!element) return;
+			legacyWindow.elementor?.$preview?.[0]?.contentWindow.dispatchEvent(new CustomEvent(eventType, { detail: {
+				id: this.model.get("id"),
+				type: this.model.get("widgetType"),
+				element
+			} }));
+		}, _a;
+	}
+
+//#endregion
+//#region packages/packages/core/editor-canvas/src/renderers/compute-html-tag.ts
+	var DEFAULT_LINK_TAG = "a";
+	function computeHtmlTag(settings, defaultTag, options = {}) {
+		if ((options.followLink ?? true) && settingsHaveActiveLink(settings)) {
+			const link = settings.link;
+			return extractLinkHtmlTag(isRecord(link) ? link : {});
+		}
+		const settingsTag = extractHtmlTagValue(settings.tag);
+		if (null !== settingsTag && "" !== settingsTag) return settingsTag;
+		return defaultTag;
+	}
+	function settingsHaveActiveLink(settings) {
+		const link = settings.link;
+		if (!isRecord(link)) return false;
+		const href = extractHtmlTagValue(link.href);
+		if (null !== href && "" !== href) return true;
+		const attributes = link.attributes;
+		return typeof attributes === "string" && "" !== attributes;
+	}
+	function extractLinkHtmlTag(link) {
+		const tag = extractHtmlTagValue(link.tag);
+		if (null !== tag && "" !== tag) return tag;
+		return "a";
+	}
+	function extractHtmlTagValue(value) {
+		if (isRecord(value) && typeof value.value === "string") return value.value;
+		if (typeof value === "string") return value;
+		return null;
+	}
+	function isRecord(value) {
+		return typeof value === "object" && null !== value && !Array.isArray(value);
+	}
+
+//#endregion
+//#region packages/packages/core/editor-canvas/src/legacy/create-pending-element.ts
+	function createPendingElement(wrapperView, data, options = {}) {
+		const parentContainer = wrapperView.getContainer();
+		const model = { ...data };
+		if (!model.id) model.id = (0, _elementor_editor_elements.generateElementId)();
+		if (!model.elements) model.elements = [];
+		if (!(0, _elementor_editor_elements.addModelToParent)(parentContainer.id, model, options)) return;
+		const childId = model.id;
+		const childModel = (0, _elementor_editor_elements.findModelInDocument)(childId);
+		if (!childModel) return;
+		const pendingContainer = {
+			id: childId,
+			settings: {
+				get: () => ({}),
+				set: () => ({}),
+				toJSON: () => ({})
+			},
+			parent: parentContainer,
+			model: childModel,
+			view: void 0,
+			lookup() {
+				return (0, _elementor_editor_elements.getContainer)(childId) ?? pendingContainer;
+			}
+		};
+		wrapperView.once("render", () => {
+			wrapperView.model?.trigger?.("navigator:add", childModel, options);
+		});
+		if (options.edit !== false) selectChildWhenWrapperRenders(wrapperView, childId);
+		return { getContainer: () => pendingContainer };
+	}
+	function selectChildWhenWrapperRenders(wrapperView, childId) {
+		wrapperView.once("render", () => {
+			const childContainer = (0, _elementor_editor_elements.getContainer)(childId);
+			if (childContainer?.model?.trigger) {
+				childContainer.model.trigger("request:edit");
+				return;
+			}
+			wrapperView.model?.trigger?.("request:edit");
+		});
+	}
+
+//#endregion
+//#region packages/packages/core/editor-canvas/src/legacy/twig-rendering-utils.ts
+	function setupTwigRenderer({ renderer, element }) {
+		const templateKey = element.twig_main_template;
+		const baseStylesDictionary = element.base_styles_dictionary;
+		Object.entries(element.twig_templates).forEach(([key, template]) => {
+			renderer.register(key, template);
+		});
+		return {
+			templateKey,
+			baseStylesDictionary,
+			resolveProps: createPropsResolver({
+				transformers: settingsTransformersRegistry,
+				schema: element.atomic_props_schema
+			}),
+			defaultHtmlTag: element.default_html_tag ?? "div",
+			htmlTagFollowsLink: element.html_tag_follows_link ?? true
+		};
+	}
+	function createBeforeRender(view) {
+		view._ensureViewIsIntact();
+		view._isRendering = true;
+		view.resetChildViewContainer();
+		view.triggerMethod("before:render", view);
+	}
+	function createAfterRender(view) {
+		view._isRendering = false;
+		view.isRendered = true;
+		view.triggerMethod("render", view);
+	}
+	function rerenderExistingChildren(view) {
+		view.children?.each((childView) => {
+			childView.render();
+		});
+	}
+	async function waitForChildrenToComplete(view) {
+		const promises = [];
+		view.children?.each((childView) => {
+			if (childView._currentRenderPromise) promises.push(childView._currentRenderPromise);
+		});
+		if (promises.length > 0) await Promise.all(promises);
+	}
+
+//#endregion
+//#region packages/packages/core/editor-canvas/src/legacy/create-templated-element-type.ts
+	var __defProp$3 = Object.defineProperty;
+	var __defNormalProp$3 = /* @__PURE__ */ __name((obj, key, value) => key in obj ? __defProp$3(obj, key, {
+		enumerable: true,
+		configurable: true,
+		writable: true,
+		value
+	}) : obj[key] = value, "__defNormalProp");
+	var __publicField$3 = /* @__PURE__ */ __name((obj, key, value) => __defNormalProp$3(obj, typeof key !== "symbol" ? key + "" : key, value), "__publicField");
+	function canBeTemplated(element) {
+		return !!(element.atomic_props_schema && element.twig_templates && element.twig_main_template && element.base_styles_dictionary);
+	}
+	function createTemplatedElementView({ type, renderer, element }) {
+		const BaseView = createElementViewClassDeclaration();
+		const { templateKey, baseStylesDictionary, resolveProps, defaultHtmlTag, htmlTagFollowsLink } = setupTwigRenderer({
+			type,
+			renderer,
+			element
+		});
+		return class extends BaseView {
+			constructor() {
+				super(...arguments);
+				__publicField$3(this, "_abortController", null);
+				__publicField$3(this, "_lastResolvedSettingsHash", null);
+				__publicField$3(this, "_domUpdateWasSkipped", false);
+			}
+			getTemplateType() {
+				return "twig";
+			}
+			getNamespaceKey() {
+				return type;
+			}
+			renderOnChange() {
+				this.render();
+			}
+			getRenderContext() {
+				return this._parent?.getRenderContext?.();
+			}
+			getResolverRenderContext() {
+				return this._parent?.getResolverRenderContext?.();
+			}
+			invalidateRenderCache() {
+				this._lastResolvedSettingsHash = null;
+			}
+			render() {
+				this._abortController?.abort();
+				this._abortController = new AbortController();
+				const process = signalizedProcess(this._abortController.signal).then(() => this._beforeRender()).then(() => this._renderTemplate()).then(() => this._renderChildren()).then(() => this._afterRender());
+				this._currentRenderPromise = process.execute();
+				return this._currentRenderPromise;
+			}
+			async _renderChildren() {
+				if (this._shouldReuseChildren()) rerenderExistingChildren(this);
+				else super._renderChildren();
+				await waitForChildrenToComplete(this);
+			}
+			_shouldReuseChildren() {
+				return this._domUpdateWasSkipped && this.children?.length > 0;
+			}
+			async _renderTemplate() {
+				this.triggerMethod("before:render:template");
+				await signalizedProcess(this._abortController?.signal).then((_, signal) => {
+					const settings = this.model.get("settings").toJSON();
+					return resolveProps({
+						props: settings,
+						signal,
+						renderContext: this.getResolverRenderContext()
+					});
+				}).then((settings) => {
+					return this.afterSettingsResolve(settings);
+				}).then(async (settings) => {
+					const settingsHash = JSON.stringify(settings);
+					if (!(settingsHash !== this._lastResolvedSettingsHash) && this.isRendered) {
+						this._domUpdateWasSkipped = true;
+						return null;
+					}
+					this._domUpdateWasSkipped = false;
+					this._lastResolvedSettingsHash = settingsHash;
+					const context = {
+						id: this.model.get("id"),
+						interaction_id: this.getInteractionId(),
+						type,
+						settings,
+						tag: computeHtmlTag(settings, defaultHtmlTag, { followLink: htmlTagFollowsLink }),
+						base_styles: baseStylesDictionary,
+						...this.getResolverRenderContext?.() ?? {}
+					};
+					return renderer.render(templateKey, context);
+				}).then((html) => {
+					if (html === null) return;
+					this.$el.html(html);
+				}).execute();
+				this.bindUIElements();
+				this.triggerMethod("render:template");
+			}
+			afterSettingsResolve(settings) {
+				return settings;
+			}
+			_beforeRender() {
+				createBeforeRender(this);
+			}
+			_afterRender() {
+				createAfterRender(this);
+			}
+			_doAfterRender(callback) {
+				if (this.isRendered) callback();
+				else this.once("render", callback);
+			}
+			_openEditingPanel(options) {
+				this._doAfterRender(() => super._openEditingPanel(options));
+			}
+			getInteractionId() {
+				const originId = this.model.get("originId");
+				const id = this.model.get("id");
+				return originId ?? id;
+			}
+		};
+	}
+
+//#endregion
+//#region packages/packages/core/editor-canvas/src/legacy/create-nested-templated-element-type.ts
+	var STYLES_REFERENCE_UNTRACKED = /* @__PURE__ */ Symbol("styles-reference-untracked");
+	function canBeNestedTemplated(element) {
+		return canBeTemplated(element) && "support_nesting" in element && !!element.support_nesting;
+	}
+	function createNestedTemplatedElementType({ type, renderer, element, modelExtensions }) {
+		const legacyWindow = window;
+		return class extends legacyWindow.elementor.modules.elements.types.Base {
+			getType() {
+				return type;
+			}
+			getView() {
+				return createNestedTemplatedElementView({
+					type,
+					renderer,
+					element
+				});
+			}
+			getModel() {
+				const BaseModel = legacyWindow.elementor.modules.elements.models.AtomicElementBase;
+				if (modelExtensions && Object.keys(modelExtensions).length > 0) return BaseModel.extend(modelExtensions);
+				return BaseModel;
+			}
+		};
+	}
+	function buildEditorAttributes(model) {
+		const id = model.get("id");
+		const originId = model.get("originId");
+		const attrs = {
+			"data-model-cid": model.cid ?? "",
+			"data-interaction-id": originId ?? id,
+			"x-ignore": "true"
+		};
+		return Object.entries(attrs).map(([key, value]) => `${key}="${value}"`).join(" ");
+	}
+	function buildEditorClasses(model) {
+		return [
+			"elementor-element",
+			"elementor-element-edit-mode",
+			`elementor-element-${model.get("id")}`
+		].join(" ");
+	}
+	function createNestedTemplatedElementView({ type, renderer, element }) {
+		const legacyWindow = window;
+		const { templateKey, baseStylesDictionary, resolveProps, defaultHtmlTag, htmlTagFollowsLink } = setupTwigRenderer({
+			type,
+			renderer,
+			element
+		});
+		const AtomicElementBaseView = legacyWindow.elementor.modules.elements.views.createAtomicElementBase(type);
+		const parentRenderChildren = AtomicElementBaseView.prototype._renderChildren;
+		const parentOpenEditingPanel = AtomicElementBaseView.prototype._openEditingPanel;
+		const parentAddElement = AtomicElementBaseView.prototype.addElement;
+		return AtomicElementBaseView.extend({
+			_abortController: null,
+			_lastResolvedSettingsHash: null,
+			_lastRenderedStyles: STYLES_REFERENCE_UNTRACKED,
+			_domUpdateWasSkipped: false,
+			template: false,
+			attributes() {
+				return { "data-model-cid": this.model.cid };
+			},
+			getTemplateType() {
+				return "twig";
+			},
+			invalidateRenderCache() {
+				this._lastResolvedSettingsHash = null;
+			},
+			renderOnChange() {
+				this.render();
+			},
+			render() {
+				this._abortController?.abort();
+				this._abortController = new AbortController();
+				const process = signalizedProcess(this._abortController.signal).then(() => this._beforeRender()).then(() => this._renderTemplate()).then(() => this._onTemplateReady()).then(() => this._renderChildren()).then(() => this._afterRender());
+				this._currentRenderPromise = process.execute();
+				return this._currentRenderPromise;
+			},
+			_beforeRender() {
+				createBeforeRender(this);
+			},
+			_onTemplateReady() {
+				this.dispatchPreviewEvent("elementor/element/render");
+			},
+			_afterRender() {
+				createAfterRender(this);
+				this.dispatchPreviewEvent("elementor/element/rendered");
+				requestAnimationFrame(() => {
+					this._initAlpine();
+				});
+				this.model.trigger("render:complete");
+				this._notifyStylesChanged();
+			},
+			_notifyStylesChanged() {
+				const styles = this.model.get("styles");
+				if (this._lastRenderedStyles !== STYLES_REFERENCE_UNTRACKED && styles === this._lastRenderedStyles) return;
+				this._lastRenderedStyles = styles;
+				window.dispatchEvent(new CustomEvent(_elementor_editor_elements.ELEMENT_STYLE_CHANGE_EVENT));
+			},
+			async _renderTemplate() {
+				const model = this.model;
+				this.triggerMethod("before:render:template");
+				await signalizedProcess(this._abortController?.signal).then((_, signal) => {
+					const settings = model.get("settings").toJSON();
+					return resolveProps({
+						props: settings,
+						signal,
+						renderContext: this.getResolverRenderContext?.()
+					});
+				}).then(async (settings) => {
+					const resolvedSettings = this.afterSettingsResolve(settings);
+					const settingsHash = JSON.stringify(resolvedSettings);
+					if (!(settingsHash !== this._lastResolvedSettingsHash) && this.isRendered) {
+						this._domUpdateWasSkipped = true;
+						return null;
+					}
+					this._domUpdateWasSkipped = false;
+					this._lastResolvedSettingsHash = settingsHash;
+					const context = {
+						id: model.get("id"),
+						interaction_id: this.getInteractionId(),
+						type,
+						settings: resolvedSettings,
+						tag: computeHtmlTag(resolvedSettings, defaultHtmlTag, { followLink: htmlTagFollowsLink }),
+						base_styles: baseStylesDictionary,
+						editor_attributes: buildEditorAttributes(model),
+						editor_classes: buildEditorClasses(model),
+						...this.getResolverRenderContext?.() ?? {}
+					};
+					return renderer.render(templateKey, context);
+				}).then((html) => {
+					if (html === null) return;
+					this._attachTwigContent(html);
+				}).execute();
+				this.bindUIElements();
+				this.triggerMethod("render:template");
+			},
+			afterSettingsResolve(settings) {
+				return settings;
+			},
+			getRenderContext() {
+				return this._parent?.getRenderContext?.();
+			},
+			getResolverRenderContext() {
+				return this._parent?.getResolverRenderContext?.();
+			},
+			getChildType() {
+				const allowedTypes = element.allowed_child_types ?? [];
+				if (allowedTypes && allowedTypes.length > 0) return allowedTypes;
+				return AtomicElementBaseView.prototype.getChildType.call(this);
+			},
+			_attachTwigContent(html) {
+				const $newContent = legacyWindow.jQuery(html);
+				const oldEl = this.$el.get(0);
+				const newEl = $newContent.get(0);
+				if (!oldEl || !newEl) return;
+				this._destroyAlpine();
+				const overlayHTML = this.getHandlesOverlay()?.get(0)?.outerHTML ?? "";
+				const needsTagSwap = oldEl.tagName !== newEl.tagName;
+				const targetEl = needsTagSwap ? (oldEl.ownerDocument ?? document).createElement(newEl.tagName) : oldEl;
+				Array.from(newEl.attributes).forEach((attr) => {
+					targetEl.setAttribute(attr.name, attr.value);
+				});
+				targetEl.innerHTML = overlayHTML + newEl.innerHTML;
+				if (needsTagSwap) {
+					oldEl.replaceWith(targetEl);
+					this.setElement(legacyWindow.jQuery(targetEl));
+				}
+			},
+			async _renderChildren() {
+				if (this._shouldReuseChildren()) rerenderExistingChildren(this);
+				else parentRenderChildren.call(this);
+				await waitForChildrenToComplete(this);
+				this._removeChildrenPlaceholder();
+			},
+			_shouldReuseChildren() {
+				return this._domUpdateWasSkipped && this.children?.length > 0;
+			},
+			_removeChildrenPlaceholder() {
+				const el = this.$el.get(0);
+				if (!el) return;
+				Array.from(el.childNodes).find((node) => node.nodeType === Node.COMMENT_NODE && node.nodeValue?.trim() === "elementor-children-placeholder")?.remove();
+			},
+			getChildViewContainer() {
+				this.childViewContainer = "";
+				return this.$el;
+			},
+			attachBuffer(_collectionView, buffer) {
+				const el = this.$el.get(0);
+				if (!el) return;
+				const placeholderComment = Array.from(el.childNodes).find((node) => node.nodeType === Node.COMMENT_NODE && node.nodeValue?.trim() === "elementor-children-placeholder");
+				if (placeholderComment) {
+					placeholderComment.parentNode?.insertBefore(buffer, placeholderComment);
+					placeholderComment.remove();
+				} else el.append(buffer);
+			},
+			getDomElement() {
+				return this.$el;
+			},
+			onBeforeDestroy() {
+				this._abortController?.abort();
+			},
+			onDestroy() {
+				this.dispatchPreviewEvent("elementor/element/destroy");
+			},
+			_destroyAlpine() {
+				const el = this.$el.get(0);
+				if (!el) return;
+				if (!el.getAttribute("x-data")) return;
+				(el.ownerDocument?.defaultView)?.Alpine?.destroyTree(el);
+			},
+			_initAlpine() {
+				const el = this.$el.get(0);
+				if (!el) return;
+				el.removeAttribute("x-ignore");
+				if (!el.getAttribute("x-data")) return;
+				(el.ownerDocument?.defaultView)?.Alpine?.initTree(el);
+			},
+			_doAfterRender(callback) {
+				if (this.isRendered) callback();
+				else this.once("render", callback);
+			},
+			_openEditingPanel(options) {
+				this._doAfterRender(() => parentOpenEditingPanel.call(this, options));
+			},
+			addElement(data, options) {
+				if (this.isRendered) return parentAddElement.call(this, data, options);
+				return createPendingElement(this, data, options);
+			},
+			getInteractionId() {
+				const originId = this.model.get("originId");
+				const id = this.model.get("id");
+				return originId ?? id;
+			}
+		});
+	}
+
+//#endregion
+//#region packages/packages/core/editor-canvas/src/legacy/create-pro-promotion-nested-type.ts
+	function createProPromotionNestedType({ type, renderer, element }) {
+		if (!canBeNestedTemplated(element)) throw new Error(`Element "${type}" is not a valid nested templated element.`);
+		const BaseType = createNestedTemplatedElementType({
+			type,
+			renderer,
+			element
+		});
+		let PromotionView = null;
+		return class extends BaseType {
+			getView() {
+				if (!PromotionView) PromotionView = createPromotionView(new BaseType().getView());
+				return PromotionView;
+			}
+		};
+	}
+	function createPromotionView(BaseView) {
+		return class extends BaseView {
+			_afterRender() {
+				super._afterRender();
+				const removeBtnSelector = ".e-pro-promotion-placeholder__remove-btn";
+				const unlockBtnSelector = ".e-pro-promotion-placeholder__unlock-btn";
+				this.$el.off("click", removeBtnSelector);
+				this.$el.on("click", removeBtnSelector, (e) => {
+					e.preventDefault();
+					e.stopPropagation();
+					window.$e.run("document/elements/delete", { container: this.container });
+				});
+				this.$el.off("click", unlockBtnSelector);
+				this.$el.on("click", unlockBtnSelector, (e) => {
+					e.stopPropagation();
+				});
+			}
+			async _renderChildren() {}
+			behaviors() {
+				const disabledBehaviors = [
+					"InlineEditing",
+					"Draggable",
+					"Resizable"
+				];
+				const behaviorsAsEntries = Object.entries(super.behaviors()).filter(([key]) => !disabledBehaviors.includes(key));
+				return Object.fromEntries(behaviorsAsEntries);
+			}
+			getContextMenuGroups() {
+				return super.getContextMenuGroups().filter((group) => group.name !== "save");
+			}
+			onDestroy(...args) {
+				super.onDestroy(...args);
+				this.$el.off("click", ".e-pro-promotion-placeholder__remove-btn");
+				this.$el.off("click", ".e-pro-promotion-placeholder__unlock-btn");
+			}
+		};
+	}
+
+//#endregion
+//#region node_modules/react-dom/client.js
+	var require_client = /* @__PURE__ */ __commonJSMin(((exports) => {
+		var m = (globalThis.ReactDOM);
+		var i = m.__SECRET_INTERNALS_DO_NOT_USE_OR_YOU_WILL_BE_FIRED;
+		exports.createRoot = function(c, o) {
+			i.usingClientEntryPoint = true;
+			try {
+				return m.createRoot(c, o);
+			} finally {
+				i.usingClientEntryPoint = false;
+			}
+		};
+	}));
+
+//#endregion
+//#region packages/packages/core/editor-canvas/src/legacy/replacements/base.ts
+var import_client = require_client();
+	var __defProp$2 = Object.defineProperty;
+	var __defNormalProp$2 = /* @__PURE__ */ __name((obj, key, value) => key in obj ? __defProp$2(obj, key, {
+		enumerable: true,
+		configurable: true,
+		writable: true,
+		value
+	}) : obj[key] = value, "__defNormalProp");
+	var __publicField$2 = /* @__PURE__ */ __name((obj, key, value) => __defNormalProp$2(obj, typeof key !== "symbol" ? key + "" : key, value), "__publicField");
+	var TRIGGER_TIMING = {
+		before: "before",
+		after: "after",
+		never: "never"
+	};
+	var ReplacementBase = class {
+		constructor(settings) {
+			__publicField$2(this, "getSetting");
+			__publicField$2(this, "setSetting");
+			__publicField$2(this, "element");
+			__publicField$2(this, "type");
+			__publicField$2(this, "id");
+			__publicField$2(this, "refreshView");
+			__publicField$2(this, "reactRoot");
+			__publicField$2(this, "reactContainer");
+			this.getSetting = settings.getSetting;
+			this.setSetting = settings.setSetting;
+			this.element = settings.element;
+			this.type = settings.type;
+			this.id = settings.id;
+			this.refreshView = settings.refreshView;
+			this.reactRoot = settings.reactRoot;
+			this.reactContainer = settings.reactContainer;
+		}
+		static getTypes() {
+			return null;
+		}
+		shouldRenderReplacement() {
+			return true;
+		}
+		originalMethodsToTrigger() {
+			return {
+				_beforeRender: TRIGGER_TIMING.before,
+				_afterRender: TRIGGER_TIMING.after,
+				renderOnChange: TRIGGER_TIMING.never,
+				onDestroy: TRIGGER_TIMING.never,
+				render: TRIGGER_TIMING.never
+			};
+		}
+	};
+
+//#endregion
+//#region packages/packages/core/editor-canvas/src/legacy/replacements/inline-editing/inline-editing-utils.ts
+	var EDITOR_ELEMENTS_OUT_OF_IFRAME = [
+		"#elementor-editor-wrapper-v2",
+		"#elementor-navigator",
+		"#elementor-panel"
+	];
+	var TOOLBAR_ANCHOR_ID_PREFIX = "inline-editing-toolbar-anchor";
+	var TOOLBAR_ANCHOR_STATIC_STYLES = {
+		backgroundColor: "transparent",
+		border: "none",
+		outline: "none",
+		boxShadow: "none",
+		padding: "0",
+		margin: "0",
+		borderRadius: "0",
+		overflow: "hidden",
+		opacity: "0",
+		pointerEvents: "none",
+		position: "absolute",
+		display: "block"
+	};
+	var INLINE_EDITING_PROPERTY_PER_TYPE = {
+		"e-button": "text",
+		"e-form-label": "text",
+		"e-heading": "title",
+		"e-paragraph": "paragraph",
+		"e-form-submit-button": "text"
+	};
+	var getInlineEditorElement = (elementWrapper, expectedTag) => {
+		return !expectedTag ? null : elementWrapper.querySelector(expectedTag);
+	};
+	var useOnClickOutsideIframe = (handleUnmount) => {
+		const asyncUnmountInlineEditor = (0, react.useCallback)(() => queueMicrotask(handleUnmount), [handleUnmount]);
+		(0, react.useEffect)(() => {
+			EDITOR_ELEMENTS_OUT_OF_IFRAME.forEach((selector) => document?.querySelector(selector)?.addEventListener("mousedown", asyncUnmountInlineEditor));
+			return () => EDITOR_ELEMENTS_OUT_OF_IFRAME.forEach((selector) => document?.querySelector(selector)?.removeEventListener("mousedown", asyncUnmountInlineEditor));
+		}, []);
+	};
+	var useRenderToolbar = (ownerDocument, id) => {
+		const [anchor, setAnchor] = (0, react.useState)(null);
+		(0, react.useEffect)(() => {
+			if (!anchor) removeToolbarAnchor(ownerDocument, id);
+		}, [
+			anchor,
+			ownerDocument,
+			id
+		]);
+		const onSelectionEnd = (view) => {
+			const hasSelection = !view.state.selection.empty;
+			removeToolbarAnchor(ownerDocument, id);
+			if (hasSelection) setAnchor(createAnchorBasedOnSelection(ownerDocument, id));
+			else setAnchor(null);
+		};
+		return {
+			onSelectionEnd,
+			anchor,
+			clearAnchor: (0, react.useCallback)(() => {
+				setAnchor(null);
+			}, [])
+		};
+	};
+	var createAnchorBasedOnSelection = (ownerDocument, id) => {
+		const selection = ownerDocument.defaultView?.getSelection();
+		if (!selection) return null;
+		const selectionRect = selection.getRangeAt(0).getBoundingClientRect();
+		const bodyRect = ownerDocument.body.getBoundingClientRect();
+		const toolbarAnchor = ownerDocument.createElement("span");
+		styleToolbarAnchor(toolbarAnchor, selectionRect, bodyRect);
+		toolbarAnchor.setAttribute("id", getToolbarAnchorId(id));
+		ownerDocument.body.appendChild(toolbarAnchor);
+		return toolbarAnchor;
+	};
+	var removeToolbarAnchor = (ownerDocument, id) => {
+		const toolbarAnchor = getToolbarAnchor(ownerDocument, id);
+		if (toolbarAnchor) ownerDocument.body.removeChild(toolbarAnchor);
+	};
+	var getToolbarAnchorId = (id) => `${TOOLBAR_ANCHOR_ID_PREFIX}-${id}`;
+	var getToolbarAnchor = (ownerDocument, id) => ownerDocument.getElementById(getToolbarAnchorId(id));
+	var styleToolbarAnchor = (anchor, selectionRect, bodyRect) => {
+		const { width, height } = selectionRect;
+		Object.assign(anchor.style, {
+			...TOOLBAR_ANCHOR_STATIC_STYLES,
+			top: `${selectionRect.top - bodyRect.top}px`,
+			left: `${selectionRect.left - bodyRect.left}px`,
+			width: `${width}px`,
+			height: `${height}px`
+		});
+	};
+	var horizontalShifterMiddleware = {
+		name: "horizontalShifter",
+		fn(state) {
+			const { x: left, y: top, elements: { reference: anchor, floating } } = state;
+			const newState = {
+				...state,
+				x: left,
+				y: top
+			};
+			if (left < 0) {
+				newState.x = 0;
+				return newState;
+			}
+			const anchorRect = anchor.getBoundingClientRect();
+			const right = left + floating.offsetWidth;
+			const documentWidth = anchor.ownerDocument.body.offsetWidth;
+			if (right > documentWidth && anchorRect.right < right) {
+				newState.x = left - (right - documentWidth);
+				return newState;
+			}
+			return newState;
+		}
+	};
+
+//#endregion
+//#region packages/packages/core/editor-canvas/src/legacy/replacements/inline-editing/canvas-inline-editor.tsx
+	var CanvasInlineEditor = ({ elementClasses, initialValue, expectedTag, rootElement, contentElement, id, setValue, requestDestroy }) => {
+		const [active, setActive] = (0, react.useState)(true);
+		const [editor, setEditor] = (0, react.useState)(null);
+		const { onSelectionEnd, anchor: toolbarAnchor, clearAnchor } = useRenderToolbar(rootElement.ownerDocument, id);
+		(0, react.useEffect)(() => {
+			if (!active) {
+				clearAnchor();
+				requestDestroy();
+			}
+		}, [
+			active,
+			clearAnchor,
+			requestDestroy
+		]);
+		const dismiss = (0, react.useCallback)(() => {
+			setEditor(null);
+			setActive(false);
+		}, []);
+		useOnClickOutsideIframe(dismiss);
+		(0, react.useEffect)(() => {
+			const ownerDocument = contentElement.ownerDocument;
+			const handleClickAway = (event) => {
+				if (contentElement.contains(event.target)) return;
+				dismiss();
+			};
+			ownerDocument.addEventListener("mousedown", handleClickAway);
+			return () => ownerDocument.removeEventListener("mousedown", handleClickAway);
+		}, [contentElement, dismiss]);
+		if (!active) return null;
+		return /* @__PURE__ */ react.createElement(_elementor_ui.ThemeProvider, null, /* @__PURE__ */ react.createElement(InlineEditingOverlay, {
+			expectedTag,
+			rootElement,
+			id
+		}), /* @__PURE__ */ react.createElement(_elementor_editor_controls.InlineEditor, {
+			onEditorCreate: setEditor,
+			mountElement: contentElement,
+			editorProps: { attributes: { style: "outline: none; display: inherit; justify-content: inherit; align-items: inherit; flex-direction: inherit; text-align: inherit;" } },
+			elementClasses,
+			value: initialValue,
+			setValue,
+			onBlur: dismiss,
+			autofocus: true,
+			onSelectionEnd
+		}), toolbarAnchor && editor && /* @__PURE__ */ react.createElement(InlineEditingToolbar, {
+			anchor: toolbarAnchor,
+			editor,
+			id
+		}));
+	};
+	var InlineEditingOverlay = ({ expectedTag, rootElement, id }) => {
+		const [overlayRefElement, setOverlayElement] = (0, react.useState)(getInlineEditorElement(rootElement, expectedTag));
+		(0, react.useEffect)(() => {
+			setOverlayElement(getInlineEditorElement(rootElement, expectedTag));
+		}, [expectedTag, rootElement]);
+		return overlayRefElement ? /* @__PURE__ */ react.createElement(OutlineOverlay, {
+			element: overlayRefElement,
+			id,
+			isSelected: true
+		}) : null;
+	};
+	var InlineEditingToolbar = ({ anchor, editor, id }) => {
+		const { refs, floatingStyles } = useFloating({
+			placement: "top",
+			strategy: "fixed",
+			transform: false,
+			whileElementsMounted: autoUpdate,
+			middleware: [horizontalShifterMiddleware, flip()]
+		});
+		(0, react.useLayoutEffect)(() => {
+			refs.setReference(anchor);
+			return () => refs.setReference(null);
+		}, [anchor, refs]);
+		return /* @__PURE__ */ react.createElement(FloatingPortal, { id: CANVAS_WRAPPER_ID }, /* @__PURE__ */ react.createElement(_elementor_ui.Box, {
+			ref: refs.setFloating,
+			role: "presentation",
+			style: {
+				...floatingStyles,
+				pointerEvents: "none"
+			}
+		}, /* @__PURE__ */ react.createElement(_elementor_editor_controls.InlineEditorToolbar, {
+			editor,
+			elementId: id
+		})));
+	};
+
+//#endregion
+//#region packages/packages/core/editor-canvas/src/legacy/replacements/inline-editing/inline-editing-eligibility.ts
+	var hasKey = (propType) => {
+		return "key" in propType;
+	};
+	var TEXT_PROP_TYPE_KEYS = /* @__PURE__ */ new Set([
+		_elementor_editor_props.escapedHtmlPropTypeUtil.key,
+		_elementor_editor_props.htmlV3PropTypeUtil.key,
+		_elementor_editor_props.stringPropTypeUtil.key
+	]);
+	var isCoreTextPropTypeKey = (key) => {
+		return TEXT_PROP_TYPE_KEYS.has(key);
+	};
+	var isAllowedBySchema = (propTypeFromSchema) => {
+		if (!propTypeFromSchema) return false;
+		if (hasKey(propTypeFromSchema) && isCoreTextPropTypeKey(propTypeFromSchema.key)) return true;
+		if (propTypeFromSchema.kind !== "union") return false;
+		return [...TEXT_PROP_TYPE_KEYS].some((key) => propTypeFromSchema.prop_types[key]);
+	};
+	var isInlineEditingAllowed = ({ rawValue, propTypeFromSchema }) => {
+		if (rawValue === null || rawValue === void 0) return isAllowedBySchema(propTypeFromSchema);
+		return _elementor_editor_props.escapedHtmlPropTypeUtil.isValid(rawValue) || _elementor_editor_props.htmlV3PropTypeUtil.isValid(rawValue) || _elementor_editor_props.stringPropTypeUtil.isValid(rawValue);
+	};
+
+//#endregion
+//#region packages/packages/core/editor-canvas/src/legacy/replacements/inline-editing/inline-editing-elements.tsx
+	var __defProp$1 = Object.defineProperty;
+	var __defNormalProp$1 = /* @__PURE__ */ __name((obj, key, value) => key in obj ? __defProp$1(obj, key, {
+		enumerable: true,
+		configurable: true,
+		writable: true,
+		value
+	}) : obj[key] = value, "__defNormalProp");
+	var __publicField$1 = /* @__PURE__ */ __name((obj, key, value) => __defNormalProp$1(obj, typeof key !== "symbol" ? key + "" : key, value), "__publicField");
+	var HISTORY_DEBOUNCE_WAIT = 800;
+	var InlineEditingReplacement = class extends ReplacementBase {
+		constructor() {
+			super(...arguments);
+			__publicField$1(this, "handlerAttached", false);
+			__publicField$1(this, "editing", false);
+			__publicField$1(this, "handleRenderInlineEditor", () => {
+				if (this.isEditingModeActive() || !this.isInlineEditingEligible()) return;
+				this.renderInlineEditor();
+			});
+		}
+		getReplacementKey() {
+			return "inline-editing";
+		}
+		static getTypes() {
+			return Object.keys(INLINE_EDITING_PROPERTY_PER_TYPE);
+		}
+		isEditingModeActive() {
+			return this.editing;
+		}
+		shouldRenderReplacement() {
+			return this.isInlineEditingEligible() && (0, _elementor_editor_v1_adapters.getCurrentEditMode)() === "edit";
+		}
+		renderOnChange() {
+			if (this.isEditingModeActive()) return;
+			this.refreshView();
+		}
+		onDestroy() {
+			this.resetInlineEditorRoot();
+		}
+		_beforeRender() {
+			this.resetInlineEditorRoot();
+		}
+		_afterRender() {
+			if (this.isInlineEditingEligible() && !this.handlerAttached) {
+				this.element.addEventListener("click", this.handleRenderInlineEditor);
+				this.handlerAttached = true;
+			}
+		}
+		originalMethodsToTrigger() {
+			const before = this.isEditingModeActive() ? TRIGGER_TIMING.never : TRIGGER_TIMING.before;
+			const after = this.isEditingModeActive() ? TRIGGER_TIMING.never : TRIGGER_TIMING.after;
+			return {
+				_beforeRender: before,
+				_afterRender: after,
+				renderOnChange: after,
+				onDestroy: TRIGGER_TIMING.after,
+				render: before
+			};
+		}
+		resetInlineEditorRoot() {
+			this.element.removeEventListener("click", this.handleRenderInlineEditor);
+			this.handlerAttached = false;
+			this.reactRoot.render(null);
+			this.editing = false;
+		}
+		unmountInlineEditor() {
+			this.resetInlineEditorRoot();
+			this.refreshView();
+		}
+		isInlineEditingEligible() {
+			const settingKey = this.getInlineEditablePropertyName();
+			return isInlineEditingAllowed({
+				rawValue: this.getSetting(settingKey),
+				propTypeFromSchema: this.getInlineEditablePropType()
+			});
+		}
+		getInlineEditablePropertyName() {
+			return INLINE_EDITING_PROPERTY_PER_TYPE[this.type] ?? "";
+		}
+		getInlineEditablePropType() {
+			const propSchema = (0, _elementor_editor_elements.getElementType)(this.type)?.propsSchema;
+			const propertyName = this.getInlineEditablePropertyName();
+			return propSchema?.[propertyName] ?? null;
+		}
+		getInlineEditablePropValue() {
+			const prop = this.getInlineEditablePropType();
+			const settingKey = this.getInlineEditablePropertyName();
+			return this.getSetting(settingKey) ?? prop?.default ?? null;
+		}
+		getExtractedContentValue() {
+			const propValue = this.getInlineEditablePropValue();
+			if (_elementor_editor_props.escapedHtmlPropTypeUtil.isValid(propValue)) return _elementor_editor_props.escapedHtmlPropTypeUtil.extract(propValue) ?? "";
+			const extracted = _elementor_editor_props.htmlV3PropTypeUtil.extract(propValue);
+			return _elementor_editor_props.stringPropTypeUtil.extract(extracted?.content ?? null) ?? "";
+		}
+		createContentPropValue(value) {
+			const content = value || "";
+			if (this.getInlineEditablePropTypeKey() === _elementor_editor_props.htmlV3PropTypeUtil.key) return _elementor_editor_props.htmlV3PropTypeUtil.create({
+				content: _elementor_editor_props.stringPropTypeUtil.create(content),
+				children: []
+			});
+			return _elementor_editor_props.escapedHtmlPropTypeUtil.create(content);
+		}
+		setContentValue(value) {
+			const settingKey = this.getInlineEditablePropertyName();
+			const valueToSave = this.createContentPropValue(value);
+			(0, _elementor_editor_v1_adapters.undoable)({
+				do: () => {
+					const prevValue = this.getInlineEditablePropValue();
+					this.runCommand(settingKey, valueToSave);
+					return prevValue;
+				},
+				undo: (_, prevValue) => {
+					this.runCommand(settingKey, prevValue ?? null);
+				}
+			}, {
+				title: (0, _elementor_editor_elements.getElementLabel)(this.id),
+				subtitle: (0, _wordpress_i18n.__)("%s edited", "elementor").replace("%s", this.getInlineEditablePropTypeKey() ?? "Inline editing"),
+				debounce: { wait: HISTORY_DEBOUNCE_WAIT }
+			})();
+		}
+		getInlineEditablePropTypeKey() {
+			const propType = this.getInlineEditablePropType();
+			if (!propType) return null;
+			if (propType.kind === "union") {
+				const textKeys = [
+					_elementor_editor_props.escapedHtmlPropTypeUtil.key,
+					_elementor_editor_props.htmlV3PropTypeUtil.key,
+					_elementor_editor_props.stringPropTypeUtil.key
+				];
+				for (const key of textKeys) if (propType.prop_types[key]) return key;
+				return null;
+			}
+			if ("key" in propType && typeof propType.key === "string") return propType.key;
+			return null;
+		}
+		runCommand(key, value) {
+			(0, _elementor_editor_v1_adapters.__privateRunCommandSync)("document/elements/set-settings", {
+				container: (0, _elementor_editor_elements.getContainer)(this.id),
+				settings: { [key]: value }
+			}, { internal: true });
+			(0, _elementor_editor_v1_adapters.__privateRunCommandSync)("document/save/set-is-modified", { status: true }, { internal: true });
+		}
+		getExpectedTag() {
+			const tagPropType = this.getTagPropType();
+			return _elementor_editor_props.stringPropTypeUtil.extract(this.getSetting("tag") ?? null) ?? _elementor_editor_props.stringPropTypeUtil.extract(tagPropType?.default ?? null) ?? null;
+		}
+		getTagPropType() {
+			const propsSchema = (0, _elementor_editor_elements.getElementType)(this.type)?.propsSchema;
+			if (!propsSchema?.tag) return null;
+			const tagPropType = propsSchema.tag ?? null;
+			if (tagPropType.kind === "union") return tagPropType.prop_types.string ?? null;
+			return tagPropType;
+		}
+		renderInlineEditor() {
+			if (this.isEditingModeActive()) this.resetInlineEditorRoot();
+			const contentElement = this.element.children?.[0];
+			if (!contentElement) return;
+			const elementClasses = contentElement.classList.toString();
+			const propValue = this.getExtractedContentValue();
+			const expectedTag = this.getExpectedTag();
+			contentElement.innerHTML = "";
+			this.editing = true;
+			this.reactRoot.render(/* @__PURE__ */ react.createElement(CanvasInlineEditor, {
+				elementClasses,
+				initialValue: propValue,
+				expectedTag,
+				rootElement: this.element,
+				contentElement,
+				id: this.id,
+				setValue: this.setContentValue.bind(this),
+				requestDestroy: this.unmountInlineEditor.bind(this)
+			}));
+		}
+	};
+
+//#endregion
+//#region packages/packages/core/editor-canvas/src/legacy/replacements/manager.ts
+	var __typeError = (msg) => {
+		throw TypeError(msg);
+	};
+	var __accessCheck = (obj, member, msg) => member.has(obj) || __typeError("Cannot " + msg);
+	var __privateGet = (obj, member, getter) => (__accessCheck(obj, member, "read from private field"), getter ? getter.call(obj) : member.get(obj));
+	var __privateAdd = (obj, member, value) => member.has(obj) ? __typeError("Cannot add the same private member more than once") : member instanceof WeakSet ? member.add(obj) : member.set(obj, value);
+	var __privateSet = (obj, member, value, setter) => (__accessCheck(obj, member, "write to private field"), setter ? setter.call(obj, value) : member.set(obj, value), value);
+	var __privateMethod = (obj, member, method) => (__accessCheck(obj, member, "access private method"), method);
+	var replacements = /* @__PURE__ */ new Map();
+	var initViewReplacements = () => {
+		registerReplacement(InlineEditingReplacement);
+	};
+	var registerReplacement = (replacement) => {
+		const types = replacement.getTypes();
+		if (!types) return;
+		types.forEach((type) => {
+			replacements.set(type, replacement);
+		});
+	};
+	var getReplacement = (type) => {
+		return replacements.get(type) ?? null;
+	};
+	var createViewWithReplacements = (options) => {
+		var _replacement;
+		var _config;
+		var _reactContainer;
+		var _reactRoot;
+		var _instances;
+		var triggerAltMethod_fn;
+		var _a;
+		const TemplatedView = createTemplatedElementView(options);
+		return _a = class extends TemplatedView {
+			constructor(...args) {
+				super(...args);
+				__privateAdd(this, _instances);
+				__privateAdd(this, _replacement, null);
+				__privateAdd(this, _config);
+				__privateAdd(this, _reactContainer);
+				__privateAdd(this, _reactRoot);
+				const settings = this.model.get("settings");
+				__privateSet(this, _reactContainer, this.el.ownerDocument.createElement("div"));
+				__privateGet(this, _reactContainer).style.display = "none";
+				this.el.ownerDocument.body.appendChild(__privateGet(this, _reactContainer));
+				__privateSet(this, _reactRoot, (0, import_client.createRoot)(__privateGet(this, _reactContainer)));
+				__privateSet(this, _config, {
+					getSetting: settings.get.bind(settings),
+					setSetting: settings.set.bind(settings),
+					element: this.el,
+					type: this?.model?.get("widgetType") ?? this.container?.model?.get("elType") ?? null,
+					id: this?.model?.get("id") ?? null,
+					refreshView: this.refreshView.bind(this),
+					reactRoot: __privateGet(this, _reactRoot),
+					reactContainer: __privateGet(this, _reactContainer)
+				});
+			}
+			refreshView() {
+				this.invalidateRenderCache?.();
+				this.render();
+			}
+			renderOnChange() {
+				__privateMethod(this, _instances, triggerAltMethod_fn).call(this, "renderOnChange");
+			}
+			render() {
+				const config = __privateGet(this, _config);
+				const widgetType = config.type;
+				const ReplacementClass = widgetType ? getReplacement(widgetType) : null;
+				if (ReplacementClass && !__privateGet(this, _replacement)) __privateSet(this, _replacement, new ReplacementClass(config));
+				__privateMethod(this, _instances, triggerAltMethod_fn).call(this, "render");
+			}
+			onDestroy() {
+				__privateMethod(this, _instances, triggerAltMethod_fn).call(this, "onDestroy");
+				__privateGet(this, _reactRoot).unmount();
+				__privateGet(this, _reactContainer).remove();
+			}
+			_afterRender() {
+				__privateMethod(this, _instances, triggerAltMethod_fn).call(this, "_afterRender");
+			}
+			_beforeRender() {
+				__privateMethod(this, _instances, triggerAltMethod_fn).call(this, "_beforeRender");
+			}
+		}, _replacement = /* @__PURE__ */ new WeakMap(), _config = /* @__PURE__ */ new WeakMap(), _reactContainer = /* @__PURE__ */ new WeakMap(), _reactRoot = /* @__PURE__ */ new WeakMap(), _instances = /* @__PURE__ */ new WeakSet(), triggerAltMethod_fn = function(methodKey) {
+			const baseMethod = TemplatedView.prototype[methodKey].bind(this);
+			const shouldReplace = __privateGet(this, _replacement)?.shouldRenderReplacement();
+			const altMethod = shouldReplace && __privateGet(this, _replacement)?.[methodKey]?.bind(__privateGet(this, _replacement));
+			if (!altMethod || !shouldReplace) return baseMethod();
+			const renderTiming = __privateGet(this, _replacement)?.originalMethodsToTrigger()[methodKey] ?? "never";
+			if (renderTiming === "before") baseMethod();
+			altMethod();
+			if (renderTiming === "after") baseMethod();
+		}, _a;
+	};
+	var createTemplatedElementTypeWithReplacements = ({ type, renderer, element }) => {
+		const legacyWindow = window;
+		const view = createViewWithReplacements({
+			type,
+			renderer,
+			element
+		});
+		return class extends legacyWindow.elementor.modules.elements.types.Widget {
+			getType() {
+				return type;
+			}
+			getView() {
+				return view;
+			}
+		};
+	};
+
+//#endregion
+//#region packages/packages/core/editor-canvas/src/legacy/init-legacy-views.ts
+	var elementsLegacyTypes = {};
+	var modelExtensionsRegistry = {};
+	function registerModelExtensions(type, extensions) {
+		modelExtensionsRegistry[type] = extensions;
+	}
+	function registerElementType(type, elementTypeGenerator) {
+		elementsLegacyTypes[type] = elementTypeGenerator;
+		if ((0, _elementor_editor_v1_adapters.__privateIsReady)()) registerElementInLegacyManager(type, createDomRenderer());
+	}
+	function initLegacyViews() {
+		(0, _elementor_editor_v1_adapters.__privateListenTo)((0, _elementor_editor_v1_adapters.v1ReadyEvent)(), () => {
+			const widgetsCache = (0, _elementor_editor_elements.getWidgetsCache)() ?? {};
+			const renderer = createDomRenderer();
+			registerProPromotionTypes(widgetsCache);
+			Object.keys(widgetsCache).forEach((type) => {
+				registerElementInLegacyManager(type, renderer);
+			});
+		});
+	}
+	function registerElementInLegacyManager(type, renderer) {
+		const element = ((0, _elementor_editor_elements.getWidgetsCache)() ?? {})[type];
+		if (!element?.atomic) return;
+		tryRegisterElement(window, type, element, resolveElementType(type, renderer, element));
+	}
+	function registerProPromotionTypes(widgetsCache) {
+		Object.entries(widgetsCache).forEach(([type, element]) => {
+			if (element.meta?.is_pro_promotion) registerElementType(type, (options) => createProPromotionNestedType(options));
+		});
+	}
+	function resolveElementType(type, renderer, element) {
+		if (canBeNestedTemplated(element)) {
+			const customGenerator2 = elementsLegacyTypes[type];
+			return customGenerator2 ? customGenerator2({
+				type,
+				renderer,
+				element
+			}) : createNestedTemplatedType(type, renderer, element);
+		}
+		if (!canBeTemplated(element)) return createElementType(type);
+		const customGenerator = elementsLegacyTypes[type];
+		return customGenerator ? customGenerator({
+			type,
+			renderer,
+			element
+		}) : createTemplatedElementTypeWithReplacements({
+			type,
+			renderer,
+			element
+		});
+	}
+	function tryRegisterElement(legacyWindow, type, element, ResolvedElementType) {
+		if (!(canBeTemplated(element) || canBeNestedTemplated(element))) return;
+		const elementsManager = legacyWindow.elementor.elementsManager;
+		const isAlreadyRegistered = Boolean(elementsManager.getElementTypeClass(type));
+		try {
+			elementsManager.registerElementType(new ResolvedElementType());
+		} catch {
+			if (canBeNestedTemplated(element) && isAlreadyRegistered) elementsManager.elementTypes[type] = new ResolvedElementType();
+		}
+	}
+	function createNestedTemplatedType(type, renderer, element) {
+		return createNestedTemplatedElementType({
+			type,
+			renderer,
+			element,
+			modelExtensions: modelExtensionsRegistry[type]
+		});
+	}
+
+//#endregion
+//#region packages/packages/core/editor-canvas/src/legacy/list-type.ts
+	var LIST_TYPE = "e-list";
+	function initListType() {
+		registerElementType(LIST_TYPE, (options) => createListType(options));
+	}
+	function createListType(options) {
+		const BaseType = createNestedTemplatedElementType(options);
+		let ListView = null;
+		return class extends BaseType {
+			getView() {
+				if (!ListView) ListView = createListView(options);
+				return ListView;
+			}
+		};
+	}
+	function createListView(options) {
+		return createNestedTemplatedElementView(options).extend({
+			getRenderContext() {
+				const parentContext = this._parent?.getRenderContext?.();
+				const showMarkersProp = this.model.get("settings")?.get?.("show_markers");
+				const showMarkers = showMarkersProp?.value ?? showMarkersProp ?? true;
+				return {
+					...parentContext,
+					show_markers: showMarkers
+				};
+			},
+			getResolverRenderContext() {
+				const parentContext = this._parent?.getResolverRenderContext?.();
+				const showMarkersProp = this.model.get("settings")?.get?.("show_markers");
+				const showMarkers = showMarkersProp?.value ?? showMarkersProp ?? true;
+				return {
+					...parentContext,
+					show_markers: showMarkers
+				};
+			}
+		});
+	}
+
+//#endregion
+//#region packages/packages/core/editor-canvas/src/legacy/tabs-model-extensions.ts
+	var tabModelExtensions = { modifyDefaultChildren(elements) {
+		if (!Array.isArray(elements) || elements.length === 0) return elements;
+		const [paragraph] = elements;
+		const position = this.get("editor_settings")?.initial_position;
+		if (!position || !paragraph || typeof paragraph !== "object") return elements;
+		const paragraphElement = paragraph;
+		return [{
+			...paragraphElement,
+			settings: {
+				...paragraphElement.settings,
+				paragraph: _elementor_editor_props.escapedHtmlPropTypeUtil.create(`Tab ${position}`)
+			}
+		}, ...elements.slice(1)];
+	} };
+	function initTabsModelExtensions() {
+		registerModelExtensions("e-tab", tabModelExtensions);
+	}
+
+//#endregion
+//#region packages/packages/core/editor-canvas/src/mcp/resources/available-widgets-resource.ts
+	var MCP_PROXY_URL$3 = "elementor/v1/mcp-proxy";
+	var AVAILABLE_WIDGETS_URI = "elementor://context/available-widgets";
+	var AVAILABLE_WIDGETS_URI_V4 = "elementor://context/available-widgets/v4";
+	var fetchWidgets = async () => {
+		const { data } = await (0, _elementor_http_client.httpService)().post(MCP_PROXY_URL$3, {
+			tool: "list-widget-schemas",
+			input: { summary: true }
+		});
+		return data.data?.widgets ?? [];
+	};
+	var buildContents = async (uri) => {
+		const widgets = await fetchWidgets();
+		return { contents: [{
+			uri,
+			mimeType: "application/json",
+			text: JSON.stringify(widgets, null, 2)
+		}] };
+	};
+	var initAvailableWidgetsResource = (reg) => {
+		const { resource } = reg;
+		resource("available-widgets-v4", AVAILABLE_WIDGETS_URI_V4, { description: "All registered v4 version widgets" }, async () => buildContents(AVAILABLE_WIDGETS_URI_V4));
+		resource("available-widgets", AVAILABLE_WIDGETS_URI, { description: "All registered v4 widget types with description." }, async () => buildContents(AVAILABLE_WIDGETS_URI));
+	};
+
+//#endregion
+//#region packages/packages/core/editor-canvas/src/mcp/resources/best-practices-resource.ts
+	var MCP_PROXY_URL$2 = "elementor/v1/mcp-proxy";
+	var BEST_PRACTICES_URI = "elementor://style/best-practices";
+	var initBestPracticesResource = (reg) => {
+		const { resource } = reg;
+		resource("style-best-practices", BEST_PRACTICES_URI, {
+			description: "Design quality guidelines for avoiding generic AI output: typography, color strategy, spacing, motion, and visual hierarchy best practices.",
+			mimeType: "text/markdown"
+		}, async (uri) => {
+			const { data } = await (0, _elementor_http_client.httpService)().get(MCP_PROXY_URL$2, { params: { uri: uri.href } });
+			return { contents: [{
+				uri: uri.href,
+				mimeType: "text/markdown",
+				text: data.data
+			}] };
+		});
+	};
+
+//#endregion
+//#region packages/packages/core/editor-canvas/src/mcp/resources/document-structure-resource.ts
+	var DOCUMENT_STRUCTURE_URI = "elementor://document/structure";
+	var initDocumentStructureResource = (reg) => {
+		const { resource, sendResourceUpdated } = reg;
+		let currentDocumentStructure = null;
+		const updateDocumentStructure = () => {
+			const structure = getDocumentStructure();
+			const newStructure = JSON.stringify(structure, null, 2);
+			if (newStructure !== currentDocumentStructure) {
+				currentDocumentStructure = newStructure;
+				sendResourceUpdated({ uri: DOCUMENT_STRUCTURE_URI });
+			}
+		};
+		(0, _elementor_editor_v1_adapters.__privateListenTo)([
+			(0, _elementor_editor_v1_adapters.commandEndEvent)("document/elements/create"),
+			(0, _elementor_editor_v1_adapters.commandEndEvent)("document/elements/delete"),
+			(0, _elementor_editor_v1_adapters.commandEndEvent)("document/elements/move"),
+			(0, _elementor_editor_v1_adapters.commandEndEvent)("document/elements/copy"),
+			(0, _elementor_editor_v1_adapters.commandEndEvent)("document/elements/paste"),
+			(0, _elementor_editor_v1_adapters.commandEndEvent)("editor/documents/attach-preview"),
+			(0, _elementor_editor_v1_adapters.commandEndEvent)("editor/documents/switch")
+		], updateDocumentStructure);
+		updateDocumentStructure();
+		resource("document-structure", DOCUMENT_STRUCTURE_URI, { description: "Document structure." }, async () => {
+			return { contents: [{
+				uri: DOCUMENT_STRUCTURE_URI,
+				text: JSON.stringify(getDocumentStructure(), null, 2)
+			}] };
+		});
+	};
+	function getDocumentStructure() {
+		const document = window.elementor?.documents?.getCurrent?.();
+		if (!document) return { error: "No active document found" };
+		const elements = (document.container?.children || []).map((container) => extractElementData(container));
+		return {
+			documentId: document.id,
+			documentType: document.config.type,
+			title: document.config.settings?.post_title || "Untitled",
+			elements: elements.filter((el) => el !== null)
+		};
+	}
+	function resolveElementVersion$1(element) {
+		if (element.model?.config?.atomic) return "v4";
+		const widgetType = element.model?.attributes?.widgetType;
+		if (widgetType && (0, _elementor_editor_elements.getWidgetsCache)()?.[widgetType]?.atomic_props_schema) return "v4";
+		return "v3";
+	}
+	__name(resolveElementVersion$1, "resolveElementVersion");
+	function extractElementData(element) {
+		if (!element || !element.model) return null;
+		const model = element.model.attributes;
+		const result = {
+			id: model.id,
+			elType: model.elType,
+			widgetType: model.widgetType || void 0,
+			version: resolveElementVersion$1(element)
+		};
+		const title = model.title || element.model?.editor_settings?.title || element.model.getTitle?.();
+		if (title) result.title = title;
+		if (element.children && element.children.length > 0) result.children = element.children.map((child) => extractElementData(child)).filter((child) => child !== null);
+		return result;
+	}
+
+//#endregion
+//#region packages/packages/core/editor-canvas/src/mcp/resources/dynamic-tags-resource.ts
+	var DYNAMIC_TAGS_URI = "elementor://dynamic-tags";
+	var MCP_PROXY_URL$1 = "elementor/v1/mcp-proxy";
+	var fetchDynamicTags = async () => {
+		const { data } = await (0, _elementor_http_client.httpService)().get(MCP_PROXY_URL$1, { params: { uri: DYNAMIC_TAGS_URI } });
+		return data.data ?? "[]";
+	};
+	var initDynamicTagsResource = (reg) => {
+		const { resource } = reg;
+		resource("dynamic-tags", DYNAMIC_TAGS_URI, {
+			description: `List of available dynamic tags. To bind a property to a dynamic source, set its value to { "$$type": "dynamic", "value": { "name": <tag name>, "settings": { ... } } } using a tag whose name appears in that property's allowed list, and populate "settings" per the tag entry here.`,
+			mimeType: "application/json"
+		}, async (uri) => {
+			return { contents: [{
+				uri: uri.href,
+				mimeType: "application/json",
+				text: await fetchDynamicTags()
+			}] };
+		});
+	};
+
+//#endregion
+//#region packages/packages/core/editor-canvas/src/mcp/resources/editor-state-resource.ts
+	var CURRENTLY_VIEWED_SCREEN = "The user is currently viewing the Elementor editor";
+	var PAGE_CONTENT_CHARACTER_LIMIT = 500;
+	var PREVIEW_TEXT_NODE_MIN_LENGTH = 2;
+	var EDITOR_STATE_URI = "elementor://context/editor-state";
+	var initEditorStateResource = (reg) => {
+		const { resource, sendResourceUpdated } = reg;
+		let lastSerializedState = "";
+		const buildState = () => ({
+			currentlyViewedScreen: CURRENTLY_VIEWED_SCREEN,
+			pageContent: getPageContentFromPreview(),
+			pageTitle: getPageTitle()
+		});
+		const notifyIfChanged = () => {
+			const serialized = JSON.stringify(buildState());
+			if (serialized === lastSerializedState) return;
+			lastSerializedState = serialized;
+			sendResourceUpdated({ uri: EDITOR_STATE_URI });
+		};
+		(0, _elementor_editor_v1_adapters.__privateListenTo)([(0, _elementor_editor_v1_adapters.commandEndEvent)("editor/documents/switch"), (0, _elementor_editor_v1_adapters.commandEndEvent)("editor/documents/attach-preview")], notifyIfChanged);
+		lastSerializedState = JSON.stringify(buildState());
+		resource("editor-state", EDITOR_STATE_URI, { description: "Editor page title, preview text snapshot, and viewed screen label." }, async () => {
+			return { contents: [{
+				uri: EDITOR_STATE_URI,
+				text: JSON.stringify(buildState(), null, 2)
+			}] };
+		});
+	};
+	function getPageContentFromPreview() {
+		try {
+			const root = window.elementor?.$previewContents?.[0];
+			if (!root) return null;
+			const content = [];
+			const clone = root.cloneNode(true);
+			clone.querySelectorAll(".elementor-editor-element-settings, #elementor-add-new-section").forEach((el) => {
+				el.remove();
+			});
+			const walk = (node, insideElementorElement = false) => {
+				const isInside = node.classList?.contains("elementor-element") || insideElementorElement;
+				if (node.nodeType === Node.TEXT_NODE && isInside) {
+					const text2 = node.textContent?.trim().replace(/\s+/g, " ");
+					if (text2 && text2.length > PREVIEW_TEXT_NODE_MIN_LENGTH) content.push(text2);
+				} else node.childNodes.forEach((child) => {
+					walk(child, isInside);
+				});
+			};
+			walk(clone);
+			const text = content.join(" ");
+			if (text.length > PAGE_CONTENT_CHARACTER_LIMIT) return text.slice(0, PAGE_CONTENT_CHARACTER_LIMIT) + "...";
+			return text;
+		} catch {
+			return null;
+		}
+	}
+	function getPageTitle() {
+		try {
+			const postTitle = (window.elementor?.documents?.getCurrent?.())?.config?.settings?.post_title;
+			if (postTitle) return postTitle;
+			let title = document.title || "Page";
+			title = title.split(/\s*[‹»|–—-]\s*/)[0];
+			return title.trim() || "Page";
+		} catch {
+			return "Page";
+		}
+	}
+
+//#endregion
+//#region packages/packages/core/editor-canvas/src/mcp/resources/general-context-resource.ts
+	var GENERAL_CONTEXT_URI = "elementor://context/general";
+	var initGeneralContextResource = (reg) => {
+		const { resource, sendResourceUpdated } = reg;
+		let lastSerializedPayload = null;
+		const getPageTitle = () => {
+			const title = window.elementor?.documents?.getCurrent?.()?.config?.settings?.post_title;
+			if (!title?.trim()) return null;
+			return title;
+		};
+		const buildPayload = () => {
+			const extendedWindow = window;
+			const timezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
+			const postParam = new URLSearchParams(location.search).get("post");
+			const parsedPostId = postParam ? Number(postParam) : null;
+			const postId = parsedPostId !== null && Number.isFinite(parsedPostId) ? parsedPostId : null;
+			const pageTitle = getPageTitle();
+			const urlObject = new URL(window.location.href);
+			const pageUrl = urlObject.pathname + urlObject.search;
+			const pageName = pageTitle || "Elementor Editor";
+			const plugins = extendedWindow.angieConfig?.plugins;
+			return {
+				timezone,
+				postId,
+				currentPage: {
+					pageName,
+					pageTitle,
+					pageUrl
+				},
+				...plugins && { plugins }
+			};
+		};
+		const pushUpdateIfChanged = () => {
+			const serialized = JSON.stringify(buildPayload());
+			if (serialized === lastSerializedPayload) return;
+			lastSerializedPayload = serialized;
+			sendResourceUpdated({ uri: GENERAL_CONTEXT_URI });
+		};
+		resource("general-context", GENERAL_CONTEXT_URI, { description: "General context: timezone, post id, and current page." }, async () => {
+			return { contents: [{
+				uri: GENERAL_CONTEXT_URI,
+				mimeType: "application/json",
+				text: JSON.stringify(buildPayload(), null, 2)
+			}] };
+		});
+		(0, _elementor_editor_v1_adapters.__privateListenTo)([
+			(0, _elementor_editor_v1_adapters.commandEndEvent)("editor/documents/switch"),
+			(0, _elementor_editor_v1_adapters.commandEndEvent)("editor/documents/attach-preview"),
+			(0, _elementor_editor_v1_adapters.commandEndEvent)("document/elements/settings")
+		], pushUpdateIfChanged);
+		pushUpdateIfChanged();
+	};
+
+//#endregion
+//#region packages/packages/core/editor-canvas/src/mcp/resources/selected-element-resource.ts
+	var SELECTED_ELEMENT_URI = "elementor://context/selected-element";
+	var initSelectedElementResource = (reg) => {
+		const { resource, sendResourceUpdated } = reg;
+		let currentPayloadText = null;
+		const publishIfChanged = (payload) => {
+			const nextText = JSON.stringify(payload);
+			if (nextText !== currentPayloadText) {
+				currentPayloadText = nextText;
+				sendResourceUpdated({ uri: SELECTED_ELEMENT_URI });
+			}
+		};
+		const onCommand = (e) => {
+			if (e.type !== "command") return;
+			const commandEvent = e;
+			if (commandEvent.command === "document/elements/deselect-all") {
+				publishIfChanged(createEmptySelectedElementPayload());
+				return;
+			}
+			if (commandEvent.command !== "document/elements/select" && commandEvent.command !== "document/elements/settings") return;
+			const { container } = commandEvent.args || {};
+			if (container?.id) {
+				publishIfChanged(buildPayloadFromContainer(container));
+				return;
+			}
+			publishIfChanged(readSelectionFromEditor());
+		};
+		(0, _elementor_editor_v1_adapters.__privateListenTo)([
+			(0, _elementor_editor_v1_adapters.commandEndEvent)("document/elements/select"),
+			(0, _elementor_editor_v1_adapters.commandEndEvent)("document/elements/deselect-all"),
+			(0, _elementor_editor_v1_adapters.commandEndEvent)("document/elements/settings")
+		], onCommand);
+		publishIfChanged(readSelectionFromEditor());
+		resource("selected-element", SELECTED_ELEMENT_URI, { description: "Currently selected Elementor element context." }, async () => {
+			return { contents: [{
+				uri: SELECTED_ELEMENT_URI,
+				text: JSON.stringify(readSelectionFromEditor(), null, 2)
+			}] };
+		});
+	};
+	function createEmptySelectedElementPayload() {
+		return {
+			elementDisplayName: null,
+			elementType: null,
+			properties: null,
+			selectedElementId: null,
+			selectedParentId: null,
+			version: null,
+			widgetType: null
+		};
+	}
+	function readSelectionFromEditor() {
+		const elements = (0, _elementor_editor_elements.getSelectedElements)();
+		if (elements.length !== 1) return createEmptySelectedElementPayload();
+		return buildPayloadFromContainer((0, _elementor_editor_elements.getContainer)(elements[0].id));
+	}
+	function buildPayloadFromContainer(container) {
+		if (!container?.id) return createEmptySelectedElementPayload();
+		const widgetType = container.model.get("widgetType") ?? null;
+		const elementType = container.type ?? "widget";
+		return {
+			elementDisplayName: getElementDisplayName(container),
+			elementType,
+			properties: getElementProperties(container, widgetType),
+			selectedElementId: container.id,
+			selectedParentId: container.parent?.id ?? null,
+			version: resolveElementVersion(container, widgetType),
+			widgetType
+		};
+	}
+	function resolveElementVersion(container, widgetType) {
+		if (container.model?.config?.atomic) return "v4";
+		if (widgetType && (0, _elementor_editor_elements.getWidgetsCache)()?.[widgetType]?.atomic_props_schema) return "v4";
+		return "v3";
+	}
+	function getElementProperties(container, widgetType) {
+		const settings = container.settings?.toJSON?.();
+		if (!settings || typeof settings !== "object") return null;
+		const controls = (widgetType ? (0, _elementor_editor_elements.getWidgetsCache)()?.[widgetType] : null)?.controls;
+		const filtered = {};
+		for (const [key, value] of Object.entries(settings)) {
+			if (value === void 0 || value === null || value === "") continue;
+			const controlDefault = controls?.[key]?.default;
+			if (controlDefault !== void 0 && JSON.stringify(value) === JSON.stringify(controlDefault)) continue;
+			filtered[key] = value;
+		}
+		return Object.keys(filtered).length > 0 ? filtered : null;
+	}
+	function getElementDisplayName(container) {
+		try {
+			if (container.label) return container.label;
+			const widgetType = container.model?.get?.("widgetType");
+			if (widgetType) return (widgetType.charAt(0).toUpperCase() + widgetType.slice(1)).replace(/-/g, " ");
+			if (container.type === "container") return "Container";
+			if (container.type === "section") return "Section";
+			return `Element ${container.id}`;
+		} catch {
+			return `Element ${container.id}`;
+		}
+	}
+
+//#endregion
+//#region packages/packages/core/editor-canvas/src/mcp/utils/merge-custom-css.ts
+	var CUSTOM_CSS_SEPARATOR = "\n";
+	var mergeCustomCssText = (...cssParts) => cssParts.map((cssPart) => cssPart?.trim()).filter((cssPart) => !!cssPart).join(CUSTOM_CSS_SEPARATOR);
+	var readStoredCustomCssText = (raw) => {
+		if (!raw) return "";
+		try {
+			return atob(raw);
+		} catch {
+			return "";
+		}
+	};
+
+//#endregion
+//#region packages/packages/core/editor-canvas/src/mcp/utils/resolve-canonical-prop-name.ts
+	function buildAliasToCanonicalMap(schema) {
+		const aliasToCanonical = {};
+		for (const [canonical, propType] of Object.entries(schema)) {
+			const aliases = propType.meta?.aliases;
+			if (!Array.isArray(aliases)) continue;
+			for (const alias of aliases) if (typeof alias === "string" && alias) aliasToCanonical[alias] = canonical;
+		}
+		return aliasToCanonical;
+	}
+	function resolveCanonicalPropName(elementType, propertyName) {
+		const schema = (0, _elementor_editor_elements.getWidgetsCache)()?.[elementType]?.atomic_props_schema;
+		if (!schema || schema[propertyName]) return propertyName;
+		return buildAliasToCanonicalMap(schema)[propertyName] ?? propertyName;
+	}
+	function resolveCanonicalPropKeys(elementType, props) {
+		const schema = (0, _elementor_editor_elements.getWidgetsCache)()?.[elementType]?.atomic_props_schema;
+		if (!schema) return { ...props };
+		const aliasToCanonical = buildAliasToCanonicalMap(schema);
+		const resolved = {};
+		for (const [key, value] of Object.entries(props)) if (schema[key]) resolved[key] = value;
+		for (const [key, value] of Object.entries(props)) {
+			if (schema[key]) continue;
+			const canonical = aliasToCanonical[key];
+			if (!canonical) {
+				resolved[key] = value;
+				continue;
+			}
+			if (!Object.prototype.hasOwnProperty.call(resolved, canonical)) resolved[canonical] = value;
+		}
+		return resolved;
+	}
+
+//#endregion
+//#region packages/packages/core/editor-canvas/src/mcp/utils/resolve-dynamic-tag.ts
+	var DYNAMIC_PROP_TYPE_KEY = "dynamic";
+	var OMITTED_DYNAMIC_SETTING_KEYS = ["fallback"];
+	var getAtomicDynamicTags = () => {
+		return (0, _elementor_editor_v1_adapters.getElementorConfig)().atomicDynamicTags?.tags ?? {};
+	};
+	var getDynamicTagNamesByCategories = (categories) => {
+		if (!categories.length) return [];
+		const wanted = new Set(categories);
+		return Object.values(getAtomicDynamicTags()).filter((tag) => tag.categories?.some((category) => wanted.has(category))).map((tag) => tag.name);
+	};
+	var dynamicTagLLMResolver = (value) => {
+		const input = value ?? {};
+		const tag = input.name ? getAtomicDynamicTags()[input.name] : void 0;
+		if (!tag) return {
+			$$type: DYNAMIC_PROP_TYPE_KEY,
+			value: {
+				name: input.name ?? "",
+				group: "",
+				settings: {}
+			}
+		};
+		return {
+			$$type: DYNAMIC_PROP_TYPE_KEY,
+			value: {
+				name: tag.name,
+				group: tag.group,
+				settings: buildStrictSettings(tag.props_schema ?? {}, input.settings ?? {})
+			}
+		};
+	};
+	var buildStrictSettings = (schema, provided) => {
+		const settings = {};
+		for (const [key, propType] of Object.entries(schema)) {
+			if (OMITTED_DYNAMIC_SETTING_KEYS.includes(key)) continue;
+			const resolved = provided[key] !== void 0 ? wrapSettingValue(provided[key], propType) : defaultSettingValue(propType);
+			if (resolved !== void 0 && resolved !== null) settings[key] = resolved;
+		}
+		return settings;
+	};
+	var wrapSettingValue = (raw, propType) => {
+		if (raw !== null && typeof raw === "object") return raw;
+		return propType.key ? {
+			$$type: propType.key,
+			value: raw
+		} : raw;
+	};
+	var defaultSettingValue = (propType) => {
+		if (propType.initial_value !== null && propType.initial_value !== void 0) return propType.initial_value;
+		if (propType.default !== null && propType.default !== void 0) return wrapSettingValue(propType.default, propType);
+	};
+
+//#endregion
+//#region packages/packages/core/editor-canvas/src/mcp/utils/do-update-element-property.ts
+	var __defProp = Object.defineProperty;
+	var __defNormalProp = (obj, key, value) => key in obj ? __defProp(obj, key, {
+		enumerable: true,
+		configurable: true,
+		writable: true,
+		value
+	}) : obj[key] = value;
+	var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "symbol" ? key + "" : key, value);
+	var LOCAL_STYLE_META = {
+		breakpoint: "desktop",
+		state: null
+	};
+	var UnsupportedPropertyError = class extends Error {
+		constructor(elementType, propertyName, availableProperties) {
+			super(`Property "${propertyName}" does not exist on element type "${elementType}". Available properties are: ${availableProperties.join(", ")}`);
+			__publicField(this, "elementType");
+			__publicField(this, "propertyName");
+			this.name = "UnsupportedPropertyError";
+			this.elementType = elementType;
+			this.propertyName = propertyName;
+		}
+	};
+	function resolvePropValue(value, forceKey) {
+		const Utils = window.elementorV2.editorVariables.Utils;
+		return _elementor_editor_props.Schema.adjustLlmPropValueSchema(value, {
+			forceKey,
+			transformers: {
+				...Utils.globalVariablesLLMResolvers,
+				[DYNAMIC_PROP_TYPE_KEY]: dynamicTagLLMResolver
+			}
+		});
+	}
+	var doUpdateElementProperty = (params) => {
+		const { elementId, propertyValue, elementType, customCssWriteMode = "replace" } = params;
+		const propertyName = params.propertyName === "_styles" ? params.propertyName : resolveCanonicalPropName(elementType, params.propertyName);
+		if (propertyName === "_styles") {
+			const elementStyles = (0, _elementor_editor_elements.getElementStyles)(elementId) || {};
+			const propertyMapValue = propertyValue;
+			const styleSchema = (0, _elementor_editor_styles.getStylesSchema)();
+			const transformedStyleValues = Object.fromEntries(Object.entries(propertyMapValue).map(([key, val]) => {
+				if (key === "custom_css") return [key, val];
+				const { key: propKey2, kind } = styleSchema?.[key] || {};
+				if (!propKey2 && kind !== "union") throw new Error(`_styles property ${key} is not supported.`);
+				if (val === null) return [key, null];
+				return [key, resolvePropValue(val, propKey2)];
+			}));
+			const localStyle = Object.values(elementStyles).find((style) => style.label === "local");
+			const existingCustomCssText = localStyle ? readStoredCustomCssText((0, _elementor_editor_styles.getVariantByMeta)(localStyle, LOCAL_STYLE_META)?.custom_css?.raw) : "";
+			let customCss;
+			Object.keys(propertyMapValue).forEach((stylePropName) => {
+				const propertyRawSchema = styleSchema[stylePropName];
+				if (stylePropName === "custom_css") {
+					let customCssValue = propertyMapValue[stylePropName];
+					if (typeof customCssValue === "object" && customCssValue && customCssValue.value) customCssValue = String(customCssValue.value);
+					if (!customCssValue) customCssValue = "";
+					const customCssText = customCssWriteMode === "merge-with-stored" ? mergeCustomCssText(existingCustomCssText, customCssValue) : String(customCssValue);
+					if (customCssText) customCss = { raw: btoa(customCssText) };
+					else customCss = { raw: btoa("") };
+					return;
+				}
+				if (!!!propertyRawSchema) throw new Error(`Style property ${stylePropName} is not supported.`);
+				if (propertyRawSchema.kind === "plain") {
+					if (typeof propertyMapValue[stylePropName] !== "object") {
+						const propUtil = (0, _elementor_editor_props.getPropSchemaFromCache)(propertyRawSchema.key);
+						if (propUtil) {
+							const plainValue = propUtil.create(propertyMapValue[stylePropName]);
+							propertyMapValue[stylePropName] = plainValue;
+						}
+					}
+				}
+			});
+			delete transformedStyleValues.custom_css;
+			if (!localStyle) (0, _elementor_editor_elements.createElementStyle)({
+				elementId,
+				...typeof customCss !== "undefined" ? { custom_css: customCss } : {},
+				classesProp: "classes",
+				label: "local",
+				meta: {
+					breakpoint: "desktop",
+					state: null
+				},
+				props: { ...transformedStyleValues }
+			});
+			else (0, _elementor_editor_elements.updateElementStyle)({
+				elementId,
+				styleId: localStyle.id,
+				meta: {
+					breakpoint: "desktop",
+					state: null
+				},
+				...typeof customCss !== "undefined" ? { custom_css: customCss } : {},
+				props: { ...transformedStyleValues }
+			});
+			return;
+		}
+		const elementPropSchema = (0, _elementor_editor_elements.getWidgetsCache)()?.[elementType]?.atomic_props_schema;
+		if (!elementPropSchema) throw new Error(`No prop schema found for element type: ${elementType}`);
+		if (!elementPropSchema[propertyName]) throw new UnsupportedPropertyError(elementType, propertyName, Object.keys(elementPropSchema));
+		const propKey = elementPropSchema[propertyName].key;
+		const value = resolvePropValue(propertyValue, propKey);
+		const { valid, jsonSchema } = _elementor_editor_props.Schema.validatePropValue(elementPropSchema[propertyName], propertyValue);
+		if (!valid) throw new Error(`Invalid PropValue for elementId: ${elementId}. PropKey: ${propKey}, PropValue: ${JSON.stringify(propertyValue)}
+Expected Schema: ${jsonSchema}`);
+		(0, _elementor_editor_elements.updateElementSettings)({
+			id: elementId,
+			props: { [propertyName]: value },
+			withHistory: false
+		});
+		(0, _elementor_editor_v1_adapters.__privateRunCommandSync)("document/save/set-is-modified", { status: true }, { internal: true });
+	};
+
+//#endregion
+//#region packages/packages/core/editor-canvas/src/mcp/tools/configure-element/prompt.ts
+	var CONFIGURE_ELEMENT_GUIDE_URI = "elementor://canvas/tools/configure-element-guide";
+	var generatePrompt = () => {
+		const configureElementToolPrompt = (0, _elementor_editor_mcp.toolPrompts)("configure-element");
+		configureElementToolPrompt.description(`
+Configure an existing element on the page.
+
+# **CRITICAL - REQUIRED INFORMATION (Must read before using this tool)**
+1. [${WIDGET_SCHEMA_URI}] \u2014 **Widget properties** (\`propertiesToChange\`): each widgetType (e.g. e-heading, e-button) has its own PropType schema; values must be PropValues with \`$$type\`.
+2. [elementor://global-variables] \u2014 **Design tokens for styling**: use labels in CSS as \`var(--label)\` or \`var(--label, fallback)\`; only variables listed here are valid.
+3. **Styling** (\`style\` parameter): flat map of CSS property \u2192 value strings \u2014 **not** PropValues. The server converts to native styles; unconvertible declarations become custom CSS.
+4. **Current state**: \`get-element-configuration-values\` returns \`properties\` as PropValues and \`style\` in stored form; when writing, send raw CSS in \`style\`, not copied PropValues.
+
+Before using this tool, read the widget PropType schema at editor-canvas__elementor://widgets/schema/{widgetType}
+
+# When to use this tool
+When a user requires to change anything in an element, such as updating text, colors, sizes, or other configurable properties.
+This tool handles elements of type "widget".
+This tool handles styling elements, using the "style" parameter (raw CSS as a property \u2192 value map).
+
+To CLEAR a property (i.e., set it to default or none), provide null as a value - example: \`background-color: null\`.
+
+The element's schema must be known before using this tool.
+
+**PropValue structure (for \`propertiesToChange\` only \u2014 not for \`style\`):**
+{
+    "$$type": string, // MANDATORY as defined in the PropType schema under the "key" property
+    value: unknown // The value according to the PropType schema for kinds of "array", use array with PropValues items inside. For "object", read the shape property of the PropType schema. For "plain", use strings.
+}
+
+<IMPORTANT>
+ALWAYS MAKE SURE you have the PropType schemas for the element you are configuring. If you are not sure, retrieve the schema from the resources mentioned above.
+</IMPORTANT>
+
+You can use multiple property changes at once by providing multiple entries in the propertiesToChange object.
+Some properties are nested, use the root property name, then objects with nested values inside, as the complete schema suggests.
+
+Make sure you have the "widget-schema-by-type" resource available to retrieve the PropType schema for the element type you are configuring.
+
+# How to configure elements
+We use a dedicated PropType Schema for configuring element properties (propertiesToChange). When you configure an element property, you must use the EXACT PropType Value as defined in the schema.
+For styling, use the "style" parameter with raw CSS declarations (property \u2192 value strings) - e.g. \`color: var(--primary-text, #000); height: 4rem;\`;
+For all non-primitive entries in \`propertiesToChange\`, provide the schema \`key\` as \`$$type\` in the generated object, as it is MANDATORY for parsing.
+
+Use the EXACT PropType schema given, and ALWAYS include the \`key\` from the schema for every property you are changing in \`propertiesToChange\`.
+
+# Dynamic tags
+A value can be made dynamic wherever its schema exposes a variant with "$$type": "dynamic". This may be the property root OR a NESTED field: for example an image is made dynamic on its "src" (the root stays "image"), NOT on the whole "image" value.
+Put the dynamic object EXACTLY at the node whose schema offers the "dynamic" variant, in place of the static variant. The variant's "name" enumerates the tags allowed at that node.
+1. Read the [${DYNAMIC_TAGS_URI}] resource for each allowed tag's settings schema.
+2. Provide, at that node:
+{
+  "$$type": "dynamic",
+  "value": {
+    "name": "<allowed tag name>",
+    "settings": { /* strictly per the tag's settings schema */ }
+  }
+}
+Image example: { "$$type": "image", "value": { "src": { "$$type": "dynamic", "value": { "name": "<image tag>", "settings": { ... } } } } }
+Do NOT send "group" (it is resolved automatically). Use { "settings": {} } only when the tag has no settings.
+`);
+		configureElementToolPrompt.parameter("elementId", "The ID of the element to configure. MANDATORY.");
+		configureElementToolPrompt.parameter("elementType", "The type of the element to configure (i.e. e-heading, e-button). MANDATORY.");
+		configureElementToolPrompt.parameter("propertiesToChange", "An object containing the properties to change, with their new values. MANDATORY. When updating a style only, provide an empty object.");
+		configureElementToolPrompt.parameter("style", "A flat map of raw CSS declarations (property → value), e.g. { \"line-height\": \"1.25rem\", \"color\": \"var(--primary-text, #000)\" }. font-family must be a single Google Font name or a var(--label) — no fallback stacks. Set a value to null to reset that property to its default. OPTIONAL.");
+		configureElementToolPrompt.example(`
+\`\`\`json
+{
+  propertiesToChange: {
+    // List of properties TO CHANGE, following the PropType schema for the element as defined in the resource [${WIDGET_SCHEMA_URI}]
+    title: {
+      $$type: 'string',
+      value: 'New Title Text'
+    },
+    border: {
+      $$type: 'boolean',
+      value: false
+    },
+  },
+  style: {
+    'line-height': '1.25rem',
+    'color': 'var(--primary-text, #000)'
+  },
+  elementId: 'element-id',
+  elementType: 'element-type'
+};
+\`\`\`
+`);
+		configureElementToolPrompt.instruction("The $$type property is MANDATORY for every value in propertiesToChange; it is not used in the style parameter (raw CSS only).");
+		configureElementToolPrompt.instruction(`
+V4 only: If MCP fails, give manual steps using V4 UI.
+
+V4 Editor structure:
+Panel tabs: General (\u2192 Settings section: ID, Tag, and Link where the widget supports it), Style, Interactions.
+NO Advanced tab. Never mention Advanced tab.
+Note: \`link\` is valid only when the element's PropType schema (which you must already have) includes a \`link\` property. Sending \`link\` to a widget whose schema lacks it is skipped and reported in the response \`warnings\` (other changes still apply) and the link is lost.
+`);
+		return configureElementToolPrompt.prompt();
+	};
+
+//#endregion
+//#region packages/packages/core/editor-canvas/src/mcp/tools/configure-element/schema.ts
+	var inputSchema = {
+		propertiesToChange: _elementor_schema.z.record(_elementor_schema.z.string().describe("The property name."), _elementor_schema.z.any().describe(`PropValue, refer to [${WIDGET_SCHEMA_URI}] by correct type, as appears in elementType`), _elementor_schema.z.any()).describe("An object record containing property names and their new values to be set on the element"),
+		style: _elementor_schema.z.record(_elementor_schema.z.string().describe("A CSS property name, e.g. \"color\", \"margin-top\"."), _elementor_schema.z.string().nullable().describe("A CSS value, e.g. \"red\", \"10px\", \"1px solid #000\". Use null to reset the property to its default.")).describe("Raw CSS declarations as a flat property→value map. Converted to native styles server-side; any declaration that cannot be converted is stored as the element custom CSS. A null value resets that property to its default.").default({}),
+		elementType: _elementor_schema.z.string().describe("The type of the element to retrieve the schema"),
+		elementId: _elementor_schema.z.string().describe("The unique id of the element to configure")
+	};
+	var outputSchema = {
+		success: _elementor_schema.z.boolean().describe("Whether the configuration change was successful, only if propertyName and propertyValue are provided"),
+		warnings: _elementor_schema.z.string().describe("Non-fatal notices. Present when some props were skipped because they are not in the element schema (e.g. a \"link\" on a widget with no link prop). Other changes were still applied.").optional()
+	};
+
+//#endregion
+//#region packages/packages/core/editor-canvas/src/mcp/tools/configure-element/tool.ts
+	var initConfigureElementTool = (reg) => {
+		const { addTool, resource } = reg;
+		resource("configure-element-guide", CONFIGURE_ELEMENT_GUIDE_URI, {
+			title: "Configure Element Guide",
+			description: "Detailed guide for using the configure-element tool",
+			mimeType: "text/plain"
+		}, async (uri) => ({ contents: [{
+			uri: uri.href,
+			mimeType: "text/plain",
+			text: generatePrompt()
+		}] }));
+		addTool({
+			name: "configure-element",
+			description: "Configure an existing V4 element's properties and styles. Read the guide resource before use.",
+			schema: inputSchema,
+			outputSchema,
+			requiredResources: [
+				{
+					description: "Widgets schema",
+					uri: WIDGET_SCHEMA_URI
+				},
+				{
+					description: "Configure element guide",
+					uri: CONFIGURE_ELEMENT_GUIDE_URI
+				},
+				{
+					description: "Dynamic tags catalog",
+					uri: DYNAMIC_TAGS_URI
+				}
+			],
+			handler: async ({ elementId, propertiesToChange, elementType, style }) => {
+				const widgetData = (0, _elementor_editor_elements.getWidgetsCache)()?.[elementType];
+				if (!widgetData) throw new Error(`Unknown element type: ${elementType}. Check the available-widgets resource for valid types.`);
+				const container = (0, _elementor_editor_elements.getContainer)(elementId);
+				if (!container) throw new Error(`Element with id ${elementId} not found`);
+				if (!(container.settings.get("widgetType") === elementType || container.type === elementType)) throw new Error(`Element with ID ${elementId} is not of type ${elementType}`);
+				if (!widgetData.atomic_props_schema) throw new Error(`This tool does not support V3 elements. Please use the elementor-v3-mcp tools instead for element type: ${elementType}`);
+				const propertiesToUpdate = resolveCanonicalPropKeys(elementType, propertiesToChange);
+				const toUpdate = Object.entries(propertiesToUpdate);
+				const skippedProps = [];
+				for (const [propertyName, propertyValue] of toUpdate) {
+					if (!_elementor_editor_props.Schema.isPropKeyConfigurable(propertyName)) throw new Error(`Not allowed to update ${propertyName}`);
+					try {
+						doUpdateElementProperty({
+							elementId,
+							elementType,
+							propertyName,
+							propertyValue
+						});
+					} catch (error) {
+						if (error instanceof UnsupportedPropertyError) {
+							skippedProps.push(error.propertyName);
+							continue;
+						}
+						const errorMessage = createUpdateErrorMessage({
+							propertyName,
+							elementId,
+							elementType,
+							error,
+							propertyType: "prop"
+						});
+						throw new Error(errorMessage);
+					}
+				}
+				await applyStyleFromCss({
+					elementId,
+					elementType,
+					style
+				});
+				return {
+					success: true,
+					warnings: skippedProps.length ? `Skipped unsupported props (not in the "${elementType}" schema; other changes were applied): ${skippedProps.join(", ")}.` : void 0
+				};
+			}
+		});
+	};
+	async function applyStyleFromCss(opts) {
+		const { elementId, elementType, style } = opts;
+		if (!style || Object.keys(style).length === 0) return;
+		const { props, customCss } = await convertCssToAtomic(style);
+		const styleValue = { ...props };
+		if (customCss) styleValue.custom_css = customCss;
+		if (Object.keys(styleValue).length === 0) return;
+		try {
+			doUpdateElementProperty({
+				elementId,
+				elementType,
+				propertyName: "_styles",
+				propertyValue: styleValue,
+				customCssWriteMode: "merge-with-stored"
+			});
+			(0, _elementor_editor_mcp.dispatchMcpStylesAppliedEvent)({ styleValue });
+		} catch (error) {
+			throw new Error(createUpdateErrorMessage({
+				propertyName: "(style)",
+				elementId,
+				elementType,
+				propertyType: "style",
+				error
+			}));
+		}
+	}
+	function createUpdateErrorMessage(opts) {
+		const { propertyName, elementId, elementType, error, propertyType } = opts;
+		return `Failed to update property "${propertyName}" on element "${elementId}": ${error.message}.
+${propertyType === "prop" ? `
+Check the element's PropType schema at the resource [${WIDGET_SCHEMA_URI.replace("{widgetType}", elementType)}] for type "${elementType}" to ensure the property exists and the value matches the expected PropType.
+Now that you have this information, ensure you have the schema and try again.` : `
+Provide styling as raw CSS via the "style" parameter (a flat map of CSS property \u2192 value). Declarations that cannot be converted are stored as the element custom CSS.`};
+}`;
+	}
+
+//#endregion
+//#region packages/packages/core/editor-canvas/src/mcp/utils/get-mcp-error-message.ts
+	function getMcpErrorMessage(error, toolName) {
+		if (error instanceof _elementor_http_client.AxiosError) {
+			const data = error.response?.data;
+			if (data?.message) return data.code ? `${data.code}: ${data.message}` : data.message;
+		}
+		if (error instanceof Error) return error.message;
+		return `${toolName} failed with an unknown error.`;
+	}
+
+//#endregion
+//#region packages/packages/core/editor-canvas/src/mcp/tools/get-page-structure/tool.ts
+	var MCP_PROXY_URL = "elementor/v1/mcp-proxy";
+	var initGetPageStructureTool = (reg) => {
+		const { addTool } = reg;
+		addTool({
+			name: "get-page-structure",
+			description: "Returns a lean Elementor element tree skeleton (id, elType, widgetType, title, nested elements) for a post or page. If no postId is provided, uses the currently open document. Optionally scope to a subtree with elementId. Set includeContent=true (requires elementId) to also return each node's settings and styles.",
+			schema: {
+				postId: _elementor_schema.z.number().optional().describe("WordPress post ID of the Elementor document. If omitted, uses the currently open document."),
+				elementId: _elementor_schema.z.string().optional().describe("If provided, returns only the subtree rooted at that element id."),
+				includeContent: _elementor_schema.z.boolean().optional().describe("If true, includes each node's settings and styles (same shape build-composition accepts as input). Requires elementId.")
+			},
+			outputSchema: { elements: _elementor_schema.z.array(_elementor_schema.z.any()).describe("Skeleton of Elementor elements (id, elType, widgetType, title, nested elements). When includeContent is true, each node also includes settings and styles.") },
+			handler: async ({ postId, elementId, includeContent }) => {
+				const resolvedPostId = postId ?? (0, _elementor_editor_documents.getCurrentDocument)()?.id;
+				if (!resolvedPostId) throw new Error("No post ID provided and no active document found.");
+				try {
+					const { data } = await (0, _elementor_http_client.httpService)().post(MCP_PROXY_URL, {
+						tool: "get-page-structure",
+						input: {
+							post_id: resolvedPostId,
+							...elementId ? { element_id: elementId } : {},
+							...includeContent ? { include_content: true } : {}
+						}
+					});
+					return { elements: data.data.elements };
+				} catch (error) {
+					throw new Error(getMcpErrorMessage(error, "get-page-structure"));
+				}
+			}
+		});
+	};
+
+//#endregion
+//#region packages/packages/core/editor-canvas/src/mcp/canvas-mcp.ts
+	var initCanvasMcp = (reg) => {
+		_elementor_editor_props.Schema.setDynamicTagNamesResolver(getDynamicTagNamesByCategories);
+		initWidgetsSchemaResource(reg);
+		initAvailableWidgetsResource(reg);
+		initDocumentStructureResource(reg);
+		initDynamicTagsResource(reg);
+		initSelectedElementResource(reg);
+		initEditorStateResource(reg);
+		initGeneralContextResource(reg);
+		initBestPracticesResource(reg);
+		initConfigureElementTool(reg);
+		initGetPageStructureTool(reg);
+		initBreakpointsResource(reg);
+	};
+
+//#endregion
+//#region packages/packages/core/editor-canvas/src/mcp/mcp-description.ts
+	var ELEMENT_SCHEMA_URI = WIDGET_SCHEMA_URI.replace("{widgetType}", "element-schema");
+	var mcpDescription = `Elementor Canvas MCP
+This MCP enables configuration and styling of existing V4 elements on the Elementor canvas using the configure-element tool.
+
+# Core Concepts
+
+## PropValues Structure
+All data in Elementor uses PropValues - a typed wrapper for values:
+\`\`\`json
+{
+  "$$type": "the-prop-type-schema-kind",
+  "value": "the-actual-value-as-defined-for-the-propType"
+}
+\`\`\`
+The \`$$type\` defines how Elementor interprets the value. Providing the correct \`$$type\` is critical - incorrect types will be rejected.
+
+## Design System Resources
+- **Global Variables**: Reusable colors, sizes, and fonts (\`elementor://global-variables\`)
+- **Global Classes**: Reusable style sets that can be applied to elements (\`elementor://global-classes\`)
+- **Widget Schemas**: Configuration options for each widget type (\`${WIDGET_SCHEMA_URI}\`)
+
+# Configuring Elements with configure-element
+
+The \`configure-element\` tool updates settings and styles on existing V4 elements. Read the configure-element guide resource before use.
+
+## Complete Workflow
+
+### 1. Parse User Requirements
+Understand what needs to change: content, settings, or styling on existing elements.
+
+### 2. Check Global Resources FIRST
+Always check existing resources before styling:
+- List \`elementor://global-variables\` for available variables (colors, sizes, fonts)
+- List \`elementor://global-classes\` for available style sets
+- **Always prefer using existing global resources over creating inline styles**
+
+### 3. Retrieve Widget Schemas
+For each element you will configure:
+- List \`${WIDGET_SCHEMA_URI}\` to see available widgets
+- Retrieve configuration schema from \`${ELEMENT_SCHEMA_URI}\` for each widget
+- Check the \`llm_guidance\` property for container nesting, \`default_styles\`, and \`default_settings\`
+
+### 4. Get Current Element State
+Use page structure and element configuration resources to find element IDs and current values.
+
+### 5. Create propertiesToChange
+Map property names to PropValues using the widget schema:
+- Use correct \`$$type\` matching the widget's schema
+- Use global variables in PropValues where applicable
+- Example:
+\`\`\`json
+{
+  "text": { "$$type": "string", "value": "Welcome" },
+  "tag": { "$$type": "string", "value": "h1" }
+}
+\`\`\`
+
+### 6. Create style
+Provide raw CSS declarations (property \u2192 value strings). The server converts them to native styles and stores any unconvertible declarations as the element custom CSS.
+- Example:
+\`\`\`json
+{
+  "color": "#1a1a1a",
+  "font-size": "2rem"
+}
+\`\`\`
+
+### 7. Execute configure-element
+Call the tool with elementId, elementType, propertiesToChange, and style as needed.
+
+## Key Points
+
+- **PropValue Types**: Arrays that accept union types are typed as mixed arrays
+- **Visual Sizing**: Widget sizes MUST be defined via the style parameter (raw CSS). Widget properties like image "size" control resolution, not visual appearance
+- **Global Variables**: Reference by label/name: (e.g. var(--card-background-color)
+- **Naming Conventions**: Use meaningful, purpose-based names (e.g., "primary-button", "heading-large"), not value-based names (e.g., "blue-style", "20px-padding")
+
+## Example: e-image PropValue Structure
+\`\`\`json
+{
+  "$$type": "image",
+  "value": {
+    "src": {
+      "$$type": "image-src",
+      "value": {
+        "url": { "$$type": "url", "value": "https://example.com/image.jpg" }
+      }
+    },
+    "size": { "$$type": "string", "value": "full" }
+  }
+}
+\`\`\`
+Note: The "size" property controls image resolution/loading, not visual size. Set visual dimensions via the style parameter (raw CSS).
+`;
+
+//#endregion
+//#region packages/packages/core/editor-canvas/src/prevent-link-in-link-commands.ts
+	function initLinkInLinkPrevention() {
+		(0, _elementor_editor_v1_adapters.blockCommand)({
+			command: "document/elements/paste",
+			condition: blockLinkInLinkPaste
+		});
+		(0, _elementor_editor_v1_adapters.blockCommand)({
+			command: "document/elements/move",
+			condition: blockLinkInLinkMove
+		});
+	}
+	var learnMoreActionProps = {
+		href: "https://go.elementor.com/element-link-inside-link-infotip",
+		target: "_blank",
+		color: "inherit",
+		variant: "text",
+		sx: { marginInlineStart: "20px" },
+		children: "Learn more"
+	};
+	function blockLinkInLinkPaste(args) {
+		const { containers = [args.container], storageType } = args;
+		const targetElements = containers;
+		if (storageType !== "localstorage") return false;
+		const data = window?.elementorCommon?.storage?.get();
+		if (!data?.clipboard?.elements) return false;
+		const sourceElements = data.clipboard.elements;
+		const notification = {
+			type: "default",
+			message: (0, _wordpress_i18n.__)("To paste a link to this element, first remove the link from it's parent container.", "elementor"),
+			id: "paste-in-link-blocked",
+			additionalActionProps: [learnMoreActionProps]
+		};
+		const blocked = shouldBlock(sourceElements, targetElements);
+		if (blocked) (0, _elementor_editor_notifications.notify)(notification);
+		return blocked;
+	}
+	function blockLinkInLinkMove(args) {
+		const { containers = [args.container], target } = args;
+		const sourceElements = containers;
+		const targetElement = target;
+		const notification = {
+			type: "default",
+			message: (0, _wordpress_i18n.__)("To drag a link to this element, first remove the link from it's parent container.", "elementor"),
+			id: "move-in-link-blocked",
+			additionalActionProps: [learnMoreActionProps]
+		};
+		const isBlocked = shouldBlock(sourceElements, [targetElement]);
+		if (isBlocked) (0, _elementor_editor_notifications.notify)(notification);
+		return isBlocked;
+	}
+	function shouldBlock(sourceElements, targetElements) {
+		if (!sourceElements?.length || !targetElements?.length) return false;
+		if (!sourceElements.some((src) => {
+			return src?.id ? (0, _elementor_editor_elements.isElementAnchored)(src.id) || !!(0, _elementor_editor_elements.getAnchoredDescendantId)(src.id) : false;
+		})) return false;
+		return targetElements.some((target) => {
+			return target?.id ? (0, _elementor_editor_elements.isElementAnchored)(target.id) || !!(0, _elementor_editor_elements.getAnchoredAncestorId)(target.id) : false;
+		});
+	}
+
+//#endregion
+//#region packages/packages/core/editor-canvas/src/utils/command-utils.ts
+	function hasAtomicWidgets(args) {
+		const { containers = [args.container] } = args;
+		return containers.some(isAtomicWidget);
+	}
+	function isAtomicWidget(container) {
+		if (!container) return false;
+		return Boolean(getContainerSchema(container));
+	}
+	function getClassesProp(container) {
+		const propsSchema = getContainerSchema(container);
+		if (!propsSchema) return null;
+		const [propKey] = Object.entries(propsSchema).find(([, propType]) => propType.kind === "plain" && propType.key === _elementor_editor_props.CLASSES_PROP_KEY) ?? [];
+		return propKey ?? null;
+	}
+	function getContainerSchema(container) {
+		const type = container?.model.get("widgetType") || container?.model.get("elType");
+		return ((0, _elementor_editor_elements.getWidgetsCache)()?.[type])?.atomic_props_schema ?? null;
+	}
+	function getClipboardElements(storageKey = "clipboard") {
+		try {
+			return JSON.parse(localStorage.getItem("elementor") ?? "{}")[storageKey]?.elements;
+		} catch {
+			return;
+		}
+	}
+	function getTitleForContainers(containers) {
+		return containers.length > 1 ? (0, _wordpress_i18n.__)("Elements", "elementor") : (0, _elementor_editor_elements.getElementLabel)(containers[0].id);
+	}
+
+//#endregion
+//#region packages/packages/core/editor-canvas/src/style-commands/undoable-actions/paste-element-style.ts
+	var undoablePasteElementStyle = () => (0, _elementor_editor_v1_adapters.undoable)({
+		do: ({ containers, newStyle }) => {
+			return containers.map((container) => {
+				const elementId = container.id;
+				const classesProp = getClassesProp(container);
+				if (!classesProp) return null;
+				const originalStyles = (0, _elementor_editor_elements.getElementStyles)(container.id);
+				const [styleId, styleDef] = Object.entries(originalStyles ?? {})[0] ?? [];
+				const revertData = {
+					styleId,
+					originalStyle: Object.keys(styleDef ?? {}).length ? styleDef : null
+				};
+				if (styleId) newStyle.variants.forEach(({ meta, props, custom_css: customCss }) => {
+					(0, _elementor_editor_elements.updateElementStyle)({
+						elementId,
+						styleId,
+						meta,
+						props,
+						custom_css: customCss
+					});
+				});
+				else {
+					const [firstVariant] = newStyle.variants;
+					const additionalVariants = newStyle.variants.slice(1);
+					revertData.styleId = (0, _elementor_editor_elements.createElementStyle)({
+						elementId,
+						classesProp,
+						label: _elementor_editor_styles_repository.ELEMENTS_STYLES_RESERVED_LABEL,
+						...firstVariant,
+						additionalVariants
+					});
+				}
+				return revertData;
+			});
+		},
+		undo: ({ containers }, revertDataItems) => {
+			containers.forEach((container, index) => {
+				const revertData = revertDataItems[index];
+				if (!revertData) return;
+				if (!revertData.originalStyle) {
+					(0, _elementor_editor_elements.deleteElementStyle)(container.id, revertData.styleId);
+					return;
+				}
+				const classesProp = getClassesProp(container);
+				if (!classesProp) return;
+				const [firstVariant] = revertData.originalStyle.variants;
+				const additionalVariants = revertData.originalStyle.variants.slice(1);
+				(0, _elementor_editor_elements.createElementStyle)({
+					elementId: container.id,
+					classesProp,
+					label: _elementor_editor_styles_repository.ELEMENTS_STYLES_RESERVED_LABEL,
+					styleId: revertData.styleId,
+					...firstVariant,
+					additionalVariants
+				});
+			});
+		}
+	}, {
+		title: ({ containers }) => getTitleForContainers(containers),
+		subtitle: (0, _wordpress_i18n.__)("Style Pasted", "elementor")
+	});
+
+//#endregion
+//#region packages/packages/core/editor-canvas/src/style-commands/paste-style.ts
+	function initPasteStyleCommand() {
+		const pasteElementStyleCommand = undoablePasteElementStyle();
+		(0, _elementor_editor_v1_adapters.blockCommand)({
+			command: "document/elements/paste-style",
+			condition: hasAtomicWidgets
+		});
+		(0, _elementor_editor_v1_adapters.__privateListenTo)((0, _elementor_editor_v1_adapters.commandStartEvent)("document/elements/paste-style"), (e) => pasteStyles(e.args, pasteElementStyleCommand));
+	}
+	function pasteStyles(args, pasteLocalStyle) {
+		const { containers = [args.container], storageKey } = args;
+		const atomicContainers = containers.filter(isAtomicWidget);
+		if (!atomicContainers.length) return;
+		const [clipboardElement] = getClipboardElements(storageKey) ?? [];
+		const clipboardContainer = (0, _elementor_editor_elements.getContainer)(clipboardElement.id);
+		if (!clipboardElement || !clipboardContainer || !isAtomicWidget(clipboardContainer)) return;
+		const elementStyles = clipboardElement.styles;
+		const elementStyle = Object.values(elementStyles ?? {})[0];
+		const classesSetting = getClassesWithoutLocalStyle(clipboardContainer, elementStyle);
+		if (classesSetting.length) pasteClasses(atomicContainers, classesSetting);
+		if (elementStyle) pasteLocalStyle({
+			containers: atomicContainers,
+			newStyle: elementStyle
+		});
+	}
+	function getClassesWithoutLocalStyle(clipboardContainer, style) {
+		const classesProp = getClassesProp(clipboardContainer);
+		if (!classesProp) return [];
+		return (0, _elementor_editor_elements.getElementSetting)(clipboardContainer.id, classesProp)?.value.filter((styleId) => styleId !== style?.id) ?? [];
+	}
+	function pasteClasses(containers, classes) {
+		containers.forEach((container) => {
+			const classesProp = getClassesProp(container);
+			if (!classesProp) return;
+			const classesSetting = (0, _elementor_editor_elements.getElementSetting)(container.id, classesProp);
+			const currentClasses = _elementor_editor_props.classesPropTypeUtil.extract(classesSetting) ?? [];
+			const newClasses = _elementor_editor_props.classesPropTypeUtil.create(Array.from(/* @__PURE__ */ new Set([...classes, ...currentClasses])));
+			(0, _elementor_editor_elements.updateElementSettings)({
+				id: container.id,
+				props: { [classesProp]: newClasses }
+			});
+		});
+	}
+
+//#endregion
+//#region packages/packages/core/editor-canvas/src/style-commands/undoable-actions/reset-element-style.ts
+	var undoableResetElementStyle = () => (0, _elementor_editor_v1_adapters.undoable)({
+		do: ({ containers }) => {
+			return containers.map((container) => {
+				const elementId = container.model.get("id");
+				const containerStyles = (0, _elementor_editor_elements.getElementStyles)(elementId);
+				Object.keys(containerStyles ?? {}).forEach((styleId) => (0, _elementor_editor_elements.deleteElementStyle)(elementId, styleId));
+				return containerStyles;
+			});
+		},
+		undo: ({ containers }, revertDataItems) => {
+			containers.forEach((container, index) => {
+				const classesProp = getClassesProp(container);
+				if (!classesProp) return;
+				const elementId = container.model.get("id");
+				const containerStyles = revertDataItems[index];
+				Object.entries(containerStyles ?? {}).forEach(([styleId, style]) => {
+					const [firstVariant] = style.variants;
+					const additionalVariants = style.variants.slice(1);
+					(0, _elementor_editor_elements.createElementStyle)({
+						elementId,
+						classesProp,
+						styleId,
+						label: _elementor_editor_styles_repository.ELEMENTS_STYLES_RESERVED_LABEL,
+						...firstVariant,
+						additionalVariants
+					});
+				});
+			});
+		}
+	}, {
+		title: ({ containers }) => getTitleForContainers(containers),
+		subtitle: (0, _wordpress_i18n.__)("Style Reset", "elementor")
+	});
+
+//#endregion
+//#region packages/packages/core/editor-canvas/src/style-commands/reset-style.ts
+	function initResetStyleCommand() {
+		const resetElementStyles = undoableResetElementStyle();
+		(0, _elementor_editor_v1_adapters.blockCommand)({
+			command: "document/elements/reset-style",
+			condition: hasAtomicWidgets
+		});
+		(0, _elementor_editor_v1_adapters.__privateListenTo)((0, _elementor_editor_v1_adapters.commandStartEvent)("document/elements/reset-style"), (e) => resetStyles(e.args, resetElementStyles));
+	}
+	function resetStyles(args, resetElementStyles) {
+		const { containers = [args.container] } = args;
+		const atomicContainers = containers.filter(isAtomicWidget);
+		if (!atomicContainers.length) return;
+		resetElementStyles({ containers: atomicContainers });
+	}
+
+//#endregion
+//#region packages/packages/core/editor-canvas/src/style-commands/init-style-commands.ts
+	function initStyleCommands() {
+		initPasteStyleCommand();
+		initResetStyleCommand();
+	}
+
+//#endregion
+//#region packages/packages/core/editor-canvas/src/init.tsx
+	function init() {
+		initStyleTransformers();
+		initStyleCommands();
+		initLinkInLinkPrevention();
+		initFormNestingPrevention();
+		initFormAncestorEnforcement();
+		initViewReplacements();
+		initLegacyViews();
+		initSettingsTransformers();
+		(0, _elementor_editor.injectIntoTop)({
+			id: "elements-overlays",
+			component: ElementsOverlays
+		});
+		(0, _elementor_editor.injectIntoTop)({
+			id: "canvas-style-render",
+			component: StyleRenderer
+		});
+		(0, _elementor_editor.injectIntoTop)({
+			id: "canvas-interactions-render",
+			component: InteractionsRenderer
+		});
+		(0, _elementor_editor.injectIntoLogic)({
+			id: "classes-rename",
+			component: ClassesRename
+		});
+		initCanvasMcp((0, _elementor_editor_mcp.getMCPByDomain)("canvas", {
+			instructions: `Everything related to V4 ( Atomic ) canvas.
+# Canvas workflow
+- Configure element settings and styles with configure-element
+- Get page structure and element configuration values
+`,
+			docs: mcpDescription
+		}));
+		initTabsModelExtensions();
+		initListType();
+	}
+
+//#endregion
+//#region packages/packages/core/editor-canvas/src/sync/drag-element-from-panel.ts
+	var DRAG_GROUPS = ["elementor-element"];
+	var endDragElementFromPanel = () => {
+		getElementorChannels()?.panelElements?.trigger("element:drag:end");
+	};
+	var startDragElementFromPanel = (props, event) => {
+		setDragGroups(event);
+		const channels = getElementorChannels();
+		channels?.editor.reply("element:dragged", null);
+		channels?.panelElements.reply("element:selected", getLegacyPanelElementView(props)).trigger("element:drag:start");
+	};
+	var setDragGroups = (event) => {
+		const dataContainer = { groups: getDragGroups(event) };
+		event.dataTransfer?.setData(JSON.stringify(dataContainer), "true");
+	};
+	var getDragGroups = (event) => {
+		const dataContainer = event.dataTransfer?.getData("text/plain");
+		return dataContainer ? JSON.parse(dataContainer).groups : DRAG_GROUPS;
+	};
+	var getElementorChannels = () => {
+		const channels = window.elementor?.channels;
+		if (!channels) throw new Error("Elementor channels not found: Elementor editor is not initialized or channels are unavailable.");
+		return channels;
+	};
+	var getLegacyPanelElementView = ({ settings, ...rest }) => {
+		const LegacyElementModel = window.elementor?.modules?.elements?.models?.Element;
+		if (!LegacyElementModel) throw new Error("Elementor legacy Element model not found in editor modules");
+		return { model: new LegacyElementModel({
+			...rest,
+			custom: {
+				isPreset: !!settings,
+				preset_settings: settings
+			}
+		}) };
+	};
+
+//#endregion
+//#region packages/packages/core/editor-canvas/src/sync/global-styles-imported-event.ts
+	var GLOBAL_STYLES_IMPORTED_EVENT = "elementor/global-styles/imported";
+
+//#endregion
+//#region packages/packages/core/editor-canvas/src/components/spotlight-backdrop.tsx
+	function SpotlightBackdrop({ canvas, element, onExit, ariaLabel }) {
+		const rect = useElementRect(element);
+		const backdropStyle = {
+			position: "fixed",
+			top: 0,
+			left: 0,
+			width: "100vw",
+			height: "100vh",
+			backgroundColor: "rgba(0, 0, 0, 0.5)",
+			zIndex: 999,
+			pointerEvents: "painted",
+			cursor: "pointer",
+			clipPath: element ? getRectClipPath(rect, canvas.defaultView) : void 0
+		};
+		const handleKeyDown = (event) => {
+			if (event.key === "Enter" || event.key === " ") {
+				event.preventDefault();
+				onExit();
+			}
+		};
+		return /* @__PURE__ */ react.createElement("div", {
+			style: backdropStyle,
+			onClick: onExit,
+			onKeyDown: handleKeyDown,
+			role: "button",
+			tabIndex: 0,
+			"aria-label": ariaLabel
+		});
+	}
+	function getRectClipPath(rect, viewport) {
+		const { x, y, width, height } = rect;
+		const { innerWidth: vw, innerHeight: vh } = viewport;
+		return `path(evenodd, 'M 0 0 L ${vw} 0 L ${vw} ${vh} L 0 ${vh} Z M ${x} ${y} L ${x + width} ${y} L ${x + width} ${y + height} L ${x} ${y + height} L ${x} ${y} Z')`;
+	}
+
+//#endregion
+//#region packages/packages/core/editor-canvas/src/hooks/use-canvas-document.ts
+	function useCanvasDocument() {
+		return (0, _elementor_editor_v1_adapters.__privateUseListenTo)((0, _elementor_editor_v1_adapters.commandEndEvent)("editor/documents/attach-preview"), () => (0, _elementor_editor_v1_adapters.getCanvasIframeDocument)());
+	}
+
+//#endregion
+//#region packages/packages/core/editor-canvas/src/hooks/use-escape-on-canvas.ts
+	function useEscapeOnCanvas(canvasDocument, onEscape) {
+		(0, react.useEffect)(() => {
+			if (!canvasDocument) return;
+			const handleEsc = (event) => {
+				if (event.key === "Escape") onEscape();
+			};
+			canvasDocument.body.addEventListener("keydown", handleEsc);
+			return () => {
+				canvasDocument.body.removeEventListener("keydown", handleEsc);
+			};
+		}, [canvasDocument, onEscape]);
+	}
+
+//#endregion
+//#region packages/packages/core/editor-canvas/src/utils/after-render.ts
+	function doAfterRender(elementIds, callback) {
+		const pending = elementIds.map((elementId) => {
+			const view = (0, _elementor_editor_elements.getContainer)(elementId)?.view;
+			if (!view || !hasDoAfterRender(view)) return;
+			return new Promise((resolve) => view._doAfterRender(resolve));
+		}).filter(Boolean);
+		if (pending.length > 0) Promise.all(pending).then(() => callback(elementIds));
+		else callback(elementIds);
+	}
+	function hasDoAfterRender(view) {
+		return typeof view?._doAfterRender === "function";
+	}
+
+//#endregion
+//#region packages/packages/core/editor-canvas/src/sync/element-added-event.ts
+	var ELEMENT_ADDED_EVENT = "elementor/canvas/element-added";
+
+//#endregion
+//#region packages/packages/core/editor-canvas/src/index.ts
+	var src_exports = /* @__PURE__ */ __exportAll({
+		BREAKPOINTS_SCHEMA_FULL_URI: () => BREAKPOINTS_SCHEMA_FULL_URI,
+		BREAKPOINTS_SCHEMA_URI: () => BREAKPOINTS_SCHEMA_URI,
+		DOCUMENT_STRUCTURE_URI: () => DOCUMENT_STRUCTURE_URI,
+		ELEMENT_ADDED_EVENT: () => ELEMENT_ADDED_EVENT,
+		GLOBAL_STYLES_IMPORTED_EVENT: () => GLOBAL_STYLES_IMPORTED_EVENT,
+		SpotlightBackdrop: () => SpotlightBackdrop,
+		UnknownStyleStateError: () => UnknownStyleStateError,
+		UnknownStyleTypeError: () => UnknownStyleTypeError,
+		WIDGET_SCHEMA_FULL_URI: () => WIDGET_SCHEMA_FULL_URI,
+		WIDGET_SCHEMA_URI: () => WIDGET_SCHEMA_URI,
+		canBeNestedTemplated: () => canBeNestedTemplated,
+		convertCssToAtomic: () => convertCssToAtomic,
+		convertStyleBlocksToAtomic: () => convertStyleBlocksToAtomic,
+		createNestedTemplatedElementType: () => createNestedTemplatedElementType,
+		createNestedTemplatedElementView: () => createNestedTemplatedElementView,
+		createPropsResolver: () => createPropsResolver,
+		createTemplatedElementView: () => createTemplatedElementView,
+		createTransformer: () => createTransformer,
+		createTransformersRegistry: () => createTransformersRegistry,
+		doAfterRender: () => doAfterRender,
+		endDragElementFromPanel: () => endDragElementFromPanel,
+		formatGridTrackRepeat: () => formatGridTrackRepeat,
+		init: () => init,
+		isAtomicWidget: () => isAtomicWidget,
+		isGridTrackProperty: () => isGridTrackProperty,
+		registerElementType: () => registerElementType,
+		registerModelExtensions: () => registerModelExtensions,
+		settingsTransformersRegistry: () => settingsTransformersRegistry,
+		startDragElementFromPanel: () => startDragElementFromPanel,
+		styleTransformersRegistry: () => styleTransformersRegistry,
+		stylesInheritanceTransformersRegistry: () => stylesInheritanceTransformersRegistry,
+		useCanvasDocument: () => useCanvasDocument,
+		useEscapeOnCanvas: () => useEscapeOnCanvas,
+		waitForChildrenToComplete: () => waitForChildrenToComplete
+	});
+
+//#endregion
+//#region \0elementor-package-library-entry
+	(window.elementorV2 = window.elementorV2 || {}).editorCanvas = src_exports;
+
+//#endregion
+})(elementorV2.editorV1Adapters, elementorV2.editorMcp, elementorV2.httpClient, elementorV2.editor, React, elementorV2.editorDocuments, elementorV2.editorStylesRepository, elementorV2.utils, elementorV2.editorElements, elementorV2.ui, ReactDOM, elementorV2.editorInteractions, elementorV2.editorResponsive, elementorV2.editorStyles, elementorV2.editorProps, elementorV2.editorNotifications, wp.i18n, elementorV2.wpMedia, elementorV2.editorControls, elementorV2.twing, elementorV2.schema);
+window.elementorV2.editorCanvas?.init?.();
 //# sourceMappingURL=editor-canvas.js.map

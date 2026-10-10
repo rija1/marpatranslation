@@ -9,16 +9,12 @@ use WCML_Multi_Currency;
 class AdminHooks implements IWPML_Action, IStandAloneAction {
 	const WCML_SHIPPING_COSTS = 'wcml_shipping_costs';
 
-	/** @var WCML_Multi_Currency */
 	private $wcmlMultiCurrency;
 
 	public function __construct( \WCML_Multi_Currency $wcmlMultiCurrency ) {
 		$this->wcmlMultiCurrency = $wcmlMultiCurrency;
 	}
 
-	/**
-	 * Registers hooks.
-	 */
 	public function add_hooks() {
 		ShippingModeProvider::getAll()->each( function( ShippingMode $shippingMode ) {
 			add_filter(
@@ -38,19 +34,6 @@ class AdminHooks implements IWPML_Action, IStandAloneAction {
 		};
 	}
 
-	/**
-	 * Adds fields to display screen for shipping method.
-	 *
-	 * Adds two kind of fields:
-	 * - The select field to enable/disable shipping costs in other currencies.
-	 * @see \AdminHooks::add_enable_field
-	 * - The input field for each registered currency to provide shipping costs.
-	 * @see \AdminHooks::add_currencies_fields
-	 *
-	 * @param array $field
-	 *
-	 * @return array
-	 */
 	private function addCurrencyShippingFieldsToShippingMethodForm( array $field, ShippingMode $shippingMode ) {
 		$field = $this->addTitleField( $field );
 		$field = $this->addEnableField( $field );
@@ -63,29 +46,27 @@ class AdminHooks implements IWPML_Action, IStandAloneAction {
 
 	private function addTitleField( $field ) {
 		$field[ 'wcml_shipping_costs_title' ] = [
+			/* translators: Heading of the section added to a WooCommerce shipping method's settings. */
 			'title'       => __( 'Costs and values in custom currencies', 'woocommerce-multilingual' ),
 			'type'        => 'title',
 			'default'     => '',
+			/* translators: Explanation under the shipping-costs heading in a WooCommerce shipping method's settings; "above" and "here" are the fields before and after this text. */
 			'description' => __( 'WPML Multilingual & Multicurrency for WooCommerce by default will multiply all your costs and values defined above by currency exchange rates. If you don\'t want this and you prefer static values instead, you can define them here.', 'woocommerce-multilingual' ),
 		];
 		return $field;
 	}
 
-	/**
-	 * Adds select field to enable/disable shipping costs in other currencies.
-	 *
-	 * @param array $field
-	 *
-	 * @return array
-	 */
 	private function addEnableField( array $field ) {
 		$enable_field                                 = [
+			/* translators: Label of the dropdown that turns per-currency shipping costs on, in a WooCommerce shipping method's settings. */
 			'title' => esc_html__( 'Enable costs in custom currencies', 'woocommerce-multilingual' ),
 			'type' => 'select',
 			'class' => 'wcml-enable-shipping-custom-currency',
 			'default' => 'auto',
 			'options' => [
+				/* translators: First option in the dropdown that controls per-currency shipping costs. */
 				'auto' => esc_html__( 'Calculate shipping costs in other currencies automatically', 'woocommerce-multilingual' ),
+				/* translators: Second option in the dropdown that controls per-currency shipping costs. */
 				'manual' => esc_html__( 'Set shipping costs in other currencies manually', 'woocommerce-multilingual' )
 			]
 		];
@@ -94,13 +75,6 @@ class AdminHooks implements IWPML_Action, IStandAloneAction {
 		return $field;
 	}
 
-	/**
-	 * Adds input field for each registered currency to provide shipping costs.
-	 *
-	 * @param array $field
-	 *
-	 * @return array
-	 */
 	public function addCurrenciesFields( array $field, ShippingMode $shippingMode ) {
 		foreach ( $this->wcmlMultiCurrency->get_currency_codes() as $currencyCode ) {
 			if ( $this->wcmlMultiCurrency->get_default_currency() === $currencyCode ) {
@@ -111,14 +85,6 @@ class AdminHooks implements IWPML_Action, IStandAloneAction {
 		return $field;
 	}
 
-	/**
-	 * Adds one field for given currency.
-	 *
-	 * @param array  $field
-	 * @param string $currencyCode
-	 *
-	 * @return mixed
-	 */
 	protected function getCurrencyField( $field, $currencyCode, ShippingMode $shippingMode ) {
 		$fieldKey = $shippingMode->getSettingsFormKey( $currencyCode );
 		if ( $fieldKey ) {
@@ -136,9 +102,6 @@ class AdminHooks implements IWPML_Action, IStandAloneAction {
 		return $field;
 	}
 
-	/**
-	 * Enqueues script responsible for JS actions on shipping fields.
-	 */
 	public function loadJs() {
 		wp_enqueue_script(
 			'wcml-admin-shipping-currency-selector',

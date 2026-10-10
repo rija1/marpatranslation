@@ -129,8 +129,10 @@ class BlockRendererHelper {
       $automationId = 'data-automation-id="form_' . $block['id'] . '_label" ';
     }
 
-    if (isset($formSettings['id'])) {
-      $forId = 'for="form_' . $block['id'] . '_' . $formSettings['id'] . '" ';
+    if (!empty($block['params']['input_id']) && is_scalar($block['params']['input_id'])) {
+      $forId = 'for="' . $this->wp->escAttr((string)$block['params']['input_id']) . '" ';
+    } elseif (isset($formSettings['id'])) {
+      $forId = 'for="' . $this->wp->escAttr('form_' . (string)$block['id'] . '_' . (string)$formSettings['id']) . '" ';
     }
 
     if (
@@ -148,7 +150,7 @@ class BlockRendererHelper {
       $html .= static::getFieldLabel($block);
 
       if (static::getFieldIsRequired($block)) {
-        $html .= ' <span class="mailpoet_required" aria-hidden="true">*</span>';
+        $html .= '&nbsp;<span class="mailpoet_required" aria-hidden="true">*</span>';
       }
 
       $html .= '</label>';
@@ -179,7 +181,7 @@ class BlockRendererHelper {
       $html .= static::getFieldLabel($block);
 
       if (static::getFieldIsRequired($block)) {
-        $html .= ' <span class="mailpoet_required" aria-hidden="true">*</span>';
+        $html .= '&nbsp;<span class="mailpoet_required" aria-hidden="true">*</span>';
       }
 
       $html .= '</legend>';

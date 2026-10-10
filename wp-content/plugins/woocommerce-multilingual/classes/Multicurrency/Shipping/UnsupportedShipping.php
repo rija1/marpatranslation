@@ -8,11 +8,11 @@ class UnsupportedShipping implements ShippingMode {
 		return null;
 	}
 
-	public function getFieldTitle( $currencyCode ) {
+	public function getFieldTitle( $currencyCode ): ?string {
 		return null;
 	}
 
-	public function getFieldDescription( $currencyCode ) {
+	public function getFieldDescription( $currencyCode ): ?string {
 		return null;
 	}
 
@@ -29,13 +29,9 @@ class UnsupportedShipping implements ShippingMode {
 	}
 
 	public function getMinimalOrderAmountKey( $currencyCode ) {
-		// TODO: Implement getMinAmountKey() method.
 	}
 
 	public function getShippingCostValue( $rate, $currency ) {
-		if ( ! isset( $rate->cost ) ) {
-			$rate->cost = 0;
-		}
-		return $rate->cost;
+		return $rate->cost ?? 0;
 	}
 }

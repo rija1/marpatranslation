@@ -18,6 +18,10 @@ use Give\Subscriptions\ValueObjects\SubscriptionMode;
 use Give\Subscriptions\ValueObjects\SubscriptionPeriod;
 use Give\Subscriptions\ValueObjects\SubscriptionStatus;
 
+/**
+ * @since 4.17.0 Allow dynamic properties, since custom field values are assigned by name.
+ */
+#[\AllowDynamicProperties]
 class DonateControllerData
 {
     /**
@@ -128,8 +132,13 @@ class DonateControllerData
      * @var string|null
      */
     public $comment;
+    /**
+     * @var string|null
+     */
+    public $levelId;
 
     /**
+     * @since 4.16.5 Added levelId property
      * @since 3.9.0 Added phone property
      * @since 3.2.0 added honorific property
      * @since 3.0.0
@@ -155,6 +164,7 @@ class DonateControllerData
             'comment' => $this->comment,
             'type' => DonationType::SINGLE(),
             'billingAddress' => $this->getBillingAddress(),
+            'levelId' => $this->levelId,
         ]);
     }
 
@@ -183,6 +193,7 @@ class DonateControllerData
             'type' => DonationType::SUBSCRIPTION(),
             'subscriptionId' => $subscriptionId,
             'billingAddress' => $this->getBillingAddress(),
+            'levelId' => $this->levelId,
         ]);
     }
 

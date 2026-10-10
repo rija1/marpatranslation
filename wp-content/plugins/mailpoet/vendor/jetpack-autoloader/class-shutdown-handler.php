@@ -1,5 +1,5 @@
 <?php
-namespace Automattic\Jetpack\Autoloader\jpcb2d44e3d30962ec48179c3ba635dcd4\al5_0_8;
+namespace Automattic\Jetpack\Autoloader\jp92966be9e78bf75e6d5a61a4f8a8f974\al5_0_8;
 if (!defined('ABSPATH')) exit;
  // phpcs:ignore
 class Shutdown_Handler {

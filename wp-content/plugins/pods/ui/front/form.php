@@ -1,8 +1,11 @@
 <?php
+
 // Don't load directly.
 if ( ! defined( 'ABSPATH' ) ) {
 	die( '-1' );
 }
+
+// phpcs:ignoreFile WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedVariableFound
 
 /**
  * @var array       $fields
@@ -39,17 +42,19 @@ foreach ( $fields as $k => $field ) {
 		unset( $fields[ $k ] );
 	} elseif ( ! pods_permission( $field ) ) {
 		if ( pods_v( 'hidden', $field, false ) ) {
-			$fields[ $k ]['type'] = 'hidden';
-		} elseif ( pods_v( 'read_only', $field, false ) ) {
-			$fields[ $k ]['readonly'] = true;
+			$fields[ $k ] = pods_form_field_make_hidden( $fields[ $k ] );
+		} elseif ( pods_v_bool( 'read_only_restricted', $field ) ) {
+			$fields[ $k ] = pods_form_field_make_readonly( $fields[ $k ] );
 		} else {
 			unset( $fields[ $k ] );
+
+			continue;
 		}
 	} elseif ( ! pods_has_permissions( $field ) ) {
-		if ( pods_v( 'hidden', $field, false ) ) {
-			$fields[ $k ]['type'] = 'hidden';
-		} elseif ( pods_v( 'read_only', $field, false ) ) {
-			$fields[ $k ]['readonly'] = true;
+		if ( pods_v_bool( 'hidden', $field ) ) {
+			$fields[ $k ] = pods_form_field_make_hidden( $fields[ $k ] );
+		} elseif ( pods_v_bool( 'read_only', $field ) ) {
+			$fields[ $k ] = pods_form_field_make_readonly( $fields[ $k ] );
 		}
 	}
 }
@@ -64,22 +69,13 @@ foreach ( $submittable_fields as $k => $field ) {
 	unset( $submittable_fields[ $k ] );
 }
 
-$uri_hash   = wp_create_nonce( 'pods_uri_' . pods_current_path() );
-$field_hash = wp_create_nonce( 'pods_fields_' . implode( ',', array_keys( $submittable_fields ) ) );
+$uri_hash = pods_access_form_uri_hash();
 
-if ( is_user_logged_in() ) {
-	$uid = 'user_' . get_current_user_id();
-} else {
-	$uid = pods_session_id();
-}
-
-$nonce = wp_create_nonce( 'pods_form_' . $pod_name . '_' . $uid . '_' . $id . '_' . $uri_hash . '_' . $field_hash );
-
-if ( isset( $_POST['_pods_nonce'] ) ) {
+if ( pods_access_form_nonce_present_in_request( 'form' ) ) {
 	try {
 		$id = $pod->api->process_form( $_POST, $pod, $submittable_fields, $thank_you );
 	} catch ( Exception $e ) {
-		echo '<div class="pods-message pods-message-error">' . $e->getMessage() . '</div>';
+		pods_message( esc_html( $e->getMessage() ), 'error' );
 	}
 }
 
@@ -109,16 +105,12 @@ pods_static_cache_set( $pod->pod . '-counter', $counter, 'pods-forms' );
 	data-pods-form-counter="<?php echo esc_attr( $counter ); ?>"
 >
 	<div class="pods-submittable-fields">
-		<?php echo PodsForm::field( 'action', 'pods_admin', 'hidden' ); ?>
-		<?php echo PodsForm::field( 'method', 'process_form', 'hidden' ); ?>
-		<?php echo PodsForm::field( 'do', ( ! empty( $id ) ? 'save' : 'create' ), 'hidden' ); ?>
-		<?php echo PodsForm::field( '_pods_nonce', $nonce, 'hidden' ); ?>
-		<?php echo PodsForm::field( '_pods_pod', $pod_name, 'hidden' ); ?>
-		<?php echo PodsForm::field( '_pods_id', $id, 'hidden' ); ?>
-		<?php echo PodsForm::field( '_pods_uri', $uri_hash, 'hidden' ); ?>
-		<?php echo PodsForm::field( '_pods_form', implode( ',', array_keys( $submittable_fields ) ), 'hidden' ); ?>
-		<?php echo PodsForm::field( '_pods_form_key', ! empty( $form_key ) ? $form_key : '', 'hidden' ); ?>
-		<?php echo PodsForm::field( '_pods_location', $_SERVER['REQUEST_URI'], 'hidden' ); ?>
+		<?php PodsForm::output_field( 'action', 'pods_admin', 'hidden' ); ?>
+		<?php PodsForm::output_field( 'method', 'process_form', 'hidden' ); ?>
+		<?php PodsForm::output_field( 'do', ( ! empty( $id ) ? 'save' : 'create' ), 'hidden' ); ?>
+		<?php pods_access_output_form_nonce_fields( $pod_name, $id, $submittable_fields, pods_access_form_field_names( 'form' ), $uri_hash ); ?>
+		<?php PodsForm::output_field( '_pods_form_key', ! empty( $form_key ) ? $form_key : '', 'hidden' ); ?>
+		<?php PodsForm::output_field( '_pods_location', $_SERVER['REQUEST_URI'], 'hidden' ); ?>
 		<?php endif; ?>
 
 		<?php
@@ -178,11 +170,11 @@ pods_static_cache_set( $pod->pod . '-counter', $counter, 'pods-forms' );
 			$template_after  = '</table>';
 		}
 
-		echo $template_before;
+		echo wp_kses_post( $template_before );
 
 		pods_view( PODS_DIR . $template, compact( array_keys( get_defined_vars() ) ) );
 
-		echo $template_after;
+		echo wp_kses_post( $template_after );
 
 		/**
 		 * Runs after all fields are outputted.
@@ -214,7 +206,7 @@ pods_static_cache_set( $pod->pod . '-counter', $counter, 'pods-forms' );
 				if ( 'undefined' !== typeof jQuery( document ).Pods ) {
 
 					if ( 'undefined' === typeof ajaxurl ) {
-						window.ajaxurl = '<?php echo pods_slash( admin_url( 'admin-ajax.php' ) ); ?>';
+						window.ajaxurl = <?php echo json_encode( esc_url_raw( admin_url( 'admin-ajax.php' ) ) ); ?>;
 					}
 
 					jQuery( document ).Pods( 'validate' );

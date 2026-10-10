@@ -11,6 +11,7 @@ use ThemeIsle\GutenbergBlocks\Main, ThemeIsle\GutenbergBlocks\Pro, ThemeIsle\Gut
 use ThemeIsle\GutenbergBlocks\Plugins\Dashboard;
 use ThemeIsle\GutenbergBlocks\Plugins\LimitedOffers;
 use ThemeIsle\GutenbergBlocks\Plugins\Template_Cloud;
+use ThemeIsle\GutenbergBlocks\Server\AI_Client_Adaptor;
 
 /**
  * Class Registration.
@@ -52,6 +53,7 @@ class Registration {
 	 */
 	public static $scripts_loaded = array(
 		'circle-counter'    => false,
+		'content-slider'    => false,
 		'countdown'         => false,
 		'form'              => false,
 		'google-map'        => false,
@@ -79,6 +81,53 @@ class Registration {
 	 * @var bool $is_fa_loaded Is FA loaded?
 	 */
 	public static $is_fa_loaded = false;
+
+	/**
+	 * Get the decoded global defaults for the editor, always as an object.
+	 *
+	 * The option can exist as an empty string or corrupt JSON, which json_decode
+	 * turns into null — and a null localized value crashes every block's Edit
+	 * component when the editor reads per-block defaults from it.
+	 *
+	 * @return object
+	 */
+	public static function get_editor_global_defaults() {
+		$defaults = json_decode( get_option( 'themeisle_blocks_settings_global_defaults', '{}' ) );
+
+		return is_object( $defaults ) ? $defaults : new \stdClass();
+	}
+
+	/**
+	 * Get the `className` attribute of a block as a string.
+	 *
+	 * @param mixed $attributes Block attributes.
+	 * @return string
+	 */
+	public static function get_class_name( $attributes ) {
+		if ( ! is_array( $attributes ) || ! isset( $attributes['className'] ) ) {
+			return '';
+		}
+
+		$class_name = $attributes['className'];
+
+		if ( is_array( $class_name ) ) {
+			// Flatten nested arrays and drop anything that is not printable.
+			$flat = array();
+
+			array_walk_recursive(
+				$class_name,
+				function ( $value ) use ( &$flat ) {
+					if ( is_scalar( $value ) ) {
+						$flat[] = (string) $value;
+					}
+				}
+			);
+
+			return implode( ' ', $flat );
+		}
+
+		return is_scalar( $class_name ) ? (string) $class_name : '';
+	}
 
 	/**
 	 * Initialize the class
@@ -239,6 +288,30 @@ class Registration {
 
 		wp_set_script_translations( 'otter-blocks', 'otter-blocks' );
 
+		// Separate bundle: loads only when the Patterns Library module is on.
+		if ( boolval( get_option( 'themeisle_blocks_settings_patterns_library', true ) ) ) {
+			$patterns_asset = include OTTER_BLOCKS_PATH . '/build/patterns-library/index.asset.php';
+
+			wp_enqueue_script(
+				'otter-patterns-library',
+				OTTER_BLOCKS_URL . 'build/patterns-library/index.js',
+				array_merge( $patterns_asset['dependencies'], array( 'otter-blocks' ) ),
+				$patterns_asset['version'],
+				true
+			);
+
+			wp_set_script_translations( 'otter-patterns-library', 'otter-blocks' );
+
+			if ( file_exists( OTTER_BLOCKS_PATH . '/build/patterns-library/index.css' ) ) {
+				wp_enqueue_style(
+					'otter-patterns-library',
+					OTTER_BLOCKS_URL . 'build/patterns-library/index.css',
+					array(),
+					$patterns_asset['version']
+				);
+			}
+		}
+
 		if ( defined( 'THEMEISLE_GUTENBERG_GOOGLE_MAPS_API' ) ) {
 			$api = THEMEISLE_GUTENBERG_GOOGLE_MAPS_API;
 		} else {
@@ -247,26 +320,27 @@ class Registration {
 
 		global $wp_roles;
 
-		wp_localize_script(
-			'otter-blocks',
-			'themeisleGutenberg',
-			array(
-				'hasNeve'                 => defined( 'NEVE_VERSION' ),
-				'hasPro'                  => Pro::is_pro_installed(),
-				'isProActive'             => Pro::is_pro_active(),
-				'upgradeLink'             => tsdk_translate_link( tsdk_utmify( Pro::get_url(), 'editor', Pro::get_reference() ) ),
-				'patternsLink'            => tsdk_translate_link( tsdk_utmify( Pro::get_patterns_url(), 'editor', Pro::get_reference() ) ),
-				'should_show_upsell'      => Pro::should_show_upsell(),
-				'assetsPath'              => OTTER_BLOCKS_URL . 'assets',
-				'updatePath'              => admin_url( 'update-core.php' ),
-				'optionsPath'             => admin_url( 'admin.php?page=otter' ),
-				'mapsAPI'                 => $api,
-				'hasStripeAPI'            => Stripe_API::has_keys(),
-				'globalDefaults'          => json_decode( get_option( 'themeisle_blocks_settings_global_defaults', '{}' ) ),
-				'themeDefaults'           => Main::get_global_defaults(),
-				'imageSizes'              => function_exists( 'is_wpcom_vip' ) ? array( 'thumbnail', 'medium', 'medium_large', 'large' ) : get_intermediate_image_sizes(), // phpcs:ignore WordPressVIPMinimum.Functions.RestrictedFunctions.get_intermediate_image_sizes_get_intermediate_image_sizes
+		$is_wp_ai_backend = AI_Client_Adaptor::BACKEND_WP === AI_Client_Adaptor::resolve_backend();
+
+		$can_track = 'yes' === get_option( 'otter_blocks_logger_flag', false );
+
+		$themeisle_gutenberg = array(
+			'hasNeve'                     => defined( 'NEVE_VERSION' ),
+			'hasPro'                      => Pro::is_pro_installed(),
+			'isProActive'                 => Pro::is_pro_active(),
+			'upgradeLink'                 => tsdk_translate_link( tsdk_utmify( Pro::get_url(), 'editor', Pro::get_reference() ) ),
+			'patternsLink'                => tsdk_translate_link( tsdk_utmify( Pro::get_patterns_url(), 'editor', Pro::get_reference() ) ),
+			'should_show_upsell'          => Pro::should_show_upsell(),
+			'assetsPath'                  => OTTER_BLOCKS_URL . 'assets',
+			'updatePath'                  => admin_url( 'update-core.php' ),
+			'optionsPath'                 => admin_url( 'admin.php?page=otter' ),
+			'mapsAPI'                     => $api,
+			'hasStripeAPI'                => Stripe_API::has_keys(),
+			'globalDefaults'              => self::get_editor_global_defaults(),
+			'themeDefaults'               => Main::get_global_defaults(),
+			'imageSizes'                  => function_exists( 'is_wpcom_vip' ) ? array( 'thumbnail', 'medium', 'medium_large', 'large' ) : get_intermediate_image_sizes(), // phpcs:ignore WordPressVIPMinimum.Functions.RestrictedFunctions.get_intermediate_image_sizes_get_intermediate_image_sizes
 				'isWPVIP'                 => function_exists( 'is_wpcom_vip' ),
-				'canTrack'                => 'yes' === get_option( 'otter_blocks_logger_flag', false ) ? true : false,
+				'canTrack'                => $can_track ? true : false,
 				'userRoles'               => $wp_roles->roles,
 				'isBlockEditor'           => 'post' === $current_screen->base,
 				'postTypes'               => get_post_types(
@@ -293,12 +367,33 @@ class Registration {
 				'version'                 => OTTER_BLOCKS_VERSION,
 				'isRTL'                   => is_rtl(),
 				'highlightDynamicText'    => get_option( 'themeisle_blocks_settings_highlight_dynamic', true ),
-				'hasOpenAiKey'            => ! empty( get_option( 'themeisle_open_ai_api_key' ) ),
+				'hasOpenAiKey'            => $is_wp_ai_backend || ! empty( get_option( 'themeisle_open_ai_api_key' ) ),
+				'aiClientActive'          => $is_wp_ai_backend,
+				'aiClientSupported'       => function_exists( 'wp_ai_client_prompt' ),
+				'hasAIProvider'           => AI_Client_Adaptor::is_available(),
+				'connectorsUrl'           => esc_url( admin_url( 'options-connectors.php' ) ),
 				'hasPatternSources'       => Template_Cloud::has_used_pattern_sources(),
-			)
+				'proPatterns'             => boolval( get_option( 'themeisle_blocks_settings_patterns_library', true ) ) ? Patterns::get_upsell_patterns() : array(),
 		);
 
-		wp_enqueue_style( 'otter-editor', OTTER_BLOCKS_URL . 'build/blocks/editor.css', array( 'wp-edit-blocks', 'font-awesome-5', 'font-awesome-4-shims' ), $asset_file['version'] );
+		if ( $can_track ) {
+			$themeisle_gutenberg['telemetry'] = array(
+				'loggerData'    => get_option(
+					'otter_blocks_logger_data',
+					array(
+						'blocks'    => array(),
+						'templates' => array(),
+					)
+				),
+				'firstSaveDone' => (bool) get_option( 'otter_activation_first_save', false ),
+			);
+		}
+
+		wp_localize_script(
+			'otter-blocks',
+			'themeisleGutenberg',
+			$themeisle_gutenberg
+		);
 
 		add_filter( 'themeisle-sdk/survey/' . OTTER_PRODUCT_SLUG, array( Dashboard::class, 'get_survey_metadata' ), 10, 2 );
 		do_action( 'themeisle_internal_page', OTTER_PRODUCT_SLUG, 'editor' );
@@ -340,6 +435,23 @@ class Registration {
 		global $wp_query, $wp_registered_sidebars;
 
 		if ( is_admin() ) {
+			// In the editor (including the iframed canvas) enqueue the editor
+			// styles on `enqueue_block_assets` so WordPress loads them into the
+			// iframe natively. Enqueuing on `enqueue_block_editor_assets` would
+			// load them only in the parent document, and WordPress 6.9+ warns
+			// when it copies such styles into the iframe.
+			//
+			// Scripts enqueued here would also be injected into the iframe
+			// natively (via `_wp_get_iframed_editor_assets()`), but the iframe
+			// assets are resolved once on editor load, with no way to add them
+			// later. Heavy per-block scripts (Leaflet, Lottie, Glide) are
+			// therefore NOT enqueued here — they would load in every editor
+			// session regardless of the blocks used. Instead they are copied
+			// into the iframe on demand by `copyScriptAssetToIframe()` in
+			// `src/blocks/helpers/block-utility.js`, which keeps them lazy at
+			// the cost of client-side readiness tracking.
+			$asset_file = include OTTER_BLOCKS_PATH . '/build/blocks/blocks.asset.php';
+			wp_enqueue_style( 'otter-editor', OTTER_BLOCKS_URL . 'build/blocks/editor.css', array( 'wp-edit-blocks', 'font-awesome-5', 'font-awesome-4-shims' ), $asset_file['version'] );
 			return;
 		}
 
@@ -386,7 +498,7 @@ class Registration {
 
 		}
 
-		if ( function_exists( 'get_block_templates' ) && function_exists( 'wp_is_block_theme' ) && wp_is_block_theme() && current_theme_supports( 'block-templates' ) ) {
+		if ( function_exists( 'get_block_templates' ) && ( current_theme_supports( 'block-templates' ) || current_theme_supports( 'block-template-parts' ) ) ) {
 			$this->enqueue_dependencies( 'block-templates' );
 		}
 	}
@@ -395,10 +507,21 @@ class Registration {
 	 * Handler which checks the blocks used and enqueue the assets which needs.
 	 *
 	 * @since   2.0.0
-	 * @param   string|int|null $post Current post.
+	 * @param   string|int|null  $post    Current post.
+	 * @param   array<int, bool> $visited Reusable block IDs already traversed.
 	 * @access  public
 	 */
-	public function enqueue_dependencies( $post = null ) {
+	public function enqueue_dependencies( $post = null, $visited = array() ) {
+		if ( is_numeric( $post ) ) {
+			$post_id = (int) $post;
+
+			if ( isset( $visited[ $post_id ] ) ) {
+				return;
+			}
+
+			$visited[ $post_id ] = true;
+		}
+
 		$content = '';
 
 		if ( 'widgets' === $post ) {
@@ -406,25 +529,42 @@ class Registration {
 		} elseif ( 'block-templates' === $post ) {
 			global $_wp_current_template_content;
 
-			$slugs           = array();
-			$template_blocks = parse_blocks( $_wp_current_template_content );
+			$content = '';
+			$slugs   = array();
 
-			foreach ( $template_blocks as $template_block ) {
-				if ( 'core/template-part' === $template_block['blockName'] ) {
-					$slugs[] = $template_block['attrs']['slug'];
+			// If we have template content (full block templates), extract template part slugs.
+			if ( ! empty( $_wp_current_template_content ) ) {
+				$template_blocks = parse_blocks( $_wp_current_template_content );
+				
+				foreach ( $template_blocks as $template_block ) {
+					if ( 'core/template-part' === $template_block['blockName'] && isset( $template_block['attrs']['slug'] ) ) {
+						$slugs[] = $template_block['attrs']['slug'];
+					}
+				}
+				
+				// Get the specific template parts referenced in the template.
+				$templates_parts = get_block_templates( array( 'slug__in' => $slugs ), 'wp_template_part' );
+				
+				foreach ( $templates_parts as $templates_part ) {
+					if ( ! empty( $templates_part->content ) && ! empty( $templates_part->slug ) && in_array( $templates_part->slug, $slugs ) ) {
+						$content .= $templates_part->content;
+					}
+				}
+				
+				$content .= $_wp_current_template_content;
+			} else {
+				// Fallback for classic themes with block-template-parts only.
+				// Get all template parts since we can't determine which ones are used.
+				$templates_parts = get_block_templates( array(), 'wp_template_part' );
+				
+				foreach ( $templates_parts as $templates_part ) {
+					if ( ! empty( $templates_part->content ) ) {
+						$content .= $templates_part->content;
+					}
 				}
 			}
 
-			$templates_parts = get_block_templates( array( 'slugs__in' => $slugs ), 'wp_template_part' );
-
-			foreach ( $templates_parts as $templates_part ) {
-				if ( ! empty( $templates_part->content ) && ! empty( $templates_part->slug ) && in_array( $templates_part->slug, $slugs ) ) {
-					$content .= $templates_part->content;
-				}
-			}
-
-			$content .= $_wp_current_template_content;
-			$post     = $content;
+			$post = $content;
 		} else {
 			$content = get_the_content( null, false, $post );
 		}
@@ -432,16 +572,8 @@ class Registration {
 		$this->enqueue_block_styles( $post );
 
 		if ( has_block( 'core/block', $post ) ) {
-			$blocks = parse_blocks( $content );
-			$blocks = array_filter(
-				$blocks,
-				function ( $block ) {
-					return 'core/block' === $block['blockName'] && isset( $block['attrs']['ref'] );
-				}
-			);
-
-			foreach ( $blocks as $block ) {
-				$this->enqueue_dependencies( $block['attrs']['ref'] );
+			foreach ( self::get_reusable_block_ids( parse_blocks( $content ) ) as $ref ) {
+				$this->enqueue_dependencies( $ref, $visited );
 			}
 		}
 
@@ -530,11 +662,14 @@ class Registration {
 				array(
 					'reRecaptchaSitekey' => get_option( 'themeisle_google_captcha_api_site_key' ),
 					'reRecaptchaAPIURL'  => apply_filters( 'otter_blocks_recaptcha_api_url', 'https://www.google.com/recaptcha/api.js' ),
+					'turnstileSitekey'   => get_option( 'themeisle_cloudflare_turnstile_site_key' ),
+					'turnstileAPIURL'    => apply_filters( 'otter_blocks_turnstile_api_url', 'https://challenges.cloudflare.com/turnstile/v0/api.js?render=explicit' ),
 					'root'               => esc_url_raw( rest_url() ),
 					'nonce'              => wp_create_nonce( 'wp_rest' ),
 					'messages'           => array(
 						'submission'           => __( 'Form submission from', 'otter-blocks' ),
-						'captcha-not-loaded'   => __( 'Captcha is not loaded. Please check your browser plugins to allow the Google reCaptcha.', 'otter-blocks' ),
+						'success'              => __( 'Success', 'otter-blocks' ),
+						'captcha-not-loaded'   => __( 'Captcha is not loaded. Please check your browser plugins to allow it.', 'otter-blocks' ),
 						'check-captcha'        => __( 'Please check the captcha.', 'otter-blocks' ),
 						'invalid-email'        => __( 'The email address is invalid!', 'otter-blocks' ),
 						'already-registered'   => __( 'The email was already registered!', 'otter-blocks' ),
@@ -625,6 +760,29 @@ class Registration {
 			);
 		}
 
+		if ( ! self::$scripts_loaded['content-slider'] && has_block( 'themeisle-blocks/content-slider', $post ) ) {
+			$asset_file = include OTTER_BLOCKS_PATH . '/build/blocks/content-slider.asset.php';
+
+			wp_register_script(
+				'otter-content-slider',
+				OTTER_BLOCKS_URL . 'build/blocks/content-slider.js',
+				$asset_file['dependencies'],
+				$asset_file['version'],
+				true
+			);
+
+			wp_script_add_data( 'otter-content-slider', 'defer', true );
+
+			wp_localize_script(
+				'otter-content-slider',
+				'themeisleGutenbergContentSlider',
+				array(
+					/* translators: %d: slide number. */
+					'goToSlide' => __( 'Go to slide %d', 'otter-blocks' ),
+				)
+			);
+		}
+
 		if ( ! self::$scripts_loaded['tabs'] && has_block( 'themeisle-blocks/tabs', $post ) ) {
 			$asset_file = include OTTER_BLOCKS_PATH . '/build/blocks/tabs.asset.php';
 			wp_register_script( 'otter-tabs', OTTER_BLOCKS_URL . 'build/blocks/tabs.js', $asset_file['dependencies'], $asset_file['version'], true );
@@ -669,6 +827,8 @@ class Registration {
 	 * @access  public
 	 */
 	public function enqueue_block_styles( $post ) {
+		$asset_file = null;
+
 		foreach ( self::$blocks as $block ) {
 			if ( in_array( $block, self::$styles_loaded ) || ! has_block( 'themeisle-blocks/' . $block, $post ) ) {
 				continue;
@@ -696,7 +856,10 @@ class Registration {
 				continue;
 			}
 
-			$asset_file = include OTTER_BLOCKS_PATH . '/build/blocks/blocks.asset.php';
+			// Read the shared asset file once, only when a matching block exists.
+			if ( null === $asset_file ) {
+				$asset_file = include OTTER_BLOCKS_PATH . '/build/blocks/blocks.asset.php';
+			}
 
 			$deps = array();
 
@@ -728,6 +891,7 @@ class Registration {
 	public function register_blocks() {
 		$dynamic_blocks = array(
 			'about-author'         => '\ThemeIsle\GutenbergBlocks\Render\About_Author_Block',
+			'form-captcha'         => '\ThemeIsle\GutenbergBlocks\Render\Form_Captcha_Block',
 			'form-nonce'           => '\ThemeIsle\GutenbergBlocks\Render\Form_Nonce_Block',
 			'google-map'           => '\ThemeIsle\GutenbergBlocks\Render\Google_Map_Block',
 			'leaflet-map'          => '\ThemeIsle\GutenbergBlocks\Render\Leaflet_Map_Block',
@@ -751,10 +915,12 @@ class Registration {
 			'button',
 			'button-group',
 			'circle-counter',
+			'content-slider',
 			'countdown',
 			'flip',
 			'font-awesome-icons',
 			'form',
+			'form-captcha',
 			'form-input',
 			'form-nonce',
 			'form-textarea',
@@ -802,6 +968,9 @@ class Registration {
 			)
 		);
 
+		// Shared asset file (version/deps) for all blocks — read once, not per block.
+		$asset_file = include OTTER_BLOCKS_PATH . '/build/blocks/blocks.asset.php';
+
 		foreach ( self::$blocks as $block ) {
 			$block_path   = OTTER_BLOCKS_PATH . '/build/blocks/' . $block;
 			$editor_style = OTTER_BLOCKS_URL . 'build/blocks/' . $block . '/editor.css';
@@ -820,8 +989,6 @@ class Registration {
 				continue;
 			}
 
-			$asset_file = include OTTER_BLOCKS_PATH . '/build/blocks/blocks.asset.php';
-
 			$deps = array();
 
 			if ( isset( $local_dependencies[ $block ] ) ) {
@@ -837,20 +1004,17 @@ class Registration {
 				);
 			}
 
-			if ( isset( $dynamic_blocks[ $block ] ) ) {
-				$classname = $dynamic_blocks[ $block ];
-				$renderer  = new $classname();
+			$renderer = isset( $dynamic_blocks[ $block ] ) ? Loader::instantiate( $dynamic_blocks[ $block ] ) : null;
 
-				if ( method_exists( $renderer, 'render' ) ) {
-					register_block_type_from_metadata(
-						$metadata_file,
-						array(
-							'render_callback' => array( $renderer, 'render' ),
-						)
-					);
+			if ( null !== $renderer && method_exists( $renderer, 'render' ) ) {
+				register_block_type_from_metadata(
+					$metadata_file,
+					array(
+						'render_callback' => array( $renderer, 'render' ),
+					)
+				);
 
-					continue;
-				}
+				continue;
 			}
 
 			register_block_type_from_metadata( $metadata_file );
@@ -871,11 +1035,7 @@ class Registration {
 		);
 
 		foreach ( $classnames as $classname ) {
-			$classname = new $classname();
-
-			if ( method_exists( $classname, 'instance' ) ) {
-				$classname->instance();
-			}
+			Loader::boot( $classname );
 		}
 	}
 
@@ -944,7 +1104,7 @@ class Registration {
 		$has_navigation_block = \WP_Block_Type_Registry::get_instance()->is_registered( 'core/navigation' );
 
 		if ( $has_navigation_block && ( 'core/navigation-link' === $block['blockName'] || 'core/navigation-submenu' === $block['blockName'] ) ) {
-			if ( isset( $block['attrs']['className'] ) && strpos( $block['attrs']['className'], 'fa-' ) !== false ) {
+			if ( strpos( self::get_class_name( isset( $block['attrs'] ) ? $block['attrs'] : array() ), 'fa-' ) !== false ) {
 				self::$is_fa_loaded = true;
 
 				// See the src/blocks/plugins/menu-icons/inline.css file for where this comes from.
@@ -986,7 +1146,7 @@ class Registration {
 			return $block_content;
 		}
 
-		if ( isset( $block['attrs']['className'] ) && false !== strpos( $block['attrs']['className'], 'o-sticky' ) ) {
+		if ( false !== strpos( self::get_class_name( isset( $block['attrs'] ) ? $block['attrs'] : array() ), 'o-sticky' ) ) {
 			$asset_file = include OTTER_BLOCKS_PATH . '/build/blocks/sticky.asset.php';
 			wp_enqueue_script(
 				'otter-sticky',
@@ -1065,7 +1225,7 @@ class Registration {
 	 * @access public
 	 */
 	public static function condition_hide_on_style() {
-		echo '<style id="o-condition-hide-inline-css">@media (max-width:768px){.o-hide-on-mobile{display:none!important}}@media (min-width:767px) and (max-width:1024px){.o-hide-on-tablet{display:none!important}}@media (min-width:1023px){.o-hide-on-desktop{display:none!important}}</style>';
+		echo '<style id="o-condition-hide-inline-css">@layer theme, base, components, utilities;@media (max-width:768px){@layer utilities{.o-hide-on-mobile:is(.o-hide-on-mobile,#_){display:none!important}}}@media (min-width:769px) and (max-width:1024px){@layer utilities{.o-hide-on-tablet:is(.o-hide-on-tablet,#_){display:none!important}}}@media (min-width:1025px){@layer utilities{.o-hide-on-desktop:is(.o-hide-on-desktop,#_){display:none!important}}}</style>';
 	}
 
 	/**
@@ -1097,6 +1257,35 @@ class Registration {
 		}
 
 		return $content;
+	}
+
+	/**
+	 * Collect the IDs of every reusable block (synced pattern) in a block tree.
+	 *
+	 * Synced patterns can be nested inside other blocks, so the whole tree is
+	 * walked instead of only its top level. Without this, a pattern placed inside
+	 * a Group block is never found and the blocks it holds get none of their
+	 * assets registered.
+	 *
+	 * @param array<int, array<string, mixed>> $blocks Parsed blocks.
+	 * @return array<int, int> List of reusable block IDs.
+	 * @since   3.2.3
+	 * @access  public
+	 */
+	public static function get_reusable_block_ids( $blocks ) {
+		$ids = array();
+
+		foreach ( $blocks as $block ) {
+			if ( 'core/block' === $block['blockName'] && isset( $block['attrs']['ref'] ) ) {
+				$ids[] = (int) $block['attrs']['ref'];
+			}
+
+			if ( ! empty( $block['innerBlocks'] ) ) {
+				$ids = array_merge( $ids, self::get_reusable_block_ids( $block['innerBlocks'] ) );
+			}
+		}
+
+		return array_values( array_unique( $ids ) );
 	}
 
 	/**

@@ -1,12 +1,12 @@
 === Otter Blocks - Gutenberg Blocks, Page Builder for Gutenberg Editor & FSE ===
 Contributors: themeisle, hardeepasrani, soarerobertdaniel7, mariamunteanu1, arinat, uriahs-victor, john_pixle, wildmisha, irinelenache
-Tags: block, blocks, gutenberg, gutenberg blocks, page builder
-Requires at least: 6.2
-Tested up to: 6.8
+Tags: gutenberg blocks, gutenberg, blocks, page builder, fse
+Requires at least: 6.6
+Tested up to: 7.1
 Requires PHP: 5.6
-Stable tag: 3.1.2
-License: GPLv3
-License URI: https://www.gnu.org/licenses/gpl-3.0.en.html
+Stable tag: 3.2.7
+License: GPLv2 or later
+License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
 Quickly create WordPress pages with 20+ blocks, 100+ ready-to-import designs, and advanced editor extensions. It’s website building, Lego-style!
 
@@ -16,10 +16,10 @@ Otter is a Gutenberg Blocks page builder plugin that adds extra functionality to
 
 ## Quick Links 🔗
 
-- Do you want to see Otter blocks in action before installing? [SEE OTTER BLOCKS DEMO](https://demo.themeisle.com/otter-blocks/?utm_source=wpadmin&utm_medium=readme&utm_campaign=otter-blocks)
+- Do you want to see Otter blocks in action before installing? [SEE OTTER BLOCKS DEMO](https://demo.themeisle.com/otter-blocks/?utm_source=wordpressorg&utm_medium=readme&utm_campaign=otter-blocks)
 - New to the Gutenberg Blocks ecosystem? Check out our article on [GUTENBERG EXPLAINED](https://themeisle.com/blog/gutenberg-blocks-explained/)
 - Need any help with setup? Checkout our [DOCUMENTATION](https://docs.themeisle.com/article/1478-otter-blocks-documentation)
-- Interested in Otter Pro? Here are more details about [OTTER PRO](https://themeisle.com/plugins/otter-blocks/upgrade/?utm_source=wpadmin&utm_medium=readme&utm_campaign=otter-blocks)
+- Interested in Otter Pro? Here are more details about [OTTER PRO](https://themeisle.com/plugins/otter-blocks/upgrade/?utm_source=wordpressorg&utm_medium=readme&utm_campaign=otter-blocks)
 
 ## With Otter Blocks, You Get Access To
 
@@ -55,6 +55,18 @@ Every block has customization support to help you style your site according to y
 - Color controls for primary, accents, and backgrounds.
 - Animation backing, bouncing, fading, flipping, rotating, sliding, rolling, light speed, and more at the click of a button.
 - Typography controls from spacing to font choice.
+
+### Your AI Assistant for the Block Editor
+
+Otter brings AI right into the block editor to help you build, not just edit. Describe what you want, and Otter creates it as real, editable blocks.
+
+- **AI Content Generator:** Generate a full section or an entire page from a simple prompt with the AI Block. Pick a type like Hero, Features, Pricing, Testimonials, or Call to action, or describe your own. Otter matches your theme colors and current page style, so the result arrives on-brand.
+
+- **AI Toolbar:** Select any text to rewrite, summarize, expand, shorten, translate, change tone, fix grammar, or simplify it, all without leaving the page. You can also create your own custom actions with your own prompts and reorder the toolbar to fit how you work.
+
+- **AI Form Autoresponder [PRO]:** Reply to every form submission with a personalized, AI-written message. Write a prompt using your form fields, set a fallback message, and let AI craft the rest.
+
+- **Native WordPress AI Connectors:** Otter's AI works with the native AI adapters in WordPress 7.0, so you connect your preferred AI provider once, and every Otter AI feature uses it. 
 
 ### Mobile Responsiveness of Otter Blocks
 
@@ -105,7 +117,7 @@ The heading block you didn't know you needed. This Otter block has all the funct
 
 #### AI Block [FREE]
 
-Step inside the AI Block, your gateway to effortless content and form creation, all powered by AI. With the AI Content Generator, crafting text, dynamic headings, and insightful paragraphs is a breeze, while the AI Form Generator simplifies building forms. It's your all-in-one solution for seamless work — everything you need with AI, neatly packed into a single block.
+Build with AI, right in the editor. Describe the section or page you want, and the AI Block generates it as real, editable Gutenberg blocks, matched to your theme colors and page style. Adjust anything by hand afterward, just like blocks you built yourself.
 
 #### Button Group Gutenberg Block [FREE]
 
@@ -123,9 +135,9 @@ Quickly and easily insert a contact form anywhere on the page. Optionally, turn 
 
 Elegantly display events in a chronological timeline. Ideal for highlighting historical events, process steps, or key milestones.
 
-#### Countdown Block [FREE]
+#### Content Slider Block [FREE]
 
-Counting down to a big event? Show it by making use of these Gutenberg blocks. [Check live demo](https://demo.themeisle.com/otter-blocks/countdown/)
+A slider where every slide can hold any Gutenberg blocks, not just images. Add headings, text, buttons, images, or full layouts like testimonial, pricing, or feature cards inside each slide, then let visitors move through them with arrows or dots. Unlike a standard image slider, the Content Slider turns anything you build in Gutenberg into a swipeable carousel, with no extra plugin needed.
 
 #### Circular Progress Block [FREE]
 
@@ -215,29 +227,7 @@ We're constantly adding new Gutenberg Blocks to Otter to assist in your website 
 
 Easily launch your site with our customizable patterns and full-page WordPress templates. Import ready-made designs with just one click and get started in no time.
 
-#### Service Patterns
-
-Organize your services clearly with sections that keep your page tidy while offering detailed information on demand. [Check live demo](https://demo.themeisle.com/otter-blocks/service/)
-
-#### Testimonial Patterns
-
-Organize your services clearly with sections that keep your page tidy while offering detailed information on demand. [Check live demo](https://demo.themeisle.com/otter-blocks/service/)
-
-#### Pricing Patterns
-
-Tailor your pricing tables with versatile layout patterns that enhance readability and appeal, suitable for any business model. [Check live demo](https://demo.themeisle.com/otter-blocks/pricing/)
-
-#### Features Section Patterns
-
-Detail the features of your products or services using clean, organized layouts that make complex information easy to digest. [Check live demo](https://demo.themeisle.com/otter-blocks/features-patterns/)
-
-#### Call-to-action Section Patterns
-
-Drive conversions with compelling call-to-action sections, designed to grab attention and motivate immediate responses. [Check live demo](https://demo.themeisle.com/otter-blocks/cta-patterns/)
-
-📌 Check a live demo of all the patterns available by [clicking here](https://demo.themeisle.com/otter-blocks/patterns/).
-
-📌 Check a live demo of all the Full-page templates available by [clicking here](https://demo.themeisle.com/otter-blocks/templates/).
+Explore a wide range of Otter patterns and full-page templates for services, testimonials, pricing, features, call-to-action sections, and more. Browse the available designs [here](https://themeisle.com/plugins/otter-blocks/patterns/?utm_source=wordpressorg&utm_medium=readme&utm_campaign=otter-blocks).
 
 ### Get More Options in Otter Pro 🤩
 
@@ -245,7 +235,7 @@ Drive conversions with compelling call-to-action sections, designed to grab atte
 
 Build custom Single Product Pages using WooCommerce Builder Blocks by Otter. All the new features are designed to maximize your conversion rate and bring more improvements. 
 
-With [Otter Pro](https://themeisle.com/plugins/otter-blocks/upgrade/?utm_source=wpadmin&utm_medium=readme&utm_campaign=otter-blocks), you get a lot more features, including:
+With [Otter Pro](https://themeisle.com/plugins/otter-blocks/upgrade/?utm_source=wordpressorg&utm_medium=readme&utm_campaign=otter-blocks), you get a lot more features, including:
 
 - Add to Cart Block
 - Business Hours Block
@@ -258,7 +248,7 @@ With [Otter Pro](https://themeisle.com/plugins/otter-blocks/upgrade/?utm_source=
 - More Patterns & Full-page templates
 - and more!
 
-You can try a live demo of Otter Blocks - no setup required. [Click here](https://themeisle.com/plugins/otter-blocks/try-otter/?utm_source=wpadmin&utm_medium=readme&utm_campaign=otter-blocks) to try it out.
+You can try a live demo of Otter Blocks - no setup required. [Click here](https://themeisle.com/plugins/otter-blocks/try-otter/?utm_source=wordpressorg&utm_medium=readme&utm_campaign=otter-blocks) to try it out.
 
 ## Who is Otter For? 👀
 
@@ -270,15 +260,9 @@ You can try a live demo of Otter Blocks - no setup required. [Click here](https:
 
 ## Let's See Some Use Cases 🚀
 
-Otter opens up a world of opportunities! Discover how different audience segments can make the most of it:
-
 - **Travel Bloggers:** Enhance your travel blog with captivating maps using Otter's Maps and Google Maps blocks to showcase your journeys to the world.
   
 - **Non-Profit Organizations:** Engage your audience and promote your cause with Otter's Circle Counter and Testimonial blocks to share inspiring success stories.
-  
-- **Restaurant Owners:** Showcase your restaurant's menus and gather reservations easily with Otter's Flip Card and Form blocks for a mouth-watering online presence.
-
-- **Tech Product Reviewers:** Present detailed product reviews with Otter's Product Review, making your content informative and captivating.
 
 - **Bloggers:** Enhance your blog posts with Sharing Icons, creating easy sharing options for your readers. Use Slider to display image galleries and engage your audience.
 
@@ -288,17 +272,7 @@ Otter opens up a world of opportunities! Discover how different audience segment
 
 - **Restaurant Owners:** Display your business hours in a stylish format using Business Hours blocks, making it easy for customers to find you.
 
-- **Online Directories:** Websites offering directories, listings, or extensive content where live search simplifies content access.
-
 ---
-
-### Support 🤝
-
-We're here to help. Feel free to open a new thread on the [Support Forum](https://wordpress.org/support/plugin/otter-blocks/).
-
-### Documentation 📚
-
-Discover how to make the most of Otter Blocks with our detailed and user-friendly [documentation](https://docs.themeisle.com/article/1478-otter-blocks-documentation).
 
 ### Become a Contributor 💁‍♂️
 
@@ -307,19 +281,18 @@ Otter Blocks is an open-source project, and we welcome contributors to be part o
 ### Useful Resources 📌
 
 - Read more about WordPress on our [blog](https://themeisle.com/blog/).
-- Interested in our other plugins? Take a look [here](https://themeisle.com/wordpress-plugins/?utm_source=wpadmin&utm_medium=readme&utm_campaign=otter-blocks).
+- Interested in our other plugins? Take a look [here](https://themeisle.com/wordpress-plugins/?utm_source=wordpressorg&utm_medium=readme&utm_campaign=otter-blocks).
 - Get the most out of Otter Blocks with our helpful [YouTube Tutorials Playlist](https://youtube.com/playlist?list=PLmRasCVwuvpSep2MOsIoE0ncO9JE3FcKP).
 
 The plugin is relying on the service behind api.themeisle.com for accessing the patterns list, AI prompts and Onboarding. No account is required to access the service template collection and the privacy policy can be found [here](https://themeisle.com/privacy-policy/).
 
 == Screenshots ==
 
-1. Gutenberg Block Animations
-2. Visibility Condition Rules
-3. Posts Block
-4. AI Form Generator
-5. AI Layout Generator
-6. Patterns & Full-page templates Library
+1. Advanced Blocks Library
+2. Patterns & Full-page Design Library
+3. AI Section and Page Generator
+4. Visibility Conditions
+5. Advanced Forms
 
 == Installation ==
 
@@ -363,12 +336,23 @@ If you encounter any difficulties or if you have questions about Otter, you can 
 
 The Patterns have been designed to make it easier for you to build your site using predefined blocks that can be then customized according to your needs. You can take a look at our [dedicated documentation](https://docs.themeisle.com/article/1785-block-patterns-otter-features-library) to find out all you need to know about the Patterns.
 
+= How to report a security issue? =
+ 
+Plugin security is a core priority for us. If you identify a potential vulnerability, we ask that you disclose it responsibly.
+
+Please follow the reporting protocols outlined on our [Security Page](https://themeisle.com/security/).
+
 == Changelog ==
 
-##### [Version 3.1.2](https://github.com/Codeinwp/otter-blocks/compare/v3.1.1...v3.1.2) (2025-09-04)
+##### [Version 3.2.7](https://github.com/Codeinwp/otter-blocks/compare/v3.2.6...v3.2.7) (2026-09-29)
 
-- Updated dependencies
-- Fixed onboarding issue
+- Fixed custom block CSS missing from posts on archive pages.
+- Updated dependencies.
+- Fixed permission checks for form submissions widget.
+- Added AI agent support: let AI assistants read and change your Otter forms and settings.
+- Fixed frontend pages failing when Otter could not load a block style.
+- Fixed frontend crashes when Otter could not load a plugin class.
+- Fixed unequal card and featured image widths in the Posts Block grid.
 
 
 

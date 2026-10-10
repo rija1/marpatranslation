@@ -4,8 +4,10 @@ if ( !class_exists( 'MeowKit_WR2X_Admin' ) ) {
 
   class MeowKit_WR2X_Admin {
     public static $loaded = false;
-    public static $version = '4.0';
-    public static $admin_version = '4.0';
+    public static $version = '5.0';
+    public static $admin_version = '5.0';
+    public static $network_license_modal_added = false;
+    public static $network_license_plugins = [];
 
     /**
      * Storage for instances that need deferred initialization.
@@ -156,6 +158,11 @@ if ( !class_exists( 'MeowKit_WR2X_Admin' ) ) {
           add_filter( 'admin_footer_text', [ $this, 'admin_footer_text' ], 100000, 1 );
         }
 
+        // Promote AI Engine on the WordPress 7 Connectors page when AI Engine
+        // itself isn't installed. When AI Engine is active, its own banner
+        // takes over — so this path only runs on "bare" Meow Apps installs.
+        add_action( 'admin_enqueue_scripts', [ $this, 'maybe_render_wpai_promo' ] );
+
         MeowKit_WR2X_Admin::$loaded = true;
       }
 
@@ -196,18 +203,229 @@ if ( !class_exists( 'MeowKit_WR2X_Admin' ) ) {
         return $links;
       }
       $isIssue = $this->isPro && !$this->is_registered();
-      if ( strpos( $pathName, $thisPathName ) !== false ) {
-        $new_links = [
-          'settings' =>
-          sprintf( __( '<a href="admin.php?page=%s_settings">Settings</a>', $this->domain ), $this->prefix ),
-          'license' =>
-          $this->is_registered() ?
-            ( '<span style="color: #a75bd6;">' . __( 'Pro Version', $this->domain ) . '</span>' ) :
-                ( $isIssue ? ( sprintf( '<span style="color: #ff3434;">' . __( 'License Issue', $this->domain ), $this->prefix ) . '</span>' ) : ( sprintf( '<span>' . __( '<a target="_blank" href="https://meowapps.com">Get the <u>Pro Version</u></a>', $this->domain ), $this->prefix ) . '</span>' ) ),
+
+      // The licenser already knows WHY validation failed and stores it as
+      // license['issue'] (licenser.php), but this badge used to render a flat
+      // "License Issue" for every case. That sent people to support to ask a
+      // question the plugin could have answered: the most common one by far is a
+      // licence whose activation slot is held by another site, which reads as
+      // "my licence is broken" and gets reported as a billing problem.
+      $issueLabel = __( 'License Issue', $this->domain );
+      if ( $isIssue ) {
+        $license = get_option( $this->prefix . '_license', '' );
+        $issue   = is_array( $license ) && !empty( $license['issue'] ) ? $license['issue'] : null;
+        // Codes the store actually sends. Verified against EDD Software Licensing
+        // rather than guessed: an invented key would silently never match, and a
+        // wrong label is worse than the generic one.
+        $labels  = [
+          // `error` codes, from a failed activation.
+          'no_activations_left'           => __( 'License in use on another site', $this->domain ),
+          'expired'                       => __( 'License expired', $this->domain ),
+          'disabled'                      => __( 'License revoked', $this->domain ),
+          'missing'                       => __( 'License key not recognized', $this->domain ),
+          'key_mismatch'                  => __( 'License key not recognized', $this->domain ),
+          'item_name_mismatch'            => __( 'License is for another plugin', $this->domain ),
+          'invalid_item_id'               => __( 'License is for another plugin', $this->domain ),
+          'missing_item_id'               => __( 'License is for another plugin', $this->domain ),
+          'bundle_activation_not_allowed' => __( 'This license cannot be activated directly', $this->domain ),
+          // `license` statuses, when the key is known but not valid here.
+          'site_inactive'                 => __( 'License not activated on this site', $this->domain ),
+          'inactive'                      => __( 'License not activated on this site', $this->domain ),
+          // Genuinely no answer from the store. NOT invalid_response, which means the
+          // store replied and we could not make sense of it: blaming the connection
+          // there would send people chasing a firewall that is working fine.
+          'no_response'                   => __( 'License server unreachable', $this->domain ),
         ];
+        if ( $issue !== null && isset( $labels[ $issue ] ) ) {
+          $issueLabel = $labels[ $issue ];
+        }
+      }
+      if ( strpos( $pathName, $thisPathName ) !== false ) {
+        // In network admin, handle differently (no settings page available)
+        if ( is_network_admin() ) {
+          if ( $this->isPro && !$this->is_registered() ) {
+            // Show "Register License" link for unregistered Pro plugins
+            $new_links = [
+              'license' => sprintf(
+                '<a href="#" class="meowapps-network-license-link" data-prefix="%s" data-plugin="%s" style="color: #d63638;">%s</a>',
+                esc_attr( $this->prefix ),
+                esc_attr( $this->nice_name_from_file( $this->mainfile ) ),
+                __( 'Register License', $this->domain )
+              ),
+            ];
+            // Track this plugin for the modal
+            self::$network_license_plugins[ $this->prefix ] = $this->nice_name_from_file( $this->mainfile );
+            // Add modal output hook (only once)
+            if ( !self::$network_license_modal_added ) {
+              add_action( 'admin_footer', [ __CLASS__, 'output_network_license_modal' ] );
+              self::$network_license_modal_added = true;
+            }
+          }
+          elseif ( $this->isPro && $this->is_registered() ) {
+            // Pro plugin is registered
+            $new_links = [
+              'license' => '<span style="color: #a75bd6;">' . __( 'Pro Version', $this->domain ) . '</span>',
+            ];
+          }
+          else {
+            // Free plugin
+            $new_links = [
+              'license' => sprintf( '<span>' . __( '<a target="_blank" href="https://meowapps.com">Get the <u>Pro Version</u></a>', $this->domain ), $this->prefix ) . '</span>',
+            ];
+          }
+        }
+        else {
+          // Regular admin - show settings and license status
+          $new_links = [
+            'settings' =>
+            sprintf( __( '<a href="admin.php?page=%s_settings">Settings</a>', $this->domain ), $this->prefix ),
+            'license' =>
+            $this->is_registered() ?
+              ( '<span style="color: #a75bd6;">' . __( 'Pro Version', $this->domain ) . '</span>' ) :
+                  ( $isIssue ? ( '<span style="color: #ff3434;">' . esc_html( $issueLabel ) . '</span>' ) : ( sprintf( '<span>' . __( '<a target="_blank" href="https://meowapps.com">Get the <u>Pro Version</u></a>', $this->domain ), $this->prefix ) . '</span>' ) ),
+          ];
+        }
         $links = array_merge( $new_links, $links );
       }
       return $links;
+    }
+
+    /**
+     * Output the network license registration modal.
+     * Called via admin_footer hook in network admin.
+     */
+    public static function output_network_license_modal() {
+      $rest_url = esc_url( rest_url() );
+      $nonce = wp_create_nonce( 'wp_rest' );
+      ?>
+      <div id="meowapps-network-license-modal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.6); z-index:100000; align-items:center; justify-content:center;">
+        <div style="background:#fff; padding:24px; border-radius:8px; max-width:450px; width:90%; box-shadow:0 4px 20px rgba(0,0,0,0.3);">
+          <h2 style="margin:0 0 8px 0; font-size:18px;">Register License</h2>
+          <p id="meowapps-license-plugin-name" style="margin:0 0 16px 0; color:#666;"></p>
+          <input type="text" id="meowapps-license-key-input" placeholder="Enter your license key" style="width:100%; padding:10px; font-size:14px; border:1px solid #8c8f94; border-radius:4px; box-sizing:border-box;" />
+          <p id="meowapps-license-message" style="margin:12px 0 0 0; padding:10px; border-radius:4px; display:none;"></p>
+          <div style="margin-top:16px; display:flex; gap:10px; justify-content:flex-end;">
+            <button type="button" id="meowapps-license-cancel" class="button">Cancel</button>
+            <button type="button" id="meowapps-license-submit" class="button button-primary">Validate & Register</button>
+          </div>
+        </div>
+      </div>
+      <?php
+      ob_start();
+      ?>
+      (function() {
+        var modal = document.getElementById('meowapps-network-license-modal');
+        var input = document.getElementById('meowapps-license-key-input');
+        var message = document.getElementById('meowapps-license-message');
+        var pluginName = document.getElementById('meowapps-license-plugin-name');
+        var submitBtn = document.getElementById('meowapps-license-submit');
+        var cancelBtn = document.getElementById('meowapps-license-cancel');
+        var currentPrefix = '';
+
+        function showMessage(text, isError) {
+          message.textContent = text;
+          message.style.display = 'block';
+          message.style.background = isError ? '#fcf0f1' : '#edfaef';
+          message.style.color = isError ? '#d63638' : '#1e7e34';
+          message.style.border = '1px solid ' + (isError ? '#d63638' : '#1e7e34');
+        }
+
+        function hideMessage() {
+          message.style.display = 'none';
+        }
+
+        function openModal(prefix, plugin) {
+          currentPrefix = prefix;
+          pluginName.textContent = plugin;
+          input.value = '';
+          hideMessage();
+          submitBtn.disabled = false;
+          submitBtn.textContent = 'Validate & Register';
+          modal.style.display = 'flex';
+          input.focus();
+        }
+
+        function closeModal() {
+          modal.style.display = 'none';
+          currentPrefix = '';
+        }
+
+        // Handle click on "Register License" links
+        document.addEventListener('click', function(e) {
+          if (e.target.classList.contains('meowapps-network-license-link')) {
+            e.preventDefault();
+            var prefix = e.target.getAttribute('data-prefix');
+            var plugin = e.target.getAttribute('data-plugin');
+            openModal(prefix, plugin);
+          }
+        });
+
+        // Close modal on cancel or clicking outside
+        cancelBtn.addEventListener('click', closeModal);
+        modal.addEventListener('click', function(e) {
+          if (e.target === modal) closeModal();
+        });
+
+        // Handle escape key
+        document.addEventListener('keydown', function(e) {
+          if (e.key === 'Escape' && modal.style.display === 'flex') {
+            closeModal();
+          }
+        });
+
+        // Handle enter key in input
+        input.addEventListener('keydown', function(e) {
+          if (e.key === 'Enter') {
+            submitBtn.click();
+          }
+        });
+
+        // Submit license
+        submitBtn.addEventListener('click', function() {
+          var licenseKey = input.value.trim();
+          if (!licenseKey) {
+            showMessage('Please enter a license key.', true);
+            return;
+          }
+
+          submitBtn.disabled = true;
+          submitBtn.textContent = 'Validating...';
+          hideMessage();
+
+          var restUrl = '<?php echo $rest_url; ?>meow-licenser/' + currentPrefix + '/v1/set_license/';
+
+          fetch(restUrl, {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              'X-WP-Nonce': '<?php echo $nonce; ?>'
+            },
+            body: JSON.stringify({ serialKey: licenseKey })
+          })
+          .then(function(response) { return response.json(); })
+          .then(function(data) {
+            if (data.success && data.data && !data.data.issue) {
+              showMessage('License registered successfully! Reloading...', false);
+              setTimeout(function() { location.reload(); }, 1500);
+            } else {
+              var errorMsg = 'License validation failed.';
+              if (data.data && data.data.issue) {
+                errorMsg = 'License issue: ' + data.data.issue;
+              }
+              showMessage(errorMsg, true);
+              submitBtn.disabled = false;
+              submitBtn.textContent = 'Validate & Register';
+            }
+          })
+          .catch(function(error) {
+            showMessage('Error: ' + error.message, true);
+            submitBtn.disabled = false;
+            submitBtn.textContent = 'Validate & Register';
+          });
+        });
+      })();
+      <?php
+      wp_print_inline_script_tag( ob_get_clean() );
     }
 
     public function request_verify_ssl() {
@@ -227,7 +445,10 @@ if ( !class_exists( 'MeowKit_WR2X_Admin' ) ) {
     }
 
     public function admin_notices_licensed_free() {
-      if ( isset( $_POST[$this->prefix . '_reset_sub'] ) ) {
+      // Verify the nonce before removing the license from a POST request (CSRF protection).
+      if ( isset( $_POST[$this->prefix . '_reset_sub'] )
+        && isset( $_POST[ $this->prefix . '_reset_sub_nonce' ] )
+        && wp_verify_nonce( sanitize_text_field( wp_unslash( $_POST[ $this->prefix . '_reset_sub_nonce' ] ) ), $this->prefix . '_reset_sub' ) ) {
         delete_option( $this->prefix . '_pro_serial' );
         delete_option( $this->prefix . '_license' );
         return;
@@ -239,7 +460,7 @@ if ( !class_exists( 'MeowKit_WR2X_Admin' ) ) {
       );
       $html .= '<p>
                                                                                                                                                   <form method="post" action="">
-                                                                                                                                                  <input type="hidden" name="' . $this->prefix . '_reset_sub" value="true">
+                                                                                                                                                  <input type="hidden" name="' . $this->prefix . '_reset_sub" value="true"><input type="hidden" name="' . $this->prefix . '_reset_sub_nonce" value="' . esc_attr( wp_create_nonce( $this->prefix . '_reset_sub' ) ) . '">
                                                                                                                                                   <input type="submit" name="submit" id="submit" class="button" value="'
       . __( 'Remove the license', $this->domain ) . '">
                                                                                                                                                     </form>
@@ -251,17 +472,21 @@ if ( !class_exists( 'MeowKit_WR2X_Admin' ) ) {
     public function admin_menu_start() {
       // Hide the admin if user doesn't like Meow much
       if ( get_option( 'meowapps_hide_meowapps', false ) ) {
-        register_setting( 'general', 'meowapps_hide_meowapps' );
+        register_setting( 'general', 'meowapps_hide_meowapps', [ 'type' => 'boolean', 'sanitize_callback' => 'rest_sanitize_boolean' ] );
         add_settings_field( 'meowapps_hide_ads', 'Meow Apps Menu', [ $this, 'meowapps_hide_dashboard_callback' ], 'general' );
         return;
       }
 
-      // Create standard menu if it does not already exist
+      // Create standard menu if it does not already exist.
+      // The cat logo is injected as an <img> inside the menu title (rather than passed as
+      // the $icon_url argument) so the original SVG fills are preserved — passing it via
+      // $icon_url makes WordPress add the .svg class and the admin color scheme strips
+      // the colors to a single fill.
       global $submenu;
       if ( !isset( $submenu[ 'meowapps-main-menu' ] ) ) {
         add_menu_page(
           'Meow Apps',
-          '<img alt="Meow Apps" style="width: 21px; margin-left: -28px; position: absolute; margin-top: 2px;" src="' . MeowKit_WR2X_Admin::$logo . '" />Meow Apps',
+          '<img alt="Meow Apps" class="meowapps-menu-icon" src="' . MeowKit_WR2X_Admin::$logo . '" />Meow Apps',
           'manage_options',
           'meowapps-main-menu',
           [ $this, 'admin_meow_apps' ],
@@ -278,13 +503,44 @@ if ( !class_exists( 'MeowKit_WR2X_Admin' ) ) {
         );
       }
 
-      // Add CSS to hide the default icon
-      add_action( 'admin_head', function () {
-        echo '<style>
-                                                                                                                                                                                    #toplevel_page_meowapps-main-menu .wp-menu-image {
-                                                                                                                                                                                    display: none;
-                                                                                                                                                                                  }
-                                                                                                                                                                                </style>';
+      // Position the cat icon so it sits in the standard icon column in both the
+      // expanded and the collapsed (folded) sidebar.
+      //
+      // The image lives inside the .wp-menu-name title (where the original code
+      // put it) so the <img> renders with its native SVG fills. When the sidebar
+      // is collapsed, WP hides .wp-menu-name (and everything inside it), so a
+      // small JS snippet below clones the same <img> into the .wp-menu-image
+      // slot — which WP keeps visible in both states. We use a real <img>
+      // (not a background-image) on purpose: at small sizes WP's admin renders
+      // background-image SVGs noticeably lighter than the equivalent <img>,
+      // and we want the colored cat in both states.
+      //
+      // The !important rules also override an older "display: none" style that
+      // previous-generation Meow Apps common copies inject for .wp-menu-image;
+      // if any of them load first, ours still wins.
+      // Enqueue the menu-icon CSS/JS through the assets API instead of echoing inline tags.
+      add_action( 'admin_enqueue_scripts', function () {
+        $css = '
+          #toplevel_page_meowapps-main-menu .meowapps-menu-icon { width: 20px; height: auto; position: absolute; margin-left: -28px; margin-top: 3px; }
+          #toplevel_page_meowapps-main-menu .wp-menu-image { display: block !important; position: relative; }
+          #toplevel_page_meowapps-main-menu .wp-menu-image::before { display: none !important; }
+          #toplevel_page_meowapps-main-menu .wp-menu-image .meowapps-menu-icon-folded { display: none; position: absolute; top: 50%; left: 50%; transform: translate(-50%, calc(-50% - 3px)); width: 20px; height: auto; }
+          body.folded #toplevel_page_meowapps-main-menu .wp-menu-image .meowapps-menu-icon-folded { display: block; }
+          body.folded #toplevel_page_meowapps-main-menu .meowapps-menu-icon { display: none; }
+          @media only screen and (max-width: 960px) {
+            body.auto-fold #toplevel_page_meowapps-main-menu .wp-menu-image .meowapps-menu-icon-folded { display: block; }
+            body.auto-fold #toplevel_page_meowapps-main-menu .meowapps-menu-icon { display: none; }
+          }';
+        wp_add_inline_style( 'admin-menu', $css );
+
+        // Clone the in-title cat icon into the .wp-menu-image slot (CSS shows it only when folded).
+        $js = 'document.addEventListener("DOMContentLoaded", function () {'
+          . 'var li = document.getElementById("toplevel_page_meowapps-main-menu"); if ( !li ) { return; }'
+          . 'var src = li.querySelector(".meowapps-menu-icon"); var slot = li.querySelector(".wp-menu-image");'
+          . 'if ( !src || !slot || slot.querySelector(".meowapps-menu-icon-folded") ) { return; }'
+          . 'var clone = src.cloneNode(); clone.className = "meowapps-menu-icon-folded"; clone.removeAttribute("style"); slot.appendChild(clone);'
+          . '});';
+        wp_add_inline_script( 'common', $js );
       } );
     }
 
@@ -330,6 +586,201 @@ if ( !class_exists( 'MeowKit_WR2X_Admin' ) ) {
         MeowKit_WR2X_Admin::$version,
         __FILE__
       );
+    }
+
+    /**
+     * Renders a promo banner on WordPress 7's Connectors page when AI Engine
+     * isn't installed. Kept self-contained so the common library stays simple:
+     * no new file, no REST endpoint, dismissal persists in localStorage.
+     */
+    public function maybe_render_wpai_promo() {
+      // WordPress 7+ only.
+      if ( ! class_exists( 'WP_Connector_Registry' ) ) {
+        return;
+      }
+      // If AI Engine is installed, its own Connectors banner takes over.
+      if ( class_exists( 'Meow_MWAI_Core' ) ) {
+        return;
+      }
+      // Another Meow Apps plugin's common copy may have rendered already.
+      if ( defined( 'MEOWAPPS_WPAI_PROMO_RENDERED' ) ) {
+        return;
+      }
+      // Gate on the Connectors screen. The hook suffix differs between the
+      // direct file (`options-connectors.php`) and the menu-page variant.
+      $screen = function_exists( 'get_current_screen' ) ? get_current_screen() : null;
+      $id = $screen ? $screen->id : ( isset( $GLOBALS['hook_suffix'] ) ? $GLOBALS['hook_suffix'] : '' );
+      $targets = array( 'options-connectors', 'options-connectors.php', 'settings_page_options-connectors-wp-admin' );
+      if ( ! in_array( $id, $targets, true ) ) {
+        return;
+      }
+      define( 'MEOWAPPS_WPAI_PROMO_RENDERED', true );
+
+      // Install button → WordPress's own plugin-install search page, pre-
+      // filtered for AI Engine. One click from there to install. This is the
+      // most reliable path: no custom nonces, native progress UI, native
+      // filesystem credential prompt if needed.
+      $can_install = current_user_can( 'install_plugins' );
+      $install_url = $can_install
+        ? self_admin_url( 'plugin-install.php?tab=search&type=term&s=AI+Engine' )
+        : 'https://wordpress.org/plugins/ai-engine/';
+      $wporg_url   = 'https://wordpress.org/plugins/ai-engine/';
+      $learn_url   = 'https://meowapps.com/wordpress-7-ai-engine-gateway/';
+
+      // Title is split so "AI Engine" can carry an anchor to wp.org. Keeping
+      // the pieces as data (not one HTML string) avoids escaping surprises and
+      // keeps the translation unit stable.
+      $payload = array(
+        'titleBefore' => __( 'Highly recommended: Let ', 'meowapps' ),
+        'titleLink'   => __( 'AI Engine', 'meowapps' ),
+        'titleAfter'  => __( ' handle your connections.', 'meowapps' ),
+        'sub'         => __( 'One plugin for every provider. Keep your AI setup clean and consistent: monitor your API costs in one place, log every single request, and avoid the mess of juggling separate plugins for each AI model.', 'meowapps' ),
+        'install'     => __( 'Install AI Engine', 'meowapps' ),
+        'learn'       => __( 'Learn more', 'meowapps' ),
+        'dismiss'     => __( 'Dismiss', 'meowapps' ),
+        'installUrl'  => $install_url,
+        'wporgUrl'    => $wporg_url,
+        'learnUrl'    => $learn_url,
+      );
+      wp_register_style( 'meowapps-common-inline', false );
+      wp_enqueue_style( 'meowapps-common-inline' );
+      ob_start();
+      ?>
+        .meowapps-wpai-promo {
+          margin: 0 0 16px; padding: 14px 18px;
+          display: flex; align-items: flex-start; gap: 14px;
+          background: #f0f4ff; border: 1px solid #d6deff; border-radius: 4px;
+          font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+          font-size: 13px; line-height: 1.45; color: #1e1e1e;
+        }
+        .meowapps-wpai-promo-icon {
+          width: 32px; height: 32px; border-radius: 50%;
+          background: #2f5fff; color: #fff;
+          display: flex; align-items: center; justify-content: center;
+          flex-shrink: 0;
+          margin-top: 1px;
+        }
+        .meowapps-wpai-promo-icon svg { width: 18px; height: 18px; display: block; }
+        .meowapps-wpai-promo-body {
+          flex: 1; min-width: 0;
+          display: flex; flex-direction: column; gap: 10px;
+        }
+        .meowapps-wpai-promo-text strong { font-weight: 700; display: block; margin-bottom: 3px; }
+        .meowapps-wpai-promo-text span { color: #50575e; }
+        .meowapps-wpai-promo-titlelink {
+          color: #2f5fff; text-decoration: none; border-bottom: 1px dashed #2f5fff;
+        }
+        .meowapps-wpai-promo-titlelink:hover { color: #2448cc; border-bottom-color: #2448cc; }
+        .meowapps-wpai-promo-actions {
+          display: flex; gap: 8px; flex-wrap: wrap; align-items: center;
+        }
+        .meowapps-wpai-promo-btn {
+          appearance: none; border: 1px solid transparent; border-radius: 4px;
+          padding: 7px 16px; font: inherit; font-size: 12.5px; font-weight: 600;
+          cursor: pointer; text-decoration: none;
+          transition: background 0.12s ease, border-color 0.12s ease;
+        }
+        .meowapps-wpai-promo-btn-primary { background: #2f5fff; color: #fff; }
+        .meowapps-wpai-promo-btn-primary:hover { background: #2448cc; color: #fff; }
+        .meowapps-wpai-promo-btn-secondary { background: #7c3aed; color: #fff; }
+        .meowapps-wpai-promo-btn-secondary:hover { background: #6527c9; color: #fff; }
+        .meowapps-wpai-promo-btn-dismiss {
+          margin-left: auto;
+          background: transparent; color: #6b7280;
+          font-weight: 500; padding: 7px 10px;
+        }
+        .meowapps-wpai-promo-btn-dismiss:hover { color: #1e1e1e; background: rgba(0,0,0,0.04); }
+      <?php
+      wp_add_inline_style( 'meowapps-common-inline', ob_get_clean() );
+
+      wp_register_script( 'meowapps-common-inline', false, array(), false, true );
+      wp_enqueue_script( 'meowapps-common-inline' );
+      ob_start();
+      ?>
+      (function () {
+        var D = <?php echo wp_json_encode( $payload ); ?>;
+        try { if (localStorage.getItem('meowapps-wpai-promo-dismissed') === '1') return; } catch (e) {}
+
+        function build() {
+          var host = document.createElement('div');
+          host.className = 'meowapps-wpai-promo';
+          host.setAttribute('role', 'status');
+          var iconSvg = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg>';
+          host.innerHTML = [
+            '<span class="meowapps-wpai-promo-icon">', iconSvg, '</span>',
+            '<div class="meowapps-wpai-promo-body">',
+              '<div class="meowapps-wpai-promo-text">',
+                '<strong></strong> <span class="meowapps-wpai-promo-sub"></span>',
+              '</div>',
+              '<div class="meowapps-wpai-promo-actions"></div>',
+            '</div>'
+          ].join('');
+          // Title carries an anchor on "AI Engine" → wp.org plugin page.
+          var strong = host.querySelector('strong');
+          strong.appendChild(document.createTextNode(D.titleBefore));
+          var tLink = document.createElement('a');
+          tLink.href = D.wporgUrl;
+          tLink.target = '_blank';
+          tLink.rel = 'noopener noreferrer';
+          tLink.className = 'meowapps-wpai-promo-titlelink';
+          tLink.textContent = D.titleLink;
+          strong.appendChild(tLink);
+          strong.appendChild(document.createTextNode(D.titleAfter));
+          host.querySelector('.meowapps-wpai-promo-sub').textContent = D.sub;
+          var actions = host.querySelector('.meowapps-wpai-promo-actions');
+
+          function link(label, cls, href, newTab) {
+            var a = document.createElement('a');
+            a.className = 'meowapps-wpai-promo-btn ' + cls;
+            a.textContent = label;
+            a.href = href;
+            if (newTab) { a.target = '_blank'; a.rel = 'noopener noreferrer'; }
+            actions.appendChild(a);
+            return a;
+          }
+
+          // Install → WordPress's plugin-install search page, pre-filtered.
+          // User lands on a familiar screen with AI Engine as the top hit and
+          // can install with the native WordPress UX.
+          link(D.install, 'meowapps-wpai-promo-btn-primary',   D.installUrl, false);
+          link(D.learn,   'meowapps-wpai-promo-btn-secondary', D.learnUrl,   true);
+
+          var d = document.createElement('button');
+          d.type = 'button';
+          d.className = 'meowapps-wpai-promo-btn meowapps-wpai-promo-btn-dismiss';
+          d.textContent = D.dismiss;
+          d.addEventListener('click', function () {
+            try { localStorage.setItem('meowapps-wpai-promo-dismissed', '1'); } catch (e) {}
+            if (host.parentNode) host.parentNode.removeChild(host);
+          });
+          actions.appendChild(d);
+          return host;
+        }
+
+        function ensure() {
+          if (document.querySelector('.meowapps-wpai-promo')) return;
+          var page = document.querySelector('.connectors-page');
+          if (page) { page.insertBefore(build(), page.firstChild); return; }
+          var header = document.querySelector('.boot-layout__stage header');
+          if (header && header.parentNode) {
+            header.parentNode.insertBefore(build(), header.nextSibling);
+          }
+        }
+
+        var tries = 0;
+        var iv = setInterval(function () {
+          ensure();
+          if (document.querySelector('.meowapps-wpai-promo') || ++tries > 40) clearInterval(iv);
+        }, 120);
+
+        var app = document.getElementById('options-connectors-wp-admin-app')
+               || document.getElementById('options-connectors-app');
+        if (app && 'MutationObserver' in window) {
+          new MutationObserver(ensure).observe(app, { childList: true, subtree: true });
+        }
+      })();
+      <?php
+      wp_add_inline_script( 'meowapps-common-inline', ob_get_clean() );
     }
   }
 }

@@ -18,6 +18,7 @@ class Union_Prop_Type implements Prop_Type {
 	use Concerns\Has_Meta;
 	use Concerns\Has_Settings;
 	use Concerns\Has_Required_Setting;
+	use Concerns\Has_Json_Schema_Meta;
 
 	protected $default = null;
 
@@ -76,7 +77,7 @@ class Union_Prop_Type implements Prop_Type {
 		return $this->prop_types[ $type ] ?? null;
 	}
 
-	private function get_prop_type_from_value( $value ): ?Prop_Type {
+	public function get_prop_type_from_value( $value ): ?Prop_Type {
 		if ( isset( $value['$$type'] ) ) {
 			return $this->get_prop_type( $value['$$type'] );
 		}
@@ -142,6 +143,12 @@ class Union_Prop_Type implements Prop_Type {
 		return $prop_type ? $prop_type->sanitize( $value ) : null;
 	}
 
+	public function should_persist( $value ): bool {
+		$prop_type = $this->get_prop_type_from_value( $value );
+
+		return $prop_type ? $prop_type->should_persist( $value ) : true;
+	}
+
 	public function jsonSerialize(): array {
 		return [
 			// phpcs:ignore
@@ -171,5 +178,16 @@ class Union_Prop_Type implements Prop_Type {
 		}
 
 		return $this;
+	}
+
+	public function to_json_schema(): array {
+		$schema = $this->with_json_schema_meta( [] );
+
+		$schema['anyOf'] = array_map(
+			fn( $prop_type ) => $prop_type->to_json_schema(),
+			array_values( $this->get_prop_types() )
+		);
+
+		return $schema;
 	}
 }

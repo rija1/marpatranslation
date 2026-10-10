@@ -8,9 +8,6 @@ use function WCML\functions\isStandAlone;
 
 class HooksFactory implements \IWPML_REST_Action_Loader, IStandAloneAction {
 
-	/**
-	 * @return \IWPML_Action[]
-	 */
 	public function create() {
 		global $woocommerce_wpml;
 
@@ -23,7 +20,6 @@ class HooksFactory implements \IWPML_REST_Action_Loader, IStandAloneAction {
 			}
 
 			if ( wcml_is_multi_currency_on() ) {
-				$hooks[] = new MulticurrencyHooks();
 				$hooks[] = new PriceRangeHooks( $woocommerce_wpml );
 			}
 		}

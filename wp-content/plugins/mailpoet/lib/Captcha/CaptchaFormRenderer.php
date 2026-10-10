@@ -84,11 +84,11 @@ class CaptchaFormRenderer {
     $showErrorMessage = !empty($_GET['mailpoet_error']);
 
     $formId = 0;
-    if (isset($captchaSessionForm['form_id'])) {
+    if (isset($captchaSessionForm['form_id']) && is_numeric($captchaSessionForm['form_id'])) {
       $formId = (int)$captchaSessionForm['form_id'];
-    } elseif ($showSuccessMessage) {
+    } elseif ($showSuccessMessage && is_numeric($_GET['mailpoet_success'])) {
       $formId = (int)$_GET['mailpoet_success'];
-    } elseif ($showErrorMessage) {
+    } elseif ($showErrorMessage && is_numeric($_GET['mailpoet_error'])) {
       $formId = (int)$_GET['mailpoet_error'];
     }
 
@@ -107,6 +107,7 @@ class CaptchaFormRenderer {
     $hiddenFields .= '<input type="hidden" name="endpoint" value="subscribers" />';
     $hiddenFields .= '<input type="hidden" name="mailpoet_method" value="subscribe" />';
     $hiddenFields .= '<input type="hidden" name="mailpoet_redirect" value="' . $this->wp->escUrl($redirectUrl) . '" />';
+    $hiddenFields .= '<input type="hidden" name="token" value="' . $this->wp->escAttr($this->wp->wpCreateNonce('mailpoet_token')) . '" />';
 
     $actionUrl = admin_url('admin-post.php?action=mailpoet_subscription_form');
 
@@ -190,9 +191,9 @@ class CaptchaFormRenderer {
     $formHtml = '<form method="POST" action="' . $this->wp->escUrl($actionUrl) . '" class="' . $this->wp->escAttr($classes) . '" id="mailpoet_captcha_form" novalidate>';
     $formHtml .= $hiddenFields;
 
-    $width = 220;
-    $height = 60;
-    $captchaUrl = $this->captchaUrlFactory->getCaptchaImageUrl($width, $height, $sessionId);
+    $width = CaptchaRenderer::DEFAULT_WIDTH;
+    $height = CaptchaRenderer::DEFAULT_HEIGHT;
+    $captchaUrl = $this->captchaUrlFactory->getCaptchaImageUrl($sessionId);
     $mp3CaptchaUrl = $this->captchaUrlFactory->getCaptchaAudioUrl($sessionId);
     $reloadIcon = Env::$assetsUrl . '/img/icons/image-rotate.svg';
     $playIcon = Env::$assetsUrl . '/img/icons/controls-volumeon.svg';

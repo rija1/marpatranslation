@@ -12,46 +12,54 @@ class PaymentIntent {
 
 	private $request;
 
+	/**
+	 * Guards against re-entrant calculate_totals() calls. Some third-party plugins (e.g. German
+	 * Market) query get_available_payment_gateways() from a woocommerce_cart_calculate_fees
+	 * callback; since that hook fires from within calculate_totals(), and is_available() can reach
+	 * get_recurring_cart_total() below, an unguarded nested call recalculates totals -> re-fires
+	 * woocommerce_cart_calculate_fees -> re-enters is_available() indefinitely.
+	 *
+	 * @since 4.0.9
+	 */
+	private $calculating_recurring_total = false;
+
 	public function __construct( FrontendRequests $request ) {
 		$this->request = $request;
 		$this->initialize();
 	}
 
 	private function initialize() {
-		add_filter( 'wc_stripe_create_setup_intent', [ $this, 'maybe_create_setup_intent' ], 10, 2 );
 		add_filter( 'wc_stripe_payment_intent_args', [ $this, 'update_payment_intent_args' ], 10, 2 );
-		add_filter( 'wc_stripe_setup_intent_params', [ $this, 'update_setup_intent_params' ], 10, 2 );
+		add_filter( 'wc_stripe_setup_intent_params', [ $this, 'add_setup_intent_params' ], 10, 3 );
 		add_filter( 'wc_stripe_update_setup_intent_params', [ $this, 'update_setup_intent_params' ], 10, 2 );
 
-		/**
-		 * Filter that is called when a setup-intent is created via the REST API
-		 */
-		add_filter( 'wc_stripe_create_setup_intent_params', [ $this, 'add_setup_intent_params' ], 10, 2 );
 
 		add_filter( 'wc_stripe_deferred_intent_subscription_mode', [ $this, 'is_subscription_mode' ], 10, 2 );
 
-		add_action( 'wc_stripe_output_checkout_fields', [ $this, 'print_script_variables' ] );
-
-		add_filter( 'wc_stripe_create_payment_method_return_url', [ $this, 'add_change_payment_method_query' ], 10, 3 );
-
-		add_filter( 'wc_stripe_process_redirect_change_payment_method', [ $this, 'process_change_payment_method_redirect' ], 10, 3 );
+		add_filter( 'wc_stripe_create_setup_intent', [ $this, 'is_setup_intent_needed' ], 10, 2 );
 
 		add_filter( 'wc_stripe_is_link_active', [ $this, 'is_link_active' ] );
+
+		if ( function_exists( 'wcs_is_manual_renewal_enabled' ) && wcs_is_manual_renewal_enabled() ) {
+			add_filter( 'wc_stripe_payment_gateway_order_total', [ $this, 'maybe_use_subscription_total' ], 10, 2 );
+			add_filter( 'wc_stripe_cart_data', [ $this, 'add_recurring_total_to_cart_data' ] );
+		}
 	}
 
 	private function account_requires_mandate() {
 		return stripe_wc()->account_settings->get_account_country( wc_stripe_mode() ) === 'IN';
 	}
 
-	public function maybe_create_setup_intent( $bool, RequestContext $context ) {
+	/**
+	 * @param                $bool
+	 * @param RequestContext $context
+	 *
+	 * @return mixed|true
+	 * @deprecated 4.0.0
+	 */
+	public function is_setup_intent_needed( $bool, RequestContext $context ) {
 		if ( ! $bool ) {
 			if ( $this->request->is_change_payment_method() ) {
-				$bool = true;
-			} elseif ( $this->request->is_checkout_with_free_trial( $context ) ) {
-				$bool = true;
-			} elseif ( $this->request->is_order_pay_with_free_trial( $context ) ) {
-				$bool = true;
-			} elseif ( $this->request->is_checkout_with_free_coupon( $context ) ) {
 				$bool = true;
 			}
 		}
@@ -60,23 +68,25 @@ class PaymentIntent {
 	}
 
 	/**
+	 * cart_contains_subscription() is checked in addition to is_checkout_with_subscription() since
+	 * this also needs to be correct for gateway components that can render on any page regardless
+	 * of checkout/cart/order-pay context, e.g. the Mini Cart block's express payment buttons.
+	 *
 	 * @param $bool
 	 *
-	 * @since 3.3.60
 	 * @return bool|mixed
+	 * @since 3.3.60
 	 */
 	public function is_subscription_mode( $bool, RequestContext $context ) {
 		if ( ! $bool ) {
-			$is_manual_enabled = function_exists( 'wcs_is_manual_renewal_enabled' )
-			                     && \wcs_is_manual_renewal_enabled();
-
-			// if $is_manual_enabled is enabled then subscription mode isn't needed.
-			if ( ! $is_manual_enabled ) {
-				if ( $this->request->is_order_pay_with_subscription( $context ) ) {
-					$bool = true;
-				} elseif ( $this->request->is_checkout_with_subscription( $context ) ) {
-					$bool = true;
-				}
+			if ( $this->request->is_order_pay_with_subscription() ) {
+				$bool = true;
+			} elseif ( $this->request->is_checkout_with_subscription() ) {
+				$bool = true;
+			} elseif ( $this->request->cart_contains_subscription() ) {
+				$bool = true;
+			} elseif ( $this->request->is_product_page_with_subscription() ) {
+				$bool = true;
 			}
 		}
 
@@ -87,7 +97,7 @@ class PaymentIntent {
 	 * @param array     $args
 	 * @param \WC_Order $order
 	 *
-	 * @return void
+	 * @return array
 	 */
 	public function update_payment_intent_args( $args, $order ) {
 		return $this->add_params_to_intent( $args, $order );
@@ -141,133 +151,13 @@ class PaymentIntent {
 
 	/**
 	 * @param array                      $args
+	 * @param \WC_Order                  $order
 	 * @param \WC_Payment_Gateway_Stripe $payment_method
 	 *
 	 * @return array
 	 */
-	public function add_setup_intent_params( $args, $payment_method ) {
-		if ( isset( $args['payment_method_types'] ) && in_array( 'card', $args['payment_method_types'] ) ) {
-			if ( $payment_method->is_mandate_required() ) {
-				//if ( \WC_Subscriptions_Cart::cart_contains_free_trial() ) {
-				if ( ! isset( $args['payment_method_options']['card'] ) ) {
-					$args['payment_method_options']['card'] = [];
-				}
-				$total = 15000;//$this->get_recurring_cart_total();
-				// add margin to the total since the shipping might not have been calculated yet.
-				$customer_id = wc_stripe_get_customer_id();
-				if ( ! $customer_id ) {
-					$customer = \WC_Stripe_Customer_Manager::instance()->create_customer( WC()->customer );
-					if ( ! is_wp_error( $customer ) ) {
-						$customer_id = $customer->id;
-						WC()->session->set( \WC_Stripe_Constants::STRIPE_CUSTOMER_ID, $customer_id );
-					}
-				}
-				$args['customer']                                          = $customer_id;
-				$args['payment_method_options']['card']['mandate_options'] = array(
-					'amount'          => wc_stripe_add_number_precision( $total ),
-					'amount_type'     => 'maximum',
-					'interval'        => 'sporadic',
-					'reference'       => sprintf( '%1$s-%2$s', WC()->session->get_customer_id(), uniqid() ),
-					'start_date'      => time(),
-					'supported_types' => [ 'india' ],
-					'currency'        => get_woocommerce_currency()
-				);
-				//}
-			}
-		}
-
-		return $args;
-	}
-
-	public function print_script_variables() {
-		if ( WC()->cart && wcs_stripe_active() && \WC_Subscriptions_Cart::cart_contains_subscription() ) {
-			stripe_wc()->data_api()->print_data( 'wc_stripe_cart_contains_subscription', true );
-		}
-	}
-
-	private function get_recurring_cart_total() {
-		WC()->cart->calculate_totals();
-		$carts = WC()->cart->recurring_carts;
-		if ( \is_array( $carts ) ) {
-			return array_reduce( WC()->cart->recurring_carts, function ( $total, $cart ) {
-				return (float) $total + (float) $cart->get_total( 'edit' );
-			}, 0 );
-		}
-
-		return 0;
-	}
-
-	/**
-	 * @param                            $url
-	 * @param \WC_Payment_Gateway_Stripe $gateway
-	 * @param                            $page
-	 *
-	 * @return mixed|string
-	 */
-	public function add_change_payment_method_query( $url, $gateway, $page ) {
-		if ( $page === 'change_payment_method' ) {
-			global $wp;
-			if ( isset( $wp->query_vars['order-pay'] ) ) {
-				$url = add_query_arg(
-					[ 'order_id' => absint( $wp->query_vars['order-pay'] ), 'order_key' => wc_get_var( $_REQUEST['key'] ) ],
-					$url
-				);
-			} elseif ( $gateway->get_request_context() && $gateway->get_request_context()->has_prop( 'order_id' ) ) {
-				$context = $gateway->get_request_context();
-				$url     = add_query_arg(
-					[ 'order_id' => absint( $context->get_prop( 'order_id' ) ), 'order_key' => $context->get_prop( 'order_key' ) ],
-					$url
-				);
-			}
-		}
-
-		return $url;
-	}
-
-	/**
-	 * @param array                      $result
-	 * @param \WC_Payment_Gateway_Stripe $gateway
-	 * @param \Stripe\SetupIntent        $setup_intent
-	 *
-	 * @return void
-	 */
-	public function process_change_payment_method_redirect( $result, $gateway, $setup_intent ) {
-		$id        = wc_get_var( $_GET['order_id'], '' );
-		$order_key = wc_get_var( $_GET['order_key'], '' );
-		if ( ! $id ) {
-			return [
-				'result'   => 'error',
-				'redirect' => wc_get_page_permalink( 'myaccount' )
-			];
-		}
-		$subscription = wc_get_order( absint( $id ) );
-
-		if ( ! $subscription || ! $subscription->key_is_valid( $order_key ) ) {
-			return [
-				'result'   => 'error',
-				'redirect' => wc_get_page_permalink( 'myaccount' )
-			];
-		}
-		if ( $setup_intent->status === 'requires_payment_method' ) {
-			return [
-				'result'   => 'error',
-				'redirect' => add_query_arg(
-					[ '_wpnonce' => wp_create_nonce(), 'change_payment_method' => $subscription->get_id() ],
-					$subscription->get_checkout_payment_url()
-				)
-			];
-		} elseif ( $setup_intent->status === 'succeeded' ) {
-			// update the payment method on the subscription
-			\WC_Subscriptions_Change_Payment_Gateway::update_payment_method( $subscription, $gateway->id );
-
-			if ( wc_notice_count( 'error' ) == 0 ) {
-				$gateway->set_setup_intent( $setup_intent );
-				$gateway->set_new_source_token( $setup_intent->payment_method->id );
-				$gateway->process_subscription_payment_method_updated( $subscription );
-			}
-			wp_safe_redirect( $subscription->get_view_order_url() );
-			exit();
-		}
+	public function add_setup_intent_params( $args, $order, $payment_method ) {
+		return $this->add_params_to_intent( $args, $order, 'setup_intent' );
 	}
 
 	public function is_link_active( $bool ) {
@@ -278,6 +168,101 @@ class PaymentIntent {
 		}
 
 		return $bool;
+	}
+
+	/**
+	 * Gateways that don't support 'subscriptions' still become valid choices once manual renewals
+	 * are enabled - the renewal is just a manual "pay this invoice" flow instead of an automatic
+	 * off-session charge. But WC_Payment_Gateway::get_order_total() (and any availability check
+	 * built on it, e.g. WC_Payment_Gateway_Stripe_Local_Payment::is_local_payment_available()) uses
+	 * the live cart/order total, which is 0 during a free trial - failing gateways' own min/max
+	 * amount checks and hiding them even though nothing is actually due today. Substitute the
+	 * subscription's real recurring total so those checks evaluate against a meaningful amount.
+	 *
+	 * @param float                      $total
+	 * @param \WC_Payment_Gateway_Stripe $gateway
+	 *
+	 * @return float
+	 * @since 4.0.7
+	 */
+	public function maybe_use_subscription_total( $total, $gateway ) {
+		if ( $total > 0 ) {
+			return $total;
+		}
+
+		global $wp;
+		if ( isset( $wp->query_vars['order-pay'] ) ) {
+			$order = wc_get_order( absint( $wp->query_vars['order-pay'] ) );
+			if ( ! $order ) {
+				return $total;
+			}
+			$subscriptions = wcs_get_subscriptions_for_order( $order );
+			if ( ! $subscriptions ) {
+				return $total;
+			}
+
+			return max( array_map( function ( $subscription ) {
+				return (float) $subscription->get_total();
+			}, $subscriptions ) );
+		}
+
+		$recurring_total = $this->get_recurring_cart_total();
+
+		return $recurring_total > 0 ? $recurring_total : $total;
+	}
+
+	/**
+	 * Exposes the recurring cart total to the client so it can be used as a stand-in amount for
+	 * gateways that don't support 'subscriptions' when the live cart total is 0 (free trial) - the
+	 * cart's line items alone don't account for this correctly client-side, since shipping/tax on
+	 * the live cart reflect today's (trial-zeroed) totals while the recurring cart's totals reflect
+	 * what will actually be charged going forward.
+	 *
+	 * @param array $data
+	 *
+	 * @return array
+	 * @since 4.0.7
+	 */
+	public function add_recurring_total_to_cart_data( $data ) {
+		$data['recurringTotalCents'] = wc_stripe_add_number_precision( $this->get_recurring_cart_total(), $data['currency'] );
+
+		return $data;
+	}
+
+	/**
+	 * The Store API's Checkout::update_session_from_request()/update_order_from_request() validate
+	 * the selected payment method (via get_available_payment_gateways() -> is_available()) before
+	 * recalculating cart totals - so recurring_carts isn't populated yet the first time this runs
+	 * in that request. Trigger the calculation ourselves rather than guessing at which specific
+	 * request/route needs it; this only actually recalculates once per request, since recurring_carts
+	 * stays populated for every gateway checked afterward.
+	 *
+	 * @return float
+	 * @since 4.0.7
+	 */
+	private function get_recurring_cart_total() {
+		if ( ! WC()->cart ) {
+			return 0;
+		}
+		if ( ( empty( WC()->cart->recurring_carts ) || ! is_array( WC()->cart->recurring_carts ) )
+		     && \WC_Subscriptions_Cart::cart_contains_subscription() ) {
+			if ( $this->calculating_recurring_total ) {
+				return 0;
+			}
+			$this->calculating_recurring_total = true;
+			try {
+				WC()->cart->calculate_totals();
+			} finally {
+				$this->calculating_recurring_total = false;
+			}
+		}
+		if ( empty( WC()->cart->recurring_carts ) || ! is_array( WC()->cart->recurring_carts ) ) {
+			return 0;
+		}
+
+		return max( array_map( function ( $recurring_cart ) {
+			return (float) $recurring_cart->total;
+		}, WC()->cart->recurring_carts ) );
 	}
 
 }

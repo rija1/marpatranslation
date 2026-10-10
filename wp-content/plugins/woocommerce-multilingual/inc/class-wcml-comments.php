@@ -1,5 +1,7 @@
 <?php
 
+use WCML\Reviews\AllLanguagesSetting;
+use WCML\Reviews\Translations\AutomaticTranslation;
 use WCML\Utilities\DB;
 use WPML\FP\Fns;
 use WPML\FP\Obj;
@@ -15,28 +17,20 @@ class WCML_Comments {
 	const WC_REVIEW_COUNT_KEY     = '_wc_review_count';
 	const COMMENT_TYPE_REVIEW = 'review';
 
-	/** @var woocommerce_wpml */
 	private $woocommerce_wpml;
-	/** @var SitePress */
 	private $sitepress;
-	/** @var WPML_Post_Translation */
 	private $post_translations;
-	/** @var wpdb */
 	private $wpdb;
+	private $automatic_translation;
+	private $reviews_in_all_languages;
+	private $is_recalculating_rating = false;
 
-	/**
-	 * WCML_Comments constructor.
-	 *
-	 * @param woocommerce_wpml      $woocommerce_wpml
-	 * @param SitePress             $sitepress
-	 * @param WPML_Post_Translation $post_translations
-	 * @param wpdb                  $wpdb
-	 */
-	public function __construct( woocommerce_wpml $woocommerce_wpml, SitePress $sitepress, WPML_Post_Translation $post_translations, wpdb $wpdb ) {
-		$this->woocommerce_wpml  = $woocommerce_wpml;
-		$this->sitepress         = $sitepress;
-		$this->post_translations = $post_translations;
-		$this->wpdb              = $wpdb;
+	public function __construct( woocommerce_wpml $woocommerce_wpml, SitePress $sitepress, WPML_Post_Translation $post_translations, wpdb $wpdb, $automatic_translation = null ) {
+		$this->woocommerce_wpml      = $woocommerce_wpml;
+		$this->sitepress             = $sitepress;
+		$this->post_translations     = $post_translations;
+		$this->wpdb                  = $wpdb;
+		$this->automatic_translation = $automatic_translation;
 	}
 
 	public function add_hooks() {
@@ -56,7 +50,6 @@ class WCML_Comments {
 		add_action( 'trashed_comment', [ $this, 'recalculate_average_rating_on_comment_hook' ], 10, 2 );
 		add_action( 'deleted_comment', [ $this, 'recalculate_average_rating_on_comment_hook' ], 10, 2 );
 		add_action( 'untrashed_comment', [ $this, 'recalculate_average_rating_on_comment_hook' ], 10, 2 );
-		// before WCML_Synchronize_Product_Data::sync_product_translations_visibility hook.
 		add_action(
 			'woocommerce_product_set_visibility',
 			Fns::withoutRecursion( Fns::noop(), [ $this, 'recalculate_comment_rating' ] ),
@@ -76,13 +69,46 @@ class WCML_Comments {
 		add_filter( 'the_comments', [ $this, 'translate_product_ids' ] );
 
 		add_filter( 'wpml_skip_comment_duplication', [ $this, 'skip_review_duplication' ], 10, 3 );
+
+		add_action( 'pre_get_comments', [ $this, 'maybe_partition_comment_cache' ] );
 	}
 
-	/**
-	 * Add comment rating
-	 *
-	 * @param int $comment_id
-	 */
+	public function maybe_partition_comment_cache( $query ) {
+		if ( empty( $query->query_vars['post_id'] ) ) {
+			return;
+		}
+
+		$post_id   = (int) $query->query_vars['post_id'];
+		$post_type = Obj::path( [ 'query_vars', 'post_type' ], $query );
+
+		$is_post_type_from_id = false;
+		if ( ! $post_type && $post_id ) {
+			$post_type            = get_post_type( $post_id );
+			$is_post_type_from_id = true;
+		}
+
+		if ( 'product' !== $post_type ) {
+			return;
+		}
+
+		if (
+			( $is_post_type_from_id && 'product' !== $post_type )
+			||
+			( 'product' !== get_post_type( $post_id ) )
+		) {
+			return;
+		}
+
+		if ( ! $this->is_reviews_in_all_languages( $post_id, $query ) ) {
+			return;
+		}
+
+		$translation_ids = $this->get_translations_ids( $post_id );
+		sort( $translation_ids );
+
+		$query->query_vars['cache_domain'] = 'wcml_product_reviews_all:' . md5( implode( ',', $translation_ids ) );
+	}
+
 	public function add_comment_rating( $comment_id ) {
 
 		if ( isset( $_POST['comment_post_ID'] ) ) {
@@ -96,12 +122,21 @@ class WCML_Comments {
 		}
 	}
 
-	/**
-	 * Calculate rating field for comments based on reviews in all languages.
-	 *
-	 * @param int $product_id
-	 */
 	public function recalculate_comment_rating( $product_id ) {
+		if ( $this->is_recalculating_rating ) {
+			return;
+		}
+
+		$this->is_recalculating_rating = true;
+
+		try {
+			$this->calculate_comment_rating( $product_id );
+		} finally {
+			$this->is_recalculating_rating = false;
+		}
+	}
+
+	private function calculate_comment_rating( $product_id ) {
 
 		$translations          = $this->post_translations->get_element_translations( $product_id );
 		$average_ratings_sum   = 0;
@@ -155,17 +190,11 @@ class WCML_Comments {
 
 	}
 
-	/**
-	 * Filter WC reviews meta.
-	 *
-	 * @param null|array|string $value     get_metadata() should return a single value or array of values.
-	 * @param int               $object_id Post ID.
-	 * @param string            $meta_key  Meta key.
-	 * @param bool              $single
-	 *
-	 * @return array|null|string Filtered metadata value, array of values, or null.
-	 */
 	public function filter_average_rating( $value, $object_id, $meta_key, $single ) {
+
+		if ( $this->is_recalculating_rating ) {
+			return $value;
+		}
 
 		$filtered_value = $value;
 
@@ -199,14 +228,6 @@ class WCML_Comments {
 		return ! empty( $filtered_value ) || $filtered_value === 0 ? $filtered_value : $value;
 	}
 
-	/**
-	 * Filters comment queries to display in all languages if needed
-	 *
-	 * @param string[]         $clauses
-	 * @param WP_Comment_Query $obj
-	 *
-	 * @return string[]
-	 */
 	public function comments_clauses( $clauses, $obj ) {
 
 		if ( $this->is_reviews_in_all_languages( $obj->query_vars['post_id'] ) ) {
@@ -218,13 +239,6 @@ class WCML_Comments {
 		return $clauses;
 	}
 
-	/**
-	 * Get list of translated ids for product
-	 *
-	 * @param int $product_id
-	 *
-	 * @return array
-	 */
 	private function get_translations_ids( $product_id ) {
 
 		$translations = $this->post_translations->get_element_translations( $product_id );
@@ -233,9 +247,6 @@ class WCML_Comments {
 
 	}
 
-	/**
-	 * Display link to show rating in all/current language
-	 */
 	public function comments_link() {
 
 		if ( is_product() ) {
@@ -247,16 +258,25 @@ class WCML_Comments {
 		}
 	}
 
-	/**
-	 * @return bool
-	 */
 	private function is_reviews_in_all_languages_by_default_selected() {
-		return (bool) $this->woocommerce_wpml->get_setting( 'reviews_in_all_languages', false );
+		if ( null === $this->reviews_in_all_languages ) {
+			$this->reviews_in_all_languages = AllLanguagesSetting::resolve(
+				$this->woocommerce_wpml->get_setting( AllLanguagesSetting::SETTING, null ),
+				$this->get_automatic_translation()
+			);
+		}
+
+		return $this->reviews_in_all_languages;
 	}
 
-	/**
-	 * Echoes link to product page with all reviews.
-	 */
+	private function get_automatic_translation() {
+		if ( ! $this->automatic_translation ) {
+			$this->automatic_translation = new AutomaticTranslation();
+		}
+
+		return $this->automatic_translation;
+	}
+
 	private function show_link_to_all_reviews() {
 		$comments_link                  = add_query_arg( [ 'clang' => 'all' ] );
 		$all_languages_reviews_count    = $this->get_reviews_count( 'all' );
@@ -269,9 +289,6 @@ class WCML_Comments {
 		}
 	}
 
-	/**
-	 * Echoes link to product page with reviews in current language.
-	 */
 	private function show_link_to_current_language_reviews() {
 
 		$current_language_reviews_count = $this->get_reviews_count();
@@ -286,14 +303,6 @@ class WCML_Comments {
 
 	}
 
-	/**
-	 * Checks if comments needs filtering by language.
-	 *
-	 * @param bool             $filtered
-	 * @param int              $post_id
-	 * @param WP_Comment_Query $comment_query
-	 * @return bool
-	 */
 	public function is_comment_query_filtered( $filtered, $post_id, $comment_query = null ) {
 
 		if ( $this->is_reviews_in_all_languages( $post_id, $comment_query ) ) {
@@ -303,11 +312,6 @@ class WCML_Comments {
 		return $filtered;
 	}
 
-	/**
-	 * Add flag to comment description
-	 *
-	 * @param WP_Comment $comment
-	 */
 	public function add_comment_flag( $comment ) {
 		$comment_language = $this->get_comment_language_on_all_languages_reviews( $comment );
 		if ( $comment_language ) {
@@ -319,35 +323,41 @@ class WCML_Comments {
 		}
 	}
 
-	/**
-	 * @param WP_Comment $comment
-	 */
 	public function open_lang_div( $comment ) {
 		$comment_language = $this->get_comment_language_on_all_languages_reviews( $comment );
 		if ( $comment_language ) {
 			printf( '<div lang="%s">', esc_attr( $comment_language ) );
 
 			if ( self::is_translated( $comment ) ) {
+				/* translators: Marker shown in brackets after a product review that WPML translated. Adjective describing the review, not a command; lower case because it sits inside brackets after the text. */
 				echo '<span class="wcml-review-translated">(' . esc_html__( 'translated', 'woocommerce-multilingual' ) . ')</span>';
 			}
 		}
 	}
 
-	/**
-	 * @param WP_Comment $comment
-	 */
+	private function show_original_review_text( $comment ) {
+		$original = Obj::prop( 'wcml_original_comment_content', $comment );
+
+		if ( ! $original ) {
+			return;
+		}
+
+		printf(
+			'<details class="wcml-review-original"><summary>%1$s</summary><div class="wcml-review-original-text">%2$s</div></details>',
+			/* translators: Link that expands the original-language text under a translated product review. Verb phrase, imperative. */
+			esc_html__( 'Show original', 'woocommerce-multilingual' ),
+			wp_kses_post( wpautop( wptexturize( make_clickable( $original ) ) ) )
+		);
+	}
+
 	public function close_lang_div( $comment ) {
 		if ( $this->get_comment_language_on_all_languages_reviews( $comment ) ) {
+			$this->show_original_review_text( $comment );
+
 			print( '</div>' );
 		}
 	}
 
-	/**
-	 * Return review language code only if it displayed on mulilingual reviews list.
-	 *
-	 * @param WP_Comment $comment
-	 * @return string|null Review language or null.
-	 */
 	private function get_comment_language_on_all_languages_reviews( $comment ) {
 		if ( self::is_translated( $comment ) ) {
 			return $this->sitepress->get_current_language();
@@ -361,14 +371,6 @@ class WCML_Comments {
 		return null;
 	}
 
-	/**
-	 * Checks if reviews in all languages should be displayed.
-	 *
-	 * @param int              $product_id
-	 * @param WP_Comment_Query $comment_query
-	 *
-	 * @return bool
-	 */
 	public function is_reviews_in_all_languages( $product_id, $comment_query = null ) {
 		$reviewsLang = Obj::prop( 'clang', $_GET );
 		$post_type   = Obj::path( [ 'query_vars', 'post_type' ], $comment_query );
@@ -383,13 +385,6 @@ class WCML_Comments {
 			) && 'product' === $post_type;
 	}
 
-	/**
-	 * Return reviews count in language
-	 *
-	 * @param string|false $language
-	 *
-	 * @return int
-	 */
 	public function get_reviews_count( $language = false ) {
 
 		remove_filter( 'get_post_metadata', [ $this, 'filter_average_rating' ], 10 );
@@ -409,10 +404,6 @@ class WCML_Comments {
 		return $reviews_count;
 	}
 
-	/**
-	 * @param int             $comment_id
-	 * @param WP_Comment|null $comment
-	 */
 	public function recalculate_average_rating_on_comment_hook( $comment_id, $comment ) {
 
 		if ( ! $comment ) {
@@ -424,44 +415,30 @@ class WCML_Comments {
 		}
 	}
 
-	/**
-	 * @param array $args
-	 *
-	 * @return array
-	 */
 	public function top_rated_products_widget_args( $args ) {
 		$args['meta_key'] = self::WCML_AVERAGE_RATING_KEY;
 
 		return $args;
 	}
 
-	/**
-	 * @param string $label
-	 * @param int $count
-	 * @param int $rating
-	 *
-	 * @return string
-	 */
 	public function woocommerce_rating_filter_count( $label, $count, $rating ) {
 
 		$ratingTerm = get_term_by( 'name', 'rated-' . $rating, 'product_visibility' );
 
-		$productsCountInCurrentLanguage = $this->wpdb->get_var( $this->wpdb->prepare( "                
-                SELECT COUNT( DISTINCT tr.object_id ) 
-                FROM {$this->wpdb->term_relationships} tr
-                LEFT JOIN {$this->wpdb->prefix}icl_translations t ON t.element_id = tr.object_id 
-                WHERE tr.term_taxonomy_id = %d AND t.element_type='post_product' AND t.language_code = %s                 
-        ", $ratingTerm->term_taxonomy_id, $this->sitepress->get_current_language() ) );
+		if ( ! isset( $ratingTerm->term_taxonomy_id ) ) {
+			return $label;
+		}
+
+		$productsCountInCurrentLanguage = $this->wpdb->get_var( $this->wpdb->prepare( "
+                SELECT COUNT( DISTINCT tr.object_id )
+                FROM %i tr
+                LEFT JOIN %i t ON t.element_id = tr.object_id
+                WHERE tr.term_taxonomy_id = %d AND t.element_type='post_product' AND t.language_code = %s
+        ", $this->wpdb->term_relationships, $this->wpdb->prefix . 'icl_translations', $ratingTerm->term_taxonomy_id, $this->sitepress->get_current_language() ) );
 
 		return "({$productsCountInCurrentLanguage})";
 	}
 
-	/**
-	 * @param int    $meta_id
-	 * @param int    $comment_id
-	 * @param string $meta_key
-	 * @param string $meta_value
-	 */
 	public function maybe_duplicate_comment_rating( $meta_id, $comment_id, $meta_key, $meta_value ) {
 		if ( 'rating' === $meta_key && wpml_get_setting_filter( null, 'sync_comments_on_duplicates' ) ) {
 			remove_action( 'added_comment_meta', [ $this, 'maybe_duplicate_comment_rating' ], 10 );
@@ -475,11 +452,6 @@ class WCML_Comments {
 		}
 	}
 
-	/**
-	 * @param int $comment_id
-	 *
-	 * @return array
-	 */
 	private function get_duplicated_comments( $comment_id ) {
 		return $this->wpdb->get_col(
 			$this->wpdb->prepare(
@@ -495,11 +467,6 @@ class WCML_Comments {
 			echo '<meta name="robots" content="noindex">';
 	}
 
-	/**
-	 * @param WP_Comment[] $comments
-	 *
-	 * @return WP_Comment[]
-	 */
 	public function translate_product_ids( $comments ) {
 		$convertProductId = function( $comment ) {
 			if ( self::COMMENT_TYPE_REVIEW === Obj::prop( 'comment_type', $comment ) ) {
@@ -520,24 +487,10 @@ class WCML_Comments {
 			->toArray();
 	}
 
-	/**
-	 * @see \WCML\Reviews\Translations\FrontEndHooks::translateReview
-	 *
-	 * @param WP_Comment $comment
-	 *
-	 * @return bool
-	 */
 	public static function is_translated( $comment ) {
 		return (bool) Obj::prop( 'is_translated', $comment );
 	}
 
-	/**
-	 * @param bool  $skip        Whether to skip duplicating the comment. Default: false.
-	 * @param int   $comment_id  The ID of the comment being processed.
-	 * @param array $comment     The comment data.
-	 *
-	 * @return bool True if duplication should be skipped, false otherwise.
-	 */
 	public function skip_review_duplication( $skip, $comment_id, $comment ) {
 		if ( isset( $comment['comment_type'] ) && 'review' === $comment['comment_type'] ) {
 			if ( $this->is_reviews_in_all_languages_by_default_selected() ) {
@@ -547,11 +500,6 @@ class WCML_Comments {
 		return $skip;
 	}
 
-	/**
-	 * @param \WP_Comment|stdClass|array $comment
-	 *
-	 * @return string
-	 */
 	public static function getOriginalPostId( $comment ) {
 		return Obj::prop( 'wcml_default_comment_post_ID', $comment )
 			?: Obj::prop( 'comment_post_ID', $comment );

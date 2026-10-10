@@ -155,15 +155,18 @@ class Updraft_Smush_Manager extends Updraft_Task_Manager_1_4 {
 	 */
 	public function get_media_smush_column_content($attachment_id) {
 		$file = get_attached_file($attachment_id);
+		if (false === $file) {
+			return '';
+		}
 		$ext = WPO_Image_Utils::get_extension($file);
 		$allowed_extensions = WPO_Image_Utils::get_allowed_extensions();
 
-		$compressed = get_post_meta($attachment_id, 'smush-complete', true) ? true : false;
-		$has_backup = get_post_meta($attachment_id, 'original-file', true) ? true : false;
+		$compressed = get_post_meta($attachment_id, '_wpo-smush-complete', true) ? true : false;
+		$has_backup = get_post_meta($attachment_id, '_wpo-original-file', true) ? true : false;
 
-		$smush_info = get_post_meta($attachment_id, 'smush-info', true);
-		$smush_stats = get_post_meta($attachment_id, 'smush-stats', true);
-		$marked = get_post_meta($attachment_id, 'smush-marked');
+		$smush_info = get_post_meta($attachment_id, '_wpo-smush-info', true);
+		$smush_stats = get_post_meta($attachment_id, '_wpo-smush-stats', true);
+		$marked = get_post_meta($attachment_id, '_wpo-smush-marked');
 
 		$extract = array(
 			'blog_id'			=> get_current_blog_id(),
@@ -220,7 +223,7 @@ class Updraft_Smush_Manager extends Updraft_Task_Manager_1_4 {
 			die('Security check failed');
 		}
 
-		if (!current_user_can(WP_Optimize()->capability_required())) {
+		if (!WP_Optimize()->current_user_can()) {
 			die('You are not allowed to run this command.');
 		}
 
@@ -365,7 +368,7 @@ class Updraft_Smush_Manager extends Updraft_Task_Manager_1_4 {
 	public function restore_single_image($image_id, $blog_id) {
 
 		$switched_blog = false;
-		if (is_multisite() && current_user_can('manage_network_options')) {
+		if (is_multisite() && WP_Optimize()->current_user_can('manage_network_options')) {
 			switch_to_blog($blog_id);
 			$switched_blog = true;
 		} elseif (is_multisite() && get_current_blog_id() != $blog_id) {
@@ -375,13 +378,21 @@ class Updraft_Smush_Manager extends Updraft_Task_Manager_1_4 {
 		$error = false;
 
 		$image_path = get_attached_file($image_id);
-		$backup_path = get_post_meta($image_id, 'original-file', true);
-		
+		$backup_path = get_post_meta($image_id, '_wpo-original-file', true);
+		$uploads_dir = wp_upload_dir();
+		$uploads_basedir = realpath($uploads_dir['basedir']);
+
+		if (false === $uploads_basedir) {
+			if ($switched_blog) {
+				restore_current_blog();
+			}
+			return new WP_Error('restore_backup_issue', __('The uploads base directory is not correct.', 'wp-optimize'));
+		}
+
+		$uploads_basedir = trailingslashit($uploads_basedir);
+
 		// If the file doesn't exist, check if it's relative
 		if (!is_file($backup_path)) {
-			$uploads_dir = wp_upload_dir();
-			$uploads_basedir = trailingslashit($uploads_dir['basedir']);
-
 			if (is_file($uploads_basedir . $backup_path)) {
 				$backup_path = $uploads_basedir . $backup_path;
 			}
@@ -412,15 +423,24 @@ class Updraft_Smush_Manager extends Updraft_Task_Manager_1_4 {
 			}
 		}
 
+		$backup_path = realpath($backup_path);
+		if (!$backup_path || 0 !== strpos(trailingslashit(dirname($backup_path)), $uploads_basedir)) {
+			if ($switched_blog) {
+				restore_current_blog();
+			}
+			return new WP_Error('restore_failed', __('The backup file path seems suspicious, and could not be deleted.', 'wp-optimize'));
+		}
+
+
 		if (!is_file($backup_path)) {
 			// Delete information about backup.
-			delete_post_meta($image_id, 'original-file');
+			delete_post_meta($image_id, '_wpo-original-file');
 			$error = new WP_Error('restore_backup_not_found', __('The backup was not found; it may have been deleted or was already restored', 'wp-optimize'));
 		} elseif (!wp_is_writable($image_path)) {
-			$error =  new WP_Error('restore_failed', __('The destination could not be written to.', 'wp-optimize').' '.__("Please check your folder's permissions", 'wp-optimize'));
+			$error = new WP_Error('restore_failed', __('The destination could not be written to.', 'wp-optimize').' '.__("Please check your folder's permissions", 'wp-optimize'));
 		} elseif (!copy($backup_path, $image_path)) {
-			$error =  new WP_Error('restore_failed', __('The file could not be copied; check your PHP error logs for details', 'wp-optimize'));
-		} elseif (!wp_delete_file($backup_path)) {
+			$error = new WP_Error('restore_failed', __('The file could not be copied; check your PHP error logs for details', 'wp-optimize'));
+		} elseif (!WP_Optimize_Utils::wp_delete_file($backup_path)) {
 			// translators: %s is the backup file path
 			$error =  new WP_Error('restore_failed', sprintf(__('The backup file %s could not be deleted.', 'wp-optimize'), $backup_path));
 		}
@@ -428,10 +448,10 @@ class Updraft_Smush_Manager extends Updraft_Task_Manager_1_4 {
 		if (!$error) {
 			// if backup image deleted successfully
 			// then delete from attachment meta associated smush data
-			delete_post_meta($image_id, 'smush-complete');
-			delete_post_meta($image_id, 'smush-stats');
-			delete_post_meta($image_id, 'original-file');
-			delete_post_meta($image_id, 'smush-info');
+			delete_post_meta($image_id, '_wpo-smush-complete');
+			delete_post_meta($image_id, '_wpo-smush-stats');
+			delete_post_meta($image_id, '_wpo-original-file');
+			delete_post_meta($image_id, '_wpo-smush-info');
 		}
 
 		if ($switched_blog) {
@@ -476,7 +496,7 @@ class Updraft_Smush_Manager extends Updraft_Task_Manager_1_4 {
 
 		if ($restore_backup) {
 			// get post ids those have backup meta field.
-			$image_ids = $wpdb->get_results($wpdb->prepare("SELECT post_id FROM `{$wpdb->postmeta}` WHERE meta_key = 'original-file' LIMIT %d;", $images_limit), ARRAY_A);
+			$image_ids = $wpdb->get_results($wpdb->prepare("SELECT post_id FROM `{$wpdb->postmeta}` WHERE meta_key = '_wpo-original-file' LIMIT %d;", $images_limit), ARRAY_A);
 
 			if (!empty($image_ids)) {
 				// run restore function for each found image.
@@ -522,7 +542,7 @@ class Updraft_Smush_Manager extends Updraft_Task_Manager_1_4 {
 
 		if ($result['completed']) {
 
-			$smushed_images_count = $wpdb->get_var("SELECT COUNT(*) FROM `{$wpdb->postmeta}` WHERE meta_key='smush-complete' AND meta_value=1");
+			$smushed_images_count = $wpdb->get_var("SELECT COUNT(*) FROM `{$wpdb->postmeta}` WHERE meta_key='_wpo-smush-complete' AND meta_value=1");
 			$result['smushed_images_count'] = $smushed_images_count;
 
 			if ($delete_only_backups_meta) {
@@ -558,7 +578,7 @@ class Updraft_Smush_Manager extends Updraft_Task_Manager_1_4 {
 			// if $delete_only_backup_meta set to true then all meta fields was deleted in restore_single_image()
 			// and we don't need to delete metas for other images.
 			if (!$delete_only_backups_meta) {
-				$wpdb->query("DELETE FROM `{$wpdb->postmeta}` WHERE meta_key IN ('smush-complete', 'smush-stats', 'original-file', 'smush-info');");
+				$wpdb->query("DELETE FROM `{$wpdb->postmeta}` WHERE meta_key IN ('_wpo-smush-complete', '_wpo-smush-stats', '_wpo-original-file', '_wpo-smush-info');");
 			}
 		}
 
@@ -677,10 +697,10 @@ class Updraft_Smush_Manager extends Updraft_Task_Manager_1_4 {
 
 		if (is_multisite()) {
 			switch_to_blog($task->get_option('blog_id', 1));
-			$stats = get_post_meta($attachment_id, 'smush-stats', true);
+			$stats = get_post_meta($attachment_id, '_wpo-smush-stats', true);
 			restore_current_blog();
 		} else {
-			$stats = get_post_meta($attachment_id, 'smush-stats', true);
+			$stats = get_post_meta($attachment_id, '_wpo-smush-stats', true);
 		}
 
 		if (isset($stats['sizes-info'])) {
@@ -737,18 +757,27 @@ class Updraft_Smush_Manager extends Updraft_Task_Manager_1_4 {
 	}
 
 	/**
-	 * Updates global smush options
+	 * Update smush options
+	 * Only options whose values differ from the stored values are updated.
 	 *
-	 * @param array $options - sent in via AJAX
-	 * @return bool - status of the update
+	 * @param array $options Associative array of option names and values sent in via AJAX.
+	 * @return bool True if all updates succeeded or no changes were required,
+	 *              false if at least one option update failed.
 	 */
 	public function update_smush_options($options) {
-		
+		$success = true;
 		foreach ($options as $option => $value) {
-			$this->options->update_option($option, $value);
-		}
+			// Here we only store string, array as string after serialization, boolean, and integer values which will be stored as strings (LONGTEXT field type)
+			// So loose comparison is fine, strict comparison results to buggy behavior
+			if ($this->options->get_option($option) == $value) {
+				continue;
+			}
 
-		return true;
+			if (!$this->options->update_option($option, $value)) {
+				$success = false;
+			}
+		}
+		return $success;
 	}
 
 	/**
@@ -829,12 +858,12 @@ class Updraft_Smush_Manager extends Updraft_Task_Manager_1_4 {
 	 */
 	public function render_smush_metabox($post) {
 
-		$compressed = (bool) get_post_meta($post->ID, 'smush-complete', true);
-		$has_backup = (bool) get_post_meta($post->ID, 'original-file', true);
+		$compressed = (bool) get_post_meta($post->ID, '_wpo-smush-complete', true);
+		$has_backup = (bool) get_post_meta($post->ID, '_wpo-original-file', true);
 
-		$smush_info = get_post_meta($post->ID, 'smush-info', true);
-		$smush_stats = get_post_meta($post->ID, 'smush-stats', true);
-		$marked = get_post_meta($post->ID, 'smush-marked');
+		$smush_info = get_post_meta($post->ID, '_wpo-smush-info', true);
+		$smush_stats = get_post_meta($post->ID, '_wpo-smush-stats', true);
+		$marked = get_post_meta($post->ID, '_wpo-smush-marked');
 		
 		$options = Updraft_Smush_Manager()->get_smush_options();
 		
@@ -1105,10 +1134,10 @@ class Updraft_Smush_Manager extends Updraft_Task_Manager_1_4 {
 		foreach ($images as $image) {
 			if (is_multisite()) {
 				switch_to_blog($image['blog_id']);
-				$stats[] = get_post_meta($image['attachment_id'], 'smush-complete', true) ? 'success' : 'fail';
+				$stats[] = get_post_meta($image['attachment_id'], '_wpo-smush-complete', true) ? 'success' : 'fail';
 				restore_current_blog();
 			} else {
-				$stats[] = get_post_meta($image['attachment_id'], 'smush-complete', true) ? 'success' : 'fail';
+				$stats[] = get_post_meta($image['attachment_id'], '_wpo-smush-complete', true) ? 'success' : 'fail';
 			}
 		}
 
@@ -1178,7 +1207,7 @@ class Updraft_Smush_Manager extends Updraft_Task_Manager_1_4 {
 		$js_variables['cancelling'] = esc_html__('Cancelling...', 'wp-optimize');
 		$js_variables['images_restored_successfully'] = esc_html__('The images were restored successfully', 'wp-optimize');
 		$js_variables['logo_src'] = esc_url(WPO_PLUGIN_URL.'images/notices/wp_optimize_logo.png');
-		
+
 		wp_enqueue_script('block-ui-js', WPO_PLUGIN_URL.'includes/blockui/jquery.blockUI'.$min_or_not.'.js', array('jquery'), $enqueue_version);
 		wp_enqueue_script('wp-optimize-heartbeat-js', WPO_PLUGIN_URL.'js/heartbeat'.$min_or_not_internal.'.js', array('jquery'), $enqueue_version);
 		wp_localize_script('wp-optimize-heartbeat-js', 'wpo_heartbeat_ajax', array(
@@ -1615,7 +1644,7 @@ class Updraft_Smush_Manager extends Updraft_Task_Manager_1_4 {
 	 * @return bool
 	 */
 	public function is_compressed($attachment_id) {
-		return (true === (bool) get_post_meta($attachment_id, 'smush-complete', true));
+		return (true === (bool) get_post_meta($attachment_id, '_wpo-smush-complete', true));
 	}
 
 	/**
@@ -1633,10 +1662,17 @@ class Updraft_Smush_Manager extends Updraft_Task_Manager_1_4 {
 	 * @param int $post_id - WordPress Post ID
 	 */
 	public function unscheduled_original_file_deletion($post_id) {
-		$the_original_file = get_post_meta($post_id, 'original-file', true);
+		$the_original_file = get_post_meta($post_id, '_wpo-original-file', true);
+		// If no original file meta exists, there is nothing to delete.
+		if (empty($the_original_file)) {
+			return;
+		}
 		$uploads_dir = wp_get_upload_dir();
-		$the_original_file = trailingslashit($uploads_dir['basedir'])  . $the_original_file;
-		if ('' != $the_original_file && file_exists($the_original_file)) {
+		$uploads_basedir = realpath($uploads_dir['basedir']);
+		if (!$uploads_basedir) return;
+		$uploads_basedir = trailingslashit($uploads_basedir);
+		$the_original_file = realpath($uploads_basedir  . $the_original_file);
+		if ($the_original_file && 0 === strpos($the_original_file, $uploads_basedir) && file_exists($the_original_file)) {
 			wp_delete_file($the_original_file);
 		}
 	}
@@ -1678,12 +1714,12 @@ class Updraft_Smush_Manager extends Updraft_Task_Manager_1_4 {
 			array(
 				'relation' => 'OR',
 				array(
-					'key'	 => 'smush-complete',
+					'key'	 => '_wpo-smush-complete',
 					'compare' => '!=',
 					'value'   => '1',
 				),
 				array(
-					'key'	 => 'smush-complete',
+					'key'	 => '_wpo-smush-complete',
 					'compare' => 'NOT EXISTS',
 					'value'   => '',
 				),

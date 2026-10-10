@@ -351,10 +351,10 @@ if ( ! class_exists( 'Cookie_Law_Info_Script_Blocker' ) ) {
 		 */
 		public function change_plugin_status() {
 
+			check_ajax_referer( $this->module_id );
 			if ( ! current_user_can( 'manage_options' ) ) {
 				wp_die( esc_html__( 'You do not have sufficient permission to perform this operation', 'cookie-law-info' ) );
 			}
-			check_ajax_referer( $this->module_id );
 			$script_id = (int) ( isset( $_POST['script_id'] ) ? absint( $_POST['script_id'] ) : -1 );
 			$status    = wp_validate_boolean( ( isset( $_POST['status'] ) && true === wp_validate_boolean( sanitize_text_field( wp_unslash( $_POST['status'] ) ) ) ? true : false ) );
 			if ( $script_id !== -1 ) {

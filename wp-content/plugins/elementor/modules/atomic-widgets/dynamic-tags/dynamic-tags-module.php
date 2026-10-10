@@ -2,6 +2,7 @@
 
 namespace Elementor\Modules\AtomicWidgets\DynamicTags;
 
+use Elementor\Modules\AtomicWidgets\DynamicTags\ImportExport\Dynamic_Transformer as Import_Export_Dynamic_Transformer;
 use Elementor\Modules\AtomicWidgets\PropsResolver\Render_Props_Resolver;
 use Elementor\Modules\AtomicWidgets\PropsResolver\Transformers_Registry;
 use Elementor\Plugin;
@@ -46,6 +47,13 @@ class Dynamic_Tags_Module {
 			fn( array $schema ) => Dynamic_Prop_Types_Mapping::make()->get_extended_schema( $schema )
 		);
 
+		add_filter(
+			'elementor/atomic-widgets/styles/schema',
+			fn( array $schema ) => Dynamic_Prop_Types_Mapping::make()->get_extended_style_schema( $schema ),
+			8,
+			2
+		);
+
 		add_action(
 			'elementor/atomic-widgets/settings/transformers/register',
 			fn ( $transformers, $prop_resolver ) => $this->register_transformers( $transformers, $prop_resolver ),
@@ -59,6 +67,48 @@ class Dynamic_Tags_Module {
 			10,
 			2
 		);
+
+		add_action(
+			'elementor/atomic-widgets/import/transformers/register',
+			fn ( $transformers ) => $this->register_import_export_transformer( $transformers )
+		);
+
+		add_action(
+			'elementor/atomic-widgets/export/transformers/register',
+			fn ( $transformers ) => $this->register_import_export_transformer( $transformers )
+		);
+
+		add_filter(
+			'elementor/atomic-widgets/llm-json-schema',
+			fn( array $schema ) => ( new LLM_Schema_Dedupe_Filter() )->apply( $schema )
+		);
+	}
+
+	/**
+	 * Resolves which registered dynamic tags are allowed for a prop's accepted categories, mirroring
+	 * the frontend's `getDynamicTagNamesByCategories`.
+	 *
+	 * @param string[] $categories
+	 *
+	 * @return string[] Names of the dynamic tags whose categories intersect with $categories.
+	 */
+	public function get_dynamic_tag_names_by_categories( array $categories ): array {
+		if ( empty( $categories ) ) {
+			return [];
+		}
+
+		$tags = $this->registry->get_tags();
+
+		$names = array_map(
+			function ( array $tag ) use ( $categories ) {
+				$tag_categories = $tag['categories'] ?? [];
+
+				return array_intersect( $tag_categories, $categories ) ? $tag['name'] : null;
+			},
+			$tags
+		);
+
+		return array_values( array_filter( $names ) );
 	}
 
 	private function add_atomic_dynamic_tags_to_editor_settings( $settings ) {
@@ -80,6 +130,13 @@ class Dynamic_Tags_Module {
 				$this->schemas,
 				$props_resolver
 			)
+		);
+	}
+
+	private function register_import_export_transformer( Transformers_Registry $transformers ) {
+		$transformers->register(
+			Dynamic_Prop_Type::get_key(),
+			new Import_Export_Dynamic_Transformer()
 		);
 	}
 }

@@ -21,13 +21,6 @@ class WCML_Troubleshooting {
 	private $sitepress;
 	private $wpdb;
 
-	/**
-	 * WCML_Troubleshooting constructor.
-	 *
-	 * @param woocommerce_wpml $woocommerce_wpml
-	 * @param SitePress        $sitepress
-	 * @param wpdb             $wpdb
-	 */
 	public function __construct( $woocommerce_wpml, $sitepress, $wpdb ) {
 
 		$this->woocommerce_wpml = $woocommerce_wpml;
@@ -38,15 +31,15 @@ class WCML_Troubleshooting {
 	}
 
 	public function init() {
-		add_action( 'wp_ajax_trbl_sync_variations', [ $this, 'trbl_sync_variations' ] );
-		add_action( 'wp_ajax_trbl_gallery_images', [ $this, 'trbl_gallery_images' ] );
-		add_action( 'wp_ajax_trbl_sync_categories', [ $this, 'trbl_sync_categories' ] );
-		add_action( 'wp_ajax_trbl_sync_stock', [ $this, 'trbl_sync_stock' ] );
-		add_action( 'wp_ajax_fix_translated_variations_relationships', [ $this, 'fix_translated_variations_relationships' ] );
-		add_action( 'wp_ajax_trbl_fix_product_type_terms', [ $this, 'trbl_fix_product_type_terms' ] );
-		add_action( 'wp_ajax_trbl_duplicate_terms', [ $this, 'trbl_duplicate_terms' ] );
-		add_action( 'wp_ajax_register_reviews_in_st', [ $this, 'register_reviews_in_st' ] );
-		add_action( 'wp_ajax_sync_deleted_meta', [ $this, 'sync_deleted_meta' ] );
+		\WCML\Request\Ajax::register( 'trbl_sync_variations', [ 'authorize' => [ 'WCML_Capabilities', 'canManageWcml' ], 'description' => 'WCML manager (shop manager or administrator role, WCML_Capabilities::canManageWcml)', 'nonce' => [ 'trbl_sync_variations', 'wcml_nonce' ] ], [ $this, 'trbl_sync_variations' ] );
+		\WCML\Request\Ajax::register( 'trbl_gallery_images', [ 'authorize' => [ 'WCML_Capabilities', 'canManageWcml' ], 'description' => 'WCML manager (shop manager or administrator role, WCML_Capabilities::canManageWcml)', 'nonce' => [ 'trbl_gallery_images', 'wcml_nonce' ] ], [ $this, 'trbl_gallery_images' ] );
+		\WCML\Request\Ajax::register( 'trbl_sync_categories', [ 'authorize' => [ 'WCML_Capabilities', 'canManageWcml' ], 'description' => 'WCML manager (shop manager or administrator role, WCML_Capabilities::canManageWcml)', 'nonce' => [ 'trbl_sync_categories', 'wcml_nonce' ] ], [ $this, 'trbl_sync_categories' ] );
+		\WCML\Request\Ajax::register( 'trbl_sync_stock', [ 'authorize' => [ 'WCML_Capabilities', 'canManageWcml' ], 'description' => 'WCML manager (shop manager or administrator role, WCML_Capabilities::canManageWcml)', 'nonce' => [ 'trbl_sync_stock', 'wcml_nonce' ] ], [ $this, 'trbl_sync_stock' ] );
+		\WCML\Request\Ajax::register( 'fix_translated_variations_relationships', [ 'capability' => 'manage_options', 'nonce' => [ 'fix_relationships', 'wcml_nonce' ] ], [ $this, 'fix_translated_variations_relationships' ] );
+		\WCML\Request\Ajax::register( 'trbl_fix_product_type_terms', [ 'authorize' => [ 'WCML_Capabilities', 'canManageWcml' ], 'description' => 'WCML manager (shop manager or administrator role, WCML_Capabilities::canManageWcml)', 'nonce' => [ 'trbl_product_type_terms', 'wcml_nonce' ] ], [ $this, 'trbl_fix_product_type_terms' ] );
+		\WCML\Request\Ajax::register( 'trbl_duplicate_terms', [ 'authorize' => [ 'WCML_Capabilities', 'canManageWcml' ], 'description' => 'WCML manager (shop manager or administrator role, WCML_Capabilities::canManageWcml)', 'nonce' => [ 'trbl_duplicate_terms', 'wcml_nonce' ] ], [ $this, 'trbl_duplicate_terms' ] );
+		\WCML\Request\Ajax::register( 'register_reviews_in_st', [ 'authorize' => [ 'WCML_Capabilities', 'canManageWcml' ], 'description' => 'WCML manager (shop manager or administrator role, WCML_Capabilities::canManageWcml)', 'nonce' => [ 'register_reviews_in_st', 'wcml_nonce' ] ], [ $this, 'register_reviews_in_st' ] );
+		\WCML\Request\Ajax::register( 'sync_deleted_meta', [ 'capability' => 'manage_options', 'nonce' => [ 'sync_deleted_meta', 'wcml_nonce' ] ], [ $this, 'sync_deleted_meta' ] );
 	}
 
 	public function countProducts() {
@@ -140,12 +133,6 @@ class WCML_Troubleshooting {
 		}
 
 		$this->setRemainingVariableProducts( $variableProducts );
-
-		$wcml_settings = get_option( '_wcml_settings' );
-		if ( isset( $wcml_settings['notifications']['varimages'] ) ) {
-			$wcml_settings['notifications']['varimages']['show'] = 0;
-			update_option( '_wcml_settings', $wcml_settings );
-		}
 
 		$response['processed'] = count( $variableProductsForRound );
 		$response['complete']  = empty( $variableProducts );
@@ -357,12 +344,6 @@ class WCML_Troubleshooting {
 		}
 	}
 
-	/**
-	 * @param int    $element_id
-	 * @param string $element_type
-	 *
-	 * @return object|null
-	 */
 	private function get_translation_info_for_element( $element_id, $element_type ) {
 		return $this->wpdb->get_row(
 			$this->wpdb->prepare(
@@ -392,7 +373,6 @@ class WCML_Troubleshooting {
 		$translatedVariationsInRound = array_slice( $translatedVariations, 0, self::ITEMS_PER_AJAX, true );
 
 		foreach ( $translatedVariationsInRound as $key => $translated_variation ) {
-			// check relationships.
 			$tr_info_for_original_variation = $this->get_translation_info_for_element( $translated_variation->meta_value, 'post_product_variation' );
 
 			$language = $this->sitepress->get_language_for_element( wp_get_post_parent_id( $translated_variation->meta_value ), 'post_product' );
@@ -406,7 +386,6 @@ class WCML_Troubleshooting {
 
 			$tr_info_for_current_variation = $this->get_translation_info_for_element( $translated_variation->post_id, 'post_product_variation' );
 
-			// delete wrong element_type for exists variations.
 			if ( ! $tr_info_for_current_variation ) {
 				$tr_info_for_current_variation = $this->get_translation_info_for_element( $translated_variation->post_id, 'post_product' );
 				if ( $tr_info_for_current_variation ) {
@@ -419,7 +398,6 @@ class WCML_Troubleshooting {
 				$this->wpdb->delete( $this->wpdb->prefix . 'icl_translations', [ 'translation_id' => $check_duplicated_post_type->translation_id ] );
 			}
 
-			// set language info for variation if not exists.
 			if ( ! $tr_info_for_original_variation ) {
 
 				$tr_info_for_original_variation = $this->get_translation_info_for_element( $translated_variation->meta_value, 'post_product' );
@@ -461,10 +439,8 @@ class WCML_Troubleshooting {
 	public function trbl_fix_product_type_terms() {
 		self::checkNonce( 'trbl_product_type_terms' );
 
-		// Delete product_type terms translations and fix relationships.
 		WCML_Install::check_product_type_terms();
 
-		// Mark the product_type taxonomy as non-translatable.
 		$sync_settings                 = $this->sitepress->get_setting( 'taxonomies_sync_option', [] );
 		$sync_settings['product_type'] = 0;
 		$this->sitepress->set_setting( 'taxonomies_sync_option', $sync_settings, true );
@@ -478,8 +454,9 @@ class WCML_Troubleshooting {
 	public function trbl_duplicate_terms() {
 		self::checkNonce( 'trbl_duplicate_terms' );
 
-		$attr  = $_POST['attr'] ?? false;
-		$terms = [];
+		$attr    = $_POST['attr'] ?? false;
+		$terms   = [];
+		$skipped = 0;
 
 		if ( $attr ) {
 			$terms     = get_terms( $attr, 'hide_empty=0' );
@@ -490,9 +467,7 @@ class WCML_Troubleshooting {
 
 					if ( is_null( $tr_id ) ) {
 						$term_args = [];
-						// hierarchy - parents.
 						if ( is_taxonomy_hierarchical( $attr ) ) {
-							// fix hierarchy.
 							if ( $term->parent ) {
 								$original_parent_translated = apply_filters( 'wpml_object_id', $term->parent, $attr, false, $language['code'] );
 								if ( $original_parent_translated ) {
@@ -501,7 +476,6 @@ class WCML_Troubleshooting {
 							}
 						}
 
-						// TODO It seems that WPML supports now using the same slug in multiple languages. Check, and adjust.
 						$term_name         = $term->name;
 						$slug              = $term->name . '-' . $language['code'];
 						$slug              = WPML_Terms_Translations::term_unique_slug( $slug, $attr, $language['code'] );
@@ -509,6 +483,8 @@ class WCML_Troubleshooting {
 
 						$new_term = wp_insert_term( $term_name, $attr, $term_args );
 						if ( is_wp_error( $new_term ) ) {
+							++$skipped;
+						} else {
 							$tt_id = $this->sitepress->get_element_trid( $term->term_taxonomy_id, 'tax_' . $attr );
 							$this->sitepress->set_element_language_details( $new_term['term_taxonomy_id'], 'tax_' . $attr, $tt_id, $language['code'] );
 						}
@@ -519,6 +495,7 @@ class WCML_Troubleshooting {
 
 		$response = [
 			'processed' => count( $terms ),
+			'skipped'   => $skipped,
 			'complete'  => true,
 		];
 		wp_send_json_success( $response );
@@ -614,13 +591,12 @@ class WCML_Troubleshooting {
 		wp_send_json_success( $response );
 	}
 
-	/**
-	 * @param string $action
-	 */
 	private static function checkNonce( $action ) {
 		$nonce = filter_var( Obj::prop( 'wcml_nonce', $_POST ), FILTER_SANITIZE_FULL_SPECIAL_CHARS );
 		if ( ! $nonce || ! wp_verify_nonce( $nonce, $action ) ) {
 			wp_send_json_error( 'Invalid nonce' );
 		}
+
+		WCML_Capabilities::requireCanManageWcmlForAjax();
 	}
 }

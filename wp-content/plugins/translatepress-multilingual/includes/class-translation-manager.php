@@ -174,7 +174,7 @@ class TRP_Translation_Manager {
                 'extra_upsell_bf_row1'              => esc_html__( 'Upgrade to PRO with our biggest discount of the year!', 'translatepress-multilingual' ),
                 'extra_upsell_bf_row2'              => esc_html__( 'This Black Friday, get access to these features and more at a fraction of the costs:', 'translatepress-multilingual' ),
                 //[utm31]
-                'extra_upsell_bf_button'            => wp_kses( sprintf( '<a class="button-primary" target="_blank" href="%s">%s</a>', esc_url( trp_add_affiliate_id_to_link( 'https://translatepress.com/black-friday/?utm_source=tp-editor&utm_medium=client-site&utm_campaign=bf-2025' ) ), __( 'Upgrade to PRO', 'translatepress-multilingual' ) ), array( 'a' => [ 'class' => [], 'target' => [], 'href' => [] ] ) ),
+                'extra_upsell_bf_button'            => wp_kses( sprintf( '<a class="button-primary" target="_blank" href="%s">%s</a>', esc_url( trp_add_affiliate_id_to_link( 'https://translatepress.com/black-friday/?utm_source=tp-editor&utm_medium=client-site&utm_campaign=bf-2026' ) ), __( 'Upgrade to PRO', 'translatepress-multilingual' ) ), array( 'a' => [ 'class' => [], 'target' => [], 'href' => [] ] ) ),
                 // Translation Memory
                 'translation_memory_no_suggestions' => esc_html__( 'No available suggestions', 'translatepress-multilingual' ),
                 'translation_memory_suggestions'    => esc_html__( 'Suggestions from translation memory', 'translatepress-multilingual' ),
@@ -182,12 +182,13 @@ class TRP_Translation_Manager {
                 //human or machine translation tooltips
                 'human_translation'                 => esc_html__('Human Translation', 'translatepress-multilingual'),
                 'machine_translation'               => esc_html__('Machine Translation', 'translatepress-multilingual'),
+                'language_file_translation'         => esc_html__('Gettext File Translation', 'translatepress-multilingual'),
                 'percentage_bar'                    => array(
                     'tooltip_text_default' => esc_html__( 'Text on this page is %s% translated into all languages.', 'translatepress-multilingual'),
                     'tooltip_text_general' => esc_html__( '%1$s% of text on this page is translated into %2$s.', 'translatepress-multilingual'),
                     'minibar_text'         => esc_html__('This page is %1$s% translated into %2$s.', 'translatepress-multilingual')
                 ),
-                'multiple_types_alert'              => esc_html__( "The slug that you are trying to edit is present in other slug types:%s%.\nEditing it will replace each occurrence, regardless of the current type.", 'translatepress-multilingual')
+                'multiple_types_alert'              => esc_html__( "The slug that you are trying to edit is present in other slug types:%s%. Editing it will replace each occurrence, regardless of the current type.", 'translatepress-multilingual')
             );
     }
 
@@ -238,7 +239,7 @@ class TRP_Translation_Manager {
                                 $instructions = esc_html__( '<strong>This Black Friday, renew your license at a special price</strong> to continue receiving access to product downloads, automatic updates, and support.', 'translatepress-multilingual' );
                                 $button       = esc_html__( 'Get Deal', 'translatepress-multilingual' );
                                 //[utm32]
-                                $link         = 'https://translatepress.com/account/?utm_source=tp-editor&utm_medium=client-site&utm_campaign=bf-2025-renewal';
+                                $link         = 'https://translatepress.com/account/?utm_source=tp-editor&utm_medium=client-site&utm_campaign=bf-2026-renewal';
                             } else {
                                 $instructions = esc_html__( 'Please renew your license to continue receiving access to TranslatePress AI, premium addons, automatic updates and support.', 'translatepress-multilingual' );
                                 $button       = esc_html__( 'Renew Now', 'translatepress-multilingual' );
@@ -268,7 +269,7 @@ class TRP_Translation_Manager {
                             //[utm35]
                             $instructions = sprintf( esc_html__( 'Please enter a valid license to get access to TranslatePress AI, premium addons, automatic updates and support. Need a license key? %1$sPurchase one now%2$s', 'translatepress-multilingual' ), '<a href="https://translatepress.com/pricing/?utm_source=tp-editor&utm_medium=client-site&utm_campaign=pro-no-active-license" target="_blank">', '</a>' );
                             $button       = esc_html__( 'Enter a valid license', 'translatepress-multilingual' );
-                            $link         = admin_url( 'admin.php?page=trp_license_key' );
+                            $link         = admin_url( 'admin.php?page=trp_ai_api_key' );
                             break;
                         }
                 }
@@ -483,6 +484,7 @@ class TRP_Translation_Manager {
             'language_names'              => $language_names,
             'ordered_secondary_languages' => $ordered_secondary_languages,
             'current_language'            => $TRP_LANGUAGE,
+            'interface_locale'            => get_locale(),
             'on_screen_language'          => ( isset( $ordered_secondary_languages[0] ) ) ? $ordered_secondary_languages[0] : '',
             'view_as_roles'               => $view_as_roles,
             'url_to_load'                 => add_query_arg( 'trp-edit-translation', 'preview', $current_url ),
@@ -508,6 +510,10 @@ class TRP_Translation_Manager {
             'upsale_slugs_text'           => $this->upsale_slugs_text(),
             'license_notice_content'      => $this->get_license_notice_content()
         );
+
+        // Remove API keys from the array due to it being exposed in JS
+        unset( $trp_editor_data['trp_settings']['trp_machine_translation_settings']['deepl-api-key'] );
+        unset( $trp_editor_data['trp_settings']['trp_machine_translation_settings']['google-translate-key'] );
 
         return apply_filters( 'trp_editor_data', $trp_editor_data );
     }
@@ -535,7 +541,9 @@ class TRP_Translation_Manager {
         }
 
         if ( is_admin() ) {
+            add_filter( 'trp_add_language_to_home_url_check_for_admin', '__return_false' );
             $url = add_query_arg( 'trp-edit-translation', 'true', trailingslashit( home_url() ) );
+            remove_filter( 'trp_add_language_to_home_url_check_for_admin', '__return_false' );
 
             $title      = __( 'Translate Site', 'translatepress-multilingual' );
             $url_target = '_blank';
@@ -554,17 +562,141 @@ class TRP_Translation_Manager {
             $url_target = '';
         }
 
+        // Check if no secondary languages are configured
+        $notif_no_language = !isset( $this->settings['translation-languages'] ) || count( $this->settings['translation-languages'] ) <= 1;
+
+        // Check if user is on the free version
+        $trp = TRP_Translate_Press::get_trp_instance();
+        $tp_product_name = reset( $trp->tp_product_name );
+        $is_free_version = ( $tp_product_name === 'TranslatePress' );
+
+        // Check license status
+        $license_status = get_option( 'trp_license_status', '' );
+
+        // Check if free user does not have a valid license
+        $notif_no_free_license = $is_free_version && $license_status !== 'valid';
+
+        // Check if paid user has expired license
+        $notif_invalid_paid_license = !$is_free_version && $license_status !== 'valid';
+
+        // Check if TranslatePress AI is configured and has low quota (less than 100 words = 500 characters)
+        $notif_low_ai_quota = false;
+        $ai_words_remaining = 0;
+        $mt_settings = isset( $this->settings['trp_machine_translation_settings'] ) ? $this->settings['trp_machine_translation_settings'] : array();
+        // Check if TranslatePress AI is the selected engine (regardless of whether auto-translate is enabled)
+        $is_ai_configured = isset( $mt_settings['translation-engine'] ) && $mt_settings['translation-engine'] === 'mtapi';
+
+        if ( $is_ai_configured ) {
+            $cached_quota = get_transient( 'trp_mtapi_cached_quota' );
+            // Quota is stored in characters, 500 characters = ~100 words
+            if ( $cached_quota !== false && is_numeric( $cached_quota ) && $cached_quota < 500 ) {
+                $notif_low_ai_quota = true;
+                $ai_words_remaining = max( 0, floor( $cached_quota / 5 ) );
+            }
+        }
+
+        // Get dismissed notifications from user meta
+        $dismissed = get_user_meta( get_current_user_id(), 'trp_dismissed_admin_bar_notifications', true );
+        if ( !is_array( $dismissed ) ) {
+            $dismissed = array();
+        }
+
+        // Reset low_ai_quota dismissal when quota is no longer low (user refilled)
+        if ( !$notif_low_ai_quota && isset( $dismissed['low_ai_quota'] ) ) {
+            unset( $dismissed['low_ai_quota'] );
+            update_user_meta( get_current_user_id(), 'trp_dismissed_admin_bar_notifications', $dismissed );
+        }
+
+        // Count only non-dismissed notifications for the badge
+        $notification_count = 0;
+        if ( $notif_no_language && empty( $dismissed['no_language'] ) )           $notification_count++;
+        if ( $notif_no_free_license && empty( $dismissed['no_free_license'] ) )   $notification_count++;
+        if ( $notif_invalid_paid_license )                                        $notification_count++;
+        if ( $notif_low_ai_quota && empty( $dismissed['low_ai_quota'] ) )         $notification_count++;
+
+        // Add notification badge if there are any notifications
+        $notification_badge = '';
+        $has_notifications = $notification_count > 0;
+        if ( $has_notifications ) {
+            $notification_badge = '<span class="trp-notification-badge">' . $notification_count . '</span>';
+        }
+
         $wp_admin_bar->add_node(
             array(
                 'id'    => 'trp_edit_translation',
-                'title' => '<span class="ab-icon"></span><span class="ab-label">' . $title . '</span>',
+                'title' => '<span class="ab-icon"></span><span class="ab-label">' . $title . $notification_badge . '</span>',
                 'href'  => $url,
                 'meta'  => array(
-                    'class'  => 'trp-edit-translation',
+                    'class'  => 'trp-edit-translation' . ( $has_notifications ? ' trp-needs-setup' : '' ),
                     'target' => $url_target
                 )
             )
         );
+
+        // Add setup item if no secondary language is configured
+        if ( $notif_no_language ) {
+            $no_language_badge = empty( $dismissed['no_language'] ) ? '<span class="trp-notification-badge">1</span>' : '';
+            $wp_admin_bar->add_node(
+                array(
+                    'id'     => 'trp_add_language',
+                    'title'  => __( 'Add a New Language', 'translatepress-multilingual' ) . $no_language_badge,
+                    'href'   => add_query_arg( 'trp-dismiss-notif', 'no_language', admin_url( 'options-general.php?page=translate-press' ) ),
+                    'parent' => 'trp_edit_translation',
+                    'meta'   => array(
+                        'class' => 'trp-add-language'
+                    )
+                )
+            );
+        }
+
+        // Add free AI license item for free users without a valid license
+        if ( $notif_no_free_license ) {
+            $no_free_license_badge = empty( $dismissed['no_free_license'] ) ? '<span class="trp-notification-badge">1</span>' : '';
+            $wp_admin_bar->add_node(
+                array(
+                    'id'     => 'trp_auto_translate_setup',
+                    'title'  => trp_get_tp_ai_api_key_labels( 'get_free_ai_button' ) . $no_free_license_badge,
+                    'href'   => add_query_arg( 'trp-dismiss-notif', 'no_free_license', admin_url( 'admin.php?page=trp_machine_translation' ) ),
+                    'parent' => 'trp_edit_translation',
+                    'meta'   => array(
+                        'class' => 'trp-auto-translate-setup'
+                    )
+                )
+            );
+        }
+
+        // Add license renewal item for paid users with expired license
+        if ( $notif_invalid_paid_license ) {
+            $wp_admin_bar->add_node(
+                array(
+                    'id'     => 'trp_renew_license',
+                    'title'  => __( 'Your License is Invalid', 'translatepress-multilingual' ) . '<span class="trp-notification-badge">1</span>',
+                    'href'   => admin_url( 'admin.php?page=trp_ai_api_key' ),
+                    'parent' => 'trp_edit_translation',
+                    'meta'   => array(
+                        'class' => 'trp-renew-license'
+                    )
+                )
+            );
+        }
+
+        // Add low AI quota warning
+        if ( $notif_low_ai_quota ) {
+            $low_ai_quota_badge = empty( $dismissed['low_ai_quota'] ) ? '<span class="trp-notification-badge">1</span>' : '';
+            /* translators: %d is the number of AI words remaining */
+            $low_quota_text = sprintf( __( 'Get More AI Words (%d left)', 'translatepress-multilingual' ), $ai_words_remaining );
+            $wp_admin_bar->add_node(
+                array(
+                    'id'     => 'trp_low_ai_quota',
+                    'title'  => $low_quota_text . $low_ai_quota_badge,
+                    'href'   => add_query_arg( 'trp-dismiss-notif', 'low_ai_quota', admin_url( 'admin.php?page=trp_machine_translation' ) ),
+                    'parent' => 'trp_edit_translation',
+                    'meta'   => array(
+                        'class' => 'trp-low-ai-quota'
+                    )
+                )
+            );
+        }
 
         $wp_admin_bar->add_node(
             array(
@@ -578,6 +710,32 @@ class TRP_Translation_Manager {
             )
         );
 
+    }
+
+    /**
+     * Dismiss an admin bar notification when the user clicks through via trp-dismiss-notif param.
+     *
+     * Hooked to admin_init.
+     */
+    public function maybe_dismiss_admin_bar_notification() {
+        if ( !isset( $_GET['trp-dismiss-notif'] ) || !current_user_can( apply_filters( 'trp_translating_capability', 'manage_options' ) ) ) {
+            return;
+        }
+
+        $notif_key  = sanitize_text_field( $_GET['trp-dismiss-notif'] );
+        $valid_keys = array( 'no_language', 'no_free_license', 'low_ai_quota' );
+
+        if ( !in_array( $notif_key, $valid_keys, true ) ) {
+            return;
+        }
+
+        $dismissed = get_user_meta( get_current_user_id(), 'trp_dismissed_admin_bar_notifications', true );
+        if ( !is_array( $dismissed ) ) {
+            $dismissed = array();
+        }
+
+        $dismissed[ $notif_key ] = true;
+        update_user_meta( get_current_user_id(), 'trp_dismissed_admin_bar_notifications', $dismissed );
     }
 
     /**
@@ -622,17 +780,52 @@ class TRP_Translation_Manager {
     /**
      * Add the glyph icon for Translate Site button in admin bar
      *
-     * hooked to admin_head action
+     * hooked to admin_head and wp_head actions
      */
     public function add_styling_to_admin_bar_button() {
-        echo "<style type='text/css'> #wpadminbar #wp-admin-bar-trp_edit_translation .ab-icon:before {    content: '\\f326';    top: 3px;}
+        if ( ! current_user_can( apply_filters( 'trp_translating_capability', 'manage_options' ) ) ) {
+            return;
+        }
+        echo "<style> 
+        #wpadminbar #wp-admin-bar-trp_edit_translation .ab-icon:before {    content: '\\f326';    top: 3px;}
 		#wpadminbar #wp-admin-bar-trp_edit_translation > .ab-item {
 			text-indent: 0;
+			display: flex;
+            justify-content: space-between;
+            align-items: center;
 		}
 
 		#wpadminbar li#wp-admin-bar-trp_edit_translation {
 			display: block;
-		}</style>";
+		}
+		
+		#wpadminbar .trp-notification-badge {
+			background: #d63638;
+			color: #fff;
+			border-radius: 50%;
+			padding: 0 6px;
+			margin: -3px 0 0 6px;
+			font-size: 11px;
+			line-height: 18px;
+			display: inline-block;
+			vertical-align: middle;
+			min-width: 18px;
+			text-align: center;
+			box-sizing: border-box;
+		}
+
+		@keyframes trp-greyscale-pulse {
+			0%, 100% { color: #fff; }
+			50% { color: #626265; }
+		}
+
+		#wpadminbar .trp-needs-setup .ab-icon:before {
+			animation: trp-greyscale-pulse 3s ease-in-out infinite;
+		}
+		#wpadminbar .trp-settings-page {
+		    /*border-top: 1px solid #4b4b4b;*/
+		}
+        </style>";
     }
 
 
@@ -664,8 +857,15 @@ class TRP_Translation_Manager {
 			return false;
 		}
 
-		$rest_prefix         = trailingslashit( rest_get_url_prefix() );
-		$is_rest_api_request = strpos( $_SERVER['REQUEST_URI'], $rest_prefix ) !== false; /* phpcs:ignore */
+		if ( isset( $_GET['rest_route'] ) ) {
+			return apply_filters( 'trp_is_rest_api_request', true );
+		}
+
+		$request_path = wp_parse_url( wp_unslash( $_SERVER['REQUEST_URI'] ), PHP_URL_PATH ); /* phpcs:ignore */
+		$rest_prefix  = trim( rest_get_url_prefix(), '/' );
+
+		$is_rest_api_request = is_string( $request_path )
+			&& preg_match( '#(?:^|/)' . preg_quote( $rest_prefix, '#' ) . '(?:/|$)#', $request_path ) === 1;
 
 		return apply_filters( 'trp_is_rest_api_request', $is_rest_api_request );
 	}
@@ -818,13 +1018,18 @@ class TRP_Translation_Manager {
 			$url = add_query_arg( array(
 				'page'                      => 'trp_update_database',
 			), site_url('wp-admin/admin.php') );
+			$database_update_confirmation_message = sprintf(
+				"%s\n%s",
+				__( 'IMPORTANT: It is strongly recommended to first backup the database!', 'translatepress-multilingual' ),
+				__( 'Are you sure you want to continue?', 'translatepress-multilingual' )
+			);
 
 			// maybe change notice color to blue #28B1FF
 			$html = "<div class='trp-notice trp-notice-warning'>";
 			$html .= '<p><strong>' . esc_html__( 'TranslatePress data update', 'translatepress-multilingual' ) . '</strong> &#8211; ' . esc_html__( 'We need to update your translations database to the latest version.', 'translatepress-multilingual' ) . '</p>';
 			$html .= '<p>' . esc_html__( 'Updating will allow editing translations of localized text from plugins and theme. Existing translation will still work as expected.', 'translatepress-multilingual' ) . '</p>';
 
-			$html .= '<p><a class="trp-button-primary" target="_blank" href="' . esc_url( $url ) . '" onclick="return confirm( \'' . __( 'IMPORTANT: It is strongly recommended to first backup the database!\nAre you sure you want to continue?', 'translatepress-multilingual' ) . '\');" class="button-primary">' . esc_html__( 'Run the updater', 'translatepress-multilingual' ) . '</a></p>';
+			$html .= '<p><a class="trp-button-primary" target="_blank" href="' . esc_url( $url ) . '" onclick="return confirm( ' . esc_attr( wp_json_encode( $database_update_confirmation_message ) ) . ' );" class="button-primary">' . esc_html__( 'Run the updater', 'translatepress-multilingual' ) . '</a></p>';
 			$html .= '</div>';
 
 			$trp_editor_notices = $html;
@@ -838,12 +1043,17 @@ class TRP_Translation_Manager {
             $url = add_query_arg( array(
                 'page'                      => 'trp_update_database',
             ), site_url('wp-admin/admin.php') );
+            $database_update_confirmation_message = sprintf(
+                "%s\n%s",
+                __( 'IMPORTANT: It is strongly recommended to first backup the database!', 'translatepress-multilingual' ),
+                __( 'Are you sure you want to continue?', 'translatepress-multilingual' )
+            );
 
             $html = "<div class='trp-notice trp-notice-warning'>";
             $html .= '<p><strong>' . esc_html__( 'TranslatePress data update', 'translatepress-multilingual' ) . '</strong> &#8211; ' . esc_html__( 'We need to update your translations database to the latest version.', 'translatepress-multilingual' ) . '</p>';
             $html .= '<p>' . esc_html__( 'Updating will allow editing translations of slugs. Existing translation will still work as expected.', 'translatepress-multilingual' ) . '</p>';
 
-            $html .= '<p><a class="trp-button-primary" target="_blank" href="' . esc_url( $url ) . '" onclick="return confirm( \'' . __( 'IMPORTANT: It is strongly recommended to first backup the database!\nAre you sure you want to continue?', 'translatepress-multilingual' ) . '\');" class="button-primary">' . esc_html__( 'Run the updater', 'translatepress-multilingual' ) . '</a></p>';
+            $html .= '<p><a class="trp-button-primary" target="_blank" href="' . esc_url( $url ) . '" onclick="return confirm( ' . esc_attr( wp_json_encode( $database_update_confirmation_message ) ) . ' );" class="button-primary">' . esc_html__( 'Run the updater', 'translatepress-multilingual' ) . '</a></p>';
             $html .= '</div>';
 
             $trp_editor_notices = $html;

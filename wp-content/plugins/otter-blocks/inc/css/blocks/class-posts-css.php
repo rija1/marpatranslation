@@ -8,6 +8,7 @@
 namespace ThemeIsle\GutenbergBlocks\CSS\Blocks;
 
 use ThemeIsle\GutenbergBlocks\Base_CSS;
+use ThemeIsle\GutenbergBlocks\Registration;
 
 use ThemeIsle\GutenbergBlocks\CSS\CSS_Utility;
 
@@ -57,10 +58,16 @@ class Posts_CSS extends Base_CSS {
 					array(
 						'property' => '--text-color',
 						'value'    => 'textColor',
+						'format'   => function ( $value ) {
+							return Base_CSS::resolve_color_value( $value );
+						},
 					),
 					array(
 						'property' => '--background-color',
 						'value'    => 'backgroundColor',
+						'format'   => function ( $value ) {
+							return Base_CSS::resolve_color_value( $value );
+						},
 					),
 					array(
 						'property' => '--background-overlay',
@@ -69,6 +76,9 @@ class Posts_CSS extends Base_CSS {
 					array(
 						'property' => '--border-color',
 						'value'    => 'borderColor',
+						'format'   => function ( $value ) {
+							return Base_CSS::resolve_color_value( $value );
+						},
 					),
 					array(
 						'property' => '--title-text-size',
@@ -420,8 +430,7 @@ class Posts_CSS extends Base_CSS {
 							return $value[ $position ];
 						},
 						'condition' => function ( $attrs ) {
-							// @phpstan-ignore-next-line
-							return isset( $attrs['className'] ) && strpos( $attrs['className'], 'is-style-tiled' ) !== false;
+							return strpos( Registration::get_class_name( $attrs ), 'is-style-tiled' ) !== false;
 						},
 					);
 				},

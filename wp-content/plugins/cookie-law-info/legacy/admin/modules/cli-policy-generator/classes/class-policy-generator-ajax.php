@@ -34,7 +34,7 @@ class Cookie_Law_Info_Policy_Generator_Ajax extends Cookie_Law_Info_Cli_Policy_G
 		if ( in_array( $cli_policy_generator_action, $non_json_response ) ) {
 			echo esc_html( is_array( $out ) ? $out['message'] : $out );
 		} else {
-			echo json_encode( $out );
+			echo wp_json_encode( $out );
 		}
 		exit();
 	}

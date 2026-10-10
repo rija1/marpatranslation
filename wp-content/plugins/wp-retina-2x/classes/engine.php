@@ -82,7 +82,7 @@ class Meow_WR2X_Engine {
         }
 		if ( $this->core->get_option( "webp_auto_generate" ) == true ) {
 			if ( $this->core->is_image_meta( $meta ) ) {
-				$this->generate_webp_images( $meta );
+				$this->generate_modern_format( $meta );
             }
         }
         if ( $this->core->get_option( "auto_generate" ) == true && $this->core->get_option( "webp_auto_generate" ) == true ) {
@@ -128,6 +128,14 @@ class Meow_WR2X_Engine {
 		// $ignore = array_keys( $ignore );
 		$issue = false;
 		$id = $this->core->get_attachment_id( $meta['file'] );
+
+		// Check if attachment is ignored
+		$is_ignored = $id ? $this->core->is_ignore( $id ) : false;
+		$is_ignored = apply_filters( 'wr2x_ignore_generate_retina', $is_ignored, $id );
+		if ( $is_ignored ) {
+			$this->core->log( "Attachment {$id} is ignored for generate_retina." );
+			return $meta;
+		}
 
 		/**
 		 * @param $id ID of the attachment whose retina image is to be generated
@@ -224,35 +232,33 @@ class Meow_WR2X_Engine {
 		return $meta;
 	}
 
-	/**
-	 * @param mixed[] $meta
-	 * int       width
-	 * int       height
-	 * string    file
-	 * mixed[][] sizes
-	 */
-	function generate_webp_images( $meta ) {
-        if ( !extension_loaded( 'gd' ) && !extension_loaded( 'imagick' ) ) {
-            $this->core->log("Can not create WebP images. Neither GD nor Imagick are installed.");
-            return;
-        }
-        if ( !isset( $meta['file'] ) ) return;
+	function generate_modern_format( $meta ) {
+		if ( !extension_loaded( 'gd' ) && !extension_loaded( 'imagick' ) ) {
+			$this->core->log( "Can not create modern format images. Neither GD nor Imagick are installed." );
+			return;
+		}
+		if ( !isset( $meta['file'] ) ) return;
 
-        global $_wp_additional_image_sizes;
+		global $_wp_additional_image_sizes;
 		$sizes = $this->core->get_image_sizes();
 		$uploads = wp_upload_dir();
 
-		// Check if the full-size-webp version of the generation source exists.
+		// The extension to append (like '.webp' or '.avif') and the format name behind it.
+		$new_ext = $this->core->webp_avif_extension();
+		$target_format = str_replace( '.', '', $new_ext );
+		$format_label = strtoupper( $target_format );
+
+		// Check if the full-size modern version of the generation source exists.
 		// If it exists, replace the file path and its dimensions
-		if ( $webp = $this->core->get_webp( $uploads['basedir'] . '/' . $meta['file'] ) ) {
-			$meta['file'] = substr( $webp, strlen( $uploads['basedir'] ) + 1 );
-			$dim = getimagesize( $webp );
-			if ($dim !== false) {
+		if ( $full_size_modern = $this->core->get_webp( $uploads['basedir'] . '/' . $meta['file'] ) ) {
+			$meta['file'] = substr( $full_size_modern, strlen( $uploads['basedir'] ) + 1 );
+			$dim = getimagesize( $full_size_modern );
+			if ( $dim !== false ) {
 				$meta['width']  = $dim[0];
 				$meta['height'] = $dim[1];
 			} else {
 				// Handle the error case where getimagesize fails
-				$this->core->log( "[ERROR] Could not get dimensions of WebP file '{$webp}'." );
+				$this->core->log( "[ERROR] Could not get dimensions of {$format_label} file '{$full_size_modern}'." );
 				$meta['width']  = 0;
 				$meta['height'] = 0;
 			}
@@ -261,58 +267,73 @@ class Meow_WR2X_Engine {
 		$originalfile = $meta['file'];
 		$pathinfo = pathinfo( $originalfile );
 		$original_basename = $pathinfo['basename'];
+		$original_extension = strtolower( $pathinfo['extension'] );
 		$basepath = trailingslashit( $uploads['basedir'] ) . $pathinfo['dirname'];
+
+		$ignored_extensions = $this->core->get_option( 'webp_ignored_extensions', ['gif', 'svg', 'bmp', 'tiff'] );
+		if( in_array( $original_extension, $ignored_extensions ) ) {
+			$this->core->log( "{$format_label} generation skipped for '{$original_basename}' due to its extension '{$original_extension}' being in the ignored extensions list." );
+			return $meta;
+		}
 
 		$issue = false;
 		$id = $this->core->get_attachment_id( $meta['file'] );
 
+		// Check if attachment is ignored
+		$is_ignored = $id ? $this->core->is_ignore( $id ) : false;
+		$is_ignored = apply_filters( 'wr2x_ignore_generate_webp', $is_ignored, $id );
+		if ( $is_ignored ) {
+			$this->core->log( "Attachment {$id} is ignored for generate_modern_format." );
+			return $meta;
+		}
+
 		/**
-		 * @param $id ID of the attachment whose web image is to be generated
+		 * @param $id ID of the attachment whose modern format image is to be generated
 		 */
 		do_action( 'wr2x_before_generate_webp', $id );
 
-		$this->core->log("* GENERATE WEBP FOR ATTACHMENT '{$meta['file']}'");
+		$this->core->log( "* GENERATE {$format_label} FOR ATTACHMENT '{$meta['file']}'" );
 		$this->core->log( "Full-Size is {$original_basename}." );
 
-		//before doing each size, create a webp version of the original file
+		// Before doing each size, create a modern format version of the original file
 		if( $this->core->get_option( 'webp_full_size' ) ) {
 			$random_suffix = substr( md5( uniqid( rand(), true ) ), 0, 8 );
+			$full_size_name = 'modern_full_size_' . $random_suffix;
 
-			$sizes['webp_full_size_' . $random_suffix]['width'] = $meta['width'];
-			$sizes['webp_full_size_' . $random_suffix]['height'] = $meta['height'];
-			$sizes['webp_full_size_' . $random_suffix]['webp'] = true;
+			$sizes[$full_size_name]['width'] = $meta['width'];
+			$sizes[$full_size_name]['height'] = $meta['height'];
+			$sizes[$full_size_name]['webp'] = true;
 
-			$meta['sizes']['webp_full_size_' . $random_suffix]['file'] = $original_basename;
-			$meta['sizes']['webp_full_size_' . $random_suffix]['width'] = $meta['width'];
-			$meta['sizes']['webp_full_size_' . $random_suffix]['height'] = $meta['height'];
+			$meta['sizes'][$full_size_name]['file'] = $original_basename;
+			$meta['sizes'][$full_size_name]['width'] = $meta['width'];
+			$meta['sizes'][$full_size_name]['height'] = $meta['height'];
 		}
-		
-		
 
 		foreach ( $sizes as $name => $attr ) {
 			$normal_file = "";
 			if ( !$attr['webp'] ) {
-				$this->core->log( "WebP for {$name} ignored (settings)." );
+				$this->core->log( "{$format_label} for {$name} ignored (settings)." );
 				continue;
 			}
 			// Is the file related to this size there?
 			$pathinfo = null;
-			$webp_file = null;
+			$new_file = null;
 
 			if ( isset( $meta['sizes'][$name] ) && isset( $meta['sizes'][$name]['file'] ) ) {
 				$normal_file = trailingslashit( $basepath ) . $meta['sizes'][$name]['file'];
 				$pathinfo = pathinfo( $normal_file ) ;
 
-				$new_webp_ext = $pathinfo['extension'] === 'webp' ? '' : $this->core->webp_avif_extension();
-				$webp_file = trailingslashit( $pathinfo['dirname'] ) . $pathinfo['filename'] . "." . $pathinfo['extension'] . $new_webp_ext;
+				$already_modern = in_array( $pathinfo['extension'], ['webp', 'avif'] );
+				$size_ext = $already_modern ? '' : $new_ext;
+				$new_file = trailingslashit( $pathinfo['dirname'] ) . $pathinfo['filename'] . "." . $pathinfo['extension'] . $size_ext;
 			}
 
-			if ( $webp_file && file_exists( $webp_file ) ) {
+			if ( $new_file && file_exists( $new_file ) ) {
 				$this->core->log( "Base for {$name} is '{$normal_file }'." );
-				$this->core->log( "WebP for {$name} already exists: '$webp_file'." );
+				$this->core->log( "{$format_label} for {$name} already exists: '$new_file'." );
 				continue;
 			}
-			if ( $webp_file ) {
+			if ( $new_file ) {
 				$originalfile = trailingslashit( $pathinfo['dirname'] ) . $original_basename;
 
 				if ( !file_exists( $originalfile ) ) {
@@ -320,17 +341,16 @@ class Meow_WR2X_Engine {
 					return $meta;
 				}
 
-				// Generate WebP file by using GD or Imagick.
-                // Change proposed by Nicscott01, slighlty modified by Jordy (+isset)
-                // (https://wordpress.org/support/topic/issue-with-crop-position?replies=4#post-6200271)
-                $crop = isset( $_wp_additional_image_sizes[$name] ) ? $_wp_additional_image_sizes[$name]['crop'] : true;
-                $customCrop = apply_filters( 'wr2x_custom_crop', null, $id, $name );
+				// Generate the modern format file by using GD or Imagick.
+				// Change proposed by Nicscott01, slighlty modified by Jordy (+isset)
+				// (https://wordpress.org/support/topic/issue-with-crop-position?replies=4#post-6200271)
+				$crop = isset( $_wp_additional_image_sizes[$name] ) ? $_wp_additional_image_sizes[$name]['crop'] : true;
+				$customCrop = apply_filters( 'wr2x_custom_crop', null, $id, $name );
 
 				if ( isset( $meta['sizes'][$name]['width'], $meta['sizes'][$name]['height'] ) ) {
 
-					$target_format = str_replace( '.', '', $this->core->webp_avif_extension() );
 					$is_avif = $target_format === 'avif';
-					
+
 					// Check GD's capabilities
 					$gd_can_convert = false;
 					if ( extension_loaded( 'gd' ) ) {
@@ -340,7 +360,7 @@ class Meow_WR2X_Engine {
 							$gd_can_convert = true;
 						}
 					}
-					
+
 					// Check Imagick's capabilities
 					$imagick_can_convert = false;
 					if ( extension_loaded( 'imagick' ) ) {
@@ -353,7 +373,7 @@ class Meow_WR2X_Engine {
 							$this->core->log( "⚠️ Error checking Imagick formats: " . $e->getMessage() );
 						}
 					}
-					
+
 					// Use appropriate conversion method
 					if ( $gd_can_convert ) {
 						try {
@@ -362,22 +382,27 @@ class Meow_WR2X_Engine {
 								$this->core->log( "❌ [ERROR] Could not create image from file '{$originalfile}'. The file may not be a valid image or the format may not be supported." );
 								return $meta;
 							}
-							
+
 							$temp_file = $originalfile;
 							if ( imagecolorstotal($image) > 0 ) {
 								$this->core->log( "⚠️ Converting palette image to true color for {$target_format} conversion." );
 								$newImage = imagecreatetruecolor( imagesx( $image ), imagesy( $image ) );
 								imagecopy( $newImage, $image, 0, 0, 0, 0, imagesx( $image ), imagesy( $image ) );
 								imagedestroy( $image );
-								
+
 								// Create a temporary file instead of overwriting the original
 								$temp_file = tempnam( sys_get_temp_dir(), 'wr2x_temp_' ) . '.png';
 								imagepng( $newImage, $temp_file );
 								imagedestroy( $newImage );
 							}
-							
-							$this->resize( $temp_file, $meta['sizes'][$name]['width'], $meta['sizes'][$name]['height'], $crop, $webp_file, $customCrop );
-							
+
+							$this->resize( $temp_file, $meta['sizes'][$name]['width'], $meta['sizes'][$name]['height'], $crop, $new_file, $customCrop );
+
+							// Ensure correct file permissions (the editor uses umask which may result in 0660)
+							if ( file_exists( $new_file ) ) {
+								chmod( $new_file, 0644 );
+							}
+
 							// Clean up temporary file if it was created
 							if ( $temp_file !== $originalfile && file_exists( $temp_file ) ) {
 								unlink( $temp_file );
@@ -387,44 +412,49 @@ class Meow_WR2X_Engine {
 							$gd_can_convert = false;
 						}
 					}
-					
+
 					// If GD failed or can't convert, try Imagick
 					if ( !$gd_can_convert && $imagick_can_convert ) {
 						try {
 							$imagick = new Imagick();
 							$imagick->readImage( $originalfile );
-							
+
 							if ( $crop ) {
 								$imagick->cropThumbnailImage( $meta['sizes'][$name]['width'], $meta['sizes'][$name]['height'] );
 							} else {
 								$imagick->thumbnailImage( $meta['sizes'][$name]['width'], $meta['sizes'][$name]['height'], true );
 							}
-							
+
 							$imagick->setImageFormat( $target_format );
-							$imagick->writeImage( $webp_file );
+							$imagick->writeImage( $new_file );
 							$imagick->clear();
 							$imagick->destroy();
+
+							// Ensure correct file permissions (Imagick uses umask which may result in 0660)
+							if ( file_exists( $new_file ) ) {
+								chmod( $new_file, 0644 );
+							}
 						} catch ( Exception $e ) {
 							$this->core->log( "❌ [ERROR] Imagick conversion failed for {$name}: " . $e->getMessage() );
 						}
 					}
-					
+
 					// Neither method worked or is available
 					if ( !$gd_can_convert && !$imagick_can_convert ) {
 						$this->core->log( "❌ [ERROR] Cannot convert to {$target_format}. Neither GD nor Imagick support this format." );
 					}
 				} else {
-					$this->core->log( "❌ [ERROR] Could not generate WebP/AVIF for {$name} because the width and height are not set." );
+					$this->core->log( "❌ [ERROR] Could not generate {$format_label} for {$name} because the width and height are not set." );
 				}
 
 
-				if ( !file_exists( $webp_file ) ) {
-					$this->core->log( "❌ [ERROR] WebP for {$name} could not be created.");
+				if ( !file_exists( $new_file ) ) {
+					$this->core->log( "❌ [ERROR] {$format_label} for {$name} could not be created." );
 					$issue = true;
 				}
 				else {
-					do_action( 'wr2x_webp_file_added', $id, $webp_file, $name );
-					$this->core->log( "WebP for {$name} created: '{$webp_file}'." );
+					do_action( 'wr2x_webp_file_added', $id, $new_file, $name );
+					$this->core->log( "{$format_label} for {$name} created: '{$new_file}'." );
 				}
 			} else {
 				if ( empty( $normal_file ) ){
@@ -443,7 +473,7 @@ class Meow_WR2X_Engine {
 			$this->core->remove_issue( $id );
 
 		/**
-		 * @param $id ID of the attachment whose retina image has been generated
+		 * @param $id ID of the attachment whose modern format image has been generated
 		 */
 		do_action( 'wr2x_generate_webp', $id );
 
@@ -485,6 +515,14 @@ class Meow_WR2X_Engine {
 
 		$issue = false;
 		$id = $this->core->get_attachment_id( $meta['file'] );
+
+		// Check if attachment is ignored
+		$is_ignored = $id ? $this->core->is_ignore( $id ) : false;
+		$is_ignored = apply_filters( 'wr2x_ignore_generate_webp_retina', $is_ignored, $id );
+		if ( $is_ignored ) {
+			$this->core->log( "Attachment {$id} is ignored for generate_webp_retina." );
+			return $meta;
+		}
 
 		/**
 		 * @param $id ID of the attachment whose retina image is to be generated
@@ -536,6 +574,11 @@ class Meow_WR2X_Engine {
 
 					$this->resize( $originalfile, $meta['sizes'][$name]['width'] * 2,
 						$meta['sizes'][$name]['height'] * 2, $crop, $webp_retina_file, $customCrop );
+
+					// Ensure correct file permissions (the editor uses umask which may result in 0660)
+					if ( file_exists( $webp_retina_file ) ) {
+						chmod( $webp_retina_file, 0644 );
+					}
 				}
 				if ( !file_exists( $webp_retina_file ) ) {
 					$this->core->log( "[ERROR] WebP Retina for {$name} could not be created. Full-Size is " . $meta['width'] . "x" . $meta['height'] . " but WebP Retina requires a file of at least " . $meta['sizes'][$name]['width'] * 2 . "x" . $meta['sizes'][$name]['height'] * 2 . "." );

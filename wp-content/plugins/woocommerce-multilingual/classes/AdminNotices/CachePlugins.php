@@ -12,7 +12,6 @@ class CachePlugins implements \IWPML_Backend_Action, \IWPML_DIC_Action {
 
 	const NOTICE_ID = 'wcml-cache-plugins';
 
-	/** @var \WPML_Notices $notices */
 	private $notices;
 
 	public function __construct( \WPML_Notices $notices ) {
@@ -30,8 +29,11 @@ class CachePlugins implements \IWPML_Backend_Action, \IWPML_DIC_Action {
 	}
 
 	public function addNotice() {
+		/* translators: Heading of an admin notice about a caching plugin. "WPML Multilingual & Multicurrency for WooCommerce" is the plugin name and stays in English. */
 		$text  = '<h2>' . esc_html__( 'WPML Multilingual & Multicurrency for WooCommerce detected an active cache plugin on your site.', 'woocommerce-multilingual' ) . '</h2>';
+		/* translators: First line of the admin notice about a caching plugin, under the heading. */
 		$text .= '<p>' . esc_html__( 'Caching may cause currency display issues for your customers if you are using the multicurrency feature.', 'woocommerce-multilingual' ) . '</p>';
+		/* translators: Last line of the admin notice about a caching plugin; "this" is the wrong currency being shown to shoppers. */
 		$text .= '<p>' . esc_html__( 'To avoid this, set your cache plugin to not cache pages for visitors that have a cookie set in their browser.', 'woocommerce-multilingual' ) . '</p>';
 
 		$notice = $this->notices->create_notice( self::NOTICE_ID, $text );
@@ -42,21 +44,16 @@ class CachePlugins implements \IWPML_Backend_Action, \IWPML_DIC_Action {
 		$this->notices->add_notice( $notice );
 	}
 
-	/**
-	 * @return bool
-	 */
 	private static function hasActiveCachePlugin() {
 		if ( ! function_exists( 'is_plugin_active' ) ) {
 			include_once ABSPATH . 'wp-admin/includes/plugin.php';
 		}
 
-		// $isActive :: ( array, string ) -> bool
 		$isActive = pipe(
-			Fns::nthArg( 1 ), // array index.
+			Fns::nthArg( 1 ),
 			'is_plugin_active'
 		);
 
-		// $isAboutCaching :: array -> bool
 		$isAboutCaching = pipe(
 			Obj::prop( 'Description' ),
 			Logic::anyPass(
@@ -67,7 +64,6 @@ class CachePlugins implements \IWPML_Backend_Action, \IWPML_DIC_Action {
 			)
 		);
 
-		// $isHandled :: array -> bool
 		$isHandled = function( $plugin ) {
 			return in_array(
 				$plugin['Name'],

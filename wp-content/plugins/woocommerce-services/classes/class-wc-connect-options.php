@@ -1,5 +1,9 @@
 <?php
 
+if ( ! defined( 'ABSPATH' ) ) {
+	exit;
+}
+
 if ( ! class_exists( 'WC_Connect_Options' ) ) {
 	class WC_Connect_Options {
 		/**
@@ -100,7 +104,7 @@ if ( ! class_exists( 'WC_Connect_Options' ) ) {
 				}
 			}
 
-			trigger_error( esc_html( sprintf( 'Invalid WooCommerce Tax option name: %s', $name ), E_USER_WARNING ) );
+			wp_trigger_error( 'WC_Connect_Options::get_option', esc_html( sprintf( 'Invalid WooCommerce Tax option name: %s', $name ) ), E_USER_WARNING );
 			return $default;
 		}
 
@@ -121,7 +125,7 @@ if ( ! class_exists( 'WC_Connect_Options' ) ) {
 					return self::update_grouped_option( $group, $name, $value );
 				}
 			}
-			trigger_error( esc_html( sprintf( 'Invalid WooCommerce Tax option name: %s', $name ), E_USER_WARNING ) );
+			wp_trigger_error( 'WC_Connect_Options::update_option', esc_html( sprintf( 'Invalid WooCommerce Tax option name: %s', $name ) ), E_USER_WARNING );
 			return false;
 		}
 
@@ -137,7 +141,7 @@ if ( ! class_exists( 'WC_Connect_Options' ) ) {
 			$result = true;
 			$names  = (array) $names;
 			if ( ! self::is_valid( $names ) ) {
-				trigger_error( esc_html( sprintf( 'Invalid WooCommerce Tax option names: %s', print_r( $names, 1 ) ), E_USER_WARNING ) );
+				wp_trigger_error( 'WC_Connect_Options::delete_option', esc_html( sprintf( 'Invalid WooCommerce Tax option names: %s', wp_json_encode( $names ) ) ), E_USER_WARNING );
 				return false;
 			}
 			foreach ( array_intersect( $names, self::get_option_names( 'non_compact' ) ) as $name ) {
@@ -167,7 +171,7 @@ if ( ! class_exists( 'WC_Connect_Options' ) ) {
 			$option_name = self::get_shipping_method_option_name( $name, $service_id, $service_instance );
 
 			if ( ! $option_name ) {
-				trigger_error( esc_html( sprintf( 'Invalid WooCommerce Tax shipping method option name: %s', $name ), E_USER_WARNING ) );
+				wp_trigger_error( 'WC_Connect_Options::get_shipping_method_option', esc_html( sprintf( 'Invalid WooCommerce Tax shipping method option name: %s', $name ) ), E_USER_WARNING );
 				return $default;
 			}
 
@@ -188,7 +192,7 @@ if ( ! class_exists( 'WC_Connect_Options' ) ) {
 			$option_name = self::get_shipping_method_option_name( $name, $service_id, $service_instance );
 
 			if ( ! $option_name ) {
-				trigger_error( esc_html( sprintf( 'Invalid WooCommerce Tax shipping method option name: %s', $name ), E_USER_WARNING ) );
+				wp_trigger_error( 'WC_Connect_Options::update_shipping_method_option', esc_html( sprintf( 'Invalid WooCommerce Tax shipping method option name: %s', $name ) ), E_USER_WARNING );
 				return false;
 			}
 
@@ -208,7 +212,7 @@ if ( ! class_exists( 'WC_Connect_Options' ) ) {
 			$option_name = self::get_shipping_method_option_name( $name, $service_id, $service_instance );
 
 			if ( ! $option_name ) {
-				trigger_error( esc_html( sprintf( 'Invalid WooCommerce Tax shipping method option name: %s', $name ), E_USER_WARNING ) );
+				wp_trigger_error( 'WC_Connect_Options::delete_shipping_method_option', esc_html( sprintf( 'Invalid WooCommerce Tax shipping method option name: %s', $name ) ), E_USER_WARNING );
 				return false;
 			}
 
@@ -331,6 +335,7 @@ if ( ! class_exists( 'WC_Connect_Options' ) ) {
 		 */
 		private static function delete_all_shipping_methods_options() {
 			global $wpdb;
+			// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching -- Needs the raw method_id/instance_id rows of every shipping zone method; WC_Shipping_Zones would instantiate each method object, which is exactly what must not happen while the plugin's options are being torn down. Runs once, on uninstall (WC_Connect_Loader::plugin_uninstall()), so there is nothing to cache.
 			$methods = $wpdb->get_results( "SELECT * FROM {$wpdb->prefix}woocommerce_shipping_zone_methods " );
 
 			foreach ( (array) $methods as $method ) {

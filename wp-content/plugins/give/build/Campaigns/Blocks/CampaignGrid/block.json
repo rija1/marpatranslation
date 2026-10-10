@@ -1,6 +1,6 @@
 {
   "$schema": "https://json.schemastore.org/block.json",
-  "apiVersion": 2,
+  "apiVersion": 3,
   "name": "givewp/campaign-grid",
   "version": "1.0.0",
   "title": "Campaign Grid",
@@ -41,7 +41,10 @@
       "type": "string",
       "default": "date",
       "enum": [
-        "date"
+        "date",
+        "amount",
+        "donations",
+        "donors"
       ]
     },
     "orderBy": {

@@ -30,11 +30,11 @@ class DirResolver implements Resolver
      *
      * @return string
      */
-    public function resolve($name, Renderer $renderer = null)
+    public function resolve($name, ?Renderer $renderer = null)
     {
-        $dir = rtrim($this->dir, '/');
-        $fullName = $dir . '/' . $name;
-        if (file_exists($fullName)) {
+        $dir = realpath(rtrim($this->dir, '/'));
+        $fullName = $dir ? realpath($dir . '/' . $name) : \false;
+        if ($fullName && str_starts_with($fullName, $dir . \DIRECTORY_SEPARATOR)) {
             return $fullName;
         }
         throw new CanNotResolve("Cannot resolve {$name}");

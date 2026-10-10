@@ -2,25 +2,24 @@
 
 // File generated from our OpenAPI spec
 
-namespace Stripe\Service\Entitlements;
+namespace PaymentPlugins\Vendor\Stripe\Service\Entitlements;
 
 /**
  * @phpstan-import-type RequestOptionsArray from \Stripe\Util\RequestOptions
- */
-/**
+ *
  * @psalm-import-type RequestOptionsArray from \Stripe\Util\RequestOptions
  */
-class ActiveEntitlementService extends \Stripe\Service\AbstractService
+class ActiveEntitlementService extends \PaymentPlugins\Vendor\Stripe\Service\AbstractService
 {
     /**
      * Retrieve a list of active entitlements for a customer.
      *
-     * @param null|array $params
-     * @param null|RequestOptionsArray|\Stripe\Util\RequestOptions $opts
+     * @param null|array{customer: string, ending_before?: string, expand?: string[], limit?: int, starting_after?: string} $params
+     * @param null|RequestOptionsArray|\PaymentPlugins\Vendor\Stripe\Util\RequestOptions $opts
      *
-     * @throws \Stripe\Exception\ApiErrorException if the request fails
+     * @return \PaymentPlugins\Vendor\Stripe\Collection<\PaymentPlugins\Vendor\Stripe\Entitlements\ActiveEntitlement>
      *
-     * @return \Stripe\Collection<\Stripe\Entitlements\ActiveEntitlement>
+     * @throws \PaymentPlugins\Vendor\Stripe\Exception\ApiErrorException if the request fails
      */
     public function all($params = null, $opts = null)
     {
@@ -31,12 +30,12 @@ class ActiveEntitlementService extends \Stripe\Service\AbstractService
      * Retrieve an active entitlement.
      *
      * @param string $id
-     * @param null|array $params
-     * @param null|RequestOptionsArray|\Stripe\Util\RequestOptions $opts
+     * @param null|array{expand?: string[]} $params
+     * @param null|RequestOptionsArray|\PaymentPlugins\Vendor\Stripe\Util\RequestOptions $opts
      *
-     * @throws \Stripe\Exception\ApiErrorException if the request fails
+     * @return \PaymentPlugins\Vendor\Stripe\Entitlements\ActiveEntitlement
      *
-     * @return \Stripe\Entitlements\ActiveEntitlement
+     * @throws \PaymentPlugins\Vendor\Stripe\Exception\ApiErrorException if the request fails
      */
     public function retrieve($id, $params = null, $opts = null)
     {

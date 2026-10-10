@@ -3,24 +3,13 @@
 use WCML\Utilities\WpAdminPages;
 use WPML\API\Sanitize;
 
-/**
- * Class WCML_Admin_Currency_Selector
- */
 class WCML_Admin_Currency_Selector {
 
-	/** @var woocommerce_wpml */
 	private $woocommerce_wpml;
-	/** @var  WCML_Admin_Cookie */
 	private $currency_cookie;
 
 	const NONCE_KEY = 'wcml-admin-currency-selector';
 
-	/**
-	 * WCML_Admin_Currency_Selector constructor.
-	 *
-	 * @param woocommerce_wpml  $woocommerce_wpml
-	 * @param WCML_Admin_Cookie $currency_cookie
-	 */
 	public function __construct( woocommerce_wpml $woocommerce_wpml, WCML_Admin_Cookie $currency_cookie ) {
 		$this->woocommerce_wpml = $woocommerce_wpml;
 		$this->currency_cookie  = $currency_cookie;
@@ -31,7 +20,7 @@ class WCML_Admin_Currency_Selector {
 
 			if ( $this->user_can_manage_woocommerce() ) {
 				add_action( 'init', [ $this, 'set_dashboard_currency' ] );
-				add_action( 'wp_ajax_wcml_dashboard_set_currency', [ $this, 'set_dashboard_currency_ajax' ] );
+				\WCML\Request\Ajax::register( 'wcml_dashboard_set_currency', [ 'capability' => [ 'view_woocommerce_reports', 'manage_woocommerce', 'publish_shop_orders' ], 'nonce' => [ self::NONCE_KEY, 'wcml_nonce' ] ], [ $this, 'set_dashboard_currency_ajax' ] );
 				add_filter( 'woocommerce_currency_symbol', [ $this, 'filter_dashboard_currency_symbol' ] );
 			}
 
@@ -46,9 +35,6 @@ class WCML_Admin_Currency_Selector {
 		}
 	}
 
-	/**
-	 * @return bool
-	 */
 	private function user_can_manage_woocommerce() {
 		return current_user_can( 'view_woocommerce_reports' ) ||
 			   current_user_can( 'manage_woocommerce' ) ||
@@ -74,9 +60,6 @@ class WCML_Admin_Currency_Selector {
 		);
 	}
 
-	/**
-	 * Add currency drop-down on dashboard page ( WooCommerce status block )
-	 */
 	public function show_dashboard_currency_selector() {
 
 		$current_dashboard_currency = $this->get_cookie_dashboard_currency();
@@ -86,7 +69,7 @@ class WCML_Admin_Currency_Selector {
 		?>
 		<select id="dropdown_dashboard_currency" style="display: none; margin : 10px; ">
 			<?php if ( empty( $currency_codes ) ) : ?>
-				<option value=""><?php _e( 'Currency - no orders found', 'woocommerce-multilingual' ); ?></option>
+				<option value=""><?php /* translators: Only entry of the currency dropdown on the WooCommerce reports, shown when the shop has no orders yet. */ esc_html_e( 'Currency - no orders found', 'woocommerce-multilingual' ); ?></option>
 			<?php else : ?>
 				<?php foreach ( $currency_codes as $currency ) : ?>
 
@@ -104,6 +87,7 @@ class WCML_Admin_Currency_Selector {
 		$nonce = sanitize_text_field( $_POST['wcml_nonce'] );
 
 		if ( ! $nonce || ! wp_verify_nonce( $nonce, self::NONCE_KEY ) ) {
+			/* translators: Error returned when a request carries an expired or missing security token. */
 			wp_send_json_error( __( 'Invalid nonce', 'woocommerce-multilingual' ), 403 );
 		} else {
 			$this->set_dashboard_currency( sanitize_text_field( $_POST['currency'] ) );
@@ -111,11 +95,6 @@ class WCML_Admin_Currency_Selector {
 		}
 	}
 
-	/**
-	 * Set dashboard currency cookie
-	 *
-	 * @param string $currency_code
-	 */
 	public function set_dashboard_currency( $currency_code = '' ) {
 		global $pagenow;
 
@@ -128,11 +107,6 @@ class WCML_Admin_Currency_Selector {
 		}
 	}
 
-	/**
-	 * Get dashboard currency cookie
-	 *
-	 * @return string
-	 */
 	public function get_cookie_dashboard_currency() {
 
 		$currency = $this->currency_cookie->get_value();
@@ -143,13 +117,6 @@ class WCML_Admin_Currency_Selector {
 		return $currency;
 	}
 
-	/**
-	 * Filter currency symbol on dashboard page
-	 *
-	 * @param string $currencySymbol Currency symbol
-	 *
-	 * @return string
-	 */
 	public function filter_dashboard_currency_symbol( $currencySymbol ) {
 		if (
 			( WpAdminPages::isDashboard() && empty( $_REQUEST['action'] ) )
@@ -163,9 +130,6 @@ class WCML_Admin_Currency_Selector {
 		return $currencySymbol;
 	}
 
-	/**
-	 * @return bool
-	 */
 	public static function isDashboardWidgetRequest() {
 		return wp_doing_ajax()
 				&& 'woocommerce_load_status_widget' === Sanitize::stringProp( 'action', $_GET );

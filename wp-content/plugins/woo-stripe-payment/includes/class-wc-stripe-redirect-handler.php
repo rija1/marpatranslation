@@ -24,11 +24,13 @@ class WC_Stripe_Redirect_Handler {
 	}
 
 	/**
-	 * @since 3.3.62
 	 * @return void
+	 * @since 3.3.62
 	 */
 	public static function process_payment_redirect() {
-		if ( isset( $_GET['_stripe_payment_method'] ) ) {
+		if ( isset( $_GET['_stripe_checkout_session'], $_GET['order_id'], $_GET['key'] ) ) {
+			self::process_checkout_session_redirect();
+		} elseif ( isset( $_GET['_stripe_payment_method'] ) ) {
 			self::process_redirect();
 		} elseif ( isset( $_GET[ WC_Stripe_Constants::VOUCHER_PAYMENT ], $_GET['order_id'] ) ) {
 			self::process_voucher_redirect();
@@ -36,19 +38,63 @@ class WC_Stripe_Redirect_Handler {
 	}
 
 	/**
+	 * Adaptive Pricing return: the URL carries no payment_intent (checkout.confirm() doesn't
+	 * append one), so resolve the session's PaymentIntent, put it on the order and in the query
+	 * vars, and hand off to the standard process_redirect() flow.
+	 *
+	 * @return void
+	 * @since 4.0.15
+	 */
+	private static function process_checkout_session_redirect() {
+		$order = wc_get_order( absint( wc_clean( wp_unslash( $_GET['order_id'] ) ) ) );
+		if ( ! $order instanceof WC_Order || ! $order->key_is_valid( wc_clean( wp_unslash( $_GET['key'] ) ) ) ) {
+			return;
+		}
+		$session_id = $order->get_meta( WC_Stripe_Constants::CHECKOUT_SESSION_ID );
+		if ( ! $session_id ) {
+			return;
+		}
+		$session = wc_stripe_get_container()
+			->get( \PaymentPlugins\Stripe\Client\StripeClient::class )
+			->mode( $order )
+			->checkout
+			->sessions
+			->retrieve( $session_id, array( 'expand' => array( 'payment_intent' ) ) );
+		if ( is_wp_error( $session ) || empty( $session->payment_intent ) ) {
+			// Payment already went through client-side; the checkout.session / payment_intent
+			// webhook still completes the order - get the customer to the order received page.
+			wp_safe_redirect( $order->get_checkout_order_received_url() );
+			exit();
+		}
+		$intent = $session->payment_intent;
+
+		$order->update_meta_data( WC_Stripe_Constants::PAYMENT_INTENT_ID, $intent->id );
+		$order->update_meta_data( WC_Stripe_Constants::MODE, $intent->livemode ? 'live' : 'test' );
+		$order->save();
+
+		$_GET['payment_intent']               = $intent->id;
+		$_GET['payment_intent_client_secret'] = $intent->client_secret;
+
+		self::process_redirect();
+	}
+
+	/**
 	 */
 	public static function process_redirect() {
 		if ( isset( $_GET['payment_intent'] ) ) {
-			$result        = WC_Stripe_Gateway::load()->paymentIntents->retrieve(
-				wc_clean( $_GET['payment_intent'] ),
-				array( 'expand' => array( 'payment_method' ) )
-			);
+			$result        = wc_stripe_get_container()
+				->get( \PaymentPlugins\Stripe\Client\StripeClient::class )
+				->paymentIntents
+				->retrieve( wc_clean( $_GET['payment_intent'] ) );
 			$client_secret = isset( $_GET['payment_intent_client_secret'] ) ? $_GET['payment_intent_client_secret'] : '';
 		} elseif ( isset( $_GET['setup_intent'] ) ) {
-			$result        = WC_Stripe_Gateway::load()->setupIntents->retrieve(
-				wc_clean( $_GET['setup_intent'] ),
-				array( 'expand' => array( 'payment_method', 'latest_attempt' ) )
-			);
+			$result        = wc_stripe_get_container()
+				->get( \PaymentPlugins\Stripe\Client\StripeClient::class )
+				->setupIntents
+				->retrieve(
+					wc_clean( $_GET['setup_intent'] ),
+					array( 'expand' => array( 'latest_attempt' ) )
+				);
 			$client_secret = isset( $_GET['setup_intent_client_secret'] ) ? $_GET['setup_intent_client_secret'] : '';
 		} else {
 			return;
@@ -83,7 +129,11 @@ class WC_Stripe_Redirect_Handler {
 			 */
 			$payment_method = WC()->payment_gateways()->payment_gateways()[ $order->get_payment_method() ];
 
-			if ( $result instanceof \Stripe\SetupIntent ) {
+			if ( ! $payment_method instanceof WC_Payment_Gateway_Stripe ) {
+				return;
+			}
+
+			if ( $result instanceof \PaymentPlugins\Vendor\Stripe\SetupIntent ) {
 				$payment_method->set_setup_intent( $result );
 			}
 
@@ -109,7 +159,7 @@ class WC_Stripe_Redirect_Handler {
 			} elseif ( in_array( $result->status, array( 'requires_payment_method', 'failed' ) ) ) {
 				wc_add_notice( __( 'Payment authorization failed. Please select another payment method.', 'woo-stripe-payment' ), 'error' );
 				wc_stripe_log_info( sprintf( 'User cancelled their payment and has been redirected to the checkout page. Payment Method: %s. Order ID: %s', $payment_method->id, $order->get_id() ) );
-				if ( $result instanceof \Stripe\PaymentIntent ) {
+				if ( $result instanceof \PaymentPlugins\Vendor\Stripe\PaymentIntent ) {
 					$order->update_meta_data( WC_Stripe_Constants::PAYMENT_INTENT, WC_Stripe_Utils::sanitize_intent( $result->toArray() ) );
 				} else {
 					$order->delete_meta_data( WC_Stripe_Constants::SOURCE_ID );
@@ -120,7 +170,7 @@ class WC_Stripe_Redirect_Handler {
 			} elseif ( 'chargeable' === $result->status ) {
 				if ( ! $payment_method->has_order_lock( $order ) && ! $order->get_transaction_id() ) {
 					$payment_method->set_order_lock( $order );
-					$payment_method->set_new_source_token( $result->payment_method->id );
+					$payment_method->set_payment_method_id( $result->payment_method->id );
 					$result = $payment_method->process_payment( $order_id );
 					// we don't release the order lock so there aren't conflicts with the source.chargeable webhook
 					if ( $result['result'] === 'success' ) {
@@ -128,18 +178,25 @@ class WC_Stripe_Redirect_Handler {
 					}
 				}
 			} elseif ( in_array( $result->status, array( 'succeeded', 'requires_capture' ) ) ) {
-				if ( ! $payment_method->has_order_lock( $order ) ) {
+				if ( ! $payment_method->has_order_lock( $order ) && ! $order->get_date_paid() ) {
 					$payment_method->set_order_lock( $order );
-					$payment_method->set_new_source_token( $result->payment_method->id );
-					$result = $payment_method->process_payment( $order_id );
+					$payment_method->set_payment_method_id( $result->payment_method->id );
+					$intent_id = $result->id;
+					$result    = $payment_method->process_payment( $order_id );
 					if ( $result['result'] === 'success' ) {
 						$redirect = $result['redirect'];
+						// The redirect completed the order before the deferred webhook ran; no need for it to fire.
+						WC()->queue()->cancel( 'wc_stripe_process_deferred_webhook', array(
+							'type'           => 'payment_intent.succeeded',
+							'order_id'       => $order_id,
+							'payment_intent' => $intent_id,
+						), '' );
 					}
 				}
-			} elseif ( $result->status === 'processing' && isset( $result->charges->data ) ) {
+			} elseif ( $result->status === 'processing' && isset( $result->latest_charge ) ) {
 				if ( ! $payment_method->has_order_lock( $order ) ) {
 					$payment_method->set_order_lock( $order );
-					$payment_method->payment_object->payment_complete( $order, $result->charges->data[0] );
+					$payment_method->payment_controller->payment_complete( $order, $result->latest_charge );
 					WC_Stripe_Utils::delete_payment_intent_to_session();
 					$payment_method->release_order_lock( $order );
 				}
@@ -193,7 +250,7 @@ class WC_Stripe_Redirect_Handler {
 				$gateway = WC()->payment_gateways()->payment_gateways()[ $payment_method ] ?? null;
 				if ( $gateway && ! empty( $setup_intent ) ) {
 					$setup_intent = $gateway->gateway->setupIntents->retrieve( $setup_intent, array(
-						'expand' => array( 'payment_method', 'latest_attempt' )
+						'expand' => array( 'latest_attempt' )
 					) );
 					if ( is_wp_error( $setup_intent ) ) {
 						throw new \Exception( $setup_intent->get_error_message() );
@@ -215,7 +272,7 @@ class WC_Stripe_Redirect_Handler {
 
 
 					$gateway->set_setup_intent( $setup_intent );
-					$gateway->set_new_source_token( $setup_intent->payment_method->id );
+					$gateway->set_payment_method_id( $setup_intent->payment_method->id );
 
 					if ( $context === 'add_payment_method' ) {
 						if ( $setup_intent->status === 'requires_payment_method' ) {

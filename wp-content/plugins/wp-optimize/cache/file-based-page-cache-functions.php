@@ -13,6 +13,11 @@ if (!defined('WPO_CACHE_EXT_DIR')) define('WPO_CACHE_EXT_DIR', dirname(__FILE__)
 if (!defined('WPO_CACHE_FILES_DIR')) define('WPO_CACHE_FILES_DIR', untrailingslashit(WP_CONTENT_DIR).'/cache/wpo-cache');
 
 /**
+ * Minimum Firefox version for WebP support
+ */
+if (!defined('WPO_MIN_FIREFOX_VERSION_FOR_WEBP')) define('WPO_MIN_FIREFOX_VERSION_FOR_WEBP', '65.0.0');
+
+/**
  * Holds utility functions used by file based cache
  */
 
@@ -90,8 +95,12 @@ if (!function_exists('wpo_cache')) :
 			}
 		}
 		
+		if (wpo_restricted_cache_page_with_cart_items()) {
+			$no_cache_because[] = __('User has items in WooCommerce cart.', 'wp-optimize');
+		}
+
 		$can_cache_page = true;
-		
+
 		if (defined('DONOTCACHEPAGE') && DONOTCACHEPAGE) {
 			$can_cache_page = false;
 		}
@@ -128,10 +137,12 @@ if (!function_exists('wpo_cache')) :
 
 		// Get cache file name
 		$file_ext = '.html';
+		$is_feed_cache = false;
 			
 		if (wpo_feeds_caching_enabled()) {
 			if (is_feed()) {
 				$file_ext = '.rss-xml';
+				$is_feed_cache = true;
 			}
 		}
 		
@@ -165,11 +176,11 @@ if (!function_exists('wpo_cache')) :
 			wpo_cache_add_nocache_http_header($message);
 			
 			if ((!defined('DOING_CRON') || !DOING_CRON) && (!defined('REST_REQUEST') || !REST_REQUEST)) {
-				$not_cached_details = "";
+				$not_cached_details = '';
 				
 				// Output the reason only when the user has turned on debugging
 				if (((defined('WP_DEBUG') && WP_DEBUG) || isset($_GET['wpo_cache_debug']))) { // phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Not using the value, only checks for existence
-					$not_cached_details = "because: ".htmlspecialchars($message) . " ";
+					$not_cached_details = "because: ".htmlspecialchars($message, ENT_QUOTES, 'UTF-8') . " ";
 				}
 				
 				$buffer .= sprintf("\n<!-- WP Optimize page cache - https://teamupdraft.com/wp-optimize/ - page NOT cached %s-->\n", $not_cached_details);
@@ -211,7 +222,9 @@ if (!function_exists('wpo_cache')) :
 			 * @param boolean $show - Whether to display the html comment
 			 * @return boolean
 			 */
-			if (preg_match('#</html>#i', $buffer) && (apply_filters('wpo_cache_show_cached_by_comment', true) || (defined('WP_DEBUG') && WP_DEBUG))) {
+			if ((preg_match('#</html>#i', $buffer) || wpo_is_cacheable_sitemap_request())
+				&& (apply_filters('wpo_cache_show_cached_by_comment', true) || (defined('WP_DEBUG') && WP_DEBUG))
+			) {
 				$date_time_format = 'F j, Y g:i a';
 				if (!empty($GLOBALS['wpo_cache_config']['date_format']) && !empty($GLOBALS['wpo_cache_config']['time_format'])) {
 					$date_time_format = $GLOBALS['wpo_cache_config']['date_format'] . ' ' . $GLOBALS['wpo_cache_config']['time_format'];
@@ -236,17 +249,48 @@ if (!function_exists('wpo_cache')) :
 			if (defined('WPO_CACHE_FILENAME_DEBUG') && WPO_CACHE_FILENAME_DEBUG) {
 				$add_to_footer .= "\n<!-- WP Optimize page cache debug information -->\n";
 				if (!empty($GLOBALS['wpo_cache_filename_debug']) && is_array($GLOBALS['wpo_cache_filename_debug'])) {
-					$add_to_footer .= "<!-- \n" . join("\n", array_map('htmlspecialchars', $GLOBALS['wpo_cache_filename_debug'])) . "\n --->";
+					$add_to_footer .= "<!-- \n" . join("\n", array_map(function($s) {
+						return htmlspecialchars((string) $s, ENT_QUOTES, 'UTF-8');
+					}, $GLOBALS['wpo_cache_filename_debug'])) . "\n -->";
 				}
 			}
-			
-			// if we can then cache gzipped content in .gz file.
+
 			if (function_exists('gzencode') && apply_filters('wpo_allow_cache_gzip_files', true)) {
 				// Only replace inside the addition, not inside the main buffer (e.g. post content)
-				file_put_contents($cache_file . '.gz', gzencode($buffer.str_replace('by WP-Optimize', 'by WP-Optimize (gzip)', $add_to_footer), apply_filters('wpo_cache_gzip_level', 6))); // phpcs:ignore WordPress.WP.AlternativeFunctions.file_system_operations_file_put_contents -- WP_Filesystem not available this early
+				$add_to_footer = str_replace('by WP-Optimize', 'by WP-Optimize (gzip)', $add_to_footer);
+			}
+
+			// Allow extensions to inject content before </body> in cached HTML (HTML pages only, not sitemaps or RSS feeds).
+			// Content is inserted before the last </body> tag to produce valid HTML.
+			// Falls back to appending after </html> if no </body> is found (e.g., partial HTML responses).
+			if (!wpo_is_cacheable_sitemap_request() && !$is_feed_cache) {
+				$footer_injection = apply_filters('wpo_cache_add_to_footer', '', $cache_filename);
+				if ('' !== $footer_injection) {
+					$body_close_pos = strripos($buffer, '</body>');
+					if (false !== $body_close_pos) {
+						$buffer = substr($buffer, 0, $body_close_pos) . $footer_injection . substr($buffer, $body_close_pos);
+					} else {
+						$buffer .= $footer_injection;
+					}
+				}
+			}
+
+			// XML documents must not contain HTML comments in the footer, as this would invalidate the XML
+			if (wpo_is_cacheable_sitemap_request() && '' !== $add_to_footer) {
+				$pattern = '#</([a-zA-Z0-9:_-]+)>\s*$#';
+				$replacement = $add_to_footer . "\n</$1>";
+				$buffer = preg_replace($pattern, $replacement, $buffer, 1); // Insert the comment before the final closing tag
+			} else {
+				$buffer .= $add_to_footer;
+			}
+
+			// if we can then cache gzipped content in .gz file.
+			if (function_exists('gzencode') && apply_filters('wpo_allow_cache_gzip_files', true)) {
+				$gzipped_buffer = gzencode($buffer, apply_filters('wpo_cache_gzip_level', 6));
+				file_put_contents($cache_file . '.gz', $gzipped_buffer); // phpcs:ignore WordPress.WP.AlternativeFunctions.file_system_operations_file_put_contents -- WP_Filesystem not available this early
 			}
 			
-			file_put_contents($cache_file, $buffer.$add_to_footer); // phpcs:ignore WordPress.WP.AlternativeFunctions.file_system_operations_file_put_contents -- WP_Filesystem not available this early
+			file_put_contents($cache_file, $buffer); // phpcs:ignore WordPress.WP.AlternativeFunctions.file_system_operations_file_put_contents -- WP_Filesystem not available this early
 			
 			if (is_callable('WP_Optimize')) {
 				// delete cached information about cache size.
@@ -316,13 +360,49 @@ if (!function_exists('wpo_cache_load_extensions')) :
 	}
 endif;
 
+/**
+ * Check whether the current request is a search query.
+ *
+ * Uses `is_search()` when available and falls back to checking for a
+ * * non-empty string `s` query parameter for early execution points.
+ *
+ * @return bool True if a search query parameter is present, false otherwise.
+ */
+if (!function_exists('wpo_is_search')) {
+	function wpo_is_search(): bool {
+		if (function_exists('is_search') && is_search()) {
+			return true;
+		}
+
+		return isset($_GET['s']) && is_string($_GET['s']) && '' !== trim($_GET['s']);  // phpcs:ignore WordPress.Security.NonceVerification.Recommended, WordPress.Security.ValidatedSanitizedInput.MissingUnslash, WordPress.Security.ValidatedSanitizedInput.InputNotSanitized -- Executes before WP fully loads, Nonce not available, only comparing
+	}
+}
+
+/**
+ * Determine whether the current request represents a page type
+ * that should not be cached.
+ *
+ * This function checks for known non-cacheable scenarios such as
+ * - Search results
+ * - 404 pages
+ * - Password-protected content
+ * - Front page when excluded via settings
+ * - RSS feeds (when feed caching is disabled)
+ * - Unsafe file paths (e.g., .htaccess)
+ *
+ * The first matched restriction reason will overwrite the passed
+ * value and be returned as a human-readable string.
+ *
+ * @param string $restricted Existing restriction reason, if any.
+ * @return string Restriction reason if caching is disallowed, otherwise the original value passed in `$restricted`.
+ */
 if (!function_exists('wpo_restricted_cache_page_type')) {
 	function wpo_restricted_cache_page_type($restricted) {
 		global $post;
 		
 		// Don't cache search or password protected.
-		if ((function_exists('is_search') && is_search()) || (function_exists('bbp_is_search') && bbp_is_search()) || (function_exists('is_404') && is_404()) || !empty($post->post_password)) {
-			$restricted = __('Page type is not cacheable (search, 404 or password-protected)', 'wp-optimize');
+		if (wpo_is_search() || (function_exists('bbp_is_search') && bbp_is_search()) || (function_exists('is_404') && is_404()) || !empty($post->post_password)) {
+			$restricted = 'Page type is not cacheable (search, 404 or password-protected)';
 		}
 		
 		// Don't cache the front page if option is set.
@@ -373,8 +453,8 @@ if (!function_exists('wpo_cache_filename')) :
 		if (wpo_cache_mobile_caching_enabled() && wpo_is_mobile()) {
 			$filename = 'mobile.' . $filename;
 		}
-		
-		if (wpo_webp_images_enabled() && !wpo_is_using_webp_images_redirection() && wpo_is_using_alter_html()) {
+
+		if (wpo_webp_images_enabled() && !wpo_is_using_webp_images_redirection() && wpo_is_browser_supports_webp()) {
 			$filename = $filename . '.webp';
 		}
 		
@@ -477,6 +557,7 @@ function wpo_rest_cache_filename($params) {
 	$cache_key = '';
 
 	if (!empty($params)) {
+		ksort($params);
 		foreach ($params as $key => $value) {
 			if (is_array($value)) $value = serialize($value);
 			$_cache_key = $key.'_'.$value;
@@ -655,13 +736,25 @@ if (!function_exists('wpo_webp_images_enabled')) :
 endif;
 
 /**
- * Check whether webp images using alter html method or not
+ * Check whether the requesting browser supports WebP images
  *
  * @return bool
  */
-if (!function_exists('wpo_is_using_alter_html')) :
-	function wpo_is_using_alter_html() {
-		return (isset($_SERVER['HTTP_ACCEPT']) && false !== strpos($_SERVER['HTTP_ACCEPT'], 'image/webp')); // phpcs:ignore WordPress.Security.ValidatedSanitizedInput.MissingUnslash, WordPress.Security.ValidatedSanitizedInput.InputNotSanitized -- Executes before WP fully loads, only doing string comparison
+if (!function_exists('wpo_is_browser_supports_webp')) :
+	function wpo_is_browser_supports_webp() {
+		// Direct Accept header check (works for image sub-resource requests)
+		if (isset($_SERVER['HTTP_ACCEPT']) && false !== strpos($_SERVER['HTTP_ACCEPT'], 'image/webp')) { // phpcs:ignore WordPress.Security.ValidatedSanitizedInput.MissingUnslash, WordPress.Security.ValidatedSanitizedInput.InputNotSanitized -- Executes before WP fully loads, only doing string comparison
+			return true;
+		}
+
+		// Fallback for older Firefox versions, which support WebP but don't send 'image/webp' in the Accept header.
+		$user_agent = isset($_SERVER['HTTP_USER_AGENT']) ? $_SERVER['HTTP_USER_AGENT'] : ''; // phpcs:ignore WordPress.Security.ValidatedSanitizedInput.MissingUnslash, WordPress.Security.ValidatedSanitizedInput.InputNotSanitized -- Executes before WP fully loads, only extracting a version number via regex for a version_compare, not used for output or storage
+
+		if (!empty($user_agent) && preg_match('/Firefox\/([\d\.]+[a-z\d]*)/', $user_agent, $matches)) {
+			return version_compare(WPO_MIN_FIREFOX_VERSION_FOR_WEBP, $matches[1], '<=');
+		}
+
+		return false;
 	}
 endif;
 
@@ -757,7 +850,9 @@ if (!function_exists('wpo_serve_cache')) :
 		if ($use_gzip) $path .= '.gz';
 		
 		$modified_time = file_exists($path) ? (int) filemtime($path) : time();
-		
+
+		$modified_time = apply_filters('wpo_cache_modified_time', $modified_time, $path);
+
 		// Cache has expired, purge and exit.
 		if (!empty($GLOBALS['wpo_cache_config']['page_cache_length'])) {
 			if (time() > ($GLOBALS['wpo_cache_config']['page_cache_length'] + $modified_time)) {
@@ -909,12 +1004,13 @@ function wpo_can_serve_from_cache() {
 	}
 
 	// check in not disabled current user agent
-	if (!empty($_SERVER['HTTP_USER_AGENT']) && false === wpo_is_accepted_user_agent($_SERVER['HTTP_USER_AGENT'])) { // phpcs:ignore WordPress.Security.ValidatedSanitizedInput.MissingUnslash, WordPress.Security.ValidatedSanitizedInput.InputNotSanitized -- `wpo_is_accepted_user_agent` compares strings and return true or false
+	$user_agent = isset($_SERVER['HTTP_USER_AGENT']) && is_string($_SERVER['HTTP_USER_AGENT']) ? stripslashes($_SERVER['HTTP_USER_AGENT']) : ''; // phpcs:ignore WordPress.Security.ValidatedSanitizedInput -- value used for comparison only, not output
+	if (!empty($user_agent) && false === wpo_is_accepted_user_agent($user_agent)) {
 		$no_cache_because[] = "In the settings, caching is disabled for matches for this request's user agent";
 	}
 
 	$is_cache_page_forced = function_exists('apply_filters') ? apply_filters('wpo_cache_page_force', false) : false;
-	$is_get_request = isset($_SERVER['REQUEST_METHOD']) && 'GET' === $_SERVER['REQUEST_METHOD']; // phpcs:ignore WordPress.Security.ValidatedSanitizedInput.MissingUnslash, WordPress.Security.ValidatedSanitizedInput.InputNotSanitized -- Not needed only comparing value against literal string
+	$is_get_request = isset($_SERVER['REQUEST_METHOD']) && 'GET' === $_SERVER['REQUEST_METHOD'];
 
 	// Don't cache non-GET requests.
 	if (!$is_cache_page_forced && !$is_get_request) {
@@ -935,7 +1031,7 @@ function wpo_can_serve_from_cache() {
 		// get cookie exceptions from options.
 		$cache_exception_cookies = empty($GLOBALS['wpo_cache_config']['cache_exception_cookies']) ? array() : $GLOBALS['wpo_cache_config']['cache_exception_cookies'];
 	
-		// check if any cookie exists from exception list.
+		// check if any cookie exists from an exception list.
 		if (!empty($cache_exception_cookies)) {
 			foreach ($_COOKIE as $key => $value) {
 				foreach ($cache_exception_cookies as $cookie) {
@@ -948,19 +1044,36 @@ function wpo_can_serve_from_cache() {
 		}
 	}
 
-	// Deal with optional cache exceptions.
-	if (wpo_url_in_exceptions(wpo_current_url())) {
+	if (wpo_restricted_cache_page_with_cart_items()) {
+		$no_cache_because[] = 'User has items in WooCommerce cart.';
+	}
+
+	$restricted_page_type_cache = wpo_restricted_cache_page_type('');
+	if (!empty($restricted_page_type_cache)) {
+		$no_cache_because[] = $restricted_page_type_cache;
+	}
+
+	$current_url = wpo_current_url();
+
+	// Deal with allowed urls
+	if (wpo_cache_specific_urls_only() && !wpo_url_in_cache_include($current_url)) {
+		$no_cache_because[] = 'Cache only specific URLs enabled, but URL not in list';
+	}
+
+	// Deal with optional cache exceptions only when specific-URL caching is disabled
+	if (!wpo_cache_specific_urls_only() && wpo_url_in_exceptions($current_url)) {
 		$no_cache_because[] = 'In the settings, caching is disabled for matches for the current URL';
 	}
-	
+
 	if (!empty($_GET)) { // phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Executes early, nonce not available
 		$get_variable_names = wpo_cache_query_variables();
 	
 		$get_variables = wpo_cache_maybe_ignore_query_variables(array_keys($_GET)); // phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Executes early, nonce not available. Value only used for comparison
-	
-		// if GET variables include one or more undefined variable names then we don't cache.
+
+		// if GET variables include one or more undefined variable names, then we don't cache.
 		$get_variables_diff = array_diff($get_variables, $get_variable_names);
-		if (!empty($get_variables_diff)) {
+
+		if (!empty($get_variables_diff) && !wpo_is_cacheable_sitemap_request()) {
 			$no_cache_because[] = "In the settings, caching is disabled for matches for one of the current request's GET parameters";
 		}
 	}
@@ -969,13 +1082,44 @@ function wpo_can_serve_from_cache() {
 	$file_extension = strtolower(pathinfo($request_uri, PATHINFO_EXTENSION));
 
 	// Don't cache disallowed extensions. Prevents wp-cron.php, xmlrpc.php, etc.
-	if (!preg_match('#index\.php$#i', $request_uri) && preg_match('#sitemap([a-zA-Z0-9_-]+)?\.xml$#i', $request_uri) && in_array($file_extension, array('php', 'xml', 'xsl'))) {
+	if (!preg_match('#index\.php$#i', $request_uri) && !wpo_is_cacheable_sitemap_request() && in_array($file_extension, array('php', 'xml', 'xsl'))) {
 		$no_cache_because[] = 'The request extension is not suitable for caching';
 	}
 		
 	if (!empty($no_cache_because)) return $no_cache_because;
 	
 	return true;
+}
+endif;
+
+/**
+ * Checks if the current request has WooCommerce cart items.
+ *
+ * @return bool Returns true if the user has items in the WooCommerce cart, false otherwise.
+ */
+if (!function_exists('wpo_restricted_cache_page_with_cart_items')) :
+	function wpo_restricted_cache_page_with_cart_items(): bool {
+		return !empty($_COOKIE['woocommerce_items_in_cart']) || !empty($_COOKIE['woocommerce_cart_hash']);
+	}
+endif;
+
+/**
+ * Checks if the current request is a cacheable sitemap request
+ *
+ * @return bool
+ */
+if (!function_exists('wpo_is_cacheable_sitemap_request')) :
+function wpo_is_cacheable_sitemap_request() {
+	$is_sitemap_defined = defined('WPO_CACHE_SITEMAP') && WPO_CACHE_SITEMAP;
+
+	if (!$is_sitemap_defined) return false;
+
+	$request_uri = isset($_SERVER['REQUEST_URI']) ? strval(parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH)) : '';  // phpcs:ignore WordPress.WP.AlternativeFunctions.parse_url_parse_url, WordPress.Security.ValidatedSanitizedInput.MissingUnslash, WordPress.Security.ValidatedSanitizedInput.InputNotSanitized -- Executes before WP fully loads
+	$is_sitemap_request = 1 === preg_match('#[a-zA-Z0-9_-]*?sitemap([a-zA-Z0-9_-]+)?\.xml$#i', $request_uri);
+
+	if ($is_sitemap_request) return true;
+
+	return false;
 }
 endif;
 
@@ -1063,19 +1207,14 @@ if (!function_exists('wpo_get_url_path')) :
 		$url = '' === $url ? wpo_current_url() : $url;
 		$url_parts = parse_url($url); // phpcs:ignore WordPress.WP.AlternativeFunctions.parse_url_parse_url -- wp_parse_url not available this early
 
+		// Normalize path to avoid issues with encoded characters, and to ensure that the path is consistent.
+		if (isset($url_parts['path'])) {
+			$url_parts['path'] = wpo_normalize_url_path($url_parts['path']);
+		}
+
 		if (isset($url_parts['path']) && false !== stripos($url_parts['path'], '/index.')) {
 			$url_parts['path'] = preg_replace('/(.*?)index\.(php|html)(\/.+)/i', '$1index-$2$3', $url_parts['path']);
 			$url_parts['path'] = preg_replace('/index\.(php|html)/i', 'index-$1', $url_parts['path']);
-		}
-		
-		/*
-		 * Convert the hexadecimal digits within the percent-encoded triplet to uppercase, to ensure that the path remains
-		 * consistent. For instance, "example.com/%e0%a6" will be converted to "example.com/%E0%A6".
-		 */
-		if (isset($url_parts['path'])) {
-			$url_parts['path'] = preg_replace_callback('/%[0-9A-F]{2}/i', function($matches) {
-				return strtoupper($matches[0]);
-			}, $url_parts['path']);
 		}
 		
 		if (!isset($url_parts['host'])) $url_parts['host'] = '';
@@ -1187,6 +1326,34 @@ if (!function_exists('wpo_get_url_exceptions')) :
 endif;
 
 /**
+ * Returns a list of URLs that are included in the cache.
+ *
+ * @return array
+ */
+if (!function_exists('wpo_get_cache_include_urls')) :
+	function wpo_get_cache_include_urls() {
+		static $cache_include_urls = null;
+		
+		if (null !== $cache_include_urls) return $cache_include_urls;
+		
+		// if called from file-based-page-cache.php when WP loading
+		// and cache settings exists then use it otherwise get settings from database.
+		if (!empty($GLOBALS['wpo_cache_config'])) {
+			if (empty($GLOBALS['wpo_cache_config']['cache_include_urls'])) {
+				$cache_include_urls = array();
+			} else {
+				$cache_include_urls = is_array($GLOBALS['wpo_cache_config']['cache_include_urls']) ? $GLOBALS['wpo_cache_config']['cache_include_urls'] : preg_split('#(\n|\r)#', $GLOBALS['wpo_cache_config']['cache_include_urls']);
+				$cache_include_urls = array_filter($cache_include_urls, 'trim');
+			}
+		} else {
+			$cache_include_urls = array();
+		}
+		
+		return apply_filters('wpo_get_cache_include_urls', $cache_include_urls);
+	}
+endif;
+
+/**
  * Return true of exception url matches current url
  *
  * @param  string $exception Exceptions to check URL against.
@@ -1262,6 +1429,52 @@ if (!function_exists('wpo_url_in_exceptions')) :
 endif;
 
 /**
+ * Checks if URL matches against listed include.
+ *
+ * Supports:
+ *  - Root-based paths (e.g., /page)
+ *  - Wildcards (*) in the last segment
+ *  - One optional parent directory (sub-dir multisite)
+ *
+ * @param string $url
+ * @return bool
+ */
+if (!function_exists('wpo_url_in_cache_include')) :
+	function wpo_url_in_cache_include($url): bool {
+		$url = preg_replace('/\?.*/', '', $url); // Remove query string
+		$url = rtrim($url, '/'); // normalize URL (remove trailing slash)
+
+		// Get path only
+		$path = parse_url($url, PHP_URL_PATH); // phpcs:ignore WordPress.WP.AlternativeFunctions.parse_url_parse_url -- wp_parse_url not available this early
+		$path = $path ?? '/';
+		$path = rtrim($path, '/');
+
+		$cache_include_urls = wpo_get_cache_include_urls();
+		
+		if (!empty($cache_include_urls) && is_array($cache_include_urls)) {
+			foreach ($cache_include_urls as $include_url) {
+				$include_url = rtrim($include_url, '/'); // normalize include URL (remove trailing slash)
+				if (strpos($include_url, '/') === 0) {
+					// Support wildcards and allow one subdirectory max
+					$pattern = preg_quote($include_url, '#');
+					$pattern = str_replace('\*', '.*', $pattern);
+
+					if (preg_match('#^(/[^/]+)?' . $pattern . '$#i', $path)) {
+						return true;
+					}
+				}
+
+				if (wpo_url_exception_match($url, $include_url)) {
+					return true;
+				}
+			}
+		}
+		
+		return false;
+	}
+endif;
+
+/**
  * Checks if an URL matches against listed exceptions.
  *
  * @param string $url       - complete url string i.e. http(s)://domain/path
@@ -1274,8 +1487,6 @@ if (!function_exists('wpo_url_exception_match')) :
 		if (preg_match('#^[\s]*$#', $exception)) {
 			return false;
 		}
-		
-		$exception = str_replace('*', '.*', $exception);
 		
 		$exception = trim($exception);
 		
@@ -1295,21 +1506,11 @@ if (!function_exists('wpo_url_exception_match')) :
 		$url = urldecode(rtrim($url, '/')) . '/';
 		$exception = rtrim($exception, '/');
 		
-		// if we have no wildcard in the end of exception then add slash.
-		if (!preg_match('#\(\.\*\)$#', $exception)) $exception .= '/';
-		
-		$exception = preg_quote($exception);
-		
-		// fix - unescape some possibly escaped mask characters
-		$search = array(
-			'\\.\\*',
-			'\\-',
-		);
-		$replace = array(
-			'.*',
-			'-',
-		);
-		$exception = urldecode(str_replace($search, $replace, $exception));
+		$exception = wpo_mask_to_regex($exception, true);
+
+		if (!$exception) return false;
+
+		$exception = urldecode($exception);
 		
 		return (preg_match('#^'.$exception.'$#i', $url) || preg_match('#^'.$sub_dir.$exception.'$#i', $url));
 	}
@@ -1344,13 +1545,53 @@ if (!function_exists('wpo_is_mobile')) :
 endif;
 
 /**
+ * Converts a wildcard mask to a regular expression pattern.
+ *
+ * @param string $mask
+ * @param boolean $add_trailing_slash Whether to add a trailing slash to the regex pattern if the mask doesn't already end with a wildcard. This allows matching URLs with or without a trailing slash.
+ * @return string|false Regular expression pattern if conversion is successful, false if the input mask is empty after trimming.
+ */
+if (!function_exists('wpo_mask_to_regex')) :
+	function wpo_mask_to_regex($mask, $add_trailing_slash = false) {
+		$mask = trim($mask);
+
+		if ('' === $mask) {
+			return false;
+		}
+
+		// Convert wildcard to regex
+		$mask = str_replace('*', '.*', $mask);
+
+		// If the mask doesn't already end with a wildcard, add a trailing slash to match URLs with or without a trailing slash.
+		if ($add_trailing_slash && !preg_match('#\(\.\*\)$#', $mask)) {
+			$mask = rtrim($mask, '/') . '/';
+		}
+
+		// Escape regex characters
+		$mask = preg_quote($mask);
+
+		// Restore wildcard and dash
+		$mask = str_replace(
+			array('\.\*', '\-'),
+			array('.*', '-'),
+			$mask
+		);
+
+		return $mask;
+	}
+endif;
+
+
+/**
  * Check if current browser agent is not disabled in options.
+ *
+ * @param string $user_agent
  *
  * @return bool
  */
 if (!function_exists('wpo_is_accepted_user_agent')) :
 	function wpo_is_accepted_user_agent($user_agent) {
-		
+
 		if (empty($GLOBALS['wpo_cache_config'])) return true;
 
 		$exceptions = is_array($GLOBALS['wpo_cache_config']['cache_exception_browser_agents']) ? $GLOBALS['wpo_cache_config']['cache_exception_browser_agents'] : preg_split('#(\n|\r)#', $GLOBALS['wpo_cache_config']['cache_exception_browser_agents']);
@@ -1358,8 +1599,9 @@ if (!function_exists('wpo_is_accepted_user_agent')) :
 		if (!empty($exceptions)) {
 			foreach ($exceptions as $exception) {
 				if ('' === trim($exception)) continue;
-				
-				if (preg_match('#'.$exception.'#i', $user_agent)) return false;
+
+				$exception = wpo_mask_to_regex($exception);
+				if ($exception && preg_match('#'.$exception.'#i', $user_agent)) return false;
 			}
 		}
 		
@@ -1627,6 +1869,17 @@ if (!function_exists('wpo_cache_config_get')) :
 	}
 endif;
 
+/**
+ * Checks if cache only specific urls option enabled
+ *
+ * @return boolean
+ */
+if (!function_exists('wpo_cache_specific_urls_only')) :
+	function wpo_cache_specific_urls_only(): bool {
+		return wpo_cache_config_get('cache_specific_urls_only', false);
+	}
+endif;
+
 if (!function_exists('wpo_read_cache_directory_htaccess')) :
 	/**
 	 * Read .htaccess file for the cache directory.
@@ -1841,6 +2094,30 @@ if (!function_exists('wpo_normalize_path')) {
 		return $path;
 	}
 }
+
+/**
+ * Normalize url path
+ *
+ * @param string $url_path
+ * @return string
+ */
+if (!function_exists('wpo_normalize_url_path')) :
+	function wpo_normalize_url_path($url_path) {
+		$prev = null;
+		$iterations = 0;
+		
+		while ($url_path !== $prev && 5 > $iterations) {
+			$prev = $url_path;
+			$url_path = rawurldecode($url_path);
+			$iterations++;
+		}
+
+		$url_path = preg_replace('/\.\.?\//', '-', $url_path); // replace './' and '../' with '-' to prevent directory traversal
+		$url_path = strtolower($url_path);
+		
+		return $url_path;
+	}
+endif;
 
 /**
  * Get path to wp-config.php when called from WP-CLI.

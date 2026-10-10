@@ -1,7 +1,7 @@
 <?php
 namespace Elementor\Modules\AtomicWidgets\Controls\Types;
 
-use Elementor\Modules\AtomicWidgets\Base\Atomic_Control_Base;
+use Elementor\Modules\AtomicWidgets\Controls\Base\Atomic_Control_Base;
 
 if ( ! defined( 'ABSPATH' ) ) {
 	exit; // Exit if accessed directly.
@@ -13,6 +13,7 @@ class Toggle_Control extends Atomic_Control_Base {
 	private string $size = 'tiny';
 	private bool $exclusive = true;
 	private bool $convert_options = false;
+	private bool $allow_empty = false;
 
 	public function get_type(): string {
 		return 'toggle';
@@ -44,8 +45,20 @@ class Toggle_Control extends Atomic_Control_Base {
 		return $this;
 	}
 
+	public function set_full_width( bool $full_width ): self {
+		$this->full_width = $full_width;
+
+		return $this;
+	}
+
 	public function set_exclusive( bool $exclusive ): self {
 		$this->exclusive = $exclusive;
+
+		return $this;
+	}
+
+	public function set_allow_empty( bool $allow_empty ): self {
+		$this->allow_empty = $allow_empty;
 
 		return $this;
 	}
@@ -69,6 +82,7 @@ class Toggle_Control extends Atomic_Control_Base {
 			'size' => $this->size,
 			'exclusive' => $this->exclusive,
 			'convertOptions' => $this->convert_options,
+			'allowEmpty' => $this->allow_empty,
 		];
 	}
 }

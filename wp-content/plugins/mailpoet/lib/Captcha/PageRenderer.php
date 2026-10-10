@@ -36,7 +36,11 @@ class PageRenderer {
     $this->wp->addFilter('the_content', [$this, 'setPageContent']);
   }
 
-  public function setWindowTitle($title, $separator, $separatorLocation = 'right') {
+  public function setWindowTitle($title, $separator = '', $separatorLocation = 'right') {
+    // If no separator is provided, just modify the entire title
+    if (empty($separator)) {
+      return $this->getPageTitle();
+    }
     $titleParts = explode(" $separator ", $title);
     if (!is_array($titleParts)) {
       return $title;
@@ -71,6 +75,10 @@ class PageRenderer {
   }
 
   public function setPageContent($pageContent) {
+    if (strpos($pageContent, '[mailpoet_page]') === false) {
+      return $pageContent;
+    }
+
     $this->assetsController->setupFrontEndDependencies();
 
     // For preview, show a placeholder message since we don't have a real captcha session
@@ -82,7 +90,7 @@ class PageRenderer {
     } else {
       $content = $this->formRenderer->render($this->data);
       if (!$content) {
-        return false;
+        return str_replace('[mailpoet_page]', '', $pageContent);
       }
     }
 

@@ -18,6 +18,16 @@ class AssetDataApi {
 		unset( $this->data[ $key ] );
 	}
 
+	/**
+	 * Removes all stored data.
+	 *
+	 * @return void
+	 * @since 4.0.10
+	 */
+	public function clear() {
+		$this->data = [];
+	}
+
 	public function get_data() {
 		return $this->data;
 	}
@@ -27,9 +37,11 @@ class AssetDataApi {
 	}
 
 	public function print_data( $name, $data ) {
-		$data = rawurlencode( wp_json_encode( $data ) );
+		// JSON_HEX_TAG escapes < and > in string values so a value containing "</script>"
+		// can't prematurely close this script tag at the HTML parser level.
+		$data = wp_json_encode( $data, JSON_HEX_TAG | JSON_UNESCAPED_SLASHES );
 		echo "<script id=\"$name\">
-				window['$name'] = JSON.parse( decodeURIComponent( '" . esc_js( $data ) . "' ) );
+				window['$name'] = $data;
 		</script>";
 	}
 

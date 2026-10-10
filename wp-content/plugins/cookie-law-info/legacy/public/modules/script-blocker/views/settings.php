@@ -118,6 +118,7 @@ $plugin_help_url       = 'https://www.cookieyes.com/documentation/gdpr-cookie-co
 		font-size: 16px;
 	}
 </style>
+<?php include_once CLI_PLUGIN_PATH . 'admin/partials/wt-cli-update-banner.php'; ?>
 <div class="wrap cliscript-container">
 	<h3><?php echo esc_html__( 'Manage Script Blocking', 'cookie-law-info' ); ?></h3>
 	<?php if ( $js_blocking_status === false ) : ?>

@@ -2,9 +2,11 @@
 
 namespace Give\PaymentGateways\PayPalCommerce;
 
-use Give\Framework\Http\ConnectServer\Client\ConnectClient;
+use Give\DonationForms\Actions\ValidateDonationFormRequest;
+use Give\DonationForms\Exceptions\DonationFormFieldErrorsException;
+use Give\DonationForms\Exceptions\DonationFormForbidden;
+use Give\Log\Log;
 use Give\PaymentGateways\PayPalCommerce\Models\MerchantDetail;
-use Give\PaymentGateways\PayPalCommerce\PayPalCheckoutSdk\ProcessorResponseError;
 use Give\PaymentGateways\PayPalCommerce\Repositories\MerchantDetails;
 use Give\PaymentGateways\PayPalCommerce\Repositories\PayPalAuth;
 use Give\PaymentGateways\PayPalCommerce\Repositories\PayPalOrder;
@@ -51,7 +53,7 @@ class AjaxRequestHandler
     /**
      * @since 2.9.0
      *
-     * @var ConnectClient
+     * @var RefreshToken
      */
     private $refreshToken;
 
@@ -157,12 +159,18 @@ class AjaxRequestHandler
         $country = sanitize_text_field(wp_unslash($_GET['countryCode']));
         $accountType = sanitize_text_field(wp_unslash($_GET['accountType']));
         $mode = sanitize_text_field(wp_unslash($_GET['mode']));
+
+        // Generate a unique state token for CSRF protection on PayPal callback.
+        $stateToken = wp_generate_password(32, false);
+        set_transient('give_paypal_onboarding_state_' . $mode, $stateToken, HOUR_IN_SECONDS);
+
         $redirectUrl = add_query_arg(
             [
                 'tab' => 'gateways',
                 'section' => 'paypal',
                 'group' => 'paypal-commerce',
                 'mode' => $mode,
+                'give_paypal_state' => $stateToken,
             ],
             admin_url('edit.php?post_type=give_forms&page=give-settings')
         );
@@ -258,7 +266,11 @@ class AjaxRequestHandler
     }
 
     /**
-     * @since 4.2.1 only filter amount for v2 forms
+     * @since 4.16.7.1 Validate the request through the form layer before building order data. v3 forms must
+     *            also send a total at least as large as the amount the form validated; v2 forms are
+     *            checked on the final, post-filter amount.
+     * @since 4.14.4 Validate donation amount before creating or updating an order.
+     * @since 4.2.1 Only filter amount for v2 forms.
      * @since 3.4.2
      */
     private function getOrderData(): array
@@ -268,9 +280,26 @@ class AjaxRequestHandler
         $donorAddress = $this->getDonorAddressFromPostedDataForPaypalOrder($postData);
         $isV3Form = FormUtils::isV3Form($formId);
 
+        if (!$isV3Form) {
+            $this->skipLegacyCardFieldRequirements();
+        }
+
+        $this->validateDonationFormRequest($formId, $postData);
+
         if ($isV3Form) {
-            // if coming from v3 forms, fee recovery is already included in the amount and should not be filtered.
+            /*
+             * v3 forms send the form's own amount field as "amount" and the total, with fee recovery
+             * already included, as "give-amount". The total is what the donor approves in the PayPal
+             * popup; PayPalCommerce::createPayment() reconciles the order to the validated donation
+             * before capturing, so all this has to guarantee is that the total never drops below the
+             * amount the form just validated.
+             */
+            $validatedAmount = isset($postData['amount']) ? (float)$postData['amount'] : 0.0;
             $amount = isset($postData['give-amount']) ? give_clean($postData['give-amount']) : '0.00';
+
+            if ($validatedAmount <= 0 || (float)$amount < $validatedAmount) {
+                wp_send_json_error(['error' => __('Invalid donation amount.', 'give')]);
+            }
         } else {
             $amount = isset($postData['give-amount']) ?
                 (float)apply_filters(
@@ -281,6 +310,8 @@ class AjaxRequestHandler
                     )
                 ) :
                 '0.00';
+
+            $this->validateDonationAmount($amount, $formId);
         }
 
         return [
@@ -297,51 +328,41 @@ class AjaxRequestHandler
     }
 
     /**
-     * Approve order.
+     * Refuses every request. Both form versions now send their order id with the donation and let
+     * PayPalCommerce::createPayment() capture it, so nothing legitimate captures from the browser.
+     * The endpoint stays registered so anything still calling it receives an error it can report,
+     * rather than an empty response from a missing action.
      *
-     * @todo: handle payment capture error on frontend.
-     *
+     * @since 4.16.9 Refuse every request; the capture for both form versions happens in PayPalCommerce::createPayment().
+     * @since 4.16.7.1 Refuse v3 forms; their capture happens in PayPalCommerce::createPayment(). Validate
+     *            the posted form before every capture, not only when the amount changed.
+     * @since 4.14.4 Validate donation amount before approving an order.
      * @since 3.2.0 Discover error by checking capture status.
      * @since 2.9.0
      */
     public function approveOrder()
     {
-        $this->validateFrontendRequest();
-
-        $orderId = give_clean($_GET['order']);
-        $updateAmount = filter_var(give_clean($_GET['update_amount']), FILTER_VALIDATE_BOOLEAN);
-
-        try {
-            if ($updateAmount) {
-                give(PayPalOrder::class)->updateOrderAmount($orderId, $this->getOrderData());
-            }
-
-            $result = give(PayPalOrder::class)->approveOrder($orderId);
-            // PayPal does not return error in case of invalid cvv. So we need to check capture status and return error.
-            // ref - https://feedback.givewp.com/bug-reports/p/paypal-credit-card-donations-can-generate-a-fatal-error
-            $this->returnErrorOnFailedApproveOrderResponse($result);
-            wp_send_json_success(['order' => $result,]);
-        } catch (\Exception $ex) {
-            wp_send_json_error(['error' => json_decode($ex->getMessage(), true),]);
-        }
+        wp_send_json_error(
+            ['error' => __('PayPal orders are captured when the donation is submitted.', 'give')]
+        );
     }
 
     /**
+     * Refuses every request. The order amount is reconciled against the donation in
+     * PayPalCommerce::createPayment() before the capture, so no form version needs the browser to
+     * change an order's amount. The endpoint stays registered for the same reason approveOrder()
+     * does: a caller gets an error it can report rather than an empty response.
+     *
+     * @since 4.16.9 Refuse every request; the order amount is reconciled in PayPalCommerce::createPayment().
+     * @since 4.16.7.1 Refuse v3 forms; PayPalCommerce::createPayment() reconciles their order amount.
+     * @since 4.14.4 Validate donation amount before updating an order amount.
      * @since 3.4.2
      */
     public function updateOrderAmount()
     {
-        $this->validateFrontendRequest();
-
-        $orderId = give_clean($_GET['order']);
-
-        try {
-            give(PayPalOrder::class)->updateOrderAmount($orderId, $this->getOrderData());
-
-            wp_send_json_success(['order' => $orderId,]);
-        } catch (\Exception $ex) {
-            wp_send_json_error(['error' => json_decode($ex->getMessage(), true),]);
-        }
+        wp_send_json_error(
+            ['error' => __('PayPal order amounts are reconciled when the donation is submitted.', 'give')]
+        );
     }
 
     /**
@@ -410,6 +431,83 @@ class AjaxRequestHandler
     }
 
     /**
+     * Hold the request to the form's own rules before anything reaches PayPal. The form layer owns
+     * the rules: amount limits, required fields, and whatever else it validates for this form
+     * version; this handler only acts on the verdict.
+     *
+     * @since 4.16.7.1
+     */
+    private function validateDonationFormRequest(int $formId, array $request): void
+    {
+        try {
+            give(ValidateDonationFormRequest::class)($formId, $request);
+        } catch (DonationFormFieldErrorsException $exception) {
+            wp_send_json_error(['error' => implode(' ', $exception->getError()->get_error_messages())]);
+        } catch (DonationFormForbidden $exception) {
+            wp_send_json_error(['error' => $exception->getMessage()], 403);
+        } catch (\Exception $exception) {
+            /*
+             * Anything else the form layer throws (a spam detection, for one) still means "do not
+             * create this order". Same handling as the validate route, log entry included.
+             */
+            Log::error('PayPal Commerce order request rejected', [
+                'formId' => $formId,
+                'exception' => get_class($exception),
+                'message' => $exception->getMessage(),
+            ]);
+
+            wp_send_json_error(['error' => $exception->getMessage()]);
+        }
+    }
+
+    /**
+     * The v2 form posts its card inputs along with everything else, but for this gateway those inputs
+     * are PayPal-hosted fields (SmartButtons.js strips them before its own validation call for the
+     * same reason), so the legacy validator must not require them here.
+     *
+     * @since 4.16.7.1
+     */
+    private function skipLegacyCardFieldRequirements(): void
+    {
+        add_filter('give_donation_form_required_fields', static function ($requiredFields) {
+            return array_diff_key(
+                (array)$requiredFields,
+                array_flip(['card_name', 'card_number', 'card_cvc', 'card_expiry'])
+            );
+        });
+    }
+
+    /**
+     * The legacy validator checks the raw posted amount. The amount that actually reaches PayPal for
+     * a v2 form has been through the give_donation_total filter (fee recovery), so it is checked
+     * again here: positive and within the form's maximum. v3 amounts are validated by the form layer.
+     *
+     * @since 4.16.7.1 Applies to v2 forms only.
+     * @since 4.14.4
+     *
+     * @param float|string $amount
+     */
+    private function validateDonationAmount($amount, int $formId): void
+    {
+        $amount = (float)$amount;
+
+        if ($amount <= 0) {
+            wp_send_json_error(['error' => __('Invalid donation amount.', 'give')]);
+        }
+
+        $maxAmount = (float)give_get_form_maximum_price($formId);
+        if ($maxAmount > 0 && $amount > $maxAmount) {
+            wp_send_json_error([
+                'error' => sprintf(
+                    /* translators: %s: maximum donation amount */
+                    __('Donation amount must not exceed %s.', 'give'),
+                    give_currency_filter(give_format_amount($maxAmount, ['sanitize' => false]))
+                ),
+            ]);
+        }
+    }
+
+    /**
      * This function should return address array in PayPal rest api accepted format.
      *
      * @since 3.1.0 Return address only if setting enabled and has valida country in PayPal accepted formatted.
@@ -431,27 +529,4 @@ class AjaxRequestHandler
         return $address;
     }
 
-    /**
-     * This function should validate PayPal ApproveOrder response and respond to ajax request on error.
-     *
-     * @since 3.2.0
-     */
-    private function returnErrorOnFailedApproveOrderResponse(\stdClass $response)
-    {
-        // Get capture.
-        // ref - https://developer.paypal.com/docs/api/orders/v2/#orders_capture
-        $capture = $response->purchase_units[0]->payments->captures[0];
-
-        // Check if capture status is failed or declined.
-        if (
-            in_array($capture->status, ['FAILED', 'DECLINED'])
-            && property_exists($capture, 'processor_response')
-        ) {
-            $error = ProcessorResponseError::getError($capture->processor_response);
-
-            if ($error) {
-                wp_send_json_error(['error' => $error]);
-            }
-        }
-    }
 }

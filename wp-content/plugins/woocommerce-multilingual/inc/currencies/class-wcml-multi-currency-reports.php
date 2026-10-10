@@ -6,18 +6,11 @@ class WCML_Multi_Currency_Reports {
 
 	const TOP_SELLER_QUERY_USE_SELECT_ORDERS_FROM = '8.8.0';
 
-	/** @var woocommerce_wpml */
 	private $woocommerce_wpml;
-	/** @var wpdb */
 	private $wpdb;
 
-	/** @var string $reports_currency */
 	protected $reports_currency;
 
-	/**
-	 * @param woocommerce_wpml $woocommerce_wpml
-	 * @param wpdb $wpdb
-	 */
 	public function __construct( woocommerce_wpml $woocommerce_wpml, wpdb $wpdb ) {
 		$this->woocommerce_wpml = $woocommerce_wpml;
 		$this->wpdb             = $wpdb;
@@ -29,7 +22,7 @@ class WCML_Multi_Currency_Reports {
 
 		if ( is_admin() ) {
 
-			add_action( 'wp_ajax_wcml_reports_set_currency', [ $this, 'set_reports_currency' ] );
+			\WCML\Request\Ajax::register( 'wcml_reports_set_currency', [ 'authorize' => [ 'WCML_Capabilities', 'canManageWcml' ], 'description' => 'WCML manager (shop manager or administrator role, WCML_Capabilities::canManageWcml)', 'nonce' => [ 'reports_set_currency', 'wcml_nonce' ] ], [ $this, 'set_reports_currency' ] );
 
 			add_action( 'wc_reports_tabs', [ $this, 'reports_currency_selector' ] );
 
@@ -50,8 +43,6 @@ class WCML_Multi_Currency_Reports {
 	public function admin_screen_loaded( $screen ) {
 
 		if ( $screen->id === 'dashboard' ) {
-			// Note that this filter only runs when the WooCommerce Admin is disabled.
-			// See https://developer.woocommerce.com/2021/05/18/request-for-comments-removing-the-filter-to-turn-off-woocommerce-admin/
 			add_filter( 'woocommerce_reports_get_order_report_query', [
 				$this,
 				'filterOrdersAsPostsByCurrencyPostmeta'
@@ -68,7 +59,7 @@ class WCML_Multi_Currency_Reports {
 			add_filter( 'woocommerce_reports_get_order_report_query', [ $this, 'admin_reports_query_filter' ] );
 		}
 
-		if ( $isReportsPage ) { //wc-reports - 2.1.x, woocommerce_reports 2.0.x
+		if ( $isReportsPage ) {
 
 			$wcml_reports_set_currency_nonce  = esc_js( wp_create_nonce( 'reports_set_currency' ) );
 			$wcml_reports_set_currency_script = <<<JS
@@ -114,7 +105,7 @@ JS;
 		}
 
 		$query['join']  .= " LEFT JOIN {$this->wpdb->postmeta} AS meta_order_currency ON meta_order_currency.post_id = posts.ID ";
-		$query['where'] .= sprintf( " AND meta_order_currency.meta_key='_order_currency' AND meta_order_currency.meta_value = '%s' ",
+		$query['where'] .= $this->wpdb->prepare( " AND meta_order_currency.meta_key = '_order_currency' AND meta_order_currency.meta_value = %s ",
 			$this->reports_currency );
 
 		return $query;
@@ -135,13 +126,14 @@ JS;
 
 		$nonce = filter_input( INPUT_POST, 'wcml_nonce', FILTER_SANITIZE_FULL_SPECIAL_CHARS );
 		if ( ! $nonce || ! wp_verify_nonce( $nonce, 'reports_set_currency' ) ) {
+			/* translators: Error returned when a request carries an expired or missing security token. */
 			echo json_encode( [ 'error' => __( 'Invalid nonce', 'woocommerce-multilingual' ) ] );
 			die();
 		}
 
+		WCML_Capabilities::requireCanManageWcmlForAjax();
+
 		$cookie_name = '_wcml_reports_currency';
-		// @todo uncomment or delete when #wpmlcore-5796 is resolved
-		// do_action( 'wpsc_add_cookie', $cookie_name );
 		setcookie( $cookie_name, filter_input( INPUT_POST, 'currency', FILTER_SANITIZE_FULL_SPECIAL_CHARS ),
 			time() + 86400, COOKIEPATH, COOKIE_DOMAIN );
 
@@ -153,34 +145,24 @@ JS;
 		$currency_codes = $this->woocommerce_wpml->multi_currency->get_currency_codes();
 		$currencies     = get_woocommerce_currencies();
 
-		// Remove filter temporary.
 		remove_filter( 'woocommerce_currency_symbol', [ $this, '_set_reports_currency_symbol' ] );
 		?>
         <select id="dropdown_shop_report_currency" style="margin-left:5px;">
 			<?php if ( empty( $currency_codes ) ): ?>
-                <option value=""><?php _e( 'Currency - no orders found', 'woocommerce-multilingual' ) ?></option>
+				<option value=""><?php /* translators: Only entry of the currency dropdown on the WooCommerce reports, shown when the shop has no orders yet. */ esc_html_e( 'Currency - no orders found', 'woocommerce-multilingual' ); ?></option>
 			<?php else: ?>
 				<?php foreach ( $currency_codes as $currency ): ?>
                     <option value="<?php echo esc_attr( $currency ) ?>" <?php selected( $currency, $this->reports_currency ); ?>>
-						<?php printf( "%s (%s)", $currencies[ $currency ], get_woocommerce_currency_symbol( $currency ) ) ?>
+						<?php printf( "%s (%s)", esc_html( $currencies[ $currency ] ), wp_kses_post( get_woocommerce_currency_symbol( $currency ) ) ) ?>
                     </option>
 				<?php endforeach; ?>
 			<?php endif; ?>
         </select>
 		<?php
 
-		// Add filter back.
 		add_filter( 'woocommerce_currency_symbol', [ $this, '_set_reports_currency_symbol' ] );
 	}
 
-	/**
-	 * Filter some WC dashboard status queries by currency when products are stored in the posts table.
-	 *
-	 * @param array  $query
-	 * @param string $tableAlias
-	 *
-	 * @return array
-	 */
 	public function filterOrdersAsPostsByCurrencyPostmeta( $query, $tableAlias = 'posts' ) {
 
 		$currency = $this->woocommerce_wpml->multi_currency->admin_currency_selector->get_cookie_dashboard_currency();
@@ -191,30 +173,15 @@ JS;
 		return $query;
 	}
 
-	/**
-	 * Filter WC dashboard top seller query.
-	 *
-	 * @param array $query Query to filter
-	 *
-	 * @return array
-	 *
-	 * @see https://onthegosystems.myjetbrains.com/youtrack/issue/wcml-4789
-	 * @see https://github.com/woocommerce/woocommerce/commit/c83b030834b52e3f8dbd4e42f0751a4b911479a2
-	 */
 	public function filterDashboardstatusWidgetTopSellerQuery( $query ) {
-		// Before WooCommerce 8.8.0, the table alias was posts.
-		/* @phpstan-ignore booleanAnd.rightAlwaysTrue */
 		if ( defined( 'WC_VERSION' ) && version_compare( WC_VERSION, self::TOP_SELLER_QUERY_USE_SELECT_ORDERS_FROM, '<' ) ) {
 			return $this->filterOrdersAsPostsByCurrencyPostmeta( $query );
 		}
 
-		// After WooCommerce 8.8.0, the table alias was orders.
-		// If HPOS is disabled, it still matches the posts table.
 		if ( false === COTHelper::isUsageEnabled() ) {
 			return $this->filterOrdersAsPostsByCurrencyPostmeta( $query, 'orders' );
 		}
 
-		// If HPOS is enabled after WooCommerce 8.8.0, the orders alias matches the orders table, which has a currency column.
 		$query['where'] .= $this->wpdb->prepare( " AND orders.currency = %s", $this->woocommerce_wpml->multi_currency->admin_currency_selector->get_cookie_dashboard_currency() );
 
 		return $query;

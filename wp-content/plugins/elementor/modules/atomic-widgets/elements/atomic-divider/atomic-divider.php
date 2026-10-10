@@ -2,8 +2,9 @@
 
 namespace Elementor\Modules\AtomicWidgets\Elements\Atomic_Divider;
 
-use Elementor\Modules\AtomicWidgets\Elements\Atomic_Widget_Base;
-use Elementor\Modules\AtomicWidgets\Elements\Has_Template;
+use Elementor\Modules\AtomicWidgets\Elements\Base\Atomic_Widget_Base;
+use Elementor\Modules\AtomicWidgets\Elements\Base\Has_Template;
+use Elementor\Modules\AtomicWidgets\Elements\Base\Html_Tag_Computer;
 use Elementor\Modules\AtomicWidgets\PropTypes\Background_Prop_Type;
 use Elementor\Modules\AtomicWidgets\PropTypes\Attributes_Prop_Type;
 use Elementor\Modules\AtomicWidgets\PropTypes\Classes_Prop_Type;
@@ -13,6 +14,7 @@ use Elementor\Modules\AtomicWidgets\Styles\Style_Definition;
 use Elementor\Modules\AtomicWidgets\Styles\Style_Variant;
 use Elementor\Modules\AtomicWidgets\Controls\Section;
 use Elementor\Modules\AtomicWidgets\Controls\Types\Text_Control;
+use Elementor\Modules\Components\PropTypes\Overridable_Prop_Type;
 
 if ( ! defined( 'ABSPATH' ) ) {
 	exit;
@@ -45,12 +47,16 @@ class Atomic_Divider extends Atomic_Widget_Base {
 		return 'eicon-e-divider';
 	}
 
+	public static function get_computed_html_tag( array $settings ): string {
+		return Html_Tag_Computer::compute( $settings, 'hr' );
+	}
+
 	protected static function define_props_schema(): array {
 		return [
 			'classes' => Classes_Prop_Type::make()
 				->default( [] ),
 
-			'attributes' => Attributes_Prop_Type::make(),
+			'attributes' => Attributes_Prop_Type::make()->meta( Overridable_Prop_Type::ignore() ),
 		];
 	}
 
@@ -86,6 +92,11 @@ class Atomic_Divider extends Atomic_Widget_Base {
 			'color' => Color_Prop_Type::generate( '#000' ),
 		]);
 
+		$width_value = Size_Prop_Type::generate([
+			'size' => 100,
+			'unit' => '%',
+		]);
+
 		return [
 			'base' => Style_Definition::make()
 				->add_variant(
@@ -95,6 +106,7 @@ class Atomic_Divider extends Atomic_Widget_Base {
 						->add_prop( 'border-style', 'none' )
 						->add_prop( 'background', $background_value )
 						->add_prop( 'height', $height_value )
+						->add_prop( 'width', $width_value )
 				),
 		];
 	}
@@ -103,5 +115,9 @@ class Atomic_Divider extends Atomic_Widget_Base {
 		return [
 			'elementor/elements/atomic-divider' => __DIR__ . '/atomic-divider.html.twig',
 		];
+	}
+
+	public function render_markdown(): string {
+		return '---';
 	}
 }

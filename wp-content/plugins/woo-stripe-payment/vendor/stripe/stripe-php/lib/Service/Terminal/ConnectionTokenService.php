@@ -2,27 +2,26 @@
 
 // File generated from our OpenAPI spec
 
-namespace Stripe\Service\Terminal;
+namespace PaymentPlugins\Vendor\Stripe\Service\Terminal;
 
 /**
  * @phpstan-import-type RequestOptionsArray from \Stripe\Util\RequestOptions
- */
-/**
+ *
  * @psalm-import-type RequestOptionsArray from \Stripe\Util\RequestOptions
  */
-class ConnectionTokenService extends \Stripe\Service\AbstractService
+class ConnectionTokenService extends \PaymentPlugins\Vendor\Stripe\Service\AbstractService
 {
     /**
      * To connect to a reader the Stripe Terminal SDK needs to retrieve a short-lived
      * connection token from Stripe, proxied through your server. On your backend, add
      * an endpoint that creates and returns a connection token.
      *
-     * @param null|array $params
-     * @param null|RequestOptionsArray|\Stripe\Util\RequestOptions $opts
+     * @param null|array{expand?: string[], location?: string} $params
+     * @param null|RequestOptionsArray|\PaymentPlugins\Vendor\Stripe\Util\RequestOptions $opts
      *
-     * @throws \Stripe\Exception\ApiErrorException if the request fails
+     * @return \PaymentPlugins\Vendor\Stripe\Terminal\ConnectionToken
      *
-     * @return \Stripe\Terminal\ConnectionToken
+     * @throws \PaymentPlugins\Vendor\Stripe\Exception\ApiErrorException if the request fails
      */
     public function create($params = null, $opts = null)
     {

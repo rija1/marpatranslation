@@ -4,17 +4,9 @@ use WPML\Core\Twig_SimpleFunction;
 
 class WCML_Setup_Header_UI extends WCML_Templates_Factory {
 
-	/** @var array */
 	private $steps;
-	/** @var string */
 	private $step;
 
-	/**
-	 * WCML_Setup_Header_UI constructor.
-	 *
-	 * @param array  $steps
-	 * @param string $step
-	 */
 	public function __construct( $steps, $step ) {
 
 		$functions = [
@@ -29,12 +21,10 @@ class WCML_Setup_Header_UI extends WCML_Templates_Factory {
 		$this->step  = $step;
 	}
 
-	/**
-	 * @return array
-	 */
 	public function get_model() {
 
 		$model = [
+			/* translators: Title at the top of the setup wizard; the arrow separates the plugin name from the screen. Both are names and stay in English. */
 			'title'           => __( 'WPML Multilingual & Multicurrency for WooCommerce › Setup Wizard', 'woocommerce-multilingual' ),
 			'WCML_PLUGIN_URL' => WCML_PLUGIN_URL,
 			'step'            => $this->step,
@@ -50,16 +40,10 @@ class WCML_Setup_Header_UI extends WCML_Templates_Factory {
 		language_attributes();
 	}
 
-	/**
-	 * @param string $tag
-	 */
 	public function wp_print_scripts( $tag ) {
 		wp_print_scripts( $tag );
 	}
 
-	/**
-	 * @param string $hook
-	 */
 	public function wp_do_action( $hook ) {
 		do_action( $hook );
 	}
@@ -70,9 +54,6 @@ class WCML_Setup_Header_UI extends WCML_Templates_Factory {
 		];
 	}
 
-	/**
-	 * @return string
-	 */
 	public function get_template() {
 		return '/setup/header.twig';
 	}

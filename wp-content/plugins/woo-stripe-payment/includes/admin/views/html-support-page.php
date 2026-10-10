@@ -2,7 +2,7 @@
 /**
  *
  */
-
+defined( 'ABSPATH' ) || exit;
 ?>
 <div class="wc-stripe-support__page">
     <div class="wc-stripe-main__container">
@@ -34,7 +34,8 @@
 								<?php esc_html_e( 'Click the Create Ticket button and enter all the required information.', 'woo-stripe-payment' ) ?>
                                 <br/><br/>
                             </p>
-                            <button id="stripeSupportButton" class="wc-stripe-card-button"><?php _e( 'Create Ticket', 'woo-stripe-payment' ) ?></button>
+                            <button id="stripeSupportButton"
+                                    class="wc-stripe-card-button"><?php _e( 'Create Ticket', 'woo-stripe-payment' ) ?></button>
                         </div>
                     </div>
                 </div>

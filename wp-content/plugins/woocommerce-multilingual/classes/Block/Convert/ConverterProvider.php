@@ -5,17 +5,11 @@ namespace WCML\Block\Convert;
 use WCML\Block\Convert\Converter\ProductsByAttributes;
 use WPML\PB\Gutenberg\ConvertIdsInBlock\Base;
 use WPML\PB\Gutenberg\ConvertIdsInBlock\Composite;
-use WPML\PB\Gutenberg\ConvertIdsInBlock\NullConvert;
 use WPML\PB\Gutenberg\ConvertIdsInBlock\BlockAttributes;
 use WPML\PB\Gutenberg\ConvertIdsInBlock\TagAttributes;
 
 class ConverterProvider {
 
-	/**
-	 * @param string $blockName
-	 *
-	 * @return \WPML\PB\Gutenberg\ConvertIdsInBlock\Base
-	 */
 	public static function get( $blockName ) {
 		switch ( $blockName ) {
 			case 'woocommerce/product-category':

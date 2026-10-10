@@ -15,90 +15,88 @@ if ( ! class_exists( 'WC_Payment_Gateway_Stripe' ) ) {
 class WC_Payment_Gateway_Stripe_ApplePay extends WC_Payment_Gateway_Stripe {
 
 	use WC_Stripe_Payment_Intent_Trait;
+	use \PaymentPlugins\Stripe\Traits\TokenizationTrait;
+	use \PaymentPlugins\Stripe\Traits\ExpressCheckoutTrait;
+	use \PaymentPlugins\Stripe\WooCommercePreOrders\Traits\PreOrdersTrait;
+	use \PaymentPlugins\Stripe\WooCommerceSubscriptions\Traits\WooCommerceSubscriptionsTrait;
 
-	use WC_Stripe_Express_Payment_Trait;
+	public $id = 'stripe_applepay';
 
 	protected $payment_method_type = 'card';
 
-	public function __construct() {
-		$this->id                 = 'stripe_applepay';
+	public function __construct( ...$args ) {
 		$this->tab_title          = __( 'Apple Pay', 'woo-stripe-payment' );
 		$this->template_name      = 'applepay.php';
 		$this->token_type         = 'Stripe_ApplePay';
 		$this->method_title       = __( 'Apple Pay (Stripe) by Payment Plugins', 'woo-stripe-payment' );
 		$this->method_description = __( 'Apple Pay gateway that integrates with your Stripe account.', 'woo-stripe-payment' );
 		$this->has_digital_wallet = true;
-		parent::__construct();
-		$this->icon = stripe_wc()->assets_url( 'img/applepay.svg' );
+		parent::__construct( ...$args );
+		$this->icon = $this->assets->assets_url( 'img/applepay.svg' );
 	}
 
-	public function init_supports() {
-		parent::init_supports();
-		$this->supports[] = 'wc_stripe_cart_checkout';
-		$this->supports[] = 'wc_stripe_product_checkout';
-		$this->supports[] = 'wc_stripe_banner_checkout';
-		$this->supports[] = 'wc_stripe_mini_cart_checkout';
+	protected function get_element_selector() {
+		return "#wc-{$this->id}-checkout-button";
 	}
 
-	public function enqueue_product_scripts( $scripts ) {
-		$scripts->enqueue_script(
-			'applepay-product',
-			$scripts->assets_url( 'js/frontend/applepay-product.js' ),
-			array(
-				$scripts->get_handle( 'wc-stripe' )
-			),
-			stripe_wc()->version(),
-			true
+	public function get_checkout_script_handles() {
+		$this->assets->register_script( 'wc-stripe-applepay-checkout', 'build/applepay-checkout.js' );
+
+		return [ 'wc-stripe-applepay-checkout' ];
+	}
+
+	public function get_add_payment_method_script_handles() {
+		$this->assets->register_script( 'wc-stripe-applepay-add-payment', 'build/applepay-add-payment.js' );
+
+		return [ 'wc-stripe-applepay-add-payment' ];
+	}
+
+	public function get_express_checkout_script_handles() {
+		$this->assets->register_script(
+			'wc-stripe-applepay-express-checkout',
+			'build/applepay-express-checkout.js'
 		);
-		$scripts->localize_script( 'applepay-product', $this->get_localized_params() );
+
+		return [ 'wc-stripe-applepay-express-checkout' ];
 	}
 
-	public function enqueue_cart_scripts( $scripts ) {
-		$scripts->enqueue_script(
-			'applepay-cart',
-			$scripts->assets_url( 'js/frontend/applepay-cart.js' ),
-			array(
-				$scripts->get_handle( 'wc-stripe' )
-			),
-			stripe_wc()->version(),
-			true
-		);
-		$scripts->localize_script( 'applepay-cart', $this->get_localized_params() );
+	public function get_cart_script_handles() {
+		$this->assets->register_script( 'wc-stripe-applepay-cart', 'build/applepay-cart.js' );
+
+		return [ 'wc-stripe-applepay-cart' ];
 	}
 
-	public function enqueue_checkout_scripts( $scripts ) {
-		$scripts->enqueue_script(
-			'applepay-checkout',
-			$scripts->assets_url( 'js/frontend/applepay-checkout.js' ),
-			array(
-				$scripts->get_handle( 'wc-stripe' )
-			),
-			stripe_wc()->version(),
-			true
-		);
-		$scripts->localize_script( 'applepay-checkout', $this->get_localized_params() );
+	public function get_product_script_handles() {
+		$this->assets->register_script( 'wc-stripe-applepay-product', 'build/applepay-product.js' );
+
+		return [ 'wc-stripe-applepay-product' ];
 	}
 
-	public function get_localized_params() {
-		return array_merge_recursive(
-			parent::get_localized_params(),
-			array(
-				'messages'      => array(
-					'invalid_amount' => __( 'Please update you product quantity before using Apple Pay.', 'woo-stripe-payment' ),
-					'choose_product' => __( 'Please select a product option before updating quantity.', 'woo-stripe-payment' ),
-				),
-				'button'        => wc_stripe_get_template_html(
-					'applepay-button.php',
-					array(
-						'style'       => $this->get_option( 'button_style' ),
-						'type'        => $this->get_button_type(),
-						'button_type' => $this->get_applepay_button_style_type(),
-						'design'      => $this->get_option( 'button_design', 'standard' )
-					)
-				),
-				'button_height' => $this->get_option( 'button_height', 40 ) . 'px',
-				'button_radius' => $this->get_option( 'button_radius', 4 ) . 'px',
-			)
+	public function get_minicart_script_handles() {
+		$this->assets->register_script( 'wc-stripe-applepay-minicart', 'build/applepay-minicart.js' );
+
+		return [ 'wc-stripe-applepay-minicart' ];
+	}
+
+	public function get_payment_method_data() {
+		return array_merge(
+			parent::get_payment_method_data(),
+			[
+				'button'       => [
+					'height' => (int) $this->get_option( 'button_height', 50 ),
+					'radius' => $this->get_option( 'button_radius', 4 ) . 'px',
+					'theme'  => $this->get_option( 'button_theme', 'black' ),
+					'type'   => $this->get_option( 'button_type_checkout', 'plain' )
+				],
+				'buttonTypes'  => [
+					'checkout'         => $this->get_option( 'button_type_checkout' ),
+					'express_checkout' => $this->get_option( 'button_type_express_checkout', 'plain' ),
+					'cart'             => $this->get_option( 'button_type_cart', 'plain' ),
+					'product'          => $this->get_option( 'button_type_product', 'plain' ),
+					'minicart'         => $this->get_option( 'button_type_cart', 'plain' )
+				],
+				'display_rule' => \wc_string_to_bool( $this->get_option( 'all_browsers', 'yes' ) ) ? 'always' : 'auto'
+			]
 		);
 	}
 
@@ -117,22 +115,8 @@ class WC_Payment_Gateway_Stripe_ApplePay extends WC_Payment_Gateway_Stripe {
 		if ( is_product() ) {
 			return $this->get_option( 'button_type_product' );
 		}
-	}
 
-	public function has_enqueued_scripts( $scripts ) {
-		return wp_script_is( $scripts->get_handle( 'applepay-checkout' ) );
-	}
-
-	private function get_applepay_button_style_type() {
-		$style = $this->get_option( 'button_style' );
-		switch ( $style ) {
-			case 'apple-pay-button-white':
-				return 'white';
-			case 'apple-pay-button-white-with-line':
-				return 'white-outline';
-			default:
-				return 'black';
-		}
+		return $this->get_option( 'button_type_cart' );
 	}
 
 }

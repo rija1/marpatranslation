@@ -1,20 +1,10 @@
 <?php
 
 class WCML_Store_URLs_UI extends WCML_Templates_Factory {
-	/**
-	 * @var woocommerce_wpml
-	 */
 	private $woocommerce_wpml;
-	/**
-	 * @var SitePress
-	 */
 	private $sitepress;
 	private $active_languages;
 
-	/**
-	 * @param woocommerce_wpml $woocommerce_wpml
-	 * @param SitePress        $sitepress
-	 */
 	public function __construct( $woocommerce_wpml, $sitepress ) {
 		parent::__construct();
 
@@ -57,6 +47,7 @@ class WCML_Store_URLs_UI extends WCML_Templates_Factory {
 			'endpoints_base'  => $this->get_endpoint_info(),
 			'attribute_slugs' => $this->get_attribute_slugs_info(),
 			'strings'         => [
+				/* translators: Introduction at the top of the store URLs screen. */
 				'notice'           => __( 'This page allows you to translate all strings that are being used by WooCommerce in building different type of urls. Translating them enables you to have fully localized urls that match the language of the pages.', 'woocommerce-multilingual' ),
 				'notice_defaults'  => sprintf(
 					/* translators: %1$s/%2$s and %3$s/%4$s are opening and closing HTML link tags */
@@ -69,14 +60,23 @@ class WCML_Store_URLs_UI extends WCML_Templates_Factory {
 					'<a href="' . \WCML\Utilities\AdminUrl::getWooSettings( 'advanced' ) . '">',
 					'</a>'
 				),
+				/* translators: Link text inside a sentence on the store URLs screen; it opens the WordPress permalink settings. Lower case because it sits mid-sentence. */
 				'perm_settings'    => '<a href="' . admin_url( 'options-permalink.php' ) . '" >' . __( 'permalinks settings', 'woocommerce-multilingual' ) . '</a>',
+				/* translators: Link text on the store URLs screen; it opens the WooCommerce account settings. */
 				'account_settings' => '<a href="' . \WCML\Utilities\AdminUrl::getWooSettings( 'account' ) . '" >' . __( 'Account settings', 'woocommerce-multilingual' ) . '</a>',
+				/* translators: Column heading naming which URL part a row is about, on the store URLs screen; a slug is the readable part of a web address. */
 				'slug_type'        => __( 'Slug type', 'woocommerce-multilingual' ),
+				/* translators: Column heading above the untranslated URL part, on the store URLs screen. */
 				'orig_slug'        => __( 'Original Slug', 'woocommerce-multilingual' ),
+				/* translators: Row label on the store URLs screen for the address of the WooCommerce shop page. */
 				'shop'             => __( 'Shop page', 'woocommerce-multilingual' ),
+				/* translators: Row label on the store URLs screen for the URL part that precedes every product address. */
 				'product'          => __( 'Product base', 'woocommerce-multilingual' ),
+				/* translators: Row label on the store URLs screen for the URL part that precedes every product-category address. */
 				'category'         => __( 'Product category base', 'woocommerce-multilingual' ),
+				/* translators: Row label on the store URLs screen for the URL part that precedes every product-tag address. */
 				'tag'              => __( 'Product tag base', 'woocommerce-multilingual' ),
+				/* translators: Row label on the store URLs screen for the URL part that precedes every product-attribute address. */
 				'attr'             => __( 'Product attribute base', 'woocommerce-multilingual' ),
 				/* translators: %s is a slug */
 				'endpoint'         => __( 'Endpoint: %s', 'woocommerce-multilingual' ),
@@ -93,20 +93,6 @@ class WCML_Store_URLs_UI extends WCML_Templates_Factory {
 	}
 
 	public function get_endpoint_info() {
-		/**
-		 * Register WooCommerce endpoints that should appear in the WPML Store URLs settings page, as a key => endpoint value pair..
-		 *
-		 * The key should match the query var used to define the endpoint.
-		 * The value should match the current endpoint value.
-		 *
-		 * This is required because third parties might not register their endpoints as part of WC()->query->query_vars in the backend.
-		 *
-		 * @since 5.5.3
-		 *
-		 * @param array<string,string> $keysToOptions An array of key => value pairs.
-		 *
-		 * @return array<string,string>
-		 */
 		$query_vars          = apply_filters( 'wcml_register_endpoints_store_urls', WC()->query->query_vars );
 		$is_original_slug    = function( $endpoint, $endpointName ) {
 			return (bool) apply_filters( 'wpml_get_string_language', '', WCML_Endpoints::STRING_CONTEXT, $endpointName );
@@ -138,7 +124,6 @@ class WCML_Store_URLs_UI extends WCML_Templates_Factory {
 					$this->woocommerce_wpml->url_translation->url_string_name( 'attribute_slug', $attribute->attribute_name )
 				);
 
-				// $this->woocommerce_wpml->url_translation
 				$attributes_info[ $attribute->attribute_name ] = [
 					'label'      => $attribute->attribute_label,
 					'orig_value' => $attribute->attribute_name,

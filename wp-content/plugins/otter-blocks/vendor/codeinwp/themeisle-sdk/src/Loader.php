@@ -46,6 +46,7 @@ final class Loader {
 	 * @var array The modules which SDK will be using.
 	 */
 	private static $available_modules = [
+		'crash_reporter',
 		'script_loader',
 		'dashboard_widget',
 		'rollback',
@@ -64,6 +65,8 @@ final class Loader {
 		'announcements',
 		'featured_plugins',
 		'float_widget',
+		'migrator',
+		'ai_connect',
 	];
 	/**
 	 * Holds the labels for the modules.
@@ -72,10 +75,11 @@ final class Loader {
 	 */
 	public static $labels = [
 		'announcements'    => [
-			'notice_link_label' => 'See the Offer',
-			'max_savings'       => 'Our biggest sale of the year: <strong>%s OFF everything!</strong>  Don\'t miss this limited-time offer.',
-			'black_friday'      => 'Black Friday Sale',
-			'time_left'         => '%s left',
+			'notice_link_label'   => 'See the deals',
+			'max_savings'         => 'Best WordPress Black Friday deals of %s — themes, plugins, hosting. Curated by the Themeisle team.',
+			'black_friday'        => 'Black Friday Sale',
+			'time_left'           => '%s left',
+			'plugin_meta_message' => 'Black Friday Sale - 60% OFF',
 		],
 		'compatibilities'  => [
 			'notice'        => '%s requires a newer version of %s. Please %supdate%s %s %s to the latest version.',
@@ -108,10 +112,14 @@ final class Loader {
 			'valid'               => 'Valid',
 			'invalid'             => 'Invalid',
 			'notice'              => 'Enter your license from %s purchase history in order to get %s updates',
-			'expired'             => 'Your %s\'s License Key has expired. In order to continue receiving support and software updates you must  %srenew%s your license key.',
+			'expired'             => '%s license expired',
+			'expired_date'        => 'Expired on %s',
+			'expired_notice'      => 'Your current setup continues working, but premium features are disabled and you\'re no longer receive updates - including critical patches - or support.',
 
 			'inactive'            => 'In order to benefit from updates and support for %s, please add your license code from your  %spurchase history%s and validate it %shere%s.',
 			'no_activations'      => 'No more activations left for %s. You need to upgrade your plan in order to use %s on more websites. If you need assistance, please get in touch with %s staff.',
+			'renew_license'       => 'Renew License',
+			'learn_more'          => 'Learn More',
 		],
 		'promotions'       => [
 			'recommended'     => 'Recommended by %s',
@@ -178,6 +186,12 @@ final class Loader {
 				'dismisscta' => 'Dismiss this notice.',
 				'message'    => 'Transform your site into a learning hub with Masteriyo LMS. Build engaging courses with intuitive tools, track student progress effortlessly, and grow your education business with powerful marketing features and seamless payment integration.',
 			],
+			'easy_mcp'        => [
+				'gotodash'   => 'Go to Easy MCP Dashboard',
+				'install'    => 'Install Easy MCP AI',
+				'dismisscta' => 'Dismiss this notice.',
+				'message'    => 'Connect Claude, ChatGPT, and other AI assistants to this site with Easy MCP AI — a free MCP server that lets your AI manage content, media, and SEO data, with per-scope permissions and a full audit trail.',
+			],
 		],
 		'welcome'          => [
 			'ctan'    => 'No, thanks.',
@@ -192,11 +206,12 @@ final class Loader {
 			'button_submit'  => 'Submit &amp; Deactivate',
 			'button_cancel'  => 'Skip &amp; Deactivate',
 			'disclosure'     => [
-				'title'   => 'Below is a detailed view of all data that Themeisle will receive if you fill in this survey. No email address or IP addresses are transmitted after you submit the survey.',
-				'version' => '%s %s version %s %s %s %s',
-				'website' => '%sCurrent website:%s %s %s %s',
-				'usage'   => '%sUsage time:%s %s %s%s',
-				'reason'  => '%s Uninstall reason %s %s Selected reason from the above survey %s ',
+				'title'       => 'Below is a detailed view of all data that Themeisle will receive if you fill in this survey. No email address or IP addresses are transmitted after you submit the survey.',
+				'version'     => '%s %s version %s %s %s %s',
+				'website'     => '%sCurrent website:%s %s %s %s',
+				'usage'       => '%sUsage time:%s %s %s%s',
+				'reason'      => '%s Uninstall reason %s %s Selected reason from the above survey %s ',
+				'diagnostics' => '%sCrash diagnostics:%s Anonymized technical details of errors recorded for this product, if any.',
 			],
 
 			'options'        => [
@@ -249,9 +264,9 @@ final class Loader {
 			'cta' => 'Rollback to v%s',
 		],
 		'logger'           => [
-			'notice' => 'Do you enjoy <b>{product}</b>? Become a contributor by opting in to our anonymous data tracking. We guarantee no sensitive data is collected.',
-			'cta_y'  => 'Sure, I would love to help.',
-			'cta_n'  => 'No, thanks.',
+			'notice' => 'Help improve <b>{product}</b> by sharing anonymous usage data about your setup. No personal data collected.',
+			'cta_y'  => 'Count me in',
+			'cta_n'  => 'No thanks',
 		],
 		'about_us'         => [
 			'title'            => 'About Us',
@@ -262,6 +277,42 @@ final class Loader {
 			'newsHeading'      => 'Stay connected for news & updates!',
 			'emailPlaceholder' => 'Your email address',
 			'signMeUp'         => 'Sign me up',
+			'services'         => [
+				'ariaLabel'       => 'Themeisle services',
+				'trustpilotLabel' => 'Rated excellent on Trustpilot',
+				'trustpilotRated' => 'Rated',
+				'trustpilotOn'    => 'on',
+				'trustpilotBrand' => 'Trustpilot',
+				'heading'         => 'Expert WordPress services from the Themeisle team',
+				'description'     => 'Done for you by the same people who build your plugins and themes.',
+				'cta'             => 'Explore all services',
+				'items'           => [
+					'websiteDesign' => [
+						'title'    => 'Website Design',
+						'subtitle' => 'Built for your business',
+					],
+					'support'       => [
+						'title'    => 'Support',
+						'subtitle' => 'On-demand expert help',
+					],
+					'speed'         => [
+						'title'    => 'Speed Optimization',
+						'subtitle' => 'Core Web Vitals boost',
+					],
+					'seo'           => [
+						'title'    => 'SEO Foundation',
+						'subtitle' => 'Rank & get found',
+					],
+					'maintenance'   => [
+						'title'    => 'Maintenance',
+						'subtitle' => 'Updates, backups, security',
+					],
+					'hackedSite'    => [
+						'title'    => 'Hacked Site Repair',
+						'subtitle' => 'Malware removed fast',
+					],
+				],
+			],
 			'installNow'       => 'Install Now',
 			'activate'         => 'Activate',
 			'learnMore'        => 'Learn More',
@@ -309,6 +360,44 @@ final class Loader {
 				],
 			],
 		],
+		'ai_connect'       => [
+			'row_link'         => 'Connect with your AI agent',
+			// translators: %s is the product name.
+			'notice_title'     => 'Manage %s with your AI agent.',
+			// translators: %s is a list of things the agent can do, e.g. "optimize new uploads, purge cached images or offload originals".
+			'notice_text'      => 'Ask Claude, ChatGPT or Cursor to %s.',
+			// translators: 1: comma-separated use cases, 2: the last use case.
+			'cases_join'       => '%1$s or %2$s',
+			'notice_button'    => 'Connect your AI agent',
+			'eyebrow'          => 'Works with Claude, ChatGPT, Cursor and any MCP agent',
+			// translators: %s is the product name.
+			'title'            => 'Use %s from your AI agent',
+			// translators: %s is the product name.
+			'lead'             => 'Activate your site’s MCP URL, connect the agent you already use, and %s becomes something you can simply ask for.',
+			'enable'           => 'Install and activate Easy MCP',
+			'enable_installed' => 'Activate Easy MCP',
+			'enabling'         => 'Installing…',
+			'activating'       => 'Activating…',
+			'enabled'          => 'Easy MCP is active',
+			// translators: %s is the product name.
+			'enable_note'      => 'Easy MCP is free, by the %s team. It enables your site’s MCP URL.',
+			'url_label'        => 'Your site’s MCP URL',
+			'copy'             => 'Copy',
+			'copied'           => 'Copied',
+			'close'            => 'Close',
+			'connect_heading'  => 'Connect your agent',
+			'connect_claude'   => 'Connect to Claude',
+			'connect_chatgpt'  => 'Connect to ChatGPT',
+			'connect_cursor'   => 'Add to Cursor',
+			'hint_off'         => 'Your agents can connect once Easy MCP is active.',
+			'hint_on'          => 'Each button opens your agent with this site pre-filled. ChatGPT asks you to paste the URL above.',
+			'more_agents'      => 'Using another agent?',
+			'more_agents_link' => 'See how to connect it.',
+			'prompts_off'      => 'Once Easy MCP is active, you can ask your AI agent things like',
+			'prompts_on'       => 'Try asking',
+			'error_permission' => 'You are not allowed to do this.',
+			'error_install'    => 'Easy MCP could not be activated. Please try again.',
+		],
 		'float_widget'     => [
 			'button' => 'Toggle Help Widget for %s',
 			'panel'  => [
@@ -331,10 +420,7 @@ final class Loader {
 	 * Initialize the sdk logic.
 	 */
 	public static function init() {
-		/**
-		 * This filter can be used to localize the labels inside each product.
-		 */
-		self::$labels = apply_filters( 'themeisle_sdk_labels', self::$labels );
+		self::localize_labels();
 		if ( ! isset( self::$instance ) && ! ( self::$instance instanceof Loader ) ) {
 			self::$instance = new Loader();
 			$modules        = array_merge( self::$available_modules, apply_filters( 'themeisle_sdk_modules', [] ) );
@@ -344,7 +430,91 @@ final class Loader {
 				}
 			}
 			self::$available_modules = $modules;
+
+			add_action( 'themeisle_sdk_first_activation', array( __CLASS__, 'activate' ) );
+		
 		}
+	}
+	
+	/**
+	 * Localize the labels.
+	 */
+	public static function localize_labels() {
+		$originals        = self::$labels;
+		$all_translations = [];
+
+		global $wp_filter;
+		if ( isset( $wp_filter['themeisle_sdk_labels'] ) ) {
+			foreach ( $wp_filter['themeisle_sdk_labels']->callbacks as $priority => $hooks ) {
+				foreach ( $hooks as $hook ) {
+					// Each callback gets fresh originals, not previous callback's output
+					$result             = call_user_func( $hook['function'], $originals );
+					$all_translations[] = $result;
+				}
+			}
+			
+			// Remove the filter so it doesn't run again via apply_filters
+			remove_all_filters( 'themeisle_sdk_labels' );
+		}
+
+		// Merge all results, first real translation wins
+		self::$labels = self::merge_all_translations( $originals, $all_translations );
+	}
+	/**
+	 * Merge all translations.
+	 *
+	 * @param array $originals The original labels.
+	 * @param array $all_translations The all translations.
+	 *
+	 * @return array The merged labels.
+	 */
+	private static function merge_all_translations( $originals, $all_translations ) {
+		$result = $originals;
+		
+		foreach ( $all_translations as $translations ) {
+			$result = self::merge_if_translated( $result, $translations, $originals );
+		}
+		
+		return $result;
+	}
+	/**
+	 * Merge if translated.
+	 *
+	 * @param array $current The current labels.
+	 * @param array $new The new labels.
+	 * @param array $originals The original labels.
+	 * @return array The merged labels.
+	 */
+	private static function merge_if_translated( $current, $new, $originals ) {
+		foreach ( $new as $key => $value ) {
+			if ( ! isset( $originals[ $key ] ) ) {
+				// New key, accept it
+				if ( ! isset( $current[ $key ] ) ) {
+					$current[ $key ] = $value;
+				}
+				continue;
+			}
+			
+			if ( is_array( $value ) && is_array( $originals[ $key ] ) ) {
+				$current[ $key ] = self::merge_if_translated( 
+					$current[ $key ], 
+					$value, 
+					$originals[ $key ] 
+				);
+			} else {
+				// Only accept if:
+				// 1. New value is actually translated (differs from original)
+				// 2. Current value is NOT already translated
+				$is_new_translated       = ( $value !== $originals[ $key ] );
+				$is_current_untranslated = ( $current[ $key ] === $originals[ $key ] );
+				
+				if ( $is_new_translated && $is_current_untranslated ) {
+					$current[ $key ] = $value;
+				}
+			}
+		}
+		
+		return $current;
 	}
 
 	/**
@@ -390,6 +560,28 @@ final class Loader {
 		return self::$instance;
 	}
 
+	/**
+	 * Activate the product routine.
+	 *
+	 * @param string $file The base file of the product.
+	 *
+	 * @return void
+	 */
+	public static function activate( $file ) {
+
+		$dirname = trailingslashit( dirname( ( $file ) ) );
+		if ( ! file_exists( $dirname . '_reference.php' ) ) {
+			return;
+		}
+		$reference_data = require_once $dirname . '_reference.php';
+		if ( ! is_array( $reference_data ) || 
+		! isset( $reference_data['key'] ) || 
+		! isset( $reference_data['value'] ) ||
+		! preg_match( '/^[a-zA-Z0-9_]+_reference_key$/', $reference_data['key'] ) ) {
+			return;
+		} 
+		add_option( $reference_data['key'], sanitize_key( $reference_data['value'] ) );
+	}
 	/**
 	 * Get all registered modules by the SDK.
 	 *

@@ -1,10 +1,8 @@
 <?php
 
-namespace Stripe\Exception\OAuth;
+namespace PaymentPlugins\Vendor\Stripe\Exception\OAuth;
 
 /**
  * InvalidScopeException is thrown when an invalid scope parameter is provided.
  */
-class InvalidScopeException extends OAuthErrorException
-{
-}
+class InvalidScopeException extends OAuthErrorException {}

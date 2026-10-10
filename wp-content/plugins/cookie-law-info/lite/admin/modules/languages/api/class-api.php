@@ -4,7 +4,7 @@
  *
  * @link       https://www.cookieyes.com/
  * @since      3.0.0
- * @package    CookieYes\Lite\Admin\Modules\Banners\Includes
+ * @package    CookieYes\Lite\Admin\Modules\Languages\Api
  */
 
 namespace CookieYes\Lite\Admin\Modules\Languages\Api;
@@ -20,7 +20,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 }
 
 /**
- * Cookies API
+ * Languages API
  *
  * @class       Api
  * @version     3.0.0
@@ -49,7 +49,7 @@ class Api extends Rest_Controller {
 		add_action( 'rest_api_init', array( $this, 'register_routes' ), 10 );
 	}
 	/**
-	 * Register the routes for cookies.
+	 * Register the routes for languages.
 	 *
 	 * @return void
 	 */
@@ -145,14 +145,14 @@ class Api extends Rest_Controller {
 	}
 
 	/**
-	 * Get the Consent logs's schema, conforming to JSON Schema.
+	 * Get the schema, conforming to JSON Schema.
 	 *
 	 * @return array
 	 */
 	public function get_item_schema() {
 		$schema = array(
 			'$schema'    => 'http://json-schema.org/draft-04/schema#',
-			'title'      => 'consentlogs',
+			'title'      => 'languages',
 			'type'       => 'object',
 			'properties' => array(
 				'id'          => array(

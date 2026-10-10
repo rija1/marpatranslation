@@ -225,6 +225,63 @@
 
 			cli_form_toggler.set();
 
+			// =====================
+			// Banner Upgrade Flow – Modal 1 & 2
+			// =====================
+			const $cliOverlay  = $( '#cli-modal-overlay' );
+			const $cliModal1   = $( '#cli-modal-1' );
+			const $cliModal2   = $( '#cli-modal-2' );
+
+			function cliPositionModals() {
+				const $content = $( '#wpcontent' );
+				if ( ! $content.length ) { return; }
+				const left = $content.offset().left + $content.outerWidth() / 2;
+				$( '.wt-cli-upgrade-modal' ).css( 'left', left + 'px' );
+			}
+
+			function cliOpenModal( $modal ) {
+				$cliOverlay.addClass( 'is-open' );
+				$modal.addClass( 'is-open' );
+				$( 'body' ).css( 'overflow', 'hidden' );
+				cliPositionModals();
+			}
+
+			$( window ).on( 'resize.cliModal', function () {
+				if ( $cliModal1.hasClass( 'is-open' ) || $cliModal2.hasClass( 'is-open' ) ) {
+					cliPositionModals();
+				}
+			} );
+			function cliCloseAll() {
+				$cliOverlay.removeClass( 'is-open' );
+				$cliModal1.removeClass( 'is-open' );
+				$cliModal2.removeClass( 'is-open' );
+				$( 'body' ).css( 'overflow', '' );
+			}
+
+			$( document ).on( 'click', '[data-cli-open-modal="cli-modal-1"]', function ( e ) {
+				e.preventDefault();
+				cliOpenModal( $cliModal1 );
+			} );
+			$cliOverlay.on( 'click', cliCloseAll );
+			$( document ).on( 'click', '.wt-cli-modal-close-btn', cliCloseAll );
+			$( '#cli-btn-review-changes' ).on( 'click', function () {
+				$cliModal1.removeClass( 'is-open' );
+				cliOpenModal( $cliModal2 );
+			} );
+			$( '#cli-btn-view-features' ).on( 'click', function () {
+				$cliModal2.removeClass( 'is-open' );
+				cliOpenModal( $cliModal1 );
+			} );
+
+			// Accordion in Modal 2
+			$( document ).on( 'click', '.wt-cli-accordion-header', function () {
+				const $item = $( this ).closest( '.wt-cli-accordion-item' );
+				const isOpen = $item.hasClass( 'is-open' );
+				$item.toggleClass( 'is-open' );
+				$( this ).attr( 'aria-expanded', ! isOpen );
+			} );
+			// =====================
+
 		}
 	);
 	$( document ).ready(
@@ -356,7 +413,7 @@ var wtCliAdminFunctions = {
 		if ( heading !== '') {
 			headingHtml = '<div class="wt-cli-modal-header"><h4>' + heading + '</h4></div>';
 		}
-		html  = '<div class="wt-cli-modal on" id="">';
+		let html  = '<div class="wt-cli-modal on" id="">';
 		html += '<span class="wt-cli-modal-js-close">×</span>';
 		html += headingHtml;
 		html += '<div class="wt-cli-modal-body">';
@@ -367,7 +424,7 @@ var wtCliAdminFunctions = {
 		this.addOverlay();
 	},
 	addOverlay: function(){
-		html = '<div class="wt-cli-modal-js-overlay"></div>';
+		const html = '<div class="wt-cli-modal-js-overlay"></div>';
 		jQuery( 'body' ).append( html );
 	},
 	closeOverlay: function(){

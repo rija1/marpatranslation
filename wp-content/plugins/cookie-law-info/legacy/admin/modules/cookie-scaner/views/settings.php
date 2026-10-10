@@ -192,6 +192,7 @@ table.wt-cli-table {
 }
 </style>
 <div class="wrap">
+	<?php include_once CLI_PLUGIN_PATH . 'admin/partials/wt-cli-update-banner.php'; ?>
 	<h2><?php echo esc_html__( 'Cookie scanner', 'cookie-law-info' ); ?></h2> 
 	<?php do_action( 'wt_cli_before_cookie_scanner_header' ); ?>
 	<div class="wt-cli-cookie-scan-bar">

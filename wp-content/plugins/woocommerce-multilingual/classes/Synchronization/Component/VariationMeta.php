@@ -2,6 +2,7 @@
 
 namespace WCML\Synchronization\Component;
 
+use WCML\Utilities\CustomFieldPreferences;
 use WCML\Utilities\DB;
 use WCML\Utilities\SyncHash;
 use WPML\FP\Obj;
@@ -9,12 +10,14 @@ use WPML_Post_Custom_Field_Setting_Keys;
 
 class VariationMeta extends SynchronizerForMeta {
 
-	/**
-	 * @param \WP_Post          $variation
-	 * @param int[]             $translationsIds
-	 * @param array<int,string> $translationsLanguages
-	 */
+	use VariationSource;
+
 	public function run( $variation, $translationsIds, $translationsLanguages ) {
+		if ( ! $this->isVariationSourceReadable( $variation->ID, $variation->post_parent ) ) {
+			$this->reportUnreadableVariationSources( (int) $variation->post_parent, [ $variation->ID ] );
+			return;
+		}
+
 		$delayedFields = [];
 		foreach ( $translationsLanguages as $translationId => $language ) {
 			$delayedFields = $this->synchronizeVariationMeta( $variation->ID, $translationId, $language, $delayedFields );
@@ -23,14 +26,6 @@ class VariationMeta extends SynchronizerForMeta {
 		$this->deleteOrphanedFields( $variation->ID, $translationsIds );
 	}
 
-	/**
-	 * @param int    $variationId
-	 * @param int    $translationId
-	 * @param string $language
-	 * @param array  $delayedFields
-	 *
-	 * @return array
-	 */
 	protected function synchronizeVariationMeta( $variationId, $translationId, $language, $delayedFields ) {
 		$variationMeta = get_post_custom( $variationId );
 		unset( $variationMeta[ SyncHash::META_KEY ] );
@@ -41,8 +36,7 @@ class VariationMeta extends SynchronizerForMeta {
 			return [];
 		}
 
-		global $iclTranslationManagement;
-		$settings     = $iclTranslationManagement->settings['custom_fields_translation'];
+		$modes        = CustomFieldPreferences::modes( array_keys( $variationMeta ) );
 		$excludedKeys = WPML_Post_Custom_Field_Setting_Keys::get_excluded_keys();
 
 		foreach ( $variationMeta as $metaKey => $meta ) {
@@ -66,12 +60,12 @@ class VariationMeta extends SynchronizerForMeta {
 				$delayedFields[] = [
 					'post_id'    => $translationId,
 					'meta_key'   => $metaKey,
-					'meta_value' => maybe_unserialize( $metaValue ),
+					'meta_value' => $metaValue,
 				];
 				continue;
 			}
 
-			if ( ! isset( $settings[ $metaKey ] ) || (int) $settings[ $metaKey ] === WPML_IGNORE_CUSTOM_FIELD ) {
+			if ( WPML_IGNORE_CUSTOM_FIELD === $modes[ $metaKey ] ) {
 				continue;
 			}
 
@@ -87,7 +81,12 @@ class VariationMeta extends SynchronizerForMeta {
 				continue;
 			}
 
-			if ( (int) Obj::prop( $metaKey, $settings ) === WPML_COPY_CUSTOM_FIELD ) {
+			$preference = $modes[ $metaKey ];
+
+			if (
+				WPML_COPY_CUSTOM_FIELD === $preference
+				|| ( WPML_TRANSLATE_CUSTOM_FIELD === $preference && is_numeric( $metaValue ) )
+			) {
 				$delayedFields[] = [
 					'post_id'    => $translationId,
 					'meta_key'   => $metaKey,
@@ -102,10 +101,6 @@ class VariationMeta extends SynchronizerForMeta {
 		return $delayedFields;
 	}
 
-	/**
-	 * @param array  $delayedFields
-	 * @param int[]  $translationsIds
-	 */
 	private function processDelayedFields( $delayedFields, $translationsIds ) {
 		if ( empty( $delayedFields ) ) {
 			return;
@@ -145,56 +140,42 @@ class VariationMeta extends SynchronizerForMeta {
 			}
 		}
 
-		// Perform delete/insert/update actions.
 		foreach ( $delayedFieldsActions as $delayedFieldMetaKey => $delayedFieldMetaData ) {
-			// Delete all entries that have duplicated values:
-			// all the related meta fields should have unique values.
 			$dataToDelete = Obj::propOr( [], 'delete', $delayedFieldMetaData );
 			if ( ! empty( $dataToDelete ) ) {
 				$metaIdsToDelete = [];
 				foreach ( $dataToDelete as $itemMetaIdsToDelete ) {
 					$metaIdsToDelete = array_merge( $metaIdsToDelete, $itemMetaIdsToDelete );
 				}
-				$this->deleteMetaByIds( $metaIdsToDelete );
-				// phpcs:disable WordPress.WP.PreparedSQL.NotPrepared
+				$this->retryOnDeadlock( function () use ( $metaIdsToDelete ) {
+					$this->deleteMetaByIds( $metaIdsToDelete );
+				} );
 				$this->wpdb->query(
 					"
 					DELETE FROM {$this->wpdb->postmeta}
 					WHERE meta_id IN (" . DB::prepareIn( $metaIdsToDelete, '%d' ) . ")
 					"
 				);
-				// phpcs:enable
 			}
 
-			// Insert all post_id/meta_key/meta_value groups at once, per meta_key.
-			// For each meta key, data is made of pairs [ post ID => metaValue ] for easier insertion.
-			// This ensures that the number of values inserted on each batch is, at most, the number of variations.
 			$dataToInsert = Obj::propOr( [], 'insert', $delayedFieldMetaData );
 			if ( ! empty( $dataToInsert )) {
 				$this->insertMeta( $delayedFieldMetaKey, $dataToInsert );
 			}
 
-			// Update all variations at once.
-			// For each meta key, data is made of pairs [ meta value => list of affected post IDs ] so it is easier to compose IN statements.
 			$dataToUpdate = Obj::propOr( [], 'update', $delayedFieldMetaData );
 			if ( ! empty( $dataToUpdate ) ) {
 				foreach ( $dataToUpdate as $itemsPerValue ) {
 					$idsToUpdate     = array_values( array_unique( array_map( 'intval', array_keys( $itemsPerValue ) ) ) );
 					$updateMetaValue = reset( $itemsPerValue );
-					$this->unifyMeta( $delayedFieldMetaKey, $updateMetaValue, $idsToUpdate );
+					$this->retryOnDeadlock( function () use ( $delayedFieldMetaKey, $updateMetaValue, $idsToUpdate ) {
+						$this->unifyMeta( $delayedFieldMetaKey, $updateMetaValue, $idsToUpdate );
+					} );
 				}
 			}
 		}
 	}
 
-	/**
-	 * @param array  $variationMeta
-	 * @param int    $variationId
-	 * @param int    $translationId
-	 * @param string $language
-	 *
-	 * @return string
-	 */
 	private function getCurrentHash( $variationMeta, $variationId, $translationId, $language ) {
 		$translationMeta = $variationMeta;
 		foreach ( $variationMeta as $metaKey => $meta ) {
@@ -210,7 +191,6 @@ class VariationMeta extends SynchronizerForMeta {
 			$metaKey                     = $trn_post_meta['meta_key'];
 			$translationMeta[ $metaKey ] = [ $metaValue ];
 		}
-		// phpcs:ignore WordPress.PHP.DiscouragedPHPFunctions.serialize_serialize
 		return md5( serialize( $translationMeta ) );
 	}
 

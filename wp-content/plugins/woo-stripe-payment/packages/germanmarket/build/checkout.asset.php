@@ -1,1 +1,1 @@
-<?php return array('dependencies' => array('wp-hooks'), 'version' => '9c411160492b04e1bae9');
+<?php return array('dependencies' => array('wc-stripe-actions'), 'version' => '214320b5ee1242a3fe99');

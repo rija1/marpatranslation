@@ -37,6 +37,35 @@ class Html_Processing_Helper {
  }
  return trim( $classes );
  }
+ public static function remove_wrapper_handled_classes( \WP_HTML_Tag_Processor $html ): void {
+ $class_attribute = $html->get_attribute( 'class' );
+ if ( ! is_string( $class_attribute ) ) {
+ return;
+ }
+ $class_names = preg_split( '/\s+/', trim( $class_attribute ) );
+ if ( ! is_array( $class_names ) ) {
+ return;
+ }
+ // Whole class names are compared and removed, so a class that merely contains one of these
+ // names as a substring is left intact instead of being reduced to a fragment.
+ foreach ( $class_names as $class_name ) {
+ if ( '' !== $class_name && self::is_wrapper_handled_class( $class_name ) ) {
+ $html->remove_class( $class_name );
+ }
+ }
+ }
+ private static function is_wrapper_handled_class( string $class_name ): bool {
+ // `has-background` is added for any background. Preset palette backgrounds add
+ // `has-<slug>-background-color` on top of it, which is why matching the bare name is not enough.
+ if ( 'has-background' === $class_name ) {
+ return true;
+ }
+ if ( str_starts_with( $class_name, 'has-' ) && str_ends_with( $class_name, '-background-color' ) ) {
+ return true;
+ }
+ // Border classes, e.g. `has-border-color`, `has-<slug>-border-color`.
+ return false !== strpos( $class_name, '-border-' );
+ }
  public static function sanitize_css_value( string $value ): string {
  // Remove dangerous script injection characters (angle brackets) but preserve quotes for CSS strings.
  $result = preg_replace( '/[<>]/', '', $value );
@@ -312,51 +341,52 @@ class Html_Processing_Helper {
  if ( false === strpos( $caption_html, '<' ) ) {
  return $caption_html;
  }
- // Remove dangerous content: script, style, and other executable elements.
- $result = preg_replace( '/<(script|style|iframe|object|embed|form|input|button)\b[^>]*>.*?<\/\1>/is', '', $caption_html );
- if ( null === $result ) {
- $caption_html = '';
- } else {
+ foreach ( array( 'script', 'style', 'iframe', 'object', 'embed', 'form', 'input', 'button' ) as $tag ) {
+ $result = preg_replace( '/<' . $tag . '\b[^>]*>.*?<\/' . $tag . '>/is', '', $caption_html );
+ // A caption long enough to exhaust PCRE's limits keeps whatever the pass
+ // managed to remove. wp_kses() below still drops the element itself, so
+ // only the text that was inside it is left behind.
+ if ( null !== $result ) {
  $caption_html = $result;
  }
- // Use a more conservative approach - only validate attributes, don't modify tags.
- $allowed_tags = array( 'strong', 'em', 'a', 'mark', 'kbd', 's', 'sub', 'sup', 'span', 'br' );
- $html = new \WP_HTML_Tag_Processor( $caption_html );
- // First pass: Process attributes for allowed tags only.
- while ( $html->next_tag() ) {
- $tag_name = $html->get_tag();
- // Skip processing for disallowed tags.
- if ( ! in_array( $tag_name, $allowed_tags, true ) ) {
- continue;
  }
- // Only process attributes for allowed tags.
+ $caption_html = wp_kses( $caption_html, self::get_allowed_caption_html(), array( 'http', 'https', 'mailto', 'tel' ) );
+ $html = new \WP_HTML_Tag_Processor( $caption_html );
+ while ( $html->next_tag() ) {
  $attributes = $html->get_attribute_names_with_prefix( '' );
  if ( is_array( $attributes ) ) {
  foreach ( $attributes as $attr_name ) {
- // Validate and sanitize each attribute individually.
  self::validate_caption_attribute( $html, $attr_name );
  }
  }
  }
- // Second pass: Remove disallowed tags using a simple regex approach.
- $final_html = $html->get_updated_html();
- // Create a regex pattern to match disallowed tags.
- $allowed_tags_pattern = implode( '|', array_map( 'preg_quote', $allowed_tags ) );
- // Remove disallowed opening and closing tags, keeping only their content.
- $result = preg_replace( '/<(?!(?:' . $allowed_tags_pattern . ')\b)[^>]*>(.*?)<\/(?!(?:' . $allowed_tags_pattern . ')\b)[^>]*>/s', '$1', $final_html );
- if ( null === $result ) {
- $final_html = '';
- } else {
- $final_html = $result;
+ return $html->get_updated_html();
  }
- // Remove disallowed self-closing tags.
- $result = preg_replace( '/<(?!(?:' . $allowed_tags_pattern . ')\b)[^>]*\/>/s', '', $final_html );
- if ( null === $result ) {
- $final_html = '';
- } else {
- $final_html = $result;
- }
- return $final_html;
+ private static function get_allowed_caption_html(): array {
+ $common_attributes = array(
+ 'class' => true,
+ 'style' => true,
+ 'data-*' => true,
+ );
+ return array(
+ 'a' => array_merge(
+ $common_attributes,
+ array(
+ 'href' => true,
+ 'target' => true,
+ 'rel' => true,
+ )
+ ),
+ 'br' => $common_attributes,
+ 'em' => $common_attributes,
+ 'kbd' => $common_attributes,
+ 'mark' => $common_attributes,
+ 's' => $common_attributes,
+ 'span' => $common_attributes,
+ 'strong' => $common_attributes,
+ 'sub' => $common_attributes,
+ 'sup' => $common_attributes,
+ );
  }
  public static function sanitize_image_html( string $image_html ): string {
  // If no HTML tags, return as-is.
@@ -420,6 +450,12 @@ class Html_Processing_Helper {
  return '';
  }
  return '<img ' . implode( ' ', $sanitized_attributes ) . '>';
+ }
+ public static function extract_url_from_text( string $text ): string {
+ if ( preg_match( '/(?<![a-zA-Z0-9.-])https?:\/\/[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}[a-zA-Z0-9\/?=&%_.~+#-]*(?![a-zA-Z0-9._~+#-])/', $text, $matches ) ) {
+ return $matches[0];
+ }
+ return '';
  }
  private static function sanitize_image_styles( string $style_value ): string {
  $sanitized_styles = array();

@@ -154,6 +154,7 @@ class Help {
 			'fields/field_options/richtext'           => 'rich text',
 			'fields/field_options/layout'             => 'layout',
 			'fields/field_options/likert_scale'       => 'likert scale',
+			'fields/field_options/ranking'            => 'ranking',
 			'fields/field_options/payment-single'     => 'single item',
 			'fields/field_options/payment-multiple'   => 'multiple items',
 			'fields/field_options/payment-checkbox'   => 'checkbox items',
@@ -162,6 +163,7 @@ class Help {
 			'fields/field_options/paypal-commerce'    => 'paypal checkout',
 			'fields/field_options/stripe-credit-card' => 'stripe credit card',
 			'fields/field_options/authorize_net'      => 'authorize.net credit card',
+			'fields/field_options/mercado_pago'       => 'mercado pago card',
 			'fields/field_options/square'             => 'square credit card',
 			'fields/field_options/signature'          => 'signature',
 			'fields/field_options/net_promoter_score' => 'net promoter score',
@@ -190,6 +192,7 @@ class Help {
 			'settings/webhooks'                       => 'webhooks',
 			'settings/entry_automation'               => 'entry automation',
 			'settings/pdf'                            => 'pdf',
+			'settings/quiz'                           => 'quiz',
 			'providers'                               => '',
 			'providers/aweber'                        => 'aweber',
 			'providers/activecampaign'                => 'activecampaign',
@@ -207,9 +210,11 @@ class Help {
 			'providers/n8n'                           => 'n8n',
 			'providers/zapier'                        => 'zapier',
 			'providers/salesforce'                    => 'salesforce',
+			'providers/sendgrid'                      => 'sendgrid',
 			'providers/sendinblue'                    => 'brevo',
 			'providers/slack'                         => 'slack',
 			'providers/hubspot'                       => 'hubspot',
+			'providers/klaviyo'                       => 'klaviyo',
 			'providers/twilio'                        => 'twilio',
 			'providers/pipedrive'                     => 'pipedrive',
 			'providers/zoho_crm'                      => 'zoho crm',
@@ -219,7 +224,9 @@ class Help {
 			'payments/paypal_standard'                => 'paypal standard',
 			'payments/stripe'                         => 'stripe',
 			'payments/authorize_net'                  => 'authorize.net',
+			'payments/mercado_pago'                   => 'mercado pago',
 			'payments/square'                         => 'square',
+			'payments/paystack'                       => 'paystack',
 			'revisions'                               => 'revisions',
 		];
 	}
@@ -774,6 +781,20 @@ class Help {
 				'/docs/how-to-use-conditional-logic-with-wpforms/',
 				'/docs/how-to-customize-the-style-of-individual-form-fields/',
 			],
+			'ranking'                   => [
+				'/docs/ranking-field/',
+				'/docs/how-to-install-and-use-the-surveys-and-polls-addon/',
+				'/docs/how-to-customize-form-field-options/',
+				'/docs/how-to-use-conditional-logic-with-wpforms/',
+				'/docs/how-to-customize-the-style-of-individual-form-fields/',
+			],
+			'rank'                      => [
+				'/docs/ranking-field/',
+				'/docs/how-to-install-and-use-the-surveys-and-polls-addon/',
+				'/docs/how-to-customize-form-field-options/',
+				'/docs/how-to-use-conditional-logic-with-wpforms/',
+				'/docs/how-to-customize-the-style-of-individual-form-fields/',
+			],
 			'net promoter score'        => [
 				'/docs/how-to-add-a-net-promoter-score-field-to-wpforms/',
 				'/docs/how-to-install-and-use-the-surveys-and-polls-addon/',
@@ -821,6 +842,8 @@ class Help {
 				'/docs/paypal-commerce-addon/',
 				'/docs/install-use-paypal-addon-wpforms/',
 				'/docs/how-to-install-and-use-the-authorize-net-addon-with-wpforms/',
+				'/docs/mercado-pago-addon/',
+				'/docs/paystack-addon/',
 				'/docs/how-to-create-a-donation-form-with-multiple-amounts/',
 				'/docs/how-to-allow-users-to-choose-a-payment-method-on-your-form/',
 			],
@@ -830,6 +853,8 @@ class Help {
 				'/docs/paypal-commerce-addon/',
 				'/docs/install-use-paypal-addon-wpforms/',
 				'/docs/how-to-install-and-use-the-authorize-net-addon-with-wpforms/',
+				'/docs/mercado-pago-addon/',
+				'/docs/paystack-addon/',
 				'/docs/how-to-create-a-donation-form-with-multiple-amounts/',
 				'/docs/how-to-allow-users-to-choose-a-payment-method-on-your-form/',
 			],
@@ -839,6 +864,8 @@ class Help {
 				'/docs/paypal-commerce-addon/',
 				'/docs/install-use-paypal-addon-wpforms/',
 				'/docs/how-to-install-and-use-the-authorize-net-addon-with-wpforms/',
+				'/docs/mercado-pago-addon/',
+				'/docs/paystack-addon/',
 				'/docs/how-to-create-a-donation-form-with-multiple-amounts/',
 				'/docs/how-to-allow-users-to-choose-a-payment-method-on-your-form/',
 			],
@@ -848,6 +875,8 @@ class Help {
 				'/docs/paypal-commerce-addon/',
 				'/docs/install-use-paypal-addon-wpforms/',
 				'/docs/how-to-install-and-use-the-authorize-net-addon-with-wpforms/',
+				'/docs/mercado-pago-addon/',
+				'/docs/paystack-addon/',
 				'/docs/how-to-create-a-donation-form-with-multiple-amounts/',
 				'/docs/how-to-allow-users-to-choose-a-payment-method-on-your-form/',
 				'/docs/how-to-customize-form-field-options/',
@@ -861,6 +890,8 @@ class Help {
 				'/docs/paypal-commerce-addon/',
 				'/docs/install-use-paypal-addon-wpforms/',
 				'/docs/how-to-install-and-use-the-authorize-net-addon-with-wpforms/',
+				'/docs/mercado-pago-addon/',
+				'/docs/paystack-addon/',
 				'/docs/how-to-create-a-donation-form-with-multiple-amounts/',
 				'/docs/how-to-allow-users-to-choose-a-payment-method-on-your-form/',
 				'/docs/how-to-add-image-choices-to-fields/',
@@ -875,6 +906,8 @@ class Help {
 				'/docs/paypal-commerce-addon/',
 				'/docs/install-use-paypal-addon-wpforms/',
 				'/docs/how-to-install-and-use-the-authorize-net-addon-with-wpforms/',
+				'/docs/mercado-pago-addon/',
+				'/docs/paystack-addon/',
 				'/docs/how-to-create-a-donation-form-with-multiple-amounts/',
 				'/docs/how-to-allow-users-to-choose-a-payment-method-on-your-form/',
 				'/docs/how-to-add-image-choices-to-fields/',
@@ -889,6 +922,8 @@ class Help {
 				'/docs/paypal-commerce-addon/',
 				'/docs/install-use-paypal-addon-wpforms/',
 				'/docs/how-to-install-and-use-the-authorize-net-addon-with-wpforms/',
+				'/docs/mercado-pago-addon/',
+				'/docs/paystack-addon/',
 				'/docs/how-to-create-a-donation-form-with-multiple-amounts/',
 				'/docs/how-to-allow-users-to-choose-a-payment-method-on-your-form/',
 				'/docs/how-to-customize-form-field-options/',
@@ -902,6 +937,8 @@ class Help {
 				'/docs/paypal-commerce-addon/',
 				'/docs/install-use-paypal-addon-wpforms/',
 				'/docs/how-to-install-and-use-the-authorize-net-addon-with-wpforms/',
+				'/docs/mercado-pago-addon/',
+				'/docs/paystack-addon/',
 				'/docs/how-to-create-a-donation-form-with-multiple-amounts/',
 				'/docs/how-to-allow-users-to-choose-a-payment-method-on-your-form/',
 				'/docs/how-to-customize-form-field-options/',
@@ -1201,6 +1238,9 @@ class Help {
 			'salesforce'                => [
 				'/docs/how-to-install-and-use-the-salesforce-addon-with-wpforms/',
 			],
+			'sendgrid'                  => [
+				'/docs/sendgrid-addon/',
+			],
 			'sendinblue'                => [
 				'/docs/how-to-install-and-use-the-sendinblue-addon-with-wpforms/',
 			],
@@ -1209,6 +1249,9 @@ class Help {
 			],
 			'hubspot'                   => [
 				'/docs/how-to-install-and-use-the-hubspot-addon-in-wpforms/',
+			],
+			'klaviyo'                   => [
+				'/docs/klaviyo-addon/',
 			],
 			'twilio'                    => [
 				'/docs/twilio-addon/',
@@ -1258,9 +1301,18 @@ class Help {
 			'authorize.net'             => [
 				'/docs/how-to-install-and-use-the-authorize-net-addon-with-wpforms/',
 			],
+			'mercado pago'              => [
+				'/docs/mercado-pago-addon/',
+			],
+			'mercado pago card'         => [
+				'/docs/mercado-pago-addon/',
+			],
 			'square'                    => [
 				'/docs/how-to-install-and-use-the-square-addon-with-wpforms/',
 				'/docs/how-to-test-square-payments-on-your-site/',
+			],
+			'paystack'                  => [
+				'/docs/paystack-addon/',
 			],
 			'revisions'                 => [
 				'/docs/how-to-use-form-revisions-in-wpforms/',
@@ -1283,6 +1335,9 @@ class Help {
 			],
 			'airtable'                  => [
 				'/docs/airtable-addon/',
+			],
+			'quiz'                      => [
+				'/docs/quiz-addon/',
 			],
 		];
 	}

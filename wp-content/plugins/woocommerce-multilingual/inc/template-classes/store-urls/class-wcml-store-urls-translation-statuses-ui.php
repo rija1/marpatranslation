@@ -7,25 +7,11 @@ class WCML_Store_URLs_Translation_Statuses_UI extends WCML_Templates_Factory {
 	private $base;
 	private $active_languages;
 	private $value;
-	/**
-	 * @var woocommerce_wpml
-	 */
 	private $woocommerce_wpml;
-	/**
-	 * @var SitePress
-	 */
 	private $sitepress;
 
 
-	/**
-	 * @param string           $base
-	 * @param array            $active_languages
-	 * @param bool             $value
-	 * @param woocommerce_wpml $woocommerce_wpml
-	 * @param SitePress        $sitepress
-	 */
 	public function __construct( $base, $active_languages, $value, $woocommerce_wpml, $sitepress ) {
-		// @todo Cover by tests, required for wcml-3037.
 		parent::__construct();
 
 		$this->base             = $base;
@@ -38,7 +24,6 @@ class WCML_Store_URLs_Translation_Statuses_UI extends WCML_Templates_Factory {
 	public function init_twig_functions() {
 		$function = new Twig_SimpleFunction( 'wcml_base_edit_dialog', [ $this, 'render_base_edit_dialog' ] );
 
-		/** @var WPML\Core\Twig\Environment */
 		$twig = $this->get_twig();
 		$twig->addFunction( $function );
 	}
@@ -54,9 +39,13 @@ class WCML_Store_URLs_Translation_Statuses_UI extends WCML_Templates_Factory {
 			'source_language'  => $source_language,
 			'value'            => $this->value,
 			'strings'          => [
+				/* translators: Status shown for the language a URL part was written in, on the store URLs screen. */
 				'orig_lang' => __( 'Original language', 'woocommerce-multilingual' ),
+				/* translators: Link that reopens an already translated URL part because the original changed. Verb phrase, imperative. */
 				'update'    => __( 'Update translation', 'woocommerce-multilingual' ),
+				/* translators: Link that translates a URL part for the first time, on the store URLs screen. Verb phrase, imperative. */
 				'add'       => __( 'Add translation', 'woocommerce-multilingual' ),
+				/* translators: Link that changes the existing translation of a URL part. Verb phrase, imperative. */
 				'edit'      => __( 'Edit translation', 'woocommerce-multilingual' ),
 			],
 			'nonces'           => [

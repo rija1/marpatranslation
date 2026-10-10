@@ -1,6 +1,6 @@
 <?php
 
-if (!defined('WPO_VERSION')) die('No direct access allowed');
+if (!defined('ABSPATH')) die('No direct access allowed');
 
 class WP_Optimization_autodraft extends WP_Optimization {
 
@@ -174,14 +174,5 @@ class WP_Optimization_autodraft extends WP_Optimization {
 			return __('Clean all auto-draft posts', 'wp-optimize');
 		}
 
-	}
-
-	/**
-	 * Return description
-	 *
-	 * @return string
-	 */
-	public function get_auto_option_description() {
-		return __('Remove auto-draft posts', 'wp-optimize');
 	}
 }

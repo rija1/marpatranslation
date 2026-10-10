@@ -1,6 +1,6 @@
 <?php
 
-namespace Stripe\Service;
+namespace PaymentPlugins\Vendor\Stripe\Service;
 
 /**
  * Service factory class for API resources in the root namespace.
@@ -14,6 +14,7 @@ namespace Stripe\Service;
  * @property ApplicationFeeService $applicationFees
  * @property Apps\AppsServiceFactory $apps
  * @property BalanceService $balance
+ * @property BalanceSettingsService $balanceSettings
  * @property BalanceTransactionService $balanceTransactions
  * @property Billing\BillingServiceFactory $billing
  * @property BillingPortal\BillingPortalServiceFactory $billingPortal
@@ -37,14 +38,18 @@ namespace Stripe\Service;
  * @property Forwarding\ForwardingServiceFactory $forwarding
  * @property Identity\IdentityServiceFactory $identity
  * @property InvoiceItemService $invoiceItems
+ * @property InvoicePaymentService $invoicePayments
+ * @property InvoiceRenderingTemplateService $invoiceRenderingTemplates
  * @property InvoiceService $invoices
  * @property Issuing\IssuingServiceFactory $issuing
  * @property MandateService $mandates
+ * @property PaymentAttemptRecordService $paymentAttemptRecords
  * @property PaymentIntentService $paymentIntents
  * @property PaymentLinkService $paymentLinks
  * @property PaymentMethodConfigurationService $paymentMethodConfigurations
  * @property PaymentMethodDomainService $paymentMethodDomains
  * @property PaymentMethodService $paymentMethods
+ * @property PaymentRecordService $paymentRecords
  * @property PayoutService $payouts
  * @property PlanService $plans
  * @property PriceService $prices
@@ -73,10 +78,11 @@ namespace Stripe\Service;
  * @property TopupService $topups
  * @property TransferService $transfers
  * @property Treasury\TreasuryServiceFactory $treasury
+ * @property V2\V2ServiceFactory $v2
  * @property WebhookEndpointService $webhookEndpoints
  * // Doc: The end of the section generated from our OpenAPI spec
  */
-class CoreServiceFactory extends \Stripe\Service\AbstractServiceFactory
+class CoreServiceFactory extends AbstractServiceFactory
 {
     /**
      * @var array<string, string>
@@ -89,14 +95,15 @@ class CoreServiceFactory extends \Stripe\Service\AbstractServiceFactory
         'accountSessions' => AccountSessionService::class,
         'applePayDomains' => ApplePayDomainService::class,
         'applicationFees' => ApplicationFeeService::class,
-        'apps' => Apps\AppsServiceFactory::class,
+        'apps' => \PaymentPlugins\Vendor\Stripe\Service\Apps\AppsServiceFactory::class,
         'balance' => BalanceService::class,
+        'balanceSettings' => BalanceSettingsService::class,
         'balanceTransactions' => BalanceTransactionService::class,
-        'billing' => Billing\BillingServiceFactory::class,
-        'billingPortal' => BillingPortal\BillingPortalServiceFactory::class,
+        'billing' => \PaymentPlugins\Vendor\Stripe\Service\Billing\BillingServiceFactory::class,
+        'billingPortal' => \PaymentPlugins\Vendor\Stripe\Service\BillingPortal\BillingPortalServiceFactory::class,
         'charges' => ChargeService::class,
-        'checkout' => Checkout\CheckoutServiceFactory::class,
-        'climate' => Climate\ClimateServiceFactory::class,
+        'checkout' => \PaymentPlugins\Vendor\Stripe\Service\Checkout\CheckoutServiceFactory::class,
+        'climate' => \PaymentPlugins\Vendor\Stripe\Service\Climate\ClimateServiceFactory::class,
         'confirmationTokens' => ConfirmationTokenService::class,
         'countrySpecs' => CountrySpecService::class,
         'coupons' => CouponService::class,
@@ -104,56 +111,59 @@ class CoreServiceFactory extends \Stripe\Service\AbstractServiceFactory
         'customers' => CustomerService::class,
         'customerSessions' => CustomerSessionService::class,
         'disputes' => DisputeService::class,
-        'entitlements' => Entitlements\EntitlementsServiceFactory::class,
+        'entitlements' => \PaymentPlugins\Vendor\Stripe\Service\Entitlements\EntitlementsServiceFactory::class,
         'ephemeralKeys' => EphemeralKeyService::class,
         'events' => EventService::class,
         'exchangeRates' => ExchangeRateService::class,
         'fileLinks' => FileLinkService::class,
         'files' => FileService::class,
-        'financialConnections' => FinancialConnections\FinancialConnectionsServiceFactory::class,
-        'forwarding' => Forwarding\ForwardingServiceFactory::class,
-        'identity' => Identity\IdentityServiceFactory::class,
+        'financialConnections' => \PaymentPlugins\Vendor\Stripe\Service\FinancialConnections\FinancialConnectionsServiceFactory::class,
+        'forwarding' => \PaymentPlugins\Vendor\Stripe\Service\Forwarding\ForwardingServiceFactory::class,
+        'identity' => \PaymentPlugins\Vendor\Stripe\Service\Identity\IdentityServiceFactory::class,
         'invoiceItems' => InvoiceItemService::class,
+        'invoicePayments' => InvoicePaymentService::class,
+        'invoiceRenderingTemplates' => InvoiceRenderingTemplateService::class,
         'invoices' => InvoiceService::class,
-        'issuing' => Issuing\IssuingServiceFactory::class,
+        'issuing' => \PaymentPlugins\Vendor\Stripe\Service\Issuing\IssuingServiceFactory::class,
         'mandates' => MandateService::class,
+        'paymentAttemptRecords' => PaymentAttemptRecordService::class,
         'paymentIntents' => PaymentIntentService::class,
         'paymentLinks' => PaymentLinkService::class,
         'paymentMethodConfigurations' => PaymentMethodConfigurationService::class,
         'paymentMethodDomains' => PaymentMethodDomainService::class,
         'paymentMethods' => PaymentMethodService::class,
+        'paymentRecords' => PaymentRecordService::class,
         'payouts' => PayoutService::class,
         'plans' => PlanService::class,
         'prices' => PriceService::class,
         'products' => ProductService::class,
         'promotionCodes' => PromotionCodeService::class,
         'quotes' => QuoteService::class,
-        'radar' => Radar\RadarServiceFactory::class,
+        'radar' => \PaymentPlugins\Vendor\Stripe\Service\Radar\RadarServiceFactory::class,
         'refunds' => RefundService::class,
-        'reporting' => Reporting\ReportingServiceFactory::class,
+        'reporting' => \PaymentPlugins\Vendor\Stripe\Service\Reporting\ReportingServiceFactory::class,
         'reviews' => ReviewService::class,
         'setupAttempts' => SetupAttemptService::class,
         'setupIntents' => SetupIntentService::class,
         'shippingRates' => ShippingRateService::class,
-        'sigma' => Sigma\SigmaServiceFactory::class,
+        'sigma' => \PaymentPlugins\Vendor\Stripe\Service\Sigma\SigmaServiceFactory::class,
         'sources' => SourceService::class,
         'subscriptionItems' => SubscriptionItemService::class,
         'subscriptions' => SubscriptionService::class,
         'subscriptionSchedules' => SubscriptionScheduleService::class,
-        'tax' => Tax\TaxServiceFactory::class,
+        'tax' => \PaymentPlugins\Vendor\Stripe\Service\Tax\TaxServiceFactory::class,
         'taxCodes' => TaxCodeService::class,
         'taxIds' => TaxIdService::class,
         'taxRates' => TaxRateService::class,
-        'terminal' => Terminal\TerminalServiceFactory::class,
-        'testHelpers' => TestHelpers\TestHelpersServiceFactory::class,
+        'terminal' => \PaymentPlugins\Vendor\Stripe\Service\Terminal\TerminalServiceFactory::class,
+        'testHelpers' => \PaymentPlugins\Vendor\Stripe\Service\TestHelpers\TestHelpersServiceFactory::class,
         'tokens' => TokenService::class,
         'topups' => TopupService::class,
         'transfers' => TransferService::class,
-        'treasury' => Treasury\TreasuryServiceFactory::class,
+        'treasury' => \PaymentPlugins\Vendor\Stripe\Service\Treasury\TreasuryServiceFactory::class,
+        'v2' => \PaymentPlugins\Vendor\Stripe\Service\V2\V2ServiceFactory::class,
         'webhookEndpoints' => WebhookEndpointService::class,
-        // Class Map: The end of the section generated from our OpenAPI spec
     ];
-
     protected function getServiceClass($name)
     {
         return \array_key_exists($name, self::$classMap) ? self::$classMap[$name] : null;

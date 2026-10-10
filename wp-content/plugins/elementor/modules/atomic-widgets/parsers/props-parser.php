@@ -3,7 +3,6 @@
 namespace Elementor\Modules\AtomicWidgets\Parsers;
 
 use Elementor\Modules\AtomicWidgets\PropTypes\Contracts\Prop_Type;
-use Elementor\Modules\AtomicWidgets\PropTypes\Prop_Type_Migrator;
 use Elementor\Core\Utils\Api\Parse_Result;
 
 if ( ! defined( 'ABSPATH' ) ) {
@@ -39,10 +38,6 @@ class Props_Parser {
 
 			$value = $props[ $key ] ?? null;
 
-			if ( ! is_null( $value ) ) {
-				$value = Prop_Type_Migrator::migrate( $value, $prop_type );
-			}
-
 			$is_valid = $prop_type->validate( $value ?? $prop_type->get_default() );
 
 			if ( ! $is_valid ) {
@@ -72,7 +67,13 @@ class Props_Parser {
 				continue;
 			}
 
-			$sanitized[ $key ] = $prop_type->sanitize( $props[ $key ] );
+			$sanitized_value = $prop_type->sanitize( $props[ $key ] );
+
+			if ( ! $prop_type->should_persist( $sanitized_value ) ) {
+				continue;
+			}
+
+			$sanitized[ $key ] = $sanitized_value;
 		}
 
 		return Parse_Result::make()->wrap( $sanitized );

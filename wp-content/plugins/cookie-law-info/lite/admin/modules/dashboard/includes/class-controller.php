@@ -79,69 +79,60 @@ class Controller extends Cloud {
 
 	public function get_plans() {
 		$data = array();
-		$this->set_api_url(CKY_APP_URL . '/api/v3/' );
-		$response      = $this->get(
-			'plans'
-		);
+		$this->set_api_url( CKY_APP_URL . '/api/v3/' );
+		$response      = $this->get( 'plans' );
 		$response_code = wp_remote_retrieve_response_code( $response );
-		if ( 200 === $response_code ) {
-			$response = json_decode( wp_remote_retrieve_body( $response ), true );
-			$response = isset( $response['data'] ) ? $response['data'] : array();
-			if (isset($response['freePlan'])) {
-				$item = $response['freePlan'];
-				if (isset($item['features'])) {
-					foreach ($item['features'] as $key => $value) {
-						$data['plan']['free']['features'][$key] = $value;
-					}
-				}
+		
+		if ( 200 !== $response_code ) {
+			return $data;
+		}
+
+		$response = json_decode( wp_remote_retrieve_body( $response ), true );
+		$response = isset( $response['data'] ) ? $response['data'] : array();
+
+		// Process free plan features
+		if ( isset( $response['freePlan']['features'] ) ) {
+			$data['plan']['free']['features'] = $response['freePlan']['features'];
+		}
+
+		// Process paid plans
+		if ( ! isset( $response['paidPlans'] ) || ! is_array( $response['paidPlans'] ) ) {
+			return $data;
+		}
+
+		// Define plan slug mappings
+		$plan_mapping = array(
+			'basic-monthly'    => array( 'plan' => 'basic', 'period' => 'monthly' ),
+			'basic-yearly'     => array( 'plan' => 'basic', 'period' => 'yearly' ),
+			'pro-monthly'      => array( 'plan' => 'pro', 'period' => 'monthly' ),
+			'pro-yearly'       => array( 'plan' => 'pro', 'period' => 'yearly' ),
+			'ultimate-monthly' => array( 'plan' => 'ultimate', 'period' => 'monthly' ),
+			'ultimate-yearly'  => array( 'plan' => 'ultimate', 'period' => 'yearly' ),
+		);
+
+		foreach ( $response['paidPlans'] as $plan ) {
+			$slug = $plan['slug'] ?? '';
+			
+			// Skip if slug is not in our mapping
+			if ( ! isset( $plan_mapping[ $slug ] ) ) {
+				continue;
 			}
-			if (isset($response['paidPlans'])) {
-				$items = $response['paidPlans'];
-				foreach($items as $val) {
-					if($val['slug'] === 'basic-monthly') {
-						if (isset($val['features'])) {
-							foreach ($val['features'] as $key => $value) {
-								$data['plan']['basic']['features'][$key] = $value;
-							}
-						}
-						if(isset($val['currency'])){
-							$data['plan']['basic']['monthly'][$val['currency']] = isset($val['cost']) ? $val['cost'] : '';
-						}
-					}
-					if($val['slug'] === 'pro-monthly') {
-						if (isset($val['features'])) {
-							foreach ($val['features'] as $key => $value) {
-								$data['plan']['pro']['features'][$key] = $value;
-							}
-						}
-						if(isset($val['currency'])){
-							$data['plan']['pro']['monthly'][$val['currency']] = isset($val['cost']) ? $val['cost'] : '';
-						}
-					}
-					if($val['slug'] === 'ultimate-monthly') {
-						if (isset($val['features'])) {
-							foreach ($val['features'] as $key => $value) {
-								$data['plan']['ultimate']['features'][$key] = $value;
-							}
-						}
-						if(isset($val['currency'])){
-							$data['plan']['ultimate']['monthly'][$val['currency']] = isset($val['cost']) ? $val['cost'] : '';
-						}
-					}
-					if(isset($val['currency'])) {
-						if($val['slug'] === 'basic-yearly') {
-							$data['plan']['basic']['yearly'][$val['currency']] = isset($val['cost']) ? $val['cost'] : '';
-						}
-						elseif($val['slug'] === 'pro-yearly') {
-							$data['plan']['pro']['yearly'][$val['currency']] = isset($val['cost']) ? $val['cost'] : '';
-						}
-						elseif($val['slug'] === 'ultimate-yearly') {
-							$data['plan']['ultimate']['yearly'][$val['currency']] = isset($val['cost']) ? $val['cost'] : '';
-						}
-					}
-				}
+
+			$plan_name   = $plan_mapping[ $slug ]['plan'];
+			$plan_period = $plan_mapping[ $slug ]['period'];
+
+			// Add features for monthly plans
+			if ( 'monthly' === $plan_period && isset( $plan['features'] ) ) {
+				$data['plan'][ $plan_name ]['features'] = $plan['features'];
+			}
+
+			// Add cost for the period
+			if ( isset( $plan['currency'] ) ) {
+				$cost = $plan['cost'] ?? '';
+				$data['plan'][ $plan_name ][ $plan_period ][ $plan['currency'] ] = $cost;
 			}
 		}
+
 		return $data;
 	}
 

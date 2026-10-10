@@ -1,7 +1,7 @@
 <?php
 namespace Elementor\Modules\AtomicWidgets\Controls\Types;
 
-use Elementor\Modules\AtomicWidgets\Base\Atomic_Control_Base;
+use Elementor\Modules\AtomicWidgets\Controls\Base\Atomic_Control_Base;
 
 if ( ! defined( 'ABSPATH' ) ) {
 	exit; // Exit if accessed directly.
@@ -9,6 +9,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 
 class Select_Control extends Atomic_Control_Base {
 	private array $options = [];
+	private array $groups = [];
 	private ?array $fallback_labels = null;
 	private ?string $collection_id = null;
 	private ?string $placeholder = null;
@@ -19,6 +20,12 @@ class Select_Control extends Atomic_Control_Base {
 
 	public function set_options( array $options ): self {
 		$this->options = $options;
+
+		return $this;
+	}
+
+	public function set_groups( array $groups ): self {
+		$this->groups = $groups;
 
 		return $this;
 	}
@@ -41,6 +48,10 @@ class Select_Control extends Atomic_Control_Base {
 			'fallbackLabels' => $this->fallback_labels,
 			'placeholder' => $this->placeholder,
 		];
+
+		if ( $this->groups ) {
+			$props['groups'] = $this->groups;
+		}
 
 		if ( $this->collection_id ) {
 			$props['collectionId'] = $this->collection_id;

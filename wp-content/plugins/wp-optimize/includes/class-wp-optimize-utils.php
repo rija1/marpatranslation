@@ -74,12 +74,33 @@ class WP_Optimize_Utils {
 	}
 
 	/**
+	 * Returns file path relative to the `wp-content` directory
+	 *
+	 * @param string $path
+	 * @return string
+	 */
+	public static function get_wp_relative_path($path): string {
+		$path = wp_normalize_path($path);
+		$content_dir = wp_normalize_path(WP_CONTENT_DIR);
+	
+		$pos = strpos($path, $content_dir);
+		if (false === $pos) {
+			return $path;
+		}
+	
+		return substr($path, strlen($content_dir)+1) ?: '';
+	}
+
+	/**
 	 * Get the file path
 	 *
 	 * @param string $url
 	 * @return string
 	 */
 	public static function get_file_path($url) {
+		$url_without_query = strtok($url, '?');
+		$url = false === $url_without_query ? $url : $url_without_query;
+
 		if (is_multisite()) {
 			if (function_exists('get_main_site_id')) {
 				$site_id = get_main_site_id();
@@ -111,6 +132,61 @@ class WP_Optimize_Utils {
 			}
 		}
 		return $file;
+	}
+
+	/**
+	 * Returns folder staticstics - size and file count
+	 *
+	 * @param string $folder
+	 * @return array
+	 */
+	public static function get_folder_stats($folder, $files_to_ignore = array()) {
+		clearstatcache();
+
+		$size = 0;
+		$file_count = 0;
+
+		if (is_dir($folder)) {
+			try {
+				$dir = new RecursiveIteratorIterator(new RecursiveDirectoryIterator($folder, FilesystemIterator::SKIP_DOTS));
+				
+				foreach ($dir as $file) {
+					if (!empty($files_to_ignore) && is_array($files_to_ignore) && in_array($file->getFilename(), $files_to_ignore)) continue;
+					try {
+						if ($file->isFile()) {
+							$size += $file->getSize();
+							$file_count++;
+						}
+					} catch (RuntimeException $e) {
+						error_log($e->getMessage()); // phpcs:ignore WordPress.PHP.DevelopmentFunctions.error_log_error_log -- Catching exception for debugging purpose
+					}
+				}
+			} catch (UnexpectedValueException $e) {
+				error_log($e->getMessage()); // phpcs:ignore WordPress.PHP.DevelopmentFunctions.error_log_error_log -- Catching exception for debugging purpose
+			}
+		}
+
+		return array(
+			'size' => $size,
+			'file_count' => $file_count,
+		);
+	}
+
+	/**
+	 * Fetches the content of a remote file via HTTP request.
+	 *
+	 * @param string $url  The URL of the remote file to retrieve.
+	 * @param array $args Request arguments passed to wp_remote_get()
+	 * @return string|false The content of the remote file on success, or false on failure.
+	 */
+	public static function get_remote_file_content($url, $args = array()) {
+		$response = wp_safe_remote_get($url, $args);
+		if (is_wp_error($response) || 200 !== wp_remote_retrieve_response_code($response)) return false;
+		
+		$body = wp_remote_retrieve_body($response);
+		if (empty($body)) return false;
+		
+		return $body;
 	}
 
 	/**
@@ -167,7 +243,7 @@ class WP_Optimize_Utils {
 	 * Returns simplehtmldom\HtmlDocument object
 	 *
 	 * @param string $html_buffer - HTML document as string
-	 * @return simplehtmldom\HtmlDocument | boolean
+	 * @return simplehtmldom\HtmlDocument | false
 	 */
 	public static function get_simple_html_dom_object($html_buffer) {
 		self::maybe_include_simple_html_dom();
@@ -230,12 +306,22 @@ class WP_Optimize_Utils {
 	 * @return string
 	 */
 	public static function get_user_agent($type = 'desktop') {
-		$user_agent = 'Mozilla/5.0 (Macintosh; Intel Mac OS X 13_5) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/126.0.0.0 Safari/537.36';
-		if ('mobile' === $type) {
-			$user_agent = 'Mozilla/5.0 (iPhone; CPU iPhone OS 17_5 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.5 Mobile/21F79 Safari/604.1';
+		global $wp_version;
+
+		$user_agent = sprintf(
+			'WP-Optimize/%s WordPress/%s (%s; %s)',
+			WPO_VERSION,
+			$wp_version,
+			('mobile' === $type) ? 'Mobile' : 'Desktop',
+			home_url('/')
+		);
+
+		if ('gfont' === $type) {
+			// Custom UA returns TTF format. We use modern UA to get WOFF2 which is better for web
+			$user_agent = 'Mozilla/5.0 (Macintosh; Intel Mac OS X 13_5) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/126.0.0.0 Safari/537.36';
 		}
 
-		return $user_agent;
+		return apply_filters('wpo_user_agent', $user_agent, $type);
 	}
 
 	/**
@@ -255,6 +341,36 @@ class WP_Optimize_Utils {
 		$line   = $debug_backtrace[1]['line'] ?? 'N/A';
 
 		return sprintf('C:%s|F:%s()|L:%s', $class, $function, $line);
+	}
+
+	/**
+	 * Check if the server is using HTTP/1.x
+	 *
+	 * @return bool
+	 */
+	public static function is_request_protocol_http1(): bool {
+		$protocol = isset($_SERVER['SERVER_PROTOCOL']) ? sanitize_text_field(wp_unslash($_SERVER['SERVER_PROTOCOL'])) : '';
+		return stripos($protocol, 'HTTP/1.') !== false;
+	}
+
+	/**
+	 * Wrapper for wp_delete_file() to ensure compatibility with WordPress versions prior to 6.1.
+	 *
+	 * In WordPress versions earlier than 6.1, wp_delete_file() returns void, in that case we check
+	 * if the file is actually deleted or not to determine the boolean value to return
+	 *
+	 * @param string $file
+	 * @return bool
+	 */
+	public static function wp_delete_file($file) {
+		$wp_delete_file_result = wp_delete_file($file);
+
+		// when wp_delete_file() returns void we check if the file is deleted
+		if (null === $wp_delete_file_result) {
+			$wp_delete_file_result = false === is_file($file);
+		}
+
+		return $wp_delete_file_result;
 	}
 
 	/**
@@ -292,6 +408,101 @@ class WP_Optimize_Utils {
 		}
 
 		return esc_url(add_query_arg($utm_params, $url));
+	}
+
+	/**
+	 * Defines MAX_FILE_SIZE constant if not already defined.
+	 *
+	 * @return void
+	 */
+	public static function define_maxfile_size_constant() {
+		$maxfile_size = apply_filters('wpo_max_file_size', 600000);
+		$maxfile_size = is_numeric($maxfile_size) && $maxfile_size > 0 ? (int) $maxfile_size : 600000;
+		if (!defined('MAX_FILE_SIZE')) {
+			define('MAX_FILE_SIZE', $maxfile_size);
+		}
+	}
+
+	/**
+	 * Check if the given array contains all key-value pairs of another array.
+	 *
+	 * @param array $needle   The array of key-value pairs to check for.
+	 * @param array $haystack The array to check within.
+	 * @return bool True if $haystack contains all key-value pairs of $needle, false otherwise.
+	 */
+	public static function array_contains($needle, $haystack): bool {
+
+		if (!is_array($needle) || !is_array($haystack)) return false;
+
+		foreach ($needle as $key => $value) {
+			if (!array_key_exists($key, $haystack)) return false;
+
+			if (is_array($value)) {
+				if (!is_array($haystack[$key])) return false;
+				if (!self::array_contains($value, $haystack[$key])) return false;
+			} elseif ($haystack[$key] != $value) { // Loose comparison is intentional here to allow type juggling, e.g. '1' == 1 since we check sent form data with saved options where types can be different
+				return false;
+			}
+		}
+
+		return true;
+	}
+
+	/**
+	 * Check if the current user has permission to purge cache.
+	 *
+	 * @return bool
+	 */
+	public static function current_user_can_purge_cache() {
+		if (WP_Optimize::is_premium()) {
+			return WP_Optimize()->current_user_can() || WP_Optimize_Premium()->can_purge_the_cache();
+		} else {
+			return WP_Optimize()->current_user_can();
+		}
+	}
+
+	/**
+	 * Get URL without purge cache-related parameters.
+	 *
+	 * @return string
+	 */
+	public static function get_url_without_cache_purge_params() {
+		return remove_query_arg(self::get_cache_purge_params());
+	}
+
+	/**
+	 * Outputs JavaScript to remove cache purge parameters from the URL.
+	 *
+	 * @return void
+	 */
+	public static function script_to_remove_cache_purge_params_from_url() {
+		printf('<script>document.addEventListener("DOMContentLoaded", function() { var params = %s; var url = new URL(window.location.href); for (var param of params) { url.searchParams.delete(param); } history.replaceState({}, "", url); });</script>', json_encode(self::get_cache_purge_params()));
+	}
+
+	/**
+	 * Returns the list of parameter names used for cache purge actions
+	 *
+	 * @return array
+	 */
+	private static function get_cache_purge_params() {
+		$original_purge_params = array('_wpo_purge', 'wpo_minify_cache_purged', '_wpo_purge_minify_cache', 'wpo_all_pages_cache_purged', 'wpo_single_page_cache_purged');
+		$purge_params = apply_filters('wpo_get_cache_purge_params', $original_purge_params);
+
+		if (!is_array($purge_params)) $purge_params = $original_purge_params;
+
+		return $purge_params;
+	}
+
+	/**
+	 * Returns a human-readable time difference or "Never" if no timestamp exists.
+	 *
+	 * @param int|null $timestamp Unix timestamp, or null/0 for "Never".
+	 * @return string Human-readable time string.
+	 */
+	public static function human_time_diff_or_never(?int $timestamp = null): string {
+		if (!$timestamp) return __('Never', 'wp-optimize');
+		/* translators: %s = human-readable time difference */
+		return sprintf(__('%s ago', 'wp-optimize'), human_time_diff($timestamp, time()));
 	}
 }
 

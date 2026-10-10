@@ -4,25 +4,10 @@ namespace OTGS\Installer\AdminNotices;
 
 class Display {
 
-	/**
-	 * @var array
-	 */
 	private $currentNotices;
-	/**
-	 * @var PageConfig
-	 */
 	private $pageConfig;
-	/**
-	 * @var MessageTexts
-	 */
 	private $messageTexts;
-	/**
-	 * @var callable - string -> string -> bool
-	 */
 	private $isDismissed;
-	/**
-	 * @var ScreenConfig
-	 */
 	private $screenConfig;
 
 	public function __construct(
@@ -65,19 +50,11 @@ class Display {
 		}
 	}
 
-	/**
-	 * @return bool
-	 */
 	private function isRelevantOnPage() {
 		return $this->pageConfig->isAnyMessageOnPage( $this->currentNotices ) ||
 		       $this->screenConfig->isAnyMessageOnPage( $this->currentNotices );
 	}
 
-	/**
-	 * @param string $repo
-	 * @param string $id
-	 * @param array $notice_params
-	 */
 	private function displayNotice( $repo, $id, $notice_params = [] ) {
 		$noticeId = $id;
 		if ( isset( $notice_params['noticeId'] ) ) {

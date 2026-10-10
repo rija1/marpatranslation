@@ -6,7 +6,7 @@ class FreeShipping implements ShippingMode {
 	use ShippingModeBase;
 	use DefaultConversion;
 
-	public function getFieldTitle( $currencyCode ) {
+	public function getFieldTitle( $currencyCode ): string {
 		if ( ! is_string( $currencyCode ) ) {
 			$currencyCode = '';
 		}
@@ -17,7 +17,7 @@ class FreeShipping implements ShippingMode {
 			'woocommerce-multilingual' ), $currencyCode );
 	}
 
-	public function getFieldDescription( $currencyCode ) {
+	public function getFieldDescription( $currencyCode ): ?string {
 		if ( ! is_string( $currencyCode ) ) {
 			$currencyCode = '';
 		}
@@ -32,13 +32,6 @@ class FreeShipping implements ShippingMode {
 		return 'free_shipping';
 	}
 
-	/**
-	 * Returns minimal amount key for given currency.
-	 *
-	 * @param string $currencyCode Currency code.
-	 *
-	 * @return string
-	 */
 	private function getMinimalOrderAmountKey( $currencyCode ) {
 		return sprintf( 'min_amount_%s', $currencyCode );
 	}
@@ -59,19 +52,8 @@ class FreeShipping implements ShippingMode {
 		return $amount;
 	}
 
-	/**
-	 * @see \WCML\Multicurrency\Shipping\ShippingMode::getShippingCostValue
-	 *
-	 * @param object $rate
-	 * @param string $currency
-	 *
-	 * @return int|mixed|string
-	 */
 	public function getShippingCostValue( $rate, $currency ) {
-		if ( ! isset( $rate->cost ) ) {
-			$rate->cost = 0;
-		}
-		return $rate->cost;
+		return $rate->cost ?? 0;
 	}
 
 	public function isManualPricingEnabled( $instance ) {

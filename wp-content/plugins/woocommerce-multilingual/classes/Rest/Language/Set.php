@@ -7,48 +7,56 @@ use WPML\FP\Obj;
 
 class Set {
 
+	const PRIORITY_AFTER_THE_REQUEST = PHP_INT_MAX;
+
+	private static $requestScopeIsOpen = false;
+
+	private static $callbackScopes = [];
+
 	public static function fromUrlQueryVar() {
-		/* phpcs:ignore WordPress.VIP.SuperGlobalInputUsage.AccessDetected */
 		$lang = self::sanitize( Obj::prop( 'lang', $_GET ) );
 
-		if ( $lang ) {
+		if ( ! self::$requestScopeIsOpen && self::opensAScopeFor( $lang ) ) {
+			self::$requestScopeIsOpen = true;
 			wpml_switch_language_action( $lang );
+			add_action( 'shutdown', [ __CLASS__, 'closeRequestScope' ], self::PRIORITY_AFTER_THE_REQUEST );
 		}
 	}
 
-	/**
-	 * @param \WP_REST_Response|\WP_HTTP_Response|\WP_Error|mixed $response
-	 * @param array                                               $handler
-	 * @param \WP_REST_Request                                    $request
-	 *
-	 * @return \WP_REST_Response|\WP_HTTP_Response|\WP_Error|mixed
-	 */
+	public static function closeRequestScope() {
+		if ( self::$requestScopeIsOpen ) {
+			self::$requestScopeIsOpen = false;
+			wpml_switch_language_action();
+		}
+	}
+
 	public static function beforeCallbacks( $response, $handler, \WP_REST_Request $request ) {
 		$lang = self::getFromRequestParams( $request )
 			?: self::getFromProduct( $handler, $request );
 
-		if ( $lang ) {
+		$opened = self::opensAScopeFor( $lang );
+
+		if ( $opened ) {
 			wpml_switch_language_action( $lang );
+		}
+
+		self::$callbackScopes[] = $opened;
+
+		return $response;
+	}
+
+	public static function afterCallbacks( $response ) {
+		if ( array_pop( self::$callbackScopes ) ) {
+			wpml_switch_language_action();
 		}
 
 		return $response;
 	}
 
-	/**
-	 * @param \WP_REST_Request $request
-	 *
-	 * @return string
-	 */
 	private static function getFromRequestParams( \WP_REST_Request $request ) {
 		return self::sanitize( $request->get_param( 'lang' ) );
 	}
 
-	/**
-	 * @param array            $handler
-	 * @param \WP_REST_Request $request
-	 *
-	 * @return string
-	 */
 	private static function getFromProduct( $handler, \WP_REST_Request $request ) {
 		$callback = Obj::prop( 'callback', $handler );
 
@@ -66,11 +74,12 @@ class Set {
 		return '';
 	}
 
-	/**
-	 * @param string $lang
-	 *
-	 * @return string
-	 */
+	private static function opensAScopeFor( $lang ) {
+		$currentLanguage = (string) apply_filters( 'wpml_current_language', null );
+
+		return (bool) $lang && $currentLanguage !== $lang;
+	}
+
 	private static function sanitize( $lang ) {
 		return Sanitize::string( $lang );
 	}

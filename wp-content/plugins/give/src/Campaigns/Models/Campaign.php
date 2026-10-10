@@ -10,6 +10,7 @@ use Give\Campaigns\Factories\CampaignFactory;
 use Give\Campaigns\Repositories\CampaignPageRepository;
 use Give\Campaigns\Repositories\CampaignRepository;
 use Give\Campaigns\ValueObjects\CampaignGoalType;
+use Give\Campaigns\ValueObjects\CampaignPageStatus;
 use Give\Campaigns\ValueObjects\CampaignStatus;
 use Give\Campaigns\ValueObjects\CampaignType;
 use Give\DonationForms\V2\Models\DonationForm;
@@ -77,6 +78,7 @@ class Campaign extends Model implements ModelCrud, ModelHasFactory
     }
 
     /**
+     * @since 4.18.0 Return each associated form once when its metadata contains duplicate keys.
      * @since 4.0.0
      */
     public function forms(): ModelQueryBuilder
@@ -87,7 +89,8 @@ class Campaign extends Model implements ModelCrud, ModelHasFactory
                     ->leftJoin('give_campaign_forms', 'campaign_forms')
                     ->on('campaign_forms.form_id', 'id');
             })
-            ->where('campaign_forms.campaign_id', $this->id);
+            ->where('campaign_forms.campaign_id', $this->id)
+            ->groupBy('forms.ID');
     }
 
     /**
@@ -172,6 +175,21 @@ class Campaign extends Model implements ModelCrud, ModelHasFactory
     public function merge(Campaign ...$campaignsToMerge): bool
     {
         return give(CampaignRepository::class)->mergeCampaigns($this, ...$campaignsToMerge);
+    }
+
+    /**
+     * @since 4.13.1
+     */
+    public function createPage(?array $attributes = []): ?CampaignPage
+    {
+        $page = CampaignPage::create(array_merge([
+            'campaignId' => $this->id,
+            'status' => CampaignPageStatus::DRAFT(),
+        ], $attributes));
+
+        $this->pageId = $page->id;
+
+        return $page;
     }
 
     /**

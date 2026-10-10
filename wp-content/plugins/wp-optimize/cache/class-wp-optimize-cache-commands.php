@@ -50,6 +50,7 @@ class WP_Optimize_Cache_Commands {
 		$disabled = false;
 		$return = empty($validation) ? array() : $validation;
 		$previous_settings = WPO_Cache_Config::instance()->get();
+		$settings_changed = false;
 
 		// Attempt to change current status if required
 		if (isset($previous_settings['enable_page_caching']) && (bool) $previous_settings['enable_page_caching'] !== (bool) $data['cache-settings']['enable_page_caching']) {
@@ -59,10 +60,21 @@ class WP_Optimize_Cache_Commands {
 				// Disabling failed
 				if ($disabled && is_wp_error($disabled)) {
 					// If disabling failed, we re-enable whatever was disabled, to make sure nothing breaks.
-					if ($previous_settings['enable_page_caching']) WPO_Page_Cache::instance()->enable(true);
+					$cache_enable_result = null;
+					if ($previous_settings['enable_page_caching']) {
+						$cache_enable_result = WPO_Page_Cache::instance()->enable(true);
+					}
+
+					$error_message = $disabled->get_error_message();
+
+					if (is_wp_error($cache_enable_result)) {
+						// translators: %s: The error message.
+						$error_message .= ' '. sprintf(__('Additionally, WP-Optimize failed to re-enable page caching after the failed disable attempt: %s', 'wp-optimize'), $cache_enable_result->get_error_message());
+					}
+
 					$return['error'] = array(
 						'code' => $disabled->get_error_code(),
-						'message' => $disabled->get_error_message()
+						'message' => $error_message,
 					);
 				} elseif (WPO_Page_Cache::instance()->has_warnings()) {
 					$return['warnings_label'] = __('Page caching was disabled, but with some warnings:', 'wp-optimize');
@@ -92,8 +104,7 @@ class WP_Optimize_Cache_Commands {
 			// Override enabled setting value
 			$data['cache-settings']['enable_page_caching'] = ($enabled && !is_wp_error($enabled)) || ($previous_settings['enable_page_caching'] && is_wp_error($disabled));
 		} else {
-			$data['cache-settings']['enable_page_caching'] = $previous_settings['enable_page_caching'];
-			$enabled = $previous_settings['enable_page_caching'];
+			$enabled = isset($data['cache-settings']['enable_page_caching']) ? (bool) $data['cache-settings']['enable_page_caching'] : false;
 		}
 
 		$data['cache-settings']['use_webp_images'] = (bool) WP_Optimize()->get_options()->get_option('webp_conversion');
@@ -102,7 +113,12 @@ class WP_Optimize_Cache_Commands {
 		$save_settings_result = WPO_Cache_Config::instance()->update($data['cache-settings'], $skip_if_no_file_yet);
 
 		if ($save_settings_result && !is_wp_error($save_settings_result)) {
-			WP_Optimize_Page_Cache_Preloader::instance()->cache_settings_updated($data['cache-settings'], $previous_settings);
+			$settings_changed = !WP_Optimize_Utils::array_contains($data['cache-settings'], $previous_settings);
+
+			if ($settings_changed) {
+				WP_Optimize_Page_Cache_Preloader::instance()->cache_settings_updated($data['cache-settings'], $previous_settings);
+				WPO_Page_Cache::instance()->cache_settings_updated($data['cache-settings']);
+			}
 			$return['result'] = $save_settings_result;
 		} else {
 			// Saving the settings returned an error
@@ -128,7 +144,6 @@ class WP_Optimize_Cache_Commands {
 				'enable_per_role_cache',
 				'enable_user_specific_cache',
 				'enable_rest_caching',
-				'show_avatars',
 				'host_gravatars_locally',
 				'cache_exception_urls',
 				'cache_ignore_query_variables',
@@ -148,7 +163,7 @@ class WP_Optimize_Cache_Commands {
 			}
 		}
 		// $disable can either be boolean or WP_Error
-		if (!is_wp_error($disabled) && $disabled) {
+		if (!is_wp_error($disabled) && $disabled && $settings_changed) {
 			WPO_Page_Cache::instance()->prune_cache_logs();
 			wp_clear_scheduled_hook('wpo_prune_cache_logs');
 		}

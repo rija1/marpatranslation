@@ -1,1 +1,1 @@
-<?php return array('dependencies' => array('react', 'wc-blocks-checkout', 'wc-price-format', 'wc-settings', 'wp-api-fetch', 'wp-element', 'wp-plugins', 'wp-polyfill'), 'version' => '96824f264baac4ffbc16');
+<?php return array('dependencies' => array('wc-stripe-blocks-vendors', 'react', 'wc-blocks-checkout', 'wc-settings', 'wc-stripe-blocks-utils', 'wp-plugins'), 'version' => 'fed6ce0850db4818462e');

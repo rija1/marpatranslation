@@ -8,6 +8,12 @@ _ckyStore._backupNodes = [];
 _ckyStore._resetConsentID = false;
 _ckyStore._bannerState = false;
 _ckyStore._preferenceOriginTag = false;
+_ckyStore._optoutSuccessCountdownInterval = null;
+_ckyStore._optoutSuccessAutoCloseTimer = null;
+_ckyStore._optoutSuccessSubtextTemplate = "";
+
+const CKY_OPTOUT_SUCCESS_DISMISS_MS = 15000;
+const CKY_OPTOUT_SUCCESS_SECONDS = 15;
 
 window.cookieyes = window.cookieyes || {};
 const ref = window.cookieyes;
@@ -20,6 +26,7 @@ ref._ckyGetCookieMap = function () {
             const [key, value] = cookie.split("=");
             if (!key) return;
             cookieMap[key.trim()] = value;
+            return value;
         });
     } catch (error) { }
     return cookieMap;
@@ -101,7 +108,7 @@ function _ckySetConsentID() {
     _ckyStore._resetConsentID = true;
 }
 
-_revisitCkyConsent = function () {
+const _revisitCkyConsent = function () {
     const type = _ckyGetType();
     if (type === 'classic') {
         _ckyShowBanner();
@@ -157,6 +164,7 @@ function _ckyFindElement(selector, forParent) {
     switch (true) {
         case selector.startsWith("="):
             createdSelector = `[data-cky-tag="${selector.substring(1)}"]`;
+            break;
         default:
             break;
     }
@@ -339,6 +347,8 @@ function _ckyAddPreferenceCenterClass() {
     // Ensure ARIA attributes are always present on the preference center div
     const preferenceCenter = modal.querySelector('.cky-preference-center');
     if (preferenceCenter) {
+        const preferenceCenterId = _ckyGetLaw() === 'ccpa' ? 'ckyOptoutPreferenceCenter' : 'ckyPreferenceCenter';
+        preferenceCenter.setAttribute('id', preferenceCenterId);
         preferenceCenter.setAttribute('role', 'dialog');
         preferenceCenter.setAttribute('aria-modal', 'true');
         const ariaLabel = _ckyGetLaw() === 'ccpa' ? 'Opt-out Preferences' : 'Customise Consent Preferences';
@@ -409,10 +419,10 @@ function _ckyRegisterListeners() {
     _ckyAttachListener("=detail-accept-button", _ckyAcceptReject("all"));
     _ckyAttachListener("=detail-save-button", _ckyAcceptReject());
     _ckyAttachListener("=detail-category-preview-save-button", _ckyAcceptReject());
-    _ckyAttachListener("=optout-confirm-button", _ckyAcceptReject());
+    _ckyAttachListener("=optout-confirm-button", _ckyHandleOptoutConfirm());
     _ckyAttachListener("=detail-reject-button", _ckyAcceptReject("reject"));
     _ckyAttachListener("=revisit-consent", () => _revisitCkyConsent());
-    _ckyAttachListener("=optout-close", () => _ckyHidePreferenceCenter());
+    _ckyAttachListener("=optout-close", () => _ckyHandleOptoutPopupClose());
 }
 
 function _ckyAttachCategoryListeners() {
@@ -463,8 +473,10 @@ function _ckyAttachCategoryListeners() {
                         `#ckyDetailCategory${filteredName} .cky-accordion-btn`,
                         "false"
                     );
+                    return filteredName;
                 });
         });
+        return category;
     });
 }
 /**
@@ -539,6 +551,7 @@ function _ckyGetPreferenceCenter() {
     return element && element.closest('.cky-modal') || false;
 }
 function _ckyHidePreferenceCenter() {
+    _ckyResetOptoutSuccessMessage();
     const element = _ckyGetPreferenceCenter();
     element && element.classList.remove(_ckyGetPreferenceClass());
 
@@ -564,6 +577,8 @@ function _ckyShowPreferenceCenter() {
     if (element) {
         const preferenceCenter = element.querySelector('.cky-preference-center');
         if (preferenceCenter) {
+            const preferenceCenterId = _ckyGetLaw() === 'ccpa' ? 'ckyOptoutPreferenceCenter' : 'ckyPreferenceCenter';
+            preferenceCenter.setAttribute('id', preferenceCenterId);
             preferenceCenter.setAttribute('role', 'dialog');
             preferenceCenter.setAttribute('aria-modal', 'true');
             const ariaLabel = _ckyGetLaw() === 'ccpa' ? 'Opt-out Preferences' : 'Customise Consent Preferences';
@@ -590,6 +605,8 @@ function _ckyTogglePreferenceCenter() {
     if (_ckyGetType() === 'classic') {
         const preferenceCenter = element.querySelector('.cky-preference-center');
         if (preferenceCenter) {
+            const preferenceCenterId = _ckyGetLaw() === 'ccpa' ? 'ckyOptoutPreferenceCenter' : 'ckyPreferenceCenter';
+            preferenceCenter.setAttribute('id', preferenceCenterId);
             preferenceCenter.setAttribute('role', 'dialog');
             preferenceCenter.setAttribute('aria-modal', 'true');
             const ariaLabel = _ckyGetLaw() === 'ccpa' ? 'Opt-out Preferences' : 'Customise Consent Preferences';
@@ -762,6 +779,7 @@ function _ckySetCheckboxes(
             elem.style.backgroundColor = isChecked ? activeColor : inactiveColor;
             _ckySetCheckBoxAriaLabel(boxElem, isChecked, formattedLabel);
         });
+        return boxElem;
     });
 }
 function _ckySetCategoryToggle(element, category = {}, revisit = false) {
@@ -825,6 +843,156 @@ function _ckySetCheckBoxAriaLabel(boxElem, isChecked, formattedLabel, isCCPA = f
     boxElem.setAttribute("aria-label", labelText);
 }
 /**
+ * Clear opt-out success countdown timers (interval + timeout).
+ *
+ * @returns {void}
+ */
+function _ckyClearOptoutSuccessTimers() {
+    if (_ckyStore._optoutSuccessCountdownInterval) {
+        clearInterval(_ckyStore._optoutSuccessCountdownInterval);
+        _ckyStore._optoutSuccessCountdownInterval = null;
+    }
+    if (_ckyStore._optoutSuccessAutoCloseTimer) {
+        clearTimeout(_ckyStore._optoutSuccessAutoCloseTimer);
+        _ckyStore._optoutSuccessAutoCloseTimer = null;
+    }
+}
+
+function _ckyIsOptoutSuccessVisible() {
+    const el = _ckyGetElementByTag("optout-success");
+    return !!(el && !el.classList.contains("cky-hide"));
+}
+
+function _ckyDismissOptoutSuccessCountdown() {
+    _ckyRemoveBanner();
+    _ckyHidePreferenceCenter();
+    _ckyAfterConsent();
+}
+
+/**
+ * Show opt-out success UI after save, run countdown, then dismiss banner.
+ *
+ * @returns {void}
+ */
+function _ckyShowOptoutSuccessMessage() {
+    _ckyClearOptoutSuccessTimers();
+
+    const buttonWrapper = _ckyGetElementByTag("optout-buttons");
+    const successMessage = _ckyGetElementByTag("optout-success");
+    const countdownElement = _ckyGetElementByTag("optout-success-subtext");
+    const ccpaCheckbox = document.getElementById("ckyCCPAOptOut");
+
+    if (!buttonWrapper || !successMessage) {
+        _ckyDismissOptoutSuccessCountdown();
+        return;
+    }
+
+    buttonWrapper.style.display = "none";
+    successMessage.classList.remove("cky-hide");
+    successMessage.setAttribute("aria-live", "polite");
+    successMessage.focus();
+    if (ccpaCheckbox) ccpaCheckbox.disabled = true;
+    _ckyClassAdd("=optout-option", "cky-disabled", false);
+
+    const countdownTimerEl =
+        (countdownElement &&
+            countdownElement.querySelector("#ckyCountdownTimer")) ||
+        document.getElementById("ckyCountdownTimer");
+
+    let timeRemaining = CKY_OPTOUT_SUCCESS_SECONDS;
+    if (
+        countdownElement &&
+        !countdownTimerEl &&
+        !_ckyStore._optoutSuccessSubtextTemplate
+    ) {
+        _ckyStore._optoutSuccessSubtextTemplate =
+            countdownElement.textContent ||
+            `Banner closes automatically in ${CKY_OPTOUT_SUCCESS_SECONDS} s...`;
+    }
+    const template = _ckyStore._optoutSuccessSubtextTemplate;
+    const hasDigit = template && /\d+/.test(template);
+    const updateSubtext = () => {
+        if (!countdownElement) return;
+        if (countdownTimerEl) {
+            countdownTimerEl.textContent = String(timeRemaining);
+            return;
+        }
+        countdownElement.textContent = hasDigit
+            ? template.replace(/\d+/, String(timeRemaining))
+            : `Banner closes automatically in ${timeRemaining} s...`;
+    };
+    updateSubtext();
+
+    _ckyStore._optoutSuccessCountdownInterval = setInterval(() => {
+        timeRemaining -= 1;
+        if (timeRemaining >= 0) updateSubtext();
+    }, 1000);
+
+    _ckyStore._optoutSuccessAutoCloseTimer = setTimeout(
+        _ckyDismissOptoutSuccessCountdown,
+        CKY_OPTOUT_SUCCESS_DISMISS_MS
+    );
+}
+
+/**
+ * Reset opt-out success UI (timers, visibility, checkbox, subtext).
+ *
+ * @returns {void}
+ */
+function _ckyResetOptoutSuccessMessage() {
+    _ckyClearOptoutSuccessTimers();
+
+    const buttonWrapper = _ckyGetElementByTag("optout-buttons");
+    const successMessage = _ckyGetElementByTag("optout-success");
+    const countdownElement = _ckyGetElementByTag("optout-success-subtext");
+    const ccpaCheckbox = document.getElementById("ckyCCPAOptOut");
+
+    if (buttonWrapper) buttonWrapper.style.display = "";
+    if (successMessage) successMessage.classList.add("cky-hide");
+    if (ccpaCheckbox) ccpaCheckbox.disabled = false;
+    _ckyClassRemove("=optout-option", "cky-disabled", false);
+    const resetTimerEl =
+        (countdownElement &&
+            countdownElement.querySelector("#ckyCountdownTimer")) ||
+        document.getElementById("ckyCountdownTimer");
+    if (resetTimerEl) {
+        resetTimerEl.textContent = "";
+    } else if (countdownElement && _ckyStore._optoutSuccessSubtextTemplate) {
+        countdownElement.textContent = _ckyStore._optoutSuccessSubtextTemplate;
+    }
+}
+
+/**
+ * Opt-out confirm: if CCPA + opted out, save consent then show success + countdown; else normal save/close.
+ *
+ * @returns {Function} Click handler
+ */
+function _ckyHandleOptoutConfirm() {
+    return () => {
+        if (_ckyGetLaw() !== "ccpa" || !_ckyFindCheckBoxValue()) {
+            _ckyAcceptReject()();
+            return;
+        }
+        _ckyAcceptCookies();
+        _ckyShowOptoutSuccessMessage();
+    };
+}
+
+/**
+ * Opt-out popup close: dismiss countdown if success is visible, else normal close.
+ *
+ * @returns {void}
+ */
+function _ckyHandleOptoutPopupClose() {
+    if (_ckyIsOptoutSuccessVisible()) {
+        ref._ckySetInStore("action", "yes");
+        _ckyDismissOptoutSuccessCountdown();
+        return;
+    }
+    _ckyHidePreferenceCenter();
+}
+
+/**
  * Render banner after processing.
  */
 function _ckyRenderBanner() {
@@ -871,6 +1039,10 @@ function _ckyAcceptReject(option = "custom") {
 
 function _ckyActionClose() {
     ref._ckySetInStore("action", "yes");
+    if (_ckyIsOptoutSuccessVisible()) {
+        _ckyDismissOptoutSuccessCountdown();
+        return;
+    }
     _ckyRemoveBanner();
 }
 /**
@@ -927,6 +1099,7 @@ function _ckySetShowMoreLess() {
     const element = document.querySelector(
         `[data-cky-tag="${activeLaw === "gdpr" ? "detail" : "optout"}-description"]`
     );
+    if (!element) return;
     const content = element.textContent;
     if (content.length < contentLimit) return;
     const contentHTML = element.innerHTML;
@@ -935,13 +1108,14 @@ function _ckySetShowMoreLess() {
     if (innerElements.length <= 1) return;
     let strippedContent = ``;
     for (let index = 0; index < innerElements.length; index++) {
-        if (index === innerElements.length - 1) return;
-        const element = innerElements[index];
-        if (`${strippedContent}${element.outerHTML}`.length > contentLimit)
-            element.insertAdjacentHTML("beforeend", `...&nbsp;${showButtonContent}`);
-        strippedContent = `${strippedContent}${element.outerHTML}`;
+        if (index === innerElements.length - 1) continue;
+        const el = innerElements[index];
+        if (`${strippedContent}${el.outerHTML}`.length > contentLimit)
+            el.insertAdjacentHTML("beforeend", `...&nbsp;${showButtonContent}`);
+        strippedContent = `${strippedContent}${el.outerHTML}`;
         if (strippedContent.length > contentLimit) break;
     }
+
     function showMoreHandler() {
         element.innerHTML = `${contentHTML}${hideButtonContent}`;
         _ckyAttachListener("=hide-desc-button", showLessHandler);
@@ -1301,6 +1475,7 @@ function _ckyAttachManualLinksStyles() {
     const manualLinks = document.querySelectorAll('.cky-link, a.cky-link, [data-cky-tag="detail"] a, [data-cky-tag="optout-popup"] a, [data-cky-tag="notice"] a');
     if (manualLinks.length < 1) return;
     Array.from(manualLinks).forEach((link) => {
+        if (link.getAttribute('data-cky-tag') === 'readmore-button') return;
         for (const style in manualLinksStyles) {
             if (!manualLinksStyles[style]) continue;
             link.style[style] = manualLinksStyles[style];
@@ -1420,6 +1595,7 @@ function _ckySetPoweredBy() {
         element.style.display = "flex";
         element.style.justifyContent = position;
         element.style.alignItems = "center";
+        return element;
     });
 
 }

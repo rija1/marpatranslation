@@ -9,11 +9,8 @@ use WPML\FP\Obj;
 
 class Variations extends SynchronizerForMeta {
 
-	/**
-	 * @param \WP_Post          $product
-	 * @param int[]             $translationsIds
-	 * @param array<int,string> $translationsLanguages
-	 */
+	use VariationSource;
+
 	public function run( $product, $translationsIds, $translationsLanguages ) {
 		$isVariableProduct = $this->woocommerceWpml->products->is_variable_product( $product->ID );
 		if ( ! $isVariableProduct ) {
@@ -42,26 +39,55 @@ class Variations extends SynchronizerForMeta {
 			return;
 		}
 
+		$editorScopedIds = apply_filters( 'wcml_editor_scoped_variation_ids', null, $product->ID );
+		if ( is_array( $editorScopedIds ) ) {
+			if ( empty( $editorScopedIds ) ) {
+				return;
+			}
+
+			$productVariations = array_intersect_key( $productVariations, array_flip( $editorScopedIds ) );
+		}
+
+		$this->primeCaches( $productVariations, $storedVariations, $translationsLanguages );
+
 		$variationsTranslations               = [];
 		$preparedVariationsToSetAsDuplication = [];
+		$unreadableVariations                 = [];
 
 		remove_action( 'save_post', [ $this->elementTranslations, 'save_post_actions' ], 100 );
 
 		foreach ( $productVariations as $productVariation ) {
+			$isSourceReadable = $this->isVariationSourceReadable( $productVariation->ID, $product->ID );
+			if ( ! $isSourceReadable ) {
+				$unreadableVariations[] = $productVariation->ID;
+			}
+
 			foreach ( $translationsLanguages as $translationId => $language ) {
 				$variationTranslationId = $this->elementTranslations->element_id_in( $productVariation->ID, $language, false );
+
+				if ( ! $isSourceReadable ) {
+					if ( $variationTranslationId ) {
+						unset( $storedVariations[ $translationId ][ $variationTranslationId ] );
+					}
+					continue;
+				}
+
 				if ( $variationTranslationId ) {
-					$this->wpdb->update(
-						$this->wpdb->posts,
-						[
-							'post_status'       => $productVariation->post_status,
-							'post_modified'     => $productVariation->post_modified,
-							'post_modified_gmt' => $productVariation->post_modified_gmt,
-							'post_parent'       => $translationId,// This should be already set! We can try and see... and update all other post_* and menu_order at once.
-							'menu_order'        => $productVariation->menu_order,
-						],
-						[ 'ID' => $variationTranslationId ]
-					);
+					$translationFields = [
+						'post_status'       => $productVariation->post_status,
+						'post_modified'     => $productVariation->post_modified,
+						'post_modified_gmt' => $productVariation->post_modified_gmt,
+						'post_parent'       => $translationId,
+						'menu_order'        => $productVariation->menu_order,
+					];
+					$storedTranslationVariation = $storedVariations[ $translationId ][ $variationTranslationId ] ?? null;
+					if ( ! $storedTranslationVariation || ! $this->areFieldsInSync( $storedTranslationVariation, $translationFields ) ) {
+						$this->wpdb->update(
+							$this->wpdb->posts,
+							$translationFields,
+							[ 'ID' => $variationTranslationId ]
+						);
+					}
 					unset( $storedVariations[ $translationId ][ $variationTranslationId ] );
 					$this->syncHashManager->initialize( $variationTranslationId, SyncHash::SOURCE_META );
 				} else {
@@ -92,16 +118,16 @@ class Variations extends SynchronizerForMeta {
 							'comment_count'         => $productVariation->comment_count,
 						]
 					);
-					// Set language details and connection for the new variation translation.
 					$trid = $this->sitepress->get_element_trid( $productVariation->ID, 'post_product_variation' );
 					$this->sitepress->set_element_language_details( $variationTranslationId, 'post_product_variation', $trid, $language );
-					// Declare that the new variation translation is a duplicate of the product variation.
 					$preparedVariationsToSetAsDuplication[] = $this->wpdb->prepare( "(%d,%s,%s)", $variationTranslationId, '_wcml_duplicate_of_variation', $productVariation->ID );
 					$this->syncHashManager->initialize( $variationTranslationId, SyncHash::SOURCE_EMPTY, true );
 				}
 				$variationsTranslations[ $productVariation->ID ][ $variationTranslationId ] = $language;
 			}
 		}
+
+		$this->reportUnreadableVariationSources( $product->ID, $unreadableVariations );
 
 		if ( ! empty( $preparedVariationsToSetAsDuplication ) ) {
 			$this->wpdb->query(
@@ -111,34 +137,53 @@ class Variations extends SynchronizerForMeta {
 			);
 		}
 
-		foreach ( $translationsIds as $translationId ) {
-			$orphanedTranslationVariations = $storedVariations[ $translationId ] ?? [];
-			foreach ( $orphanedTranslationVariations as $orphanedTranslationVariationId => $orphanedTranslationVariation ) {
-				wp_delete_post( $orphanedTranslationVariationId, true );
+		if ( ! $editorScopedIds ) {
+			foreach ( $translationsIds as $translationId ) {
+				$orphanedTranslationVariations = $storedVariations[ $translationId ] ?? [];
+				foreach ( $orphanedTranslationVariations as $orphanedTranslationVariationId => $orphanedTranslationVariation ) {
+					wp_delete_post( $orphanedTranslationVariationId, true );
+				}
 			}
 		}
 
 		$this->removeOrphanedVariationAttributes( $product->ID, array_keys( $productVariations ) );
 		$this->synchronizeMinMaxPrices( $product->ID, $translationsLanguages, $variationsTranslations );
 
-		$wcmlProductDataStore = wcml_product_data_store_cpt();
-		foreach ( $variationsTranslations as $variationId => $variationTranslationsLanguages ) {
-			$variationTranslations = array_keys( $variationTranslationsLanguages );
-			do_action( Hooks::HOOK_SYNCHRONIZE_PRODUCT_VARIATION_TRANSLATIONS, $productVariations[ $variationId ], $variationTranslations, $variationTranslationsLanguages );
-			foreach ( $variationTranslations as $variationTranslationId ) {
-				// NOTE This is still potentially expensive.
-				//$wcmlProductDataStore->update_lookup_table_data( $variationTranslationId );
-				$this->syncHashManager->saveHash( $variationTranslationId, true );
+		Stock::deferCacheDeletes();
+		try {
+			foreach ( $variationsTranslations as $variationId => $variationTranslationsLanguages ) {
+				$variationTranslations = array_keys( $variationTranslationsLanguages );
+				do_action( Hooks::HOOK_SYNCHRONIZE_PRODUCT_VARIATION_TRANSLATIONS, $productVariations[ $variationId ], $variationTranslations, $variationTranslationsLanguages );
+				foreach ( $variationTranslations as $variationTranslationId ) {
+					$this->syncHashManager->saveHash( $variationTranslationId, true );
+				}
 			}
+		} finally {
+			Stock::flushCacheDeletes();
 		}
 
 		add_action( 'save_post', [ $this->elementTranslations, 'save_post_actions' ], 100, 2 );
 	}
 
-	/**
-	 * @param int   $productId
-	 * @param int[] $productVariations
-	 */
+	private function primeCaches( $productVariations, $storedVariations, $translationsLanguages ) {
+		$this->elementTranslations->prefetch_ids( array_keys( $productVariations ) );
+
+		$variationsIds = array_keys( $productVariations );
+		foreach ( $translationsLanguages as $translationId => $language ) {
+			$variationsIds = array_merge( $variationsIds, array_keys( $storedVariations[ $translationId ] ?? [] ) );
+		}
+		update_meta_cache( 'post', $variationsIds );
+	}
+
+	private function areFieldsInSync( $storedTranslationVariation, $fields ) {
+		foreach ( $fields as $field => $value ) {
+			if ( (string) $storedTranslationVariation->$field !== (string) $value ) {
+				return false;
+			}
+		}
+		return true;
+	}
+
 	private function removeOrphanedVariationAttributes( $productId, $productVariations ) {
 		$productAttributes    = get_post_meta( $productId, '_product_attributes', true );
 		$variationsAttributes = $this->wpdb->get_results(
@@ -169,11 +214,6 @@ class Variations extends SynchronizerForMeta {
 		$this->deleteMetaByIds( $metaIdsToDelete );
 	}
 
-	/**
-	 * @param int               $productId
-	 * @param array<int,string> $translationsLanguages
-	 * @param array<int,array>  $variationsTranslations
-	 */
 	private function synchronizeMinMaxPrices( $productId, $translationsLanguages, $variationsTranslations ) {
 		$productsIds = array_merge( [ $productId ], array_keys( $translationsLanguages ) );
 		

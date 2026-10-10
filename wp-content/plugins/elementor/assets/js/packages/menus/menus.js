@@ -1,3 +1,172 @@
-/*! For license information please see menus.js.LICENSE.txt */
-!function(){"use strict";var e={"./packages/packages/libs/menus/src/create-menu.ts":function(e,r,t){t.r(r),t.d(r,{createMenu:function(){return createMenu}});var n=t("@elementor/locations"),c=t("./packages/packages/libs/menus/src/create-register-item.tsx"),u=t("./packages/packages/libs/menus/src/create-use-menu-items.ts");function createMenu({groups:e=[],components:r}){const t=function createLocations(e){return e.reduce((e,r)=>(e[r]=(0,n.createLocation)(),e),{})}([...e,"default"]),a=function createRegisterFns(e,r){return Object.entries(r).reduce((r,[t,n])=>{const u=`register${function capitalize(e){return e.charAt(0).toUpperCase()+e.slice(1)}(t)}`;return{...r,[u]:(0,c.createRegisterItem)(e,n)}},{})}(t,r);return{useMenuItems:(0,u.createUseMenuItems)(t),...a}}},"./packages/packages/libs/menus/src/create-register-item.tsx":function(e,r,t){t.r(r),t.d(r,{createRegisterItem:function(){return createRegisterItem}});var n=t("react");function _extends(){return _extends=Object.assign?Object.assign.bind():function(e){for(var r=1;r<arguments.length;r++){var t=arguments[r];for(var n in t)({}).hasOwnProperty.call(t,n)&&(e[n]=t[n])}return e},_extends.apply(null,arguments)}function createRegisterItem(e,r){return({id:t,group:c="default",priority:u=10,overwrite:a=!1,props:i,useProps:s})=>{if(!(c in e))return;const o=r,_=s||(()=>i);e[c].inject({id:t,component:e=>{const r=_();return n.createElement(o,_extends({},e,r))},options:{priority:u,overwrite:a}})}}},"./packages/packages/libs/menus/src/create-use-menu-items.ts":function(e,r,t){t.r(r),t.d(r,{createUseMenuItems:function(){return createUseMenuItems}});var n=t("react");function createUseMenuItems(e){return()=>(0,n.useMemo)(()=>Object.entries(e).reduce((e,[r,t])=>{const n=t.getInjections().map(e=>({id:e.id,MenuItem:e.component}));return{...e,[r]:n}},{}),[])}},"@elementor/locations":function(e){e.exports=window.elementorV2.locations},react:function(e){e.exports=window.React}},r={};function __webpack_require__(t){var n=r[t];if(void 0!==n)return n.exports;var c=r[t]={exports:{}};return e[t](c,c.exports,__webpack_require__),c.exports}__webpack_require__.n=function(e){var r=e&&e.__esModule?function(){return e.default}:function(){return e};return __webpack_require__.d(r,{a:r}),r},__webpack_require__.d=function(e,r){for(var t in r)__webpack_require__.o(r,t)&&!__webpack_require__.o(e,t)&&Object.defineProperty(e,t,{enumerable:!0,get:r[t]})},__webpack_require__.o=function(e,r){return Object.prototype.hasOwnProperty.call(e,r)},__webpack_require__.r=function(e){"undefined"!=typeof Symbol&&Symbol.toStringTag&&Object.defineProperty(e,Symbol.toStringTag,{value:"Module"}),Object.defineProperty(e,"__esModule",{value:!0})};var t={};!function(){__webpack_require__.r(t),__webpack_require__.d(t,{createMenu:function(){return e.createMenu}});var e=__webpack_require__("./packages/packages/libs/menus/src/create-menu.ts")}(),(window.elementorV2=window.elementorV2||{}).menus=t}(),window.elementorV2.menus?.init?.();
+(function(_elementor_locations, _elementor_utils, react, _elementor_editor_ui, _elementor_ui) {
+
+//#region \0rolldown/runtime.js
+	var __create = Object.create;
+	var __defProp = Object.defineProperty;
+	var __name = (target, value) => __defProp(target, "name", {
+		value,
+		configurable: true
+	});
+	var __getOwnPropDesc = Object.getOwnPropertyDescriptor;
+	var __getOwnPropNames = Object.getOwnPropertyNames;
+	var __getProtoOf = Object.getPrototypeOf;
+	var __hasOwnProp = Object.prototype.hasOwnProperty;
+	var __exportAll = (all, no_symbols) => {
+		let target = {};
+		for (var name in all) {
+			__defProp(target, name, {
+				get: all[name],
+				enumerable: true
+			});
+		}
+		if (!no_symbols) {
+			__defProp(target, Symbol.toStringTag, { value: "Module" });
+		}
+		return target;
+	};
+	var __copyProps = (to, from, except, desc) => {
+		if (from && typeof from === "object" || typeof from === "function") {
+			for (var keys = __getOwnPropNames(from), i = 0, n = keys.length, key; i < n; i++) {
+				key = keys[i];
+				if (!__hasOwnProp.call(to, key) && key !== except) {
+					__defProp(to, key, {
+						get: ((k) => from[k]).bind(null, key),
+						enumerable: !(desc = __getOwnPropDesc(from, key)) || desc.enumerable
+					});
+				}
+			}
+		}
+		return to;
+	};
+	var __toESM = (mod, isNodeMode, target) => (target = mod != null ? __create(__getProtoOf(mod)) : {}, __copyProps(isNodeMode || !mod || !mod.__esModule ? __defProp(target, "default", {
+		value: mod,
+		enumerable: true
+	}) : target, mod));
+
+//#endregion
+react = __toESM(react);
+
+//#region packages/packages/libs/menus/src/create-register-item.tsx
+	function createRegisterItem(locations, component, notify) {
+		return ({ id, group = "default", priority = 10, overwrite = false, props: _props, useProps: _useProps }) => {
+			if (!(group in locations)) return;
+			const Component = component;
+			const useProps = _useProps || (() => _props);
+			const InjectedComponent = (props) => {
+				const componentProps = useProps();
+				return /* @__PURE__ */ react.createElement(Component, {
+					...props,
+					...componentProps
+				});
+			};
+			locations[group].inject({
+				id,
+				component: InjectedComponent,
+				options: {
+					priority,
+					overwrite
+				}
+			});
+			notify();
+		};
+	}
+
+//#endregion
+//#region packages/packages/libs/menus/src/create-use-menu-items.ts
+	function createUseMenuItems(locations, subscribe) {
+		let snapshot = null;
+		subscribe(() => {
+			snapshot = null;
+		});
+		const getMenuItems = () => {
+			if (snapshot) return snapshot;
+			snapshot = Object.entries(locations).reduce((carry, [groupName, location]) => {
+				const items = location.getInjections().map((injection) => ({
+					id: injection.id,
+					MenuItem: injection.component
+				}));
+				return {
+					...carry,
+					[groupName]: items
+				};
+			}, {});
+			return snapshot;
+		};
+		return () => (0, react.useSyncExternalStore)(subscribe, getMenuItems);
+	}
+
+//#endregion
+//#region packages/packages/libs/menus/src/create-menu.ts
+	function createSubscription() {
+		const listeners = /* @__PURE__ */ new Set();
+		return {
+			subscribe: (listener) => {
+				listeners.add(listener);
+				return () => listeners.delete(listener);
+			},
+			notify: () => listeners.forEach((listener) => listener())
+		};
+	}
+	function createMenu({ groups = [], components }) {
+		const locations = createLocations([...groups, "default"]);
+		const { subscribe, notify } = createSubscription();
+		const registerFns = createRegisterFns(locations, components, notify);
+		return {
+			useMenuItems: createUseMenuItems(locations, subscribe),
+			...registerFns
+		};
+	}
+	function createLocations(groups) {
+		return groups.reduce((acc, group) => {
+			acc[group] = (0, _elementor_locations.createLocation)();
+			return acc;
+		}, {});
+	}
+	function createRegisterFns(locations, components, notify) {
+		return Object.entries(components).reduce((acc, [key, component]) => {
+			const name = `register${(0, _elementor_utils.capitalize)(key)}`;
+			return {
+				...acc,
+				[name]: createRegisterItem(locations, component, notify)
+			};
+		}, {});
+	}
+
+//#endregion
+//#region packages/packages/libs/menus/src/action.tsx
+	var SIZE = "tiny";
+	function Action({ title, visible = true, icon: Icon, onClick }) {
+		if (!visible) return null;
+		return /* @__PURE__ */ react.createElement(_elementor_ui.Tooltip, {
+			placement: "top",
+			title,
+			arrow: true
+		}, /* @__PURE__ */ react.createElement(_elementor_ui.IconButton, {
+			"aria-label": title,
+			size: SIZE,
+			onClick
+		}, /* @__PURE__ */ react.createElement(Icon, { fontSize: SIZE })));
+	}
+
+//#endregion
+//#region packages/packages/libs/menus/src/controls-actions.ts
+	var controlActionsMenu = createMenu({ components: {
+		Action,
+		PopoverAction: _elementor_editor_ui.PopoverAction
+	} });
+
+//#endregion
+//#region packages/packages/libs/menus/src/index.ts
+	var src_exports = /* @__PURE__ */ __exportAll({
+		controlActionsMenu: () => controlActionsMenu,
+		createMenu: () => createMenu
+	});
+
+//#endregion
+//#region \0elementor-package-library-entry
+	(window.elementorV2 = window.elementorV2 || {}).menus = src_exports;
+
+//#endregion
+})(elementorV2.locations, elementorV2.utils, React, elementorV2.editorUi, elementorV2.ui);
+window.elementorV2.menus?.init?.();
 //# sourceMappingURL=menus.js.map

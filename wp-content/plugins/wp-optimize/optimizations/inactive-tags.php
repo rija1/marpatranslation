@@ -1,6 +1,6 @@
 <?php
 
-if (!defined('WPO_VERSION')) die('No direct access allowed');
+if (!defined('ABSPATH')) die('No direct access allowed');
 
 class WP_Optimization_tags extends WP_Optimization {
 
@@ -24,14 +24,5 @@ class WP_Optimization_tags extends WP_Optimization {
 	 */
 	public function settings_label() {
 		return __('Remove unused tags', 'wp-optimize');
-	}
-
-	/**
-	 * Return description
-	 *
-	 * @return string
-	 */
-	public function get_auto_option_description() {
-		return __('Removes unused tags', 'wp-optimize');
 	}
 }

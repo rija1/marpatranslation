@@ -14,24 +14,14 @@ use WPML\FP\Str;
 
 class AdminMenu extends \WCML_Menu_Wrap_Base {
 
-	/** @var SitePress|NullSitePress */
 	private $sitepress;
 
-	/**
-	 * WCML_Menus_Wrap constructor.
-	 *
-	 * @param SitePress|NullSitePress $sitepress
-	 * @param woocommerce_wpml        $woocommerce_wpml
-	 */
 	public function __construct( ISitePress $sitepress, $woocommerce_wpml ) {
 		parent::__construct( $woocommerce_wpml );
 
 		$this->sitepress = $sitepress;
 	}
 
-	/**
-	 * @return array
-	 */
 	protected function get_child_model() {
 		$current_tab = AdminPages::getTabToDisplay();
 
@@ -42,11 +32,13 @@ class AdminMenu extends \WCML_Menu_Wrap_Base {
 			'is_standalone' => true,
 			'menu'          => [
 				AdminUrl::TAB_MULTILINGUAL => [
+					/* translators: Tab title of the plugin's screen that lists what is translated. Adjective used as a name. */
 					'title'  => __( 'Multilingual', 'woocommerce-multilingual' ),
 					'active' => AdminUrl::TAB_MULTILINGUAL_STANDALONE === $current_tab ? 'nav-tab-active' : '',
 					'url'    => \WCML\Utilities\AdminUrl::getMultilingualTab(),
 				],
 				'multi_currency'           => [
+					/* translators: Tab title and heading of the plugin's screen for currencies. One word, the name of the feature. */
 					'name'   => __( 'Multicurrency', 'woocommerce-multilingual' ),
 					'active' => AdminUrl::TAB_MULTILINGUAL_STANDALONE !== $current_tab ? 'nav-tab-active' : '',
 					'url'    => \WCML\Utilities\AdminUrl::getMultiCurrencyTab(),
@@ -76,6 +68,7 @@ class AdminMenu extends \WCML_Menu_Wrap_Base {
 				$content .= $inP(
 					/* translators: %1$s and %2$s are opening and closing HTML link tags */
 					$wrapLink( esc_html__( 'If you have it already, install and activate it. Otherwise, %1$sbuy WPML%2$s.', 'woocommerce-multilingual' ), \WCML_Tracking_Link::getWpmlPurchase( true ) )
+					/* translators: Second half of the notice shown when WPML is missing; "Multilingual CMS" and "Multilingual Agency" are the names of WPML accounts and stay in English. */
 					. ' ' . esc_html__( 'You will need either the Multilingual CMS or Multilingual Agency package to use WPML with WooCommerce.', 'woocommerce-multilingual' )
 				);
 

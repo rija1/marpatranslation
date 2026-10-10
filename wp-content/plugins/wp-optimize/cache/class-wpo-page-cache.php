@@ -129,6 +129,7 @@ class WPO_Page_Cache {
 		 */
 		add_action('wpo_cache_flush', array($this, 'update_cache_config'));
 		add_action('wpo_cache_flush', array($this, 'delete_cache_size_information'));
+		add_action('wpo_cache_flush', array($this, 'update_cache_cleared_time'));
 		add_action('update_option_permalink_structure', array($this, 'update_option_permalink_structure'), 10, 3);
 
 		// Add purge cache link to admin bar.
@@ -194,60 +195,87 @@ class WPO_Page_Cache {
 	 * This method checks cache rules to identify if caching is possible.
 	 * If caching is not allowed, it adds appropriate HTTP headers and debug messages.
 	 *
-	 * @return bool True if the page should be cached, false otherwise.
+	 * @return bool|array True if the page should be cached, false otherwise or not empty array with the reasons why the page isn't cached
 	 */
 	public function should_cache_page() {
 
 		if (!$this->is_enabled()) return false;
 
-		$no_cache_because = array();
+		return wpo_can_serve_from_cache();
+	}
 
-		// Check serve cache rules, to identify if we need to cache the page.
-		$can_serve_from_cache = wpo_can_serve_from_cache();
-		
-		if (false === $can_serve_from_cache) return false;
+	/**
+	 * Maybe add information about why the page is not cached to the headers and footer output
+	 *
+	 * @param array $no_cache_because
+	 * @return void
+	 */
+	public function maybe_add_no_cache_because_info($no_cache_because) {
+		// Add http header
+		if (!wp_doing_cron() && !empty($no_cache_because)) {
+			$no_cache_because_message = join(", ", $no_cache_because);
+			wpo_cache_add_nocache_http_header_with_send_headers_action($no_cache_because_message);
 
-		if (is_array($can_serve_from_cache)) $no_cache_because = $can_serve_from_cache;
-
-		if (!empty($no_cache_because)) {
-			do_action('wpo_page_not_cached', $no_cache_because);
-
-			// Add http header
-			if (!wp_doing_cron()) {
-				$no_cache_because_message = join(", ", $no_cache_because);
-				wpo_cache_add_nocache_http_header_with_send_headers_action($no_cache_because_message);
-
-				$not_cached_details = "";
-				
-				// Output the reason only when the user has turned on debugging
-				if ((defined('WP_DEBUG') && WP_DEBUG) || !empty(TeamUpdraft\WP_Optimize\Includes\Fragments\fetch_superglobal('get', 'wpo_cache_debug'))) {
-					$not_cached_details = "because: ".$no_cache_because_message;
-				}
-				wpo_cache_add_footer_output(sprintf("Page not served from cache %s", $not_cached_details));
+			$not_cached_details = "";
+			
+			// Output the reason only when the user has turned on debugging
+			if ((defined('WP_DEBUG') && WP_DEBUG) || !empty(TeamUpdraft\WP_Optimize\Includes\Fragments\fetch_superglobal('get', 'wpo_cache_debug'))) {
+				$not_cached_details = "because: ".$no_cache_because_message;
 			}
-
-			return false;
+			wpo_cache_add_footer_output(sprintf("Page not served from cache %s", $not_cached_details));
 		}
+	}
 
-		return true;
+	/**
+	 * Handle cache settings update
+	 *
+	 * @param array $new_settings
+	 * @return void
+	 */
+	public function cache_settings_updated($new_settings) {
+
+		$this->unschedule_purge_old_cache();
+
+		if ($new_settings['enable_page_caching']) {
+			$this->schedule_purge_old_cache();
+		}
 	}
 
 	/**
 	 * Activate cron job when the cache is enabled for deleting expired cache files
 	 */
 	public function cron_activate() {
-		$page_cache_length = $this->config->get_option('page_cache_length');
 		if ($this->is_enabled()) {
-			if (!wp_next_scheduled('wpo_purge_old_cache')) {
-				wp_schedule_event(time() + (false === $page_cache_length ? '86400' : $page_cache_length), 'wpo_purge_old_cache', 'wpo_purge_old_cache');
-			}
-			if (!wp_next_scheduled('wpo_prune_cache_logs')) {
-				wp_schedule_event(time(), 'weekly', 'wpo_prune_cache_logs');
-			}
+			$this->schedule_purge_old_cache();
 		} else {
-			wp_clear_scheduled_hook('wpo_purge_old_cache');
-			wp_clear_scheduled_hook('wpo_prune_cache_logs');
+			$this->unschedule_purge_old_cache();
 		}
+	}
+
+	/**
+	 * Schedules events to purge old cache
+	 *
+	 * @return void
+	 */
+	private function schedule_purge_old_cache() {
+		$page_cache_length = $this->config->get_option('page_cache_length');
+
+		if (!wp_next_scheduled('wpo_purge_old_cache')) {
+			wp_schedule_event(time() + (false === $page_cache_length ? 86400 : $page_cache_length), 'wpo_purge_old_cache', 'wpo_purge_old_cache');
+		}
+		if (!wp_next_scheduled('wpo_prune_cache_logs')) {
+			wp_schedule_event(time(), 'weekly', 'wpo_prune_cache_logs');
+		}
+	}
+
+	/**
+	 * Unschedules events to purge old cache
+	 *
+	 * @return void
+	 */
+	private function unschedule_purge_old_cache() {
+		wp_clear_scheduled_hook('wpo_purge_old_cache');
+		wp_clear_scheduled_hook('wpo_prune_cache_logs');
 	}
 
 	/**
@@ -271,13 +299,8 @@ class WPO_Page_Cache {
 	 */
 	public function can_purge_cache() {
 		if (!$this->is_enabled()) return false;
-		$required_capability = is_multisite() ? 'manage_network_options' : 'manage_options';
 
-		if (WP_Optimize::is_premium()) {
-			return current_user_can($required_capability) || WP_Optimize_Premium()->can_purge_the_cache();
-		} else {
-			return current_user_can($required_capability);
-		}
+		return WP_Optimize_Utils::current_user_can_purge_cache();
 	}
 
 	/**
@@ -290,7 +313,7 @@ class WPO_Page_Cache {
 		global $pagenow;
 		if (!$this->can_purge_cache()) return $menu_items;
 
-		$act_url = remove_query_arg(array('wpo_single_page_cache_purged', 'wpo_all_pages_cache_purged'));
+		$act_url = WP_Optimize_Utils::get_url_without_cache_purge_params();
 
 		$cache_size = $this->get_cache_size();
 		$cache_size_info = '<h4>'.__('Page cache', 'wp-optimize').'</h4>';
@@ -343,13 +366,26 @@ class WPO_Page_Cache {
 			// phpcs:disable
 			// We are not using $_GET values, just checks if the variable is set and then use hard coded string
 			if (isset($_GET['wpo_single_page_cache_purged'])) {
-				$notice_function = $_GET['wpo_single_page_cache_purged'] ? 'notice_purge_single_page_cache_success' : 'notice_purge_single_page_cache_error';
+				$message = $_GET['wpo_single_page_cache_purged'] ? __('Cache purged for this page', 'wp-optimize') : __('Error purging cache for this page', 'wp-optimize');
+				$type = $_GET['wpo_single_page_cache_purged'] ? 'success' : 'error';
 			} else {
-				$notice_function = $_GET['wpo_all_pages_cache_purged'] ? 'notice_purge_all_pages_cache_success' : 'notice_purge_all_pages_cache_error';
+				$message = $_GET['wpo_all_pages_cache_purged'] ? __('Cache purged for all pages', 'wp-optimize') : __('Error purging cache for all pages', 'wp-optimize');
+				$type = $_GET['wpo_all_pages_cache_purged'] ? 'success' : 'error';
 			}
 			// phpcs:enable
 
-			add_action('admin_notices', array($this, $notice_function));
+			if (is_admin()) {
+				$admin_notices_hook = is_network_admin() ? 'network_admin_notices' : 'admin_notices';
+
+				add_action($admin_notices_hook, function() use ($message, $type) {
+					$this->show_notice($message, $type);
+				});
+				
+				add_action('admin_head', array('WP_Optimize_Utils', 'script_to_remove_cache_purge_params_from_url'));
+			} else {
+				printf('<script>window.onload = function() {alert("%s");}</script>', esc_js($message));
+				WP_Optimize_Utils::script_to_remove_cache_purge_params_from_url();
+			}
 
 			return;
 		}
@@ -371,8 +407,11 @@ class WPO_Page_Cache {
 				if ($success) $this->file_log("Cache for URL: " . self::remove_query_params($url) . " has been purged, triggered by: " . __METHOD__);
 			}
 
-			// remove nonce from url and reload page.
-			wp_redirect(add_query_arg('wpo_single_page_cache_purged', $success, remove_query_arg('_wpo_purge')));
+			// Remove all existing purge-related parameters and add the new one
+			$redirect_url = WP_Optimize_Utils::get_url_without_cache_purge_params();
+			$redirect_url = add_query_arg('wpo_single_page_cache_purged', $success, $redirect_url);
+
+			wp_redirect($redirect_url);
 			exit;
 
 		} elseif (wp_verify_nonce(sanitize_key($_GET['_wpo_purge']), 'wpo_purge_all_pages_cache')) {
@@ -380,8 +419,11 @@ class WPO_Page_Cache {
 			$this->maybe_set_preload_cron_job();
 			if ($success) $this->file_log("Full Cache Purge triggered by: ". __METHOD__);
 
-			// remove nonce from url and reload page.
-			wp_redirect(add_query_arg('wpo_all_pages_cache_purged', $success, remove_query_arg('_wpo_purge')));
+			// Remove all existing purge-related parameters and add the new one
+			$redirect_url = WP_Optimize_Utils::get_url_without_cache_purge_params();
+			$redirect_url = add_query_arg('wpo_all_pages_cache_purged', $success, $redirect_url);
+
+			wp_redirect($redirect_url);
 			exit;
 		}
 	}
@@ -403,35 +445,7 @@ class WPO_Page_Cache {
 			}
 		}
 	}
-
-	/**
-	 * Show notification when page cache purged successfully.
-	 */
-	public function notice_purge_single_page_cache_success() {
-		$this->show_notice(__('The page cache was successfully purged.', 'wp-optimize'), 'success');
-	}
-
-	/**
-	 * Show notification when page cache wasn't purged.
-	 */
-	public function notice_purge_single_page_cache_error() {
-		$this->show_notice(__('The page cache was not purged.', 'wp-optimize'), 'error');
-	}
-
-	/**
-	 * Show notification when all pages cache purged successfully.
-	 */
-	public function notice_purge_all_pages_cache_success() {
-		$this->show_notice(__('The page cache was successfully purged.', 'wp-optimize'), 'success');
-	}
-
-	/**
-	 * Show notification when all pages cache wasn't purged.
-	 */
-	public function notice_purge_all_pages_cache_error() {
-		$this->show_notice(__('The page cache was not purged.', 'wp-optimize'), 'error');
-	}
-
+	
 	/**
 	 * Show notification in WordPress admin.
 	 *
@@ -504,8 +518,8 @@ class WPO_Page_Cache {
 		}
 
 		if (!$force_enable) {
-			$already_ran_enable = true;
-			return true;
+			$already_ran_enable = $this->update_page_cache_enabled_state(true);
+			return $already_ran_enable;
 		}
 
 		if (!$this->write_advanced_cache() && version_compare($this->get_advanced_cache_version(), $this->_minimum_advanced_cache_file_version, '<')) {
@@ -534,17 +548,17 @@ class WPO_Page_Cache {
 			return $already_ran_enable;
 		}
 
-		$already_ran_enable = true;
-
-		return true;
+		$already_ran_enable = $this->update_page_cache_enabled_state(true);
+		return $already_ran_enable;
 	}
 
 	/**
 	 * Disables page cache
 	 *
-	 * @return bool - true on success, false otherwise
+	 * @param bool $keep_option_enabled - Whether to keep the option `enable_page_caching` enabled or not. This is useful when we want to disable the cache temporarily, e.g. when deactivating the plugin, but we want to keep the option enabled so that it can be re-enabled when the plugin is reactivated.
+	 * @return bool|WP_Error - true on success or WP_Error on failure.
 	 */
-	public function disable() {
+	public function disable($keep_option_enabled = false) {
 		global $is_apache;
 
 		$ret = true;
@@ -554,13 +568,6 @@ class WPO_Page_Cache {
 		// N.B. The only use of WP_CACHE in WP core is to include('advanced-cache.php') (and run a function if it's then defined); so, if the decision to leave it enable is, for some unexpected reason, technically incorrect, it still can't cause a problem.
 		$disabled_wp_config = $this->write_wp_config(false);
 		if (!$disabled_wp_config) {
-			$plugin_basename = basename(WPO_PLUGIN_MAIN_PATH);
-			$action = "deactivate_".$plugin_basename."/wp-optimize.php";
-			if (current_action() === $action) {
-				$cache_config = WPO_Cache_Config::instance()->config;
-				$cache_config['enable_page_caching'] = false;
-				WPO_Cache_Config::instance()->update($cache_config, true);
-			}
 			$this->log("Could not turn off the WP_CACHE constant in wp-config.php");
 			$this->add_warning('error_disabling', __('Could not turn off the WP_CACHE constant in wp-config.php', 'wp-optimize'));
 		}
@@ -569,7 +576,7 @@ class WPO_Page_Cache {
 		// First try to remove (so that it doesn't look to any other plugin like the file is already 'claimed')
 		// We only touch advanched-cache.php and wp-config.php if it appears that we were in control of advanced-cache.php
 		if (!file_exists($advanced_cache_file) || false !== strpos(file_get_contents($advanced_cache_file), 'WP-Optimize advanced-cache.php')) {
-			if (file_exists($advanced_cache_file) && (!wp_delete_file($advanced_cache_file) && false === file_put_contents($advanced_cache_file, "<?php\n// WP-Optimize: page cache disabled"))) {
+			if (file_exists($advanced_cache_file) && (!WP_Optimize_Utils::wp_delete_file($advanced_cache_file) && false === file_put_contents($advanced_cache_file, "<?php\n// WP-Optimize: page cache disabled"))) {
 				$disabled_advanced_cache = false;
 				$this->log("The request to the filesystem to remove or empty advanced-cache.php failed");
 				$this->add_warning('error_disabling', __('The request to the filesystem to remove or empty advanced-cache.php failed', 'wp-optimize'));
@@ -593,11 +600,41 @@ class WPO_Page_Cache {
 		// Unschedule cron job to purge old cache
 		wp_clear_scheduled_hook('wpo_purge_old_cache');
 
-		if (!is_wp_error($ret)) wp_clear_scheduled_hook('wpo_prune_cache_logs');
+		if (!is_wp_error($ret)) {
+			wp_clear_scheduled_hook('wpo_prune_cache_logs');
+
+			if (!$keep_option_enabled) {
+				$ret = $this->update_page_cache_enabled_state(false);
+			}
+		}
+
+		if (!is_wp_error($ret)) {
+			do_action('wpo_page_cache_disabled');
+		}
 
 		return $ret;
 	}
 
+	/**
+	 * Update page cache enabled state.
+	 * Only updates `enable_page_caching` if the option exists and the value has changed.
+	 *
+	 * @param bool $enabled Whether page caching should be marked as enabled.
+	 *
+	 * @return true|WP_Error true on success, WP_Error on failure.
+	 */
+	private function update_page_cache_enabled_state($enabled) {
+		$config = WPO_Cache_Config::instance();
+		$cache_config = $config->get();
+
+		if (isset($cache_config['enable_page_caching']) && $cache_config['enable_page_caching'] === $enabled) {
+			return true;
+		}
+
+		$cache_config['enable_page_caching'] = $enabled;
+
+		return $config->update($cache_config, true);
+	}
 
 	/**
 	 * Purges the cache
@@ -702,34 +739,38 @@ class WPO_Page_Cache {
 	}
 
 	/**
-	 * Check if cache is enabled and working
+	 * Checks whether page caching is turned on in settings.
 	 *
-	 * @return bool - true on success, false otherwise
+	 * @return bool true if the `enable_page_caching` option is set & environment is ready to cache, false otherwise.
 	 */
 	public function is_enabled() {
+		return $this->config->get_option('enable_page_caching') && $this->is_environment_functional();
+	}
 
-		if (!$this->config->get_option('enable_page_caching')) return false;
+	/**
+	 * Checks whether the cache delivery chain is actually intact and able to serve cached pages.
+	 *
+	 * Verifies the WP_CACHE and WPO_ADVANCED_CACHE constants are defined and true, and that the cache config file exists on disk.
+	 *
+	 * @return bool True if the delivery chain is functional, false otherwise.
+	 */
+	private function is_environment_functional() {
+		$is_cli_or_ajax = (defined('WP_CLI') && WP_CLI) || (defined('DOING_AJAX') && DOING_AJAX);
 
-		if (!defined('WP_CACHE') || !WP_CACHE) {
-			if ((!(defined('WP_CLI') && WP_CLI)) && (!defined('DOING_AJAX') || !DOING_AJAX)) {
-				$this->log("WP_CACHE constant is not present in wp-config.php");
-				return false;
-			}
+		if (!$is_cli_or_ajax && (!defined('WP_CACHE') || !WP_CACHE)) {
+			$this->file_log("WP_CACHE constant is not present in wp-config.php");
+			return false;
 		}
 
-		if (!defined('WPO_ADVANCED_CACHE') || !WPO_ADVANCED_CACHE) {
-			if ((!(defined('WP_CLI') && WP_CLI)) && (!defined('DOING_AJAX') || !DOING_AJAX)) {
-				$this->log("WPO_ADVANCED_CACHE constant is not present in advanced-cache.php");
-				return false;
-			}
+		if (!$is_cli_or_ajax && (!defined('WPO_ADVANCED_CACHE') || !WPO_ADVANCED_CACHE)) {
+			$this->file_log("WPO_ADVANCED_CACHE constant is not present in advanced-cache.php");
+			return false;
 		}
 
 		$config_file = WPO_CACHE_CONFIG_DIR . '/'.$this->config->get_cache_config_filename();
-		if (!file_exists($config_file)) {
-			if ((!(defined('WP_CLI') && WP_CLI)) && (!defined('DOING_AJAX') || !DOING_AJAX)) {
-				$this->log("Cache config file $config_file is not present");
-				return false;
-			}
+		if (!$is_cli_or_ajax && !file_exists($config_file)) {
+			$this->file_log("Cache config file $config_file is not present");
+			return false;
 		}
 
 		return true;
@@ -999,6 +1040,11 @@ EOF;
 			return false;
 		}
 
+		// Bail early if wp-config.php is not writable, to avoid a PHP warning.
+		if (!wp_is_writable($config_path)) {
+			return false;
+		}
+
 		$config_file_string = file_get_contents($config_path);
 
 		// Config file is empty. Maybe couldn't read it?
@@ -1129,6 +1175,15 @@ EOF;
 	}
 
 	/**
+	 * Update cache cleared time
+	 */
+	public function update_cache_cleared_time(): void {
+		$config = $this->config->get();
+		$config['last_cleared'] = time();
+		$this->config->update($config);
+	}
+
+	/**
 	 * Get current cache size.
 	 *
 	 * @return array
@@ -1158,42 +1213,10 @@ EOF;
 	 * @return array
 	 */
 	private function get_dir_infos($dir) {
-		$dir_size = 0;
-		$file_count = 0;
-
-		$handle = is_dir($dir) ? opendir($dir) : false;
-
-		if (false === $handle) {
-			return array('size' => 0, 'file_count' => 0);
-		}
-
 		$filtered = apply_filters('wpo_cache_size_files_to_ignore', $this->files_to_ignore);
 		$this->files_to_ignore = is_array($filtered) ? $filtered : array();
 
-		$file = readdir($handle);
-
-		while (false !== $file) {
-
-			if ('.' !== $file && '..' !== $file) {
-				$current_file = $dir.'/'.$file;
-
-				if (is_dir($current_file)) {
-					$sub_dir_infos = $this->get_dir_infos($current_file);
-					$dir_size += $sub_dir_infos['size'];
-					$file_count += $sub_dir_infos['file_count'];
-				} elseif (is_file($current_file)) {
-					if (!in_array($file, $this->files_to_ignore)) {
-						$dir_size += filesize($current_file);
-						$file_count++;
-					}
-				}
-			}
-
-			$file = readdir($handle);
-
-		}
-
-		return array('size' => $dir_size, 'file_count' => $file_count);
+		return WP_Optimize_Utils::get_folder_stats($dir, $this->files_to_ignore);
 	}
 
 	/**
@@ -1270,6 +1293,8 @@ EOF;
 			$preloader = WP_Optimize_Page_Cache_Preloader::instance();
 			$preloader->add_url_to_preload_list($url);
 			$url_task_creator = array($preloader, 'create_tasks_for_auto_preload_urls');
+
+			$preloader->maybe_dont_close_browser_connection();
 
 			if (!has_action('shutdown', $url_task_creator)) {
 				add_action('shutdown', $url_task_creator);
@@ -1421,7 +1446,7 @@ EOF;
 	 */
 	public function admin_init() {
 		// Maybe update the advanced cache.
-		if ((!defined('DOING_AJAX') || !DOING_AJAX) && current_user_can('update_plugins')) {
+		if ((!defined('DOING_AJAX') || !DOING_AJAX) && WP_Optimize()->current_user_can('update_plugins')) {
 			$this->maybe_update_advanced_cache();
 			$this->cron_activate();
 		}

@@ -4,18 +4,18 @@
 
 namespace Composer\Autoload;
 
-class ComposerStaticInit36e5f80e2e1d4d29f112ceb45253b7e6
+class ComposerStaticInite1625a76807bb0ba88b6bd4fd29591fd
 {
     public static $prefixLengthsPsr4 = array (
-        'W' => 
+        'W' =>
         array (
             'WPDesk\\FCF\\Free\\' => 16,
         ),
-        'P' => 
+        'P' =>
         array (
             'Psr\\Log\\' => 8,
         ),
-        'D' => 
+        'D' =>
         array (
             'Doctrine\\Deprecations\\' => 22,
             'Doctrine\\Common\\Collections\\' => 28,
@@ -23,19 +23,19 @@ class ComposerStaticInit36e5f80e2e1d4d29f112ceb45253b7e6
     );
 
     public static $prefixDirsPsr4 = array (
-        'WPDesk\\FCF\\Free\\' => 
+        'WPDesk\\FCF\\Free\\' =>
         array (
             0 => __DIR__ . '/../..' . '/src',
         ),
-        'Psr\\Log\\' => 
+        'Psr\\Log\\' =>
         array (
             0 => __DIR__ . '/..' . '/psr/log/Psr/Log',
         ),
-        'Doctrine\\Deprecations\\' => 
+        'Doctrine\\Deprecations\\' =>
         array (
             0 => __DIR__ . '/..' . '/doctrine/deprecations/src',
         ),
-        'Doctrine\\Common\\Collections\\' => 
+        'Doctrine\\Common\\Collections\\' =>
         array (
             0 => __DIR__ . '/..' . '/doctrine/collections/lib/Doctrine/Common/Collections',
         ),
@@ -258,6 +258,8 @@ class ComposerStaticInit36e5f80e2e1d4d29f112ceb45253b7e6
         'FcfVendor\\WPDesk\\Notice\\Factory' => __DIR__ . '/../..' . '/vendor_prefixed/wpdesk/wp-notice/src/WPDesk/Notice/Factory.php',
         'FcfVendor\\WPDesk\\Notice\\Notice' => __DIR__ . '/../..' . '/vendor_prefixed/wpdesk/wp-notice/src/WPDesk/Notice/Notice.php',
         'FcfVendor\\WPDesk\\Notice\\PermanentDismissibleNotice' => __DIR__ . '/../..' . '/vendor_prefixed/wpdesk/wp-notice/src/WPDesk/Notice/PermanentDismissibleNotice.php',
+        'FcfVendor\\WPDesk\\Notice\\Plugin\\HookablePluginDependant' => __DIR__ . '/../..' . '/vendor_prefixed/wpdesk/wp-notice/src/WPDesk/Notice/Plugin/HookablePluginDependant.php',
+        'FcfVendor\\WPDesk\\Notice\\Plugin\\PluginAccess' => __DIR__ . '/../..' . '/vendor_prefixed/wpdesk/wp-notice/src/WPDesk/Notice/Plugin/PluginAccess.php',
         'FcfVendor\\WPDesk\\PluginBuilder\\BuildDirector\\LegacyBuildDirector' => __DIR__ . '/../..' . '/vendor_prefixed/wpdesk/wp-builder/src/BuildDirector/LegacyBuildDirector.php',
         'FcfVendor\\WPDesk\\PluginBuilder\\Builder\\AbstractBuilder' => __DIR__ . '/../..' . '/vendor_prefixed/wpdesk/wp-builder/src/Builder/AbstractBuilder.php',
         'FcfVendor\\WPDesk\\PluginBuilder\\Builder\\InfoActivationBuilder' => __DIR__ . '/../..' . '/vendor_prefixed/wpdesk/wp-builder/src/Builder/InfoActivationBuilder.php',
@@ -290,12 +292,16 @@ class ComposerStaticInit36e5f80e2e1d4d29f112ceb45253b7e6
         'FcfVendor\\WPDesk\\Plugin\\Flow\\Initialization\\Simple\\SimplePaidStrategy' => __DIR__ . '/../..' . '/vendor_prefixed/wpdesk/wp-plugin-flow-common/src/Initialization/Simple/SimplePaidStrategy.php',
         'FcfVendor\\WPDesk\\Plugin\\Flow\\Initialization\\Simple\\TrackerInstanceAsFilterTrait' => __DIR__ . '/../..' . '/vendor_prefixed/wpdesk/wp-plugin-flow-common/src/Initialization/TrackerInstanceAsFilterTrait.php',
         'FcfVendor\\WPDesk\\Plugin\\Flow\\PluginBootstrap' => __DIR__ . '/../..' . '/vendor_prefixed/wpdesk/wp-plugin-flow-common/src/PluginBootstrap.php',
-        'FcfVendor\\WPDesk\\Tracker\\Assets' => __DIR__ . '/../..' . '/vendor_prefixed/wpdesk/wp-wpdesk-tracker/src/PSR/WPDesk/Tracker/Assets.php',
-        'FcfVendor\\WPDesk\\Tracker\\OptInOptOut' => __DIR__ . '/../..' . '/vendor_prefixed/wpdesk/wp-wpdesk-tracker/src/PSR/WPDesk/Tracker/OptInOptOut.php',
-        'FcfVendor\\WPDesk\\Tracker\\OptInPage' => __DIR__ . '/../..' . '/vendor_prefixed/wpdesk/wp-wpdesk-tracker/src/PSR/WPDesk/Tracker/OptInPage.php',
-        'FcfVendor\\WPDesk\\Tracker\\OptOut' => __DIR__ . '/../..' . '/vendor_prefixed/wpdesk/wp-wpdesk-tracker/src/PSR/WPDesk/Tracker/OptOut.php',
-        'FcfVendor\\WPDesk\\Tracker\\PluginActionLinks' => __DIR__ . '/../..' . '/vendor_prefixed/wpdesk/wp-wpdesk-tracker/src/PSR/WPDesk/Tracker/PluginActionLinks.php',
-        'FcfVendor\\WPDesk\\Tracker\\Shop' => __DIR__ . '/../..' . '/vendor_prefixed/wpdesk/wp-wpdesk-tracker/src/PSR/WPDesk/Tracker/Shop.php',
+        'FcfVendor\\WPDesk\\Tracker\\Assets' => __DIR__ . '/../..' . '/vendor_prefixed/wpdesk/wp-wpdesk-tracker/src/Tracker/Assets.php',
+        'FcfVendor\\WPDesk\\Tracker\\Hookable' => __DIR__ . '/../..' . '/vendor_prefixed/wpdesk/wp-wpdesk-tracker/src/Tracker/Hookable.php',
+        'FcfVendor\\WPDesk\\Tracker\\HookableCollection' => __DIR__ . '/../..' . '/vendor_prefixed/wpdesk/wp-wpdesk-tracker/src/Tracker/HookableCollection.php',
+        'FcfVendor\\WPDesk\\Tracker\\HookableParent' => __DIR__ . '/../..' . '/vendor_prefixed/wpdesk/wp-wpdesk-tracker/src/Tracker/HookableParent.php',
+        'FcfVendor\\WPDesk\\Tracker\\OptInOptOut' => __DIR__ . '/../..' . '/vendor_prefixed/wpdesk/wp-wpdesk-tracker/src/Tracker/OptInOptOut.php',
+        'FcfVendor\\WPDesk\\Tracker\\OptInPage' => __DIR__ . '/../..' . '/vendor_prefixed/wpdesk/wp-wpdesk-tracker/src/Tracker/OptInPage.php',
+        'FcfVendor\\WPDesk\\Tracker\\OptOut' => __DIR__ . '/../..' . '/vendor_prefixed/wpdesk/wp-wpdesk-tracker/src/Tracker/OptOut.php',
+        'FcfVendor\\WPDesk\\Tracker\\PluginActionLinks' => __DIR__ . '/../..' . '/vendor_prefixed/wpdesk/wp-wpdesk-tracker/src/Tracker/PluginActionLinks.php',
+        'FcfVendor\\WPDesk\\Tracker\\Shop' => __DIR__ . '/../..' . '/vendor_prefixed/wpdesk/wp-wpdesk-tracker/src/Tracker/Shop.php',
+        'FcfVendor\\WPDesk\\Tracker\\Tracker' => __DIR__ . '/../..' . '/vendor_prefixed/wpdesk/wp-wpdesk-tracker/src/Tracker/Tracker.php',
         'FcfVendor\\WPDesk\\View\\PluginViewBuilder' => __DIR__ . '/../..' . '/vendor_prefixed/wpdesk/wp-view/src/PluginViewBuilder.php',
         'FcfVendor\\WPDesk\\View\\Renderer\\LoadTemplatePlugin' => __DIR__ . '/../..' . '/vendor_prefixed/wpdesk/wp-view/src/Renderer/LoadTemplatePlugin.php',
         'FcfVendor\\WPDesk\\View\\Renderer\\Renderer' => __DIR__ . '/../..' . '/vendor_prefixed/wpdesk/wp-view/src/Renderer/Renderer.php',
@@ -346,6 +352,7 @@ class ComposerStaticInit36e5f80e2e1d4d29f112ceb45253b7e6
         'FcfVendor\\WPDesk_Tracker_Sender' => __DIR__ . '/../..' . '/vendor_prefixed/wpdesk/wp-wpdesk-tracker/src/sender/class-wpdesk-tracker-sender.php',
         'FcfVendor\\WPDesk_Tracker_Sender_Exception_WpError' => __DIR__ . '/../..' . '/vendor_prefixed/wpdesk/wp-wpdesk-tracker/src/sender/Exception/class-wpdesk-tracker-sender-exception-wperror.php',
         'FcfVendor\\WPDesk_Tracker_Sender_Logged' => __DIR__ . '/../..' . '/vendor_prefixed/wpdesk/wp-wpdesk-tracker/src/sender/class-wpdesk-tracker-sender-logged.php',
+        'FcfVendor\\WPDesk_Tracker_Sender_Resolver' => __DIR__ . '/../..' . '/vendor_prefixed/wpdesk/wp-wpdesk-tracker/src/sender/class-wpdesk-tracker-sender-resolver.php',
         'FcfVendor\\WPDesk_Tracker_Sender_Wordpress_To_WPDesk' => __DIR__ . '/../..' . '/vendor_prefixed/wpdesk/wp-wpdesk-tracker/src/sender/class-wpdesk-tracker-sender-wordpress-to-wpdesk.php',
         'FcfVendor\\WPDesk_Translable' => __DIR__ . '/../..' . '/vendor_prefixed/wpdesk/wp-builder/src/Plugin/WithoutNamespace/Translable.php',
         'FcfVendor\\WPDesk_Translatable' => __DIR__ . '/../..' . '/vendor_prefixed/wpdesk/wp-builder/src/Plugin/WithoutNamespace/Translatable.php',
@@ -372,6 +379,7 @@ class ComposerStaticInit36e5f80e2e1d4d29f112ceb45253b7e6
         'Psr\\Log\\Test\\DummyTest' => __DIR__ . '/..' . '/psr/log/Psr/Log/Test/DummyTest.php',
         'Psr\\Log\\Test\\LoggerInterfaceTest' => __DIR__ . '/..' . '/psr/log/Psr/Log/Test/LoggerInterfaceTest.php',
         'Psr\\Log\\Test\\TestLogger' => __DIR__ . '/..' . '/psr/log/Psr/Log/Test/TestLogger.php',
+        'WPDesk\\FCF\\Free\\Blocks\\Editor' => __DIR__ . '/../..' . '/src/Blocks/Editor.php',
         'WPDesk\\FCF\\Free\\Collections\\RouteParamBag' => __DIR__ . '/../..' . '/src/Collections/RouteParamBag.php',
         'WPDesk\\FCF\\Free\\Exception\\TemplateLoadingFailed' => __DIR__ . '/../..' . '/src/Exception/TemplateLoadingFailed.php',
         'WPDesk\\FCF\\Free\\Exception\\UnexpectedParamException' => __DIR__ . '/../..' . '/src/Exception/UnexpectedParamException.php',
@@ -430,6 +438,7 @@ class ComposerStaticInit36e5f80e2e1d4d29f112ceb45253b7e6
         'WPDesk\\FCF\\Free\\Integration\\Value' => __DIR__ . '/../..' . '/src/Integration/Value.php',
         'WPDesk\\FCF\\Free\\Integration\\ValueInterface' => __DIR__ . '/../..' . '/src/Integration/ValueInterface.php',
         'WPDesk\\FCF\\Free\\Marketing\\SupportPage' => __DIR__ . '/../..' . '/src/Marketing/SupportPage.php',
+        'WPDesk\\FCF\\Free\\Notice\\BlockCompatibility' => __DIR__ . '/../..' . '/src/Notice/BlockCompatibility.php',
         'WPDesk\\FCF\\Free\\Notice\\FlexibleWishlistReview' => __DIR__ . '/../..' . '/src/Notice/FlexibleWishlistReview.php',
         'WPDesk\\FCF\\Free\\Notice\\Notice' => __DIR__ . '/../..' . '/src/Notice/Notice.php',
         'WPDesk\\FCF\\Free\\Notice\\NoticeIntegration' => __DIR__ . '/../..' . '/src/Notice/NoticeIntegration.php',
@@ -547,9 +556,9 @@ class ComposerStaticInit36e5f80e2e1d4d29f112ceb45253b7e6
     public static function getInitializer(ClassLoader $loader)
     {
         return \Closure::bind(function () use ($loader) {
-            $loader->prefixLengthsPsr4 = ComposerStaticInit36e5f80e2e1d4d29f112ceb45253b7e6::$prefixLengthsPsr4;
-            $loader->prefixDirsPsr4 = ComposerStaticInit36e5f80e2e1d4d29f112ceb45253b7e6::$prefixDirsPsr4;
-            $loader->classMap = ComposerStaticInit36e5f80e2e1d4d29f112ceb45253b7e6::$classMap;
+            $loader->prefixLengthsPsr4 = ComposerStaticInite1625a76807bb0ba88b6bd4fd29591fd::$prefixLengthsPsr4;
+            $loader->prefixDirsPsr4 = ComposerStaticInite1625a76807bb0ba88b6bd4fd29591fd::$prefixDirsPsr4;
+            $loader->classMap = ComposerStaticInite1625a76807bb0ba88b6bd4fd29591fd::$classMap;
 
         }, null, ClassLoader::class);
     }

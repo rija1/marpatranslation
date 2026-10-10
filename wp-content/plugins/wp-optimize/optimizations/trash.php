@@ -1,6 +1,6 @@
 <?php
 
-if (!defined('WPO_VERSION')) die('No direct access allowed');
+if (!defined('ABSPATH')) die('No direct access allowed');
 
 /**
  * Class WP_Optimization_trash
@@ -220,14 +220,5 @@ class WP_Optimization_trash extends WP_Optimization {
 		} else {
 			return __('Clean all trashed posts', 'wp-optimize');
 		}
-	}
-
-	/**
-	 * Return description
-	 *
-	 * @return string
-	 */
-	public function get_auto_option_description() {
-		return __('Remove trashed posts', 'wp-optimize');
 	}
 }

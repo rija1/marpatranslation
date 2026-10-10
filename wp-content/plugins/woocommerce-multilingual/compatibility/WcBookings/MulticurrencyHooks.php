@@ -4,16 +4,9 @@ namespace WCML\Compatibility\WcBookings;
 
 use WCML\Orders\Helper as OrdersHelper;
 
-/**
- * @todo: Most of the code in this class was just moved from
- * the original \WCML_Bookings class with the minimal
- * adjustments. There's a lot of weak/obsolete formatting
- * and code duplication that we should fix in the future.
- */
 class MulticurrencyHooks implements \IWPML_Action {
 
 
-	/** @var \woocommerce_wpml $woocommerce_wpml */
 	private $woocommerce_wpml;
 
 	public function __construct( \woocommerce_wpml $woocommerce_wpml ) {
@@ -41,7 +34,7 @@ class MulticurrencyHooks implements \IWPML_Action {
 
 		add_action( 'woocommerce_bookings_after_create_booking_page', [ $this, 'booking_currency_dropdown' ] );
 		add_action( 'init', [ $this, 'set_booking_currency' ] );
-		add_action( 'wp_ajax_wcml_booking_set_currency', [ $this, 'set_booking_currency_ajax' ] );
+		\WCML\Request\Ajax::register( 'wcml_booking_set_currency', [ 'authorize' => [ 'WCML_Capabilities', 'canManageWcml' ], 'description' => 'WCML manager (shop manager or administrator role, WCML_Capabilities::canManageWcml)', 'nonce' => [ 'booking_set_currency', 'wcml_nonce' ] ], [ $this, 'set_booking_currency_ajax' ] );
 
 		add_action( 'woocommerce_bookings_create_booking_page_add_order_item', [ $this, 'set_order_currency_on_create_booking_page' ] );
 		add_filter( 'woocommerce_currency_symbol', [ $this, 'filter_booking_currency_symbol' ] );
@@ -54,20 +47,10 @@ class MulticurrencyHooks implements \IWPML_Action {
 		}
 	}
 
-	/**
-	 * @param int $postId
-	 *
-	 * @return void
-	 */
 	public function wcml_price_field_after_booking_base_cost( $postId ) {
 		$this->echo_wcml_price_field( $postId, 'wcml_wc_booking_cost' );
 	}
 
-	/**
-	 * @param int $postId
-	 *
-	 * @return void
-	 */
 	public function wcml_price_field_after_booking_block_cost( $postId ) {
 		if ( self::isWcBookingsBefore_1_10_9() ) {
 			$this->echo_wcml_price_field( $postId, 'wcml_wc_booking_base_cost' );
@@ -76,82 +59,34 @@ class MulticurrencyHooks implements \IWPML_Action {
 		}
 	}
 
-	/**
-	 * @param int $postId
-	 *
-	 * @return void
-	 */
 	public function wcml_price_field_after_display_cost( $postId ) {
 		$this->echo_wcml_price_field( $postId, 'wcml_wc_display_cost' );
 	}
 
-	/**
-	 * @param array $pricing
-	 * @param int   $postId
-	 *
-	 * @return void
-	 */
 	public function wcml_price_field_after_booking_pricing_base_cost( $pricing, $postId ) {
 		$this->echo_wcml_price_field( $postId, 'wcml_wc_booking_pricing_base_cost', $pricing );
 	}
 
-	/**
-	 * @param array $pricing
-	 * @param int   $postId
-	 *
-	 * @return void
-	 */
 	public function wcml_price_field_after_booking_pricing_cost( $pricing, $postId ) {
 		$this->echo_wcml_price_field( $postId, 'wcml_wc_booking_pricing_cost', $pricing );
 	}
 
-	/**
-	 * @param int $personTypeId
-	 *
-	 * @return void
-	 */
 	public function wcml_price_field_after_person_cost( $personTypeId ) {
 		$this->echo_wcml_price_field( $personTypeId, 'wcml_wc_booking_person_cost', false, false );
 	}
 
-	/**
-	 * @param int $personTypeId
-	 *
-	 * @return void
-	 */
 	public function wcml_price_field_after_person_block_cost( $personTypeId ) {
 		$this->echo_wcml_price_field( $personTypeId, 'wcml_wc_booking_person_block_cost', false, false );
 	}
 
-	/**
-	 * @param int $resourceId
-	 * @param int $postId
-	 *
-	 * @return void
-	 */
 	public function wcml_price_field_after_resource_cost( $resourceId, $postId ) {
 		$this->echo_wcml_price_field( $postId, 'wcml_wc_booking_resource_cost', false, true, $resourceId );
 	}
 
-	/**
-	 * @param int $resourceId
-	 * @param int $postId
-	 *
-	 * @return void
-	 */
 	public function wcml_price_field_after_resource_block_cost( $resourceId, $postId ) {
 		$this->echo_wcml_price_field( $postId, 'wcml_wc_booking_resource_block_cost', false, true, $resourceId );
 	}
 
-	/**
-	 * @param int         $postId
-	 * @param string      $field
-	 * @param array|false $pricing
-	 * @param bool        $check
-	 * @param int|false   $resourceId
-	 *
-	 * @return void
-	 */
 	public function echo_wcml_price_field( $postId, $field, $pricing = false, $check = true, $resourceId = false ) {
 		if ( ( ! $check || $this->woocommerce_wpml->products->is_original_product( $postId ) ) ) {
 
@@ -313,11 +248,6 @@ class MulticurrencyHooks implements \IWPML_Action {
 		}
 	}
 
-	/**
-	 * @param int $postId
-	 *
-	 * @return void
-	 */
 	public function after_bookings_pricing( $postId ) {
 
 		if ( in_array( 'booking', wp_get_post_terms( $postId, 'product_type', [ 'fields' => 'names' ] ) ) && $this->woocommerce_wpml->products->is_original_product( $postId ) ) {
@@ -329,11 +259,13 @@ class MulticurrencyHooks implements \IWPML_Action {
 			echo '<div class="wcml_custom_costs">';
 
 			echo '<input type="radio" name="_wcml_custom_costs" id="wcml_custom_costs_auto" value="0" class="wcml_custom_costs_input" ' . esc_html( $checked ) . ' />';
+			/* translators: Label of the first radio button on a bookable product: WPML converts the booking costs using the exchange rate. */
 			echo '<label for="wcml_custom_costs_auto">' . esc_html__( 'Calculate costs in other currencies automatically', 'woocommerce-multilingual' ) . '</label>';
 
 			$checked = 1 === (int) $customCostsStatus ? 'checked="checked"' : ' ';
 
 			echo '<input type="radio" name="_wcml_custom_costs" value="1" id="wcml_custom_costs_manually" class="wcml_custom_costs_input" ' . esc_html( $checked ) . ' />';
+			/* translators: Label of the second radio button on a bookable product: the shop owner types each currency's booking costs. */
 			echo '<label for="wcml_custom_costs_manually">' . esc_html__( 'Set costs in other currencies manually', 'woocommerce-multilingual' ) . '</label>';
 
 			wp_nonce_field( 'wcml_save_custom_costs', '_wcml_custom_costs_nonce' );
@@ -342,11 +274,6 @@ class MulticurrencyHooks implements \IWPML_Action {
 		}
 	}
 
-	/**
-	 * @param int $postId
-	 *
-	 * @return false|void
-	 */
 	public function save_custom_costs( $postId ) {
 		$nonce = filter_var( isset( $_POST['_wcml_custom_costs_nonce'] ) ? $_POST['_wcml_custom_costs_nonce'] : '', FILTER_SANITIZE_FULL_SPECIAL_CHARS );
 
@@ -358,7 +285,7 @@ class MulticurrencyHooks implements \IWPML_Action {
 
 				$currencies = $this->woocommerce_wpml->multi_currency->get_currencies();
 				if ( empty( $currencies ) || 0 === $postId ) {
-					return false;
+					return;
 				}
 
 				$this->update_booking_costs( $currencies, $postId );
@@ -381,18 +308,10 @@ class MulticurrencyHooks implements \IWPML_Action {
 				}
 
 				update_post_meta( $postId, '_price', '' );
-			} else {
-				return false;
 			}
 		}
 	}
 
-	/**
-	 * @param array $currencies
-	 * @param int   $postId
-	 *
-	 * @return bool
-	 */
 	private function update_booking_costs( $currencies = [], $postId = 0 ) {
 		$bookingOptions = [
 			'wcml_wc_booking_cost'       => '_wc_booking_cost_',
@@ -416,12 +335,6 @@ class MulticurrencyHooks implements \IWPML_Action {
 		return true;
 	}
 
-	/**
-	 * @param array $currencies
-	 * @param int   $postId
-	 *
-	 * @return bool
-	 */
 	private function update_booking_pricing( $currencies = [], $postId = 0 ) {
 		$updatedMeta    = [];
 		$bookingPricing = get_post_meta( $postId, '_wc_booking_pricing', true );
@@ -446,12 +359,6 @@ class MulticurrencyHooks implements \IWPML_Action {
 		return true;
 	}
 
-	/**
-	 * @param array $currencies
-	 * @param array $personCosts
-	 *
-	 * @return bool
-	 */
 	private function update_booking_person_cost( $currencies = [], $personCosts = [] ) {
 		if ( empty( $personCosts ) ) {
 			return false;
@@ -468,12 +375,6 @@ class MulticurrencyHooks implements \IWPML_Action {
 		return true;
 	}
 
-	/**
-	 * @param array $currencies
-	 * @param array $blockCosts
-	 *
-	 * @return bool
-	 */
 	private function update_booking_person_block_cost( $currencies = [], $blockCosts = [] ) {
 		if ( empty( $blockCosts ) ) {
 			return false;
@@ -490,13 +391,6 @@ class MulticurrencyHooks implements \IWPML_Action {
 		return true;
 	}
 
-	/**
-	 * @param array $currencies
-	 * @param int   $postId
-	 * @param array $resourceCost
-	 *
-	 * @return bool
-	 */
 	private function update_booking_resource_cost( $currencies = [], $postId = 0, $resourceCost = [] ) {
 		if ( empty( $resourceCost ) ) {
 			return false;
@@ -528,13 +422,6 @@ class MulticurrencyHooks implements \IWPML_Action {
 		return true;
 	}
 
-	/**
-	 * @param array $currencies
-	 * @param int   $postId
-	 * @param array $resourceBlockCost
-	 *
-	 * @return bool
-	 */
 	private function update_booking_resource_block_cost( $currencies = [], $postId = 0, $resourceBlockCost = [] ) {
 		if ( empty( $resourceBlockCost ) ) {
 			return false;
@@ -566,62 +453,22 @@ class MulticurrencyHooks implements \IWPML_Action {
 		return true;
 	}
 
-	/**
-	 * This is an internal action hook required after splitting
-	 * the original WC Bookings compatibility code.
-	 *
-	 * @see \WCML_Bookings::sync_resource_costs_with_translations
-	 *
-	 * @param int|string $postId
-	 * @param string     $key
-	 *
-	 * @return void
-	 */
 	private static function triggerActionResourceCostsUpdated( $postId, $key ) {
 		do_action( 'wcml_bookings_resource_costs_updated', $postId, $key );
 	}
 
-	/**
-	 * @param float|int $cost
-	 * @param array     $fields
-	 * @param string    $key
-	 *
-	 * @return float|int
-	 */
 	public function wc_bookings_process_cost_rules_cost( $cost, $fields, $key ) {
 		return $this->filter_pricing_cost( $cost, $fields, 'cost_', $key );
 	}
 
-	/**
-	 * @param float|int $base_cost
-	 * @param array     $fields
-	 * @param string    $key
-	 *
-	 * @return float|int
-	 */
 	public function wc_bookings_process_cost_rules_base_cost( $base_cost, $fields, $key ) {
 		return $this->filter_pricing_cost( $base_cost, $fields, 'base_cost_', $key );
 	}
 
-	/**
-	 * @param float|int $override_cost
-	 * @param array     $fields
-	 * @param string    $key
-	 *
-	 * @return float|int
-	 */
 	public function wc_bookings_process_cost_rules_override_block_cost( $override_cost, $fields, $key ) {
 		return $this->filter_pricing_cost( $override_cost, $fields, 'override_block_', $key );
 	}
 
-	/**
-	 * @param float|int $cost
-	 * @param array     $fields
-	 * @param string    $name
-	 * @param string    $key
-	 *
-	 * @return float|int|mixed|string
-	 */
 	public function filter_pricing_cost( $cost, $fields, $name, $key ) {
 		$currency = $this->woocommerce_wpml->multi_currency->get_client_currency();
 
@@ -662,12 +509,6 @@ class MulticurrencyHooks implements \IWPML_Action {
 		return $cost;
 	}
 
-	/**
-	 * @param string $name
-	 * @param array  $fields
-	 *
-	 * @return bool
-	 */
 	public function needs_filter_pricing_cost( $name, $fields ) {
 
 		$modifier_skip_values = [ 'divide', 'times' ];
@@ -690,7 +531,7 @@ class MulticurrencyHooks implements \IWPML_Action {
 		$currencies    = $this->woocommerce_wpml->multi_currency->get_currencies( true );
 		?>
 		<tr valign="top">
-			<th scope="row"><?php _e( 'Booking currency', 'woocommerce-multilingual' ); ?></th>
+			<th scope="row"><?php /* translators: Row heading of the currency dropdown on the WooCommerce bookings screen. */ esc_html_e( 'Booking currency', 'woocommerce-multilingual' ); ?></th>
 			<td>
 				<select id="dropdown_booking_currency">
 					<?php foreach ( $currencies as $currency => $count ) : ?>
@@ -734,9 +575,12 @@ JS;
 	public function set_booking_currency_ajax() {
 		$nonce = filter_input( INPUT_POST, 'wcml_nonce', FILTER_SANITIZE_FULL_SPECIAL_CHARS );
 		if ( ! $nonce || ! wp_verify_nonce( $nonce, 'booking_set_currency' ) ) {
+			/* translators: Error returned when a request carries an expired or missing security token. */
 			echo json_encode( [ 'error' => __( 'Invalid nonce', 'woocommerce-multilingual' ) ] );
 			die();
 		}
+
+		\WCML_Capabilities::requireCanManageWcmlForAjax();
 
 		$this->set_booking_currency( filter_input( INPUT_POST, 'currency', FILTER_SANITIZE_FULL_SPECIAL_CHARS ) );
 
@@ -751,8 +595,6 @@ JS;
 		}
 
 		if ( $currency_code ) {
-			// @todo uncomment or delete when #wpmlcore-5796 is resolved
-			// do_action( 'wpsc_add_cookie', $cookie_name );
 			setcookie( $cookie_name, $currency_code, time() + 86400, COOKIEPATH, COOKIE_DOMAIN );
 		}
 	}
@@ -930,9 +772,6 @@ JS;
 		return $check;
 	}
 
-	/**
-	 * @return bool
-	 */
 	public static function isWcBookingsBefore_1_10_9() {
 		return version_compare( WC_BOOKINGS_VERSION, '1.10.9', '<' );
 	}

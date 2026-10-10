@@ -1,5 +1,10 @@
 <?php
 
+// Don't load directly.
+if ( ! defined( 'ABSPATH' ) ) {
+	die( '-1' );
+}
+
 use Pods\Whatsit\Field;
 use Pods\Whatsit\Pod;
 use Pods\API\Whatsit\Value_Field;
@@ -600,7 +605,7 @@ class PodsField {
 
 		// Backcompat readonly argument handling.
 		if ( isset( $config['readonly'] ) ) {
-			if ( ! isset( $config['read_only'] ) ) {
+			if ( empty( $config['read_only'] ) ) {
 				$config['read_only'] = (int) $config['readonly'];
 			}
 
@@ -914,6 +919,11 @@ class PodsField {
 
 		if ( $options ) {
 			$options = ( is_array( $options ) || is_object( $options ) ) ? $options : (array) $options;
+
+			// If not set, use the default.
+			if ( ! isset( $options[ static::$type . '_sanitize_html' ] ) ) {
+				$options[ static::$type . '_sanitize_html' ] = 1;
+			}
 
 			// Strip HTML
 			if ( 1 === (int) pods_v( static::$type . '_allow_html', $options, 0 ) ) {

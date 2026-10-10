@@ -7,29 +7,22 @@ use function WCML\functions\getWooCommerceWpml;
 
 class WCML_Compatibility {
 
-	/**
-	 * Initialize compatibility classes that need to run before multi-currency.
-	 */
 	public function init_before_multicurrency() {
 		$loaders = wpml_collect( [
-			\WCML\Compatibility\WpSuperCache\Factory::class => function_exists( 'wp_cache_is_enabled' ) && wp_cache_is_enabled(),
+			\WCML\Compatibility\WpSuperCache\Factory::class   => function_exists( 'wp_cache_is_enabled' ) && wp_cache_is_enabled(),
+			\WCML\Compatibility\WpFastestCache\Factory::class => class_exists( 'WpFastestCache' ),
 		] )->filter( Logic::isTruthy() )
 			->keys()
 			->toArray();
 
-		// This one needs to run after all caching classes.
 		$loaders = Lst::append( \WCML\AdminNotices\CachePlugins::class, $loaders );
 
 		( new \WCML\StandAlone\ActionFilterLoader() )->load( $loaders );
 	}
 
-	/**
-	 * Initialize class
-	 */
 	public function init() {
 		require_once ABSPATH . 'wp-admin/includes/plugin.php';
 
-		// $isActiveTheme :: string -> bool
 		$isActiveTheme = Relation::equals( wp_get_theme()->get( 'Name' ) );
 
 		$loaders = wpml_collect( [
@@ -46,7 +39,6 @@ class WCML_Compatibility {
 			\WCML\Compatibility\Sensei\Factory::class                 => class_exists( 'WooThemes_Sensei' ),
 			\WCML\Compatibility\TmExtraProductOptions\Factory::class  => class_exists( 'TM_Extra_Product_Options' ),
 			\WCML\Compatibility\WcDynamicPricing\Factory::class       => class_exists( 'WC_Dynamic_Pricing' ),
-			/* @phpstan-ignore booleanAnd.rightAlwaysTrue */
 			\WCML\Compatibility\WcBookings\Factory::class             => defined( 'WC_BOOKINGS_VERSION' ) && version_compare( WC_BOOKINGS_VERSION, '1.7.8', '>=' ),
 			\WCML\Compatibility\WoobeBulkEditor\Factory::class        => defined( 'WOOBE_PATH' ),
 			\WCML\Compatibility\WcCheckoutFieldEditor\Factory::class  => function_exists( 'woocommerce_init_checkout_field_editor' ),
@@ -70,10 +62,11 @@ class WCML_Compatibility {
 			\WCML\Compatibility\WoofWcProductFilter\Factory::class    => defined( 'WOOF_PLUGIN_NAME' ),
 			\WCML\Compatibility\Relevanssi\Factory::class             => function_exists( 'relevanssi_insert_edit' ),
 			\WCML\Compatibility\WooVariationsTable\Factory::class     => defined( 'WOO_VARIATIONS_TABLE_VERSION' ),
-			\WCML\Compatibility\WpFastestCache\Factory::class         => class_exists( 'WpFastestCache' ),
 			\WCML\Compatibility\WcProductTypeColumn\Factory::class    => class_exists( 'WC_Product_Type_Column' ),
 			\WCML\Compatibility\YikesCustomProductTabs\Factory::class => class_exists( 'YIKES_Custom_Product_Tabs' ),
 			\WCML\Compatibility\WcOrderStatusManager\Factory::class   => class_exists( 'WC_Order_Status_Manager' ),
+			\WCML\Compatibility\FacebookForWc\Factory::class          => class_exists( WC_Facebookcommerce::class ),
+			\WCML\Compatibility\WpAllImport\MultiCurrency::class      => class_exists( 'PMXI_Plugin' ),
 		] )->filter( Logic::isTruthy() )
 			->keys()
 			->toArray();

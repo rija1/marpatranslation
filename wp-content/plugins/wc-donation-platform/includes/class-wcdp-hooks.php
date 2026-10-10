@@ -5,7 +5,8 @@
  * @since 1.0.0
  */
 
-if (!defined('ABSPATH')) exit;
+if (!defined('ABSPATH'))
+    exit;
 
 class WCDP_Hooks
 {
@@ -103,19 +104,33 @@ class WCDP_Hooks
             return $template;
         }
 
+        $order = null;
+        if (isset($args['order'])) {
+            $order = $args['order'];
+        } else if (isset($args['order_id'])) {
+            $order = wc_get_order($args['order_id']);
+        }
         $path = WCDP_DIR . 'includes/wc-templates/';
         $donable = WCDP_Form::is_donable(get_queried_object_id());
 
         switch ($template_name) {
             case 'checkout/review-order.php':
             case 'checkout/form-login.php':
-            case 'checkout/thankyou.php':
             case 'checkout/cart-errors.php':
             case 'checkout/form-checkout.php':
-            case 'checkout/order-receipt.php':
             case 'checkout/payment.php':
             case 'checkout/form-billing.php':
+                if (
+                    get_option('wcdp_compatibility_mode', 'no') === 'no' &&
+                    WCDP_Form::cart_contains_only_donations()
+                ) {
+                    $template = $path . $template_name;
+                }
+                break;
+
+            case 'checkout/order-receipt.php':
             case 'checkout/order-received.php':
+            case 'checkout/thankyou.php':
 
             case 'myaccount/dashboard.php':
             case 'myaccount/view-order.php':
@@ -124,33 +139,37 @@ class WCDP_Hooks
 
             case 'order/order-details.php':
 
-            case 'emails/email-order-details.php' :
-            case 'emails/email-customer-details.php' :
-            case 'emails/email-addresses.php' :
-            case 'emails/customer-refunded-order.php' :
-            case 'emails/customer-processing-order.php' :
-            case 'emails/email.php' :
-            case 'emails/customer-on-hold-order.php' :
-            case 'emails/customer-note.php' :
-            case 'emails/customer-new-account.php' :
-            case 'emails/customer-invoice.php' :
-            case 'emails/customer-completed-order.php' :
-            case 'emails/admin-new-order.php' :
-            case 'emails/admin-failed-order.php' :
-            case 'emails/admin-cancelled-order.php' :
-            case 'emails/plain/email-order-details.php' :
-            case 'emails/plain/email.php' :
-            case 'emails/plain/email-customer-details.php' :
-            case 'emails/plain/email-addresses.php' :
-            case 'emails/plain/customer-refunded-order.php' :
-            case 'emails/plain/customer-processing-order.php' :
-            case 'emails/plain/customer-on-hold-order.php' :
-            case 'emails/plain/customer-note.php' :
-            case 'emails/plain/customer-invoice.php' :
-            case 'emails/plain/customer-completed-order.php' :
-            case 'emails/plain/admin-new-order.php' :
-            case 'emails/plain/admin-failed-order.php' :
-            case 'emails/plain/admin-cancelled-order.php' :
+            case 'emails/email-order-details.php':
+            case 'emails/email-customer-details.php':
+            case 'emails/email-addresses.php':
+            case 'emails/customer-refunded-order.php':
+            case 'emails/customer-processing-order.php':
+            case 'emails/email.php':
+            case 'emails/customer-on-hold-order.php':
+            case 'emails/customer-note.php':
+            case 'emails/customer-new-account.php':
+            case 'emails/customer-invoice.php':
+            case 'emails/customer-completed-order.php':
+            case 'emails/customer-failed-order.php':
+            case 'emails/customer-cancelled-order.php':
+            case 'emails/email-order-items.php':
+            case 'emails/plain/email-order-details.php':
+            case 'emails/plain/email.php':
+            case 'emails/plain/email-customer-details.php':
+            case 'emails/plain/email-addresses.php':
+            case 'emails/plain/customer-refunded-order.php':
+            case 'emails/plain/customer-processing-order.php':
+            case 'emails/plain/customer-on-hold-order.php':
+            case 'emails/plain/customer-note.php':
+            case 'emails/plain/customer-invoice.php':
+            case 'emails/plain/customer-completed-order.php':
+                if (
+                    get_option('wcdp_compatibility_mode', 'no') === 'no' &&
+                    ($order === null || WCDP_Form::order_contains_only_donations($order))
+                ) {
+                    $template = $path . $template_name;
+                }
+                break;
 
             case 'loop/no-products-found.php':
                 if (get_option('wcdp_compatibility_mode', 'no') === 'no') {
@@ -166,15 +185,15 @@ class WCDP_Hooks
                 break;
 
             case 'single-product/price.php':
-            case 'single-product/add-to-cart/variation-add-to-cart-button.php' :
+            case 'single-product/add-to-cart/variation-add-to-cart-button.php':
                 if ($donable) {
                     $template = $path . $template_name;
                 }
                 break;
 
-            case 'single-product/add-to-cart/simple.php' :
-            case 'single-product/add-to-cart/variable.php' :
-            case 'single-product/add-to-cart/grouped.php' :
+            case 'single-product/add-to-cart/simple.php':
+            case 'single-product/add-to-cart/variable.php':
+            case 'single-product/add-to-cart/grouped.php':
                 if ($donable) {
                     $template = $path . 'single-product/add-to-cart/product.php';
                 }
@@ -200,7 +219,8 @@ class WCDP_Hooks
             return WCDP_FORM;
         }
         global $post;
-        if (has_block('wc-donation-platform/wcdp')
+        if (
+            has_block('wc-donation-platform/wcdp')
             || (!is_null($post) && (has_shortcode($post->post_content, 'wcdp_donation_form') || has_shortcode($post->post_content, 'product_page')))
         ) {
             define('WCDP_FORM', true);
@@ -232,7 +252,9 @@ class WCDP_Hooks
      */
     public function wcdp_account_menu_items(array $items): array
     {
-        return array_merge($items, array(
+        return array_merge(
+            $items,
+            array(
                 'orders' => __('Donations', 'wc-donation-platform'),
             )
         );
@@ -249,7 +271,7 @@ class WCDP_Hooks
         global $wp;
         if (!empty($wp->query_vars['orders'])) {
             /* translators: %s: page */
-            $title = sprintf(__('Donations (page %d)', 'wc-donation-platform'), intval($wp->query_vars['orders']));
+            $title = sprintf(esc_html__('Donations (page %d)', 'wc-donation-platform'), intval($wp->query_vars['orders']));
         } else {
             $title = __('Donations', 'wc-donation-platform');
         }
@@ -275,9 +297,12 @@ class WCDP_Hooks
      *
      * @return string
      */
-    public function wcdp_order_button_text(): string
+    public function wcdp_order_button_text($label): string
     {
-        return __('Donate now', 'wc-donation-platform');
+        if (WCDP_Form::cart_contains_only_donations(WC()->cart)) {
+            return __('Donate now', 'wc-donation-platform');
+        }
+        return $label;
     }
 
     /**
@@ -286,7 +311,7 @@ class WCDP_Hooks
     public function wcdp_set_donation_price($cart_object)
     {
         foreach ($cart_object->cart_contents as $value) {
-            if (isset($value["wcdp_donation_amount"]) && WCDP_Form::check_donation_amount($value["wcdp_donation_amount"], (int)$value["product_id"])) {
+            if (isset($value["wcdp_donation_amount"]) && WCDP_Form::check_donation_amount($value["wcdp_donation_amount"], (int) $value["product_id"])) {
                 $value['data']->set_price($value["wcdp_donation_amount"]);
             }
         }
@@ -302,7 +327,7 @@ class WCDP_Hooks
      */
     public function wcdp_set_cart_donation_price(string $price, array $cart_item): string
     {
-        if (isset($cart_item['wcdp_donation_amount']) && WCDP_Form::check_donation_amount($cart_item["wcdp_donation_amount"], (int)$cart_item["product_id"])) {
+        if (isset($cart_item['wcdp_donation_amount']) && WCDP_Form::check_donation_amount($cart_item["wcdp_donation_amount"], (int) $cart_item["product_id"])) {
             $price = wc_price($cart_item['wcdp_donation_amount']);
         }
         return $price;
@@ -323,7 +348,7 @@ class WCDP_Hooks
         }
         $new_price = $item_data->get_meta("wcdp_donation_amount");
 
-        if ($new_price !== null && WCDP_Form::check_donation_amount($new_price, (int)$item_data['product_id'])) {
+        if ($new_price !== null && WCDP_Form::check_donation_amount($new_price, (int) $item_data['product_id'])) {
             // Check if the new price is different from the current item price
             if ($new_price !== $item_data->get_total()) {
                 $item_data->set_subtotal($new_price);
@@ -453,4 +478,40 @@ class WCDP_Hooks
             admin_url('admin.php?page=wc-settings&tab=wc-donation-platform'),
         );
     }
+
+    /**
+     * Get all product IDs from a WooCommerce order.
+     *
+     * This will include both simple product IDs and variation IDs.
+     *
+     * @param WC_Order $order The WooCommerce order object.
+     * @return array<int> Array of unique product IDs.
+     */
+    public static function get_order_product_ids(WC_Order $order): array
+    {
+        // Ensure we received a valid order object
+        if (!$order instanceof WC_Order) {
+            return [];
+        }
+
+        $product_ids = [];
+
+        foreach ($order->get_items() as $item) {
+            // Get the parent product ID (works for simple and variable products)
+            $product_id = $item->get_product_id();
+            if ($product_id) {
+                $product_ids[] = $product_id;
+            }
+
+            // Get the variation ID if applicable (only for variable products)
+            $variation_id = $item->get_variation_id();
+            if ($variation_id) {
+                $product_ids[] = $variation_id;
+            }
+        }
+
+        // Return unique IDs
+        return array_unique($product_ids);
+    }
+
 }

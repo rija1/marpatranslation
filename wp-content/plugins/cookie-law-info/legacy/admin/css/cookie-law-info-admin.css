@@ -479,15 +479,8 @@ table.wc_emails .wc-email-settings-table-status .tips, table.cli_script_items .w
 }
 
 .cli_settings_left {
-	width: 68%;
-	float: left;
+	width: 100%;
 	margin-bottom: 25px;
-}
-
-.cli_settings_right {
-	width: calc(31% - 20px);
-	float: left;
-	margin-left: 25px;
 }
 
 .cli_privacy_overview_form label {
@@ -531,16 +524,6 @@ table.wc_emails .wc-email-settings-table-status .tips, table.cli_script_items .w
 	font-size: 14px;
 }
 
-@media screen and (max-width:1210px) {
-	.cli_settings_left {
-		width: 100%;
-	}
-
-	.cli_settings_right {
-		padding-left: 0px;
-		width: 100%;
-	}
-}
 
 /* CCPA Related Changes */
 /* Accordion Styles  */
@@ -884,6 +867,75 @@ span.wt-cli-tootip-icon {
 .wt-cli-callout-warning.wt-cli-callout-icon:before {
 	content: "\f153";
 	color: #dc3232;
+}
+
+/* Banner update recommended */
+
+.wt-cli-update-banner {
+	display: flex;
+	align-items: center;
+	gap: 16px;
+	background: #FFE8C6;
+	border-radius: 12px;
+	padding: 20px;
+	margin-bottom: 20px;
+	margin-top: 15px;
+	margin-right: 20px;
+	box-sizing: border-box;
+	box-shadow: 0 2px 5px rgba(0,0,0,0.07);
+}
+
+.wt-cli-update-banner-icon {
+	flex-shrink: 0;
+	width: 50px;
+	height: 50px;
+	background: #FFC166;
+	border-radius: 12px;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+}
+
+.wt-cli-update-banner-content {
+	flex: 1;
+	min-width: 0;
+}
+
+.wt-cli-update-banner-title {
+	margin: 0 0 5px 0;
+	font-size: 16px;
+	font-weight: 600;
+	color: #1D2327;
+	line-height: 1.4;
+}
+
+.wt-cli-update-banner-desc {
+	margin: 0;
+	font-size: 13px;
+	color: #1D2327;
+	line-height: 1.5;
+}
+
+.wt-cli-update-banner-btn {
+	flex-shrink: 0;
+	display: inline-block;
+	background: #2271B1;
+	color: #fff;
+	text-decoration: none;
+	padding: 8px 16px;
+	border-radius: 4px;
+	font-size: 14px;
+	font-weight: 500;
+	white-space: nowrap;
+	line-height: 1.7;
+	border: none;
+	cursor: pointer;
+}
+
+.wt-cli-update-banner-btn:hover,
+.wt-cli-update-banner-btn:focus {
+	background: #135E96;
+	color: #fff;
 }
 
 /* Modal styles since 2.3.2 */
@@ -1312,4 +1364,511 @@ span.wt-cli-tootip-icon {
 	margin-left: -15px;
 	margin-right: -15px;
 	margin-bottom: -15px;
+}
+
+/* ============================================================
+   Banner Upgrade Flow – Overlay, Modals, Accordion
+   ============================================================ */
+
+/* Overlay */
+.wt-cli-modal-overlay {
+	display: none;
+	position: fixed;
+	inset: 0;
+	background: rgba(0,0,0,0.5);
+	z-index: 99998;
+}
+.wt-cli-modal-overlay.is-open {
+	display: block;
+}
+
+/* Modal shell */
+.wt-cli-upgrade-modal {
+	display: none;
+	position: fixed;
+	top: calc(50% + var(--wp-admin--admin-bar--height, 32px) / 2);
+	left: 50%;
+	transform: translate(-50%, -50%);
+	width: calc(100% - 40px);
+	max-width: 1100px;
+	max-height: calc(100vh - var(--wp-admin--admin-bar--height, 32px) - 40px);
+	background: #fff;
+	border-radius: 10px;
+	box-shadow: 0 20px 25px -5px rgba(0,0,0,0.1), 0 8px 10px -6px rgba(0,0,0,0.1);
+	z-index: 99999;
+	overflow: hidden;
+	box-sizing: border-box;
+}
+.wt-cli-upgrade-modal.is-open {
+	display: flex;
+	flex-direction: column;
+}
+
+.wt-cli-upgrade-modal-inner {
+	display: flex;
+	flex-direction: column;
+	flex: 1;
+	min-height: 0;
+	overflow: hidden;
+}
+
+/* Modal header */
+.wt-cli-modal-header {
+	display: flex;
+	align-items: flex-start;
+	justify-content: space-between;
+	gap: 16px;
+	padding: 20px 24px;
+	border-bottom: 1px solid #C7CADE;
+	flex-shrink: 0;
+}
+
+.wt-cli-modal-header-text {
+	display: flex;
+	flex-direction: column;
+	gap: 4px;
+}
+
+.wt-cli-modal-title {
+	margin: 0;
+	font-size: 20px;
+	font-weight: 600;
+	color: #14142A;
+	line-height: 1.4;
+}
+
+.wt-cli-modal-subtitle {
+	margin: 0;
+	font-size: 16px;
+	font-weight: 400;
+	color: #4E4B66;
+	line-height: 1.5;
+}
+
+.wt-cli-modal-close-btn {
+	flex-shrink: 0;
+	background: none;
+	border: none;
+	padding: 0;
+	cursor: pointer;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	margin-top: 2px;
+}
+.wt-cli-modal-close-btn:hover {
+	opacity: 0.7;
+}
+
+/* Modal body */
+.wt-cli-modal-body {
+	overflow-y: auto;
+	flex: 1;
+	min-height: 0;
+}
+
+/* Modal 1 – two-column body */
+.wt-cli-modal-1-body {
+	display: flex;
+	align-items: stretch;
+	min-height: 0;
+}
+
+.wt-cli-modal-1-left {
+	flex: 1;
+	min-height: 0;
+	overflow-y: auto;
+	padding: 24px;
+	border-right: 1px solid #C7CADE;
+	display: flex;
+	flex-direction: column;
+	gap: 16px;
+}
+
+.wt-cli-modal-1-right {
+	width: 395px;
+	min-height: 0;
+	overflow-y: auto;
+	flex-shrink: 0;
+	padding: 24px;
+	display: flex;
+	flex-direction: column;
+	gap: 12px;
+}
+
+/* Feature list heading */
+.wt-cli-modal-1-features-head {
+	display: flex;
+	flex-direction: column;
+	gap: 4px;
+}
+
+.wt-cli-features-title {
+	margin: 0;
+	font-size: 16px;
+	font-weight: 700;
+	color: #14142A;
+	line-height: 1.5;
+}
+
+.wt-cli-features-subtitle {
+	margin: 0;
+	font-size: 12px;
+	color: #6E7191;
+	line-height: 1.4;
+}
+
+/* Feature cards */
+.wt-cli-feature-cards {
+	display: flex;
+	flex-direction: column;
+	gap: 10px;
+}
+
+.wt-cli-feature-card {
+	display: flex;
+	align-items: flex-start;
+	gap: 12px;
+	border: 1px solid #C7CADE;
+	border-radius: 10px;
+	padding: 15px;
+	box-sizing: border-box;
+}
+
+.wt-cli-feature-card-icon {
+	flex-shrink: 0;
+	width: 38px;
+	height: 38px;
+	background: #fff;
+	border: 1px solid #F4F5FA;
+	border-radius: 10px;
+	box-shadow: 0 1px 3px rgba(0,0,0,0.1), 0 1px 2px rgba(0,0,0,0.1);
+	display: flex;
+	align-items: center;
+	justify-content: center;
+}
+
+.wt-cli-feature-card-text {
+	display: flex;
+	flex-direction: column;
+	gap: 4px;
+}
+
+.wt-cli-feature-card-title {
+	margin: 0;
+	font-size: 14px;
+	font-weight: 700;
+	color: #14142A;
+	line-height: 1.4;
+}
+
+.wt-cli-feature-card-desc {
+	margin: 0;
+	font-size: 12px;
+	color: #4E4B66;
+	line-height: 1.4;
+}
+
+/* Note callout */
+.wt-cli-modal-note {
+	display: flex;
+	align-items: flex-start;
+	gap: 8px;
+	background: #FFF7EC;
+	border: 1px solid #FFE8C6;
+	border-radius: 10px;
+	padding: 12px 13px;
+	box-sizing: border-box;
+}
+
+.wt-cli-modal-note img {
+	flex-shrink: 0;
+	margin-top: 1px;
+}
+
+.wt-cli-modal-note p {
+	margin: 0;
+	font-size: 12px;
+	color: #855D22;
+	line-height: 1.6;
+}
+
+.wt-cli-modal-note strong {
+	font-weight: 600;
+}
+
+/* Smaller note variant inside accordion */
+.wt-cli-modal-note-sm {
+	margin-top: 4px;
+}
+
+/* Video preview panel */
+.wt-cli-video-heading {
+	margin: 0;
+	font-size: 14px;
+	font-weight: 600;
+	color: #14142A;
+	line-height: 1.4;
+}
+
+.wt-cli-video-preview {
+	position: relative;
+	border-radius: 10px;
+	overflow: hidden;
+	background: #101828;
+	line-height: 0;
+}
+
+.wt-cli-video-player {
+	display: block;
+	width: 100%;
+	height: auto;
+}
+
+.wt-cli-video-caption {
+	margin: 0;
+	font-size: 12px;
+	color: #4E4B66;
+	line-height: 1.625;
+}
+
+/* Modal footer */
+.wt-cli-modal-footer {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	gap: 16px;
+	padding: 17px 24px;
+	border-top: 1px solid #C7CADE;
+	flex-shrink: 0;
+}
+
+.wt-cli-modal-meta {
+	margin: 0;
+	font-size: 12px;
+	color: #6E7191;
+	line-height: 1.4;
+}
+
+.wt-cli-modal-footer-actions {
+	display: flex;
+	align-items: center;
+	gap: 16px;
+}
+
+/* Buttons */
+.wt-cli-btn-primary {
+	display: inline-flex;
+	align-items: center;
+	gap: 6px;
+	background: #136FE8;
+	color: #fff;
+	border: none;
+	border-radius: 4px;
+	padding: 8px 16px;
+	font-size: 16px;
+	font-weight: 500;
+	line-height: 1.5;
+	cursor: pointer;
+	text-decoration: none;
+	white-space: nowrap;
+}
+.wt-cli-btn-primary:hover,
+.wt-cli-btn-primary:focus {
+	background: #0F5ABF;
+	color: #fff;
+}
+
+.wt-cli-btn-outline {
+	display: inline-flex;
+	align-items: center;
+	gap: 6px;
+	background: transparent;
+	color: #4E4B66;
+	border: 1px solid #4E4B66;
+	border-radius: 4px;
+	padding: 8px 16px;
+	font-size: 16px;
+	font-weight: 500;
+	line-height: 1.5;
+	cursor: pointer;
+	text-decoration: none;
+	white-space: nowrap;
+}
+.wt-cli-btn-outline:hover,
+.wt-cli-btn-outline:focus {
+	background: #F4F5FA;
+	color: #4E4B66;
+}
+
+.wt-cli-btn-back {
+	display: inline-flex;
+	align-items: center;
+	gap: 6px;
+	background: none;
+	border: none;
+	color: #4E4B66;
+	font-size: 14px;
+	font-weight: 500;
+	line-height: 1.5;
+	cursor: pointer;
+	padding: 0;
+	text-decoration: none;
+	white-space: nowrap;
+}
+.wt-cli-btn-back:hover,
+.wt-cli-btn-back:focus {
+	color: #14142A;
+}
+
+/* Modal 2 – accordion body */
+.wt-cli-modal-2-body {
+	padding: 16px 24px;
+}
+
+.wt-cli-accordion-list {
+	display: flex;
+	flex-direction: column;
+	gap: 12px;
+}
+
+.wt-cli-accordion-item {
+	border: 1px solid #C7CADE;
+	border-radius: 10px;
+	overflow: hidden;
+	box-shadow: 0 1px 3px rgba(0,0,0,0.1), 0 1px 2px -1px rgba(0,0,0,0.1);
+}
+
+.wt-cli-accordion-header {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	width: 100%;
+	padding: 16px;
+	background: #fff;
+	border: none;
+	cursor: pointer;
+	text-align: left;
+	gap: 12px;
+	box-sizing: border-box;
+}
+.wt-cli-accordion-header:hover {
+	background: #F4F5FA;
+}
+
+.wt-cli-accordion-header-left {
+	display: flex;
+	align-items: center;
+	gap: 12px;
+	flex: 1;
+}
+
+.wt-cli-accordion-icon {
+	flex-shrink: 0;
+	width: 36px;
+	height: 36px;
+	border-radius: 4px;
+	background: #F4F5FA;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+}
+
+.wt-cli-accordion-header-text {
+	display: flex;
+	flex-direction: column;
+	gap: 0;
+}
+
+.wt-cli-accordion-title {
+	font-size: 16px;
+	font-weight: 700;
+	color: #14142A;
+	line-height: 1.5;
+	letter-spacing: -0.3125px;
+}
+
+.wt-cli-accordion-count,
+.wt-cli-accordion-desc {
+	font-size: 12px;
+	font-weight: 500;
+	color: #4E4B66;
+	line-height: 1.33;
+}
+
+.wt-cli-accordion-item--changes {
+	border-color: #FFE8C6;
+}
+.wt-cli-accordion-item--changes .wt-cli-accordion-icon {
+	background: #FFF7EC;
+}
+
+.wt-cli-accordion-item--alternatives {
+	border-color: #E8F1FE;
+}
+.wt-cli-accordion-item--alternatives .wt-cli-accordion-icon {
+	background: #E5F4EF;
+}
+
+.wt-cli-accordion-item--capabilities {
+	border-color: #E8F1FE;
+}
+.wt-cli-accordion-item--capabilities .wt-cli-accordion-icon {
+	background: #E8F1FE;
+}
+
+.wt-cli-accordion-chevron {
+	flex-shrink: 0;
+	transition: transform 0.2s ease;
+}
+
+.wt-cli-accordion-item.is-open .wt-cli-accordion-chevron {
+	transform: rotate(180deg);
+}
+
+.wt-cli-accordion-body {
+	display: none;
+	padding: 0 16px 16px 16px;
+}
+
+.wt-cli-accordion-item.is-open .wt-cli-accordion-body {
+	display: block;
+}
+
+/* Bullet lists inside accordion */
+.wt-cli-bullet-list {
+	list-style: none;
+	margin: 0 0 8px 0;
+	padding: 0;
+	display: flex;
+	flex-direction: column;
+}
+
+.wt-cli-bullet-list li {
+	display: flex;
+	align-items: flex-start;
+	padding: 8px 16px;
+	font-size: 14px;
+	color: #14142A;
+	line-height: 1.5;
+	gap: 12px;
+	border-radius: 4px;
+}
+
+.wt-cli-bullet-list li::before {
+	content: '';
+	flex-shrink: 0;
+	width: 16px;
+	height: 16px;
+	background: url('../images/upgrade-flow/icon-bullet-orange.svg') no-repeat center;
+	background-size: contain;
+	margin-top: 2px;
+}
+
+.wt-cli-bullet-list-green li::before {
+	background-image: url('../images/upgrade-flow/icon-bullet-green.svg');
+}
+
+.wt-cli-bullet-list-blue li::before {
+	background-image: url('../images/upgrade-flow/icon-bullet-blue.svg');
 }

@@ -2,6 +2,8 @@
 
 namespace Give\PaymentGateways\Gateways\PayPalStandard\Controllers;
 
+use Give\Donations\Models\Donation;
+use Give\Framework\Support\ValueObjects\Money;
 use Give\Log\Log;
 use Give\PaymentGateways\Gateways\PayPalStandard\PayPalStandard;
 use Give\PaymentGateways\Gateways\PayPalStandard\Webhooks\WebhookRegister;
@@ -30,6 +32,8 @@ class PayPalStandardWebhook
      *
      * @since 2.19.0
      * @since 2.19.3 Respond with 200 http status to ipn.
+     * @since 4.16.6.1 Add IPN event-data validation before processing.
+     * @since 4.18.0.1 Default the transaction type when the IPN doesn't include one.
      */
     public function handle()
     {
@@ -41,7 +45,7 @@ class PayPalStandardWebhook
         }
 
         $donationId = isset($eventData['custom']) ? absint($eventData['custom']) : 0;
-        $txnType = $eventData['txn_type'];
+        $txnType = $eventData['txn_type'] ?? '';
 
         // ipn verification can be disabled in GiveWP (<=2.15.0).
         // This check will prevent anonymous requests from editing donation, if ipn verification disabled.
@@ -53,6 +57,10 @@ class PayPalStandardWebhook
                     'Event Data' => $eventData,
                 ]
             );
+            exit();
+        }
+
+        if ( ! $this->verifyEventData($eventData, $donationId, $txnType)) {
             exit();
         }
 
@@ -157,5 +165,338 @@ class PayPalStandardWebhook
              */
             do_action('give_paypal_web_accept', $eventData, $donationId);
         }
+    }
+
+    /**
+     * @since 4.18.0.1 Pass the transaction type to the payment amount check, link refunds to renewals, and verify refund amounts.
+     * @since 4.16.6.1
+     */
+    private function verifyEventData(array $eventData, int $donationId, $txnType): bool
+    {
+        $paymentStatus = strtolower($eventData['payment_status'] ?? '');
+
+        if ( ! $this->verifyReceiverEmail($eventData)) {
+            return false;
+        }
+
+        if (in_array($paymentStatus, ['completed', 'pending'], true)) {
+            if ( ! $this->verifyPaymentAmount($eventData, $donationId, $txnType)) {
+                return false;
+            }
+        }
+
+        if (in_array($paymentStatus, ['refunded', 'reversed'], true)) {
+            $refundedDonation = $this->findRefundedDonation($eventData, $donationId);
+
+            if ( ! $refundedDonation || ! $this->verifyRefundAmount($eventData, $refundedDonation)) {
+                return false;
+            }
+        }
+
+        return true;
+    }
+
+    /**
+     * @since 4.18.0.1 Reject the IPN when the site PayPal email or both IPN merchant emails are missing.
+     * @since 4.16.6.1
+     */
+    private function verifyReceiverEmail(array $eventData)
+    {
+        $sitePaypalEmail = trim((string) give_get_option('paypal_email', ''));
+        if ($sitePaypalEmail === '') {
+            Log::error(
+                'PayPal Standard IPN Error',
+                [
+                    'Message' => 'The site PayPal email is not configured, so the IPN merchant cannot be verified.',
+                    'Event Data' => $eventData,
+                ]
+            );
+
+            return false;
+        }
+
+        $receiverEmail = strtolower(trim((string) ($eventData['receiver_email'] ?? '')));
+        $business = strtolower(trim((string) ($eventData['business'] ?? '')));
+        $siteEmail = strtolower($sitePaypalEmail);
+
+        if ($receiverEmail === '' && $business === '') {
+            Log::error(
+                'PayPal Standard IPN Error',
+                [
+                    'Message' => 'IPN receiver_email and business are both missing, so the IPN merchant cannot be verified.',
+                    'Event Data' => $eventData,
+                ]
+            );
+
+            return false;
+        }
+
+        if ($receiverEmail !== $siteEmail && $business !== $siteEmail) {
+            Log::error(
+                'PayPal Standard IPN Error',
+                [
+                    'Message' => sprintf(
+                        'IPN receiver_email (%s) / business (%s) does not match the site PayPal email (%s).',
+                        $eventData['receiver_email'] ?? '(not set)',
+                        $eventData['business'] ?? '(not set)',
+                        $sitePaypalEmail
+                    ),
+                    'Event Data' => $eventData,
+                ]
+            );
+
+            return false;
+        }
+
+        return true;
+    }
+
+    /**
+     * @since 4.18.0.1 Compare against the gross amount charged by PayPal, which includes recovered fees.
+     * @since 4.16.6.1
+     *
+     * @param array  $eventData  PayPal IPN data.
+     * @param int    $donationId Donation ID from the IPN "custom" field.
+     * @param string $txnType    PayPal IPN transaction type.
+     *
+     * @return bool
+     */
+    private function verifyPaymentAmount(array $eventData, $donationId, $txnType = '')
+    {
+        try {
+            $donation = Donation::find($donationId);
+
+            if ( ! $donation) {
+                Log::error(
+                    'PayPal Standard IPN Error',
+                    [
+                        'Message' => sprintf(
+                            'Donation #%d not found.',
+                            $donationId
+                        ),
+                        'Event Data' => $eventData,
+                    ]
+                );
+
+                return false;
+            }
+
+            $currency = strtoupper(trim((string) ($eventData['mc_currency'] ?? '')));
+            $donationCurrency = strtoupper(trim($donation->amount->getCurrency()->getCode()));
+
+            if ($currency !== $donationCurrency) {
+                Log::error(
+                    'PayPal Standard IPN Error',
+                    [
+                        'Message' => sprintf(
+                            'IPN currency (%s) does not match donation #%d currency (%s).',
+                            $currency,
+                            $donationId,
+                            $donationCurrency
+                        ),
+                        'Event Data' => $eventData,
+                    ]
+                );
+
+                return false;
+            }
+
+            $ipnAmount = Money::fromDecimal((float)($eventData['mc_gross'] ?? 0), $currency);
+            $chargedAmounts = $this->getChargedAmounts($donation, $txnType);
+            $matchingAmounts = array_filter($chargedAmounts, static function (Money $chargedAmount) use ($ipnAmount) {
+                return $ipnAmount->equals($chargedAmount);
+            });
+
+            if ( ! $matchingAmounts) {
+                Log::error(
+                    'PayPal Standard IPN Error',
+                    [
+                        'Message' => sprintf(
+                            'IPN amount (%s %s) does not match donation #%d amount (%s %s).',
+                            $eventData['mc_gross'] ?? '0',
+                            $currency,
+                            $donationId,
+                            implode(' or ', array_map(static function (Money $chargedAmount) {
+                                return $chargedAmount->formatToDecimal();
+                            }, $chargedAmounts)),
+                            $donationCurrency
+                        ),
+                        'Event Data' => $eventData,
+                    ]
+                );
+
+                return false;
+            }
+        } catch (\Exception $e) {
+            Log::error(
+                'PayPal Standard IPN Error',
+                [
+                    'Message' => 'Failed to compare IPN amount to donation amount.',
+                    'Exception' => $e->getMessage(),
+                    'Event Data' => $eventData,
+                ]
+            );
+
+            return false;
+        }
+
+        return true;
+    }
+
+    /**
+     * Subscription payments reference the initial donation through "custom", but PayPal charges them
+     * the subscription amount, which can differ from the initial donation amount.
+     *
+     * @since 4.18.0.1
+     *
+     * @param Donation $donation Donation referenced by the IPN.
+     * @param string   $txnType  PayPal IPN transaction type.
+     *
+     * @return Money[] Amounts PayPal was asked to charge for this donation.
+     */
+    private function getChargedAmounts(Donation $donation, $txnType): array
+    {
+        $chargedAmounts = [$donation->amount];
+
+        if ('subscr_payment' === $txnType) {
+            $subscription = $donation->subscription()->get();
+
+            if ($subscription) {
+                $chargedAmounts[] = $subscription->amount;
+            }
+        }
+
+        return $chargedAmounts;
+    }
+
+    /**
+     * Refunds of subscription renewals reference the initial donation through "custom", while
+     * "parent_txn_id" holds the transaction ID of the renewal being refunded.
+     *
+     * @since 4.18.0.1 Renamed from verifyParentTransactionId(). Require parent_txn_id and accept renewals of the same subscription.
+     * @since 4.16.6.1
+     *
+     * @param array $eventData  PayPal IPN data.
+     * @param int   $donationId Donation ID from the IPN "custom" field.
+     *
+     * @return Donation|null The donation being refunded or reversed, or null when the IPN can't be linked to it.
+     */
+    private function findRefundedDonation(array $eventData, int $donationId): ?Donation
+    {
+        $parentTxnId = trim((string) ($eventData['parent_txn_id'] ?? ''));
+        if ($parentTxnId === '') {
+            Log::error(
+                'PayPal Standard IPN Error',
+                [
+                    'Message' => sprintf(
+                        'IPN payment_status is %s but parent_txn_id is missing for donation #%d.',
+                        strtolower($eventData['payment_status'] ?? ''),
+                        $donationId
+                    ),
+                    'Event Data' => $eventData,
+                ]
+            );
+
+            return null;
+        }
+
+        $donation = Donation::find($donationId);
+        $storedTxnId = $donation ? trim((string) $donation->gatewayTransactionId) : '';
+
+        if ($storedTxnId === '') {
+            Log::error(
+                'PayPal Standard IPN Error',
+                [
+                    'Message' => sprintf(
+                        'IPN payment_status is %s but donation #%d has no stored transaction ID — cannot process a refund for a donation that was never completed.',
+                        strtolower($eventData['payment_status'] ?? ''),
+                        $donationId
+                    ),
+                    'Event Data' => $eventData,
+                ]
+            );
+
+            return null;
+        }
+
+        if ($parentTxnId === $storedTxnId) {
+            return $donation;
+        }
+
+        $renewal = give()->donations->getByGatewayTransactionId($parentTxnId);
+        $subscription = $donation->subscription()->get();
+
+        if ($renewal && $subscription && $renewal->type->isRenewal() && $renewal->subscriptionId === $subscription->id) {
+            return $renewal;
+        }
+
+        Log::error(
+            'PayPal Standard IPN Error',
+            [
+                'Message' => sprintf(
+                    'IPN parent_txn_id (%s) does not match donation #%d stored transaction ID (%s) or any of its renewals.',
+                    $parentTxnId,
+                    $donationId,
+                    $storedTxnId
+                ),
+                'Event Data' => $eventData,
+            ]
+        );
+
+        return null;
+    }
+
+    /**
+     * PayPal reports refunds and reversals with a negative mc_gross. Partial refunds are allowed.
+     *
+     * @since 4.18.0.1
+     *
+     * @param array    $eventData        PayPal IPN data.
+     * @param Donation $refundedDonation Donation being refunded or reversed.
+     *
+     * @return bool
+     */
+    private function verifyRefundAmount(array $eventData, Donation $refundedDonation): bool
+    {
+        $currency = strtoupper(trim((string) ($eventData['mc_currency'] ?? '')));
+        $refundAmount = $eventData['mc_gross'] ?? '';
+
+        try {
+            if (is_numeric($refundAmount) && $currency === $refundedDonation->amount->getCurrency()->getCode()) {
+                $refundAmount = Money::fromDecimal($refundAmount, $currency);
+
+                if ($refundAmount->isNegative() && $refundAmount->absolute()->lessThanOrEqual($refundedDonation->amount)) {
+                    return true;
+                }
+            }
+        } catch (\Exception $e) {
+            Log::error(
+                'PayPal Standard IPN Error',
+                [
+                    'Message' => 'Failed to compare IPN refund amount to donation amount.',
+                    'Exception' => $e->getMessage(),
+                    'Event Data' => $eventData,
+                ]
+            );
+
+            return false;
+        }
+
+        Log::error(
+            'PayPal Standard IPN Error',
+            [
+                'Message' => sprintf(
+                    'IPN refund amount (%s %s) is not valid for donation #%d (%s %s).',
+                    $eventData['mc_gross'] ?? '(not set)',
+                    $currency,
+                    $refundedDonation->id,
+                    $refundedDonation->amount->formatToDecimal(),
+                    $refundedDonation->amount->getCurrency()->getCode()
+                ),
+                'Event Data' => $eventData,
+            ]
+        );
+
+        return false;
     }
 }

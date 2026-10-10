@@ -1,9 +1,9 @@
 <?php return array(
     'root' => array(
         'name' => 'wpdesk/flexible-checkout-fields',
-        'pretty_version' => '4.1.29',
-        'version' => '4.1.29.0',
-        'reference' => '86de5364411f60da8fa17a97f7ae3b01d7211f72',
+        'pretty_version' => '4.1.42',
+        'version' => '4.1.42.0',
+        'reference' => 'c11b3626b95f9fa6c46f17458170620d162c4e13',
         'type' => 'library',
         'install_path' => __DIR__ . '/../../',
         'aliases' => array(),
@@ -20,9 +20,9 @@
             'dev_requirement' => false,
         ),
         'doctrine/deprecations' => array(
-            'pretty_version' => '1.1.5',
-            'version' => '1.1.5.0',
-            'reference' => '459c2f5dd3d6a4633d3b5f46ee2b1c40f57d3f38',
+            'pretty_version' => '1.1.6',
+            'version' => '1.1.6.0',
+            'reference' => 'd4fe3e6fd9bb9e72557a19674f44d8ac7db4c6ca',
             'type' => 'library',
             'install_path' => __DIR__ . '/../doctrine/deprecations',
             'aliases' => array(),
@@ -38,9 +38,9 @@
             'dev_requirement' => false,
         ),
         'wpdesk/flexible-checkout-fields' => array(
-            'pretty_version' => '4.1.29',
-            'version' => '4.1.29.0',
-            'reference' => '86de5364411f60da8fa17a97f7ae3b01d7211f72',
+            'pretty_version' => '4.1.42',
+            'version' => '4.1.42.0',
+            'reference' => 'c11b3626b95f9fa6c46f17458170620d162c4e13',
             'type' => 'library',
             'install_path' => __DIR__ . '/../../',
             'aliases' => array(),

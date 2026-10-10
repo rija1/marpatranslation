@@ -1,7 +1,5 @@
 <?php
 
-namespace Stripe\Exception;
+namespace PaymentPlugins\Vendor\Stripe\Exception;
 
-class InvalidArgumentException extends \InvalidArgumentException implements ExceptionInterface
-{
-}
+class InvalidArgumentException extends \InvalidArgumentException implements ExceptionInterface {}

@@ -1,7 +1,12 @@
 (function (global, factory) {
-typeof exports === 'object' && typeof module !== 'undefined' ? module.exports = factory() :
-typeof define === 'function' && define.amd ? define(factory) :
-(global = typeof globalThis !== 'undefined' ? globalThis : global || self, global.Chart = factory());
+	if (typeof exports === 'object' && typeof module !== 'undefined') {
+		module.exports = factory();
+	} else if (typeof define === 'function' && define.amd) {
+		define(factory);
+	} else {
+		global = typeof globalThis !== 'undefined' ? globalThis : global || self;
+		global.Chart = factory();
+	}
 })(this, (function () { 'use strict';
 
 // Core functionality of Chart.js
@@ -190,7 +195,7 @@ Chart.prototype.drawDoughnutChart = function() {
     const total = data.datasets[0].data.reduce((sum, value) => sum + value, 0);
     let startAngle = -0.5 * Math.PI;
     
-    // Define chart colors to match Vue component
+    // Chart colors aligned with admin consent chart styling
     const chartColors = {
         'Accepted': 'rgba(51, 168, 129, 0.5)',      // Light green with 0.5 opacity
         'Rejected': 'rgba(236, 74, 94, 0.5)',       // Light red with 0.5 opacity

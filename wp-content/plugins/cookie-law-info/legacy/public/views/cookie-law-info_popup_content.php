@@ -1,4 +1,9 @@
 <?php
+
+if ( ! defined( 'ABSPATH' ) ) {
+	exit;
+}
+
 $overview                 = get_option( 'cookielawinfo_privacy_overview_content_settings' );
 $default_privacy_settings = Cookie_Law_Info_Admin::get_privacy_defaults();
 
@@ -72,16 +77,19 @@ $js_blocking_enabled = Cookie_Law_Info::wt_cli_is_js_blocking_active();
 							<a role="button" tabindex="0" class="cli-nav-link cli-settings-mobile" data-target="<?php echo esc_attr( $key ); ?>" data-toggle="cli-toggle-tab">
 								<?php echo esc_html( $cookie_title ); ?>
 							</a>
+							<?php
+							$checkbox_id = 'wt-cli-checkbox-' . esc_attr( $key );
+							?>
 							<?php if ( 'necessary' === $key ) : ?>
 								<div class="wt-cli-necessary-checkbox">
-									<input type="checkbox" class="cli-user-preference-checkbox"  id="wt-cli-checkbox-<?php echo esc_attr( $key ); ?>" data-id="checkbox-<?php echo esc_attr( $key ); ?>" checked="checked"  />
-									<label class="form-check-label" for="wt-cli-checkbox-<?php echo esc_attr( $key ); ?>"><?php echo esc_html( $cookie_title ); ?></label>
+									<input type="checkbox" class="cli-user-preference-checkbox" id="<?php echo esc_attr( $checkbox_id ); ?>" data-id="checkbox-<?php echo esc_attr( $key ); ?>" checked="checked" />
+									<label class="form-check-label" for="<?php echo esc_attr( $checkbox_id ); ?>"><?php echo esc_html( $cookie_title ); ?></label>
 								</div>
 								<span class="cli-necessary-caption"><?php echo esc_html( $cli_always_enable_text ); ?></span>
 							<?php else : ?>
 								<div class="cli-switch">
-									<input type="checkbox" id="wt-cli-checkbox-<?php echo esc_attr( $key ); ?>" class="cli-user-preference-checkbox"  data-id="checkbox-<?php echo esc_attr( $key ); ?>"<?php echo checked( $checked, true, false ); ?> />
-									<label for="wt-cli-checkbox-<?php echo esc_attr( $key ); ?>" class="cli-slider" data-cli-enable="<?php echo esc_attr( $cli_enable_text ); ?>" data-cli-disable="<?php echo esc_attr( $cli_disable_text ); ?>"><span class="wt-cli-sr-only"><?php echo esc_html( $cookie_title ); ?></span></label>
+									<input type="checkbox" id="<?php echo esc_attr( $checkbox_id ); ?>" class="cli-user-preference-checkbox" data-id="checkbox-<?php echo esc_attr( $key ); ?>"<?php echo checked( $checked, true, false ); ?> />
+									<label for="<?php echo esc_attr( $checkbox_id ); ?>" class="cli-slider" data-cli-enable="<?php echo esc_attr( $cli_enable_text ); ?>" data-cli-disable="<?php echo esc_attr( $cli_disable_text ); ?>"><span class="wt-cli-sr-only"><?php echo esc_html( $cookie_title ); ?></span></label>
 								</div>
 							<?php endif; ?>
 						</div>

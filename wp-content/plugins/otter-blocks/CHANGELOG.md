@@ -1,3 +1,167 @@
+##### [Version 3.2.7](https://github.com/Codeinwp/otter-blocks/compare/v3.2.6...v3.2.7) (2026-09-29)
+
+- Fixed custom block CSS missing from posts on archive pages.
+- Updated dependencies.
+- Fixed permission checks for form submissions widget.
+- Added AI agent support: let AI assistants read and change your Otter forms and settings.
+- Fixed frontend pages failing when Otter could not load a block style.
+- Fixed frontend crashes when Otter could not load a plugin class.
+- Fixed unequal card and featured image widths in the Posts Block grid.
+- Added AI agent support: let AI assistants read and change your Otter forms and settings.
+
+##### [Version 3.2.6](https://github.com/Codeinwp/otter-blocks/compare/v3.2.5...v3.2.6) (2026-09-22)
+
+- Fixed Maps block tiles that failed to load in the editor.
+- Fixed errors when unavailable pattern files load during site startup.
+- Fixed frontend CSS generation using too much memory on pages with many blocks.
+- Updated dependencies
+- Enhanced Security
+
+##### [Version 3.2.5](https://github.com/Codeinwp/otter-blocks/compare/v3.2.4...v3.2.5) (2026-09-09)
+
+- Fixed Accordion Item titles not appearing for translation in WPML. 
+- Fixed animation blocks crashing with older Otter versions. 
+- Fixed form submit buttons changing size while the loading spinner is shown.
+
+##### [Version 3.2.4](https://github.com/Codeinwp/otter-blocks/compare/v3.2.3...v3.2.4) (2026-09-07)
+
+- Fixed form success and error messages that stayed in English on live sites.
+- Fixed Atomic Wind Blocks changing site styles outside block content.
+- Fixed the license message for Neve plans that do not include Otter Pro.
+- Fixed AMP pages crashing when a block renderer cannot load.
+- Fixed page crashes when a dynamic block renderer cannot be created.
+- Fixed page crashes when a block has a list of CSS classes.
+- Fixed responsive visibility for Atomic Wind boxes using display utilities.
+- Fixed crashes when invalid SVG files generate attachment metadata.
+- Fixed Dynamic Content timing out on cyclic ACF repeater field parents.
+- Fixed the Otter Pro activation message to specify Neve Agency license eligibility.
+- Fixed unstyled Atomic Wind pattern previews in the WordPress editor.
+- Improved Otter startup when a module cannot load or start.
+- Fixed Otter Pro fatal errors when a required class file is missing.
+- Fixed pages timing out when reusable blocks reference each other.
+
+##### [Version 3.2.3](https://github.com/Codeinwp/otter-blocks/compare/v3.2.2...v3.2.3) (2026-08-20)
+
+- Fixed WooCommerce product data controls hidden in WooCommerce Builder.
+- Fixed frontend pages stopping when widget CSS cannot use the WordPress filesystem.
+- Fixed PHP warnings when the Post Content dynamic value renders.
+- Fixed animation pages crashing when another plugin loads a different CSS parser.
+- Fixed frontend pages stopping when an Otter plugin class cannot load.
+- Fixed a security issue in the Stripe Checkout block where the checkout price could be manipulated via the URL. Thanks to sungbyeongchan for the responsible disclosure.
+
+##### [Version 3.2.2](https://github.com/Codeinwp/otter-blocks/compare/v3.2.1...v3.2.2) (2026-08-12)
+
+- Form submissions can now be exported as a CSV file, with the export button offering a choice between CSV and XML formats.
+- Fixed a fatal error when a dynamic block class was not available during block registration.
+- Updated dependencies
+
+##### [Version 3.2.1](https://github.com/Codeinwp/otter-blocks/compare/v3.2.0...v3.2.1) (2026-07-22)
+
+- Fixed an issue where the close button placed inside a popup could not be clicked when the popup content overlapped it.
+- Fixed an issue where blocks with animations nested inside a parent using a slide or similar animation stayed invisible until the page was scrolled.
+- Fixed an issue on WordPress 7.0 where content inserted from the Design Library was locked as a pattern instead of arriving as fully editable blocks.
+- Fixed an issue where form settings such as the recipient email and messages failed to save when the form used a Cloudflare Turnstile captcha.
+- Introduced block render tracking and late CSS output in the footer for blocks using Atomic Wind not rendered in the main query.
+
+#### [Version 3.2.0](https://github.com/Codeinwp/otter-blocks/compare/v3.1.11...v3.2.0) (2026-07-06)
+
+### New Features
+
+- **Modernized AI backend**: Otters AI features work with the native AI adapters in the WordPress 7.0 release with backwards compatibility for older versions.
+- **AI content toolbar**: Rewrite, summarize, expand, shorten, translate, change tone, fix grammar, and simplify from a new modal, plus custom user-defined actions.
+- **AI page generation**: Generate a section or full page from a prompt and insert it into the editor.
+- **AI form autoresponders**: Enrich autoresponder messages with personalized, AI-generated content.
+- **New block patterns and page templates**: 50 new free & 100+ premium block patterns plus 3 new free & 10 premium  template packages for the Otter Design Library.
+- **Smarter design library search**: Better search over the Design Library, powered by rich descriptions and fuzzt search.
+- **Better pattern categorization and tagging**: Otter Design Library is now better categorized and tagged, making patterns easier to find.
+- **Accent color selector for Design Library**: Preview and insert patterns in your accent color, so they arrive on-brand.
+- **Content Slider block**: A lightweight slider that accepts any inner blocks as slides, not just images.
+- **ACF Repeater support**: Pull dynamic values from ACF Repeater fields, including sub-fields like images.
+- **Archive title prefix toggle**: Show a category name without the Category: prefix.
+- **Cloudflare Turnstile**: An alternative to reCAPTCHA for Form block spam protection.
+- **Form reply-to**: Set a configurable Reply-To address on the Form block.
+- **Reworked Block Conditions design**: Cleaner, less cluttered visibility Conditions panel.
+
+### Fixes 
+
+- **Slider duplication**: No more error when duplicating a Slider block.
+- **Maps block**: Toggle scroll-zoom, plus fixes for duplicate markers, placement, and popups.
+- **Button Group global options**: Appearance, Letter case, and Line height now properly apply on the front end.
+- **Custom CSS panel**: No longer shows duplicated CSS textarea boxes on WP 7.0.
+- **Keyboard navigation**: Arrow-key navigation between blocks works again on WP 7.0.
+- **Live Search warning**: Fixed the Undefined array key cat PHP warning when no category is selected.
+- **Required fields in emails**: Multiple-choice values no longer show a stray asterisk.
+- **Image alt text**: Blocks with images now support alt attributes for EU accessibility compliance.
+- **Modal close button**: Added aria-labels for screen-reader users.
+- **WooCommerce Builder**: Hide placeholders to users that cant edit the product template if no user-facing content can be displayed.
+
+### Changes
+
+- **Block API v3**: Migrated all blocks to apiVersion: 3, removing editor deprecation warnings and fixing iframe compatibility.
+- **Resilient form submissions**: Entries save to the database before email, so mail failures no longer lose leads; errors are logged.
+- **Removed CSS saving notice**: Dropped noisy Saving CSS notices while still surfacing real errors.
+- **Performance**: Audited block loading and caching for editor and front-end speed.
+- **Atomic Wind block names**: Show meaningful names for Atomic Wind blocks in List View.
+- **Atomic Wind icons**: New icons for Atomic Wind blocks.
+- **Atomic Wind CSS warmup**: Added CSS generator warmup so the styles are already generated before the page is visited.
+- **Uprefixed dynamic category name**: Users can now display the category name dynamic value without a prefix.
+- **Dependencies**: Updated internal dependencies.
+- **Security**: General security improvements.
+- **English typos**: Corrected several English typos in form messages.
+
+##### [Version 3.1.11](https://github.com/Codeinwp/otter-blocks/compare/v3.1.10...v3.1.11) (2026-05-27)
+
+- Fixed patterns not showing in onboarding on Full Site Editing themes
+
+##### [Version 3.1.10](https://github.com/Codeinwp/otter-blocks/compare/v3.1.9...v3.1.10) (2026-05-19)
+
+- Fixed visibility conditions change on duplicated blocks
+- Enhanced file type validation
+- Updated dependencies
+
+##### [Version 3.1.9](https://github.com/Codeinwp/otter-blocks/compare/v3.1.8...v3.1.9) (2026-04-24)
+
+- Fixed issue where attributes, variations options appear as empty when the WooCommerce Builder integration from Otter PRO is enabled
+- Fixed issue with animations in the editor view
+
+##### [Version 3.1.8](https://github.com/Codeinwp/otter-blocks/compare/v3.1.7...v3.1.8) (2026-04-01)
+
+- Fixed saving of dynamic post content values
+- Fixed slow animation speed
+- Fixed a PHP undefined array key warning
+- Fixed accordion icon on large titles
+- Fixed over-sanitization of atomic-wind experimental blocks query
+- Improved theme color output by using CSS variables instead of hex codes
+- Enhanced security
+
+##### [Version 3.1.7](https://github.com/Codeinwp/otter-blocks/compare/v3.1.6...v3.1.7) (2026-03-25)
+
+- fixes experimental blocks interactivity state management
+
+##### [Version 3.1.6](https://github.com/Codeinwp/otter-blocks/compare/v3.1.5...v3.1.6) (2026-03-23)
+
+- Adds experimental atomic-wind blocks
+- Improves handling of boxed values, allowing string values for four-directional properties
+
+##### [Version 3.1.5](https://github.com/Codeinwp/otter-blocks/compare/v3.1.4...v3.1.5) (2026-02-27)
+
+- Added title for Close button from the Popup block
+- Fixed issue when form validation was not appearing when you click on the Submit button
+- Fixed issue with Team Members Pattern having errors in the mobile preview
+- Fixed issue with assets not being enqueued for block template parts
+- Fixed issue where WP Enlarge on click option was not working when using Otters animations
+- Fixed Visibility conditions that were not applied to 767px and 768px screens
+- Fixed tabs broken on mobile view
+- Enhanced security
+
+##### [Version 3.1.4](https://github.com/Codeinwp/otter-blocks/compare/v3.1.3...v3.1.4) (2025-12-12)
+
+- Updated dependencies
+
+##### [Version 3.1.3](https://github.com/Codeinwp/otter-blocks/compare/v3.1.2...v3.1.3) (2025-11-05)
+
+- Updated dependencies
+
 ##### [Version 3.1.2](https://github.com/Codeinwp/otter-blocks/compare/v3.1.1...v3.1.2) (2025-09-04)
 
 - Updated dependencies

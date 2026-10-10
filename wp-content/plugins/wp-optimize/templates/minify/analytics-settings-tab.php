@@ -1,4 +1,4 @@
-<?php if (!defined('WPO_VERSION')) die('No direct access allowed'); ?>
+<?php if (!defined('ABSPATH')) die('No direct access allowed'); ?>
 <div class="wpo_section wpo_group">
 
 <form id="analytics-form">
@@ -39,7 +39,7 @@
 					<tr>
 						<th scope="row"><label for="analytics_method"><?php esc_html_e('Analytics Script', 'wp-optimize');?></label></th>
 						<td>
-							<select name="analytics_method" id="analytics_method" disabled="disabled">
+							<select name="analytics_method" id="analytics_method" class="wpo-select2" disabled="disabled">
 								<option value="gtagv4" <?php selected($method, 'gtagv4'); ?>><?php esc_html_e('Gtag.js v4 (~116KB GZipped)', 'wp-optimize');?></option>
 								<option value="minimal-analytics" <?php selected($method, 'minimal-analytics'); ?>><?php esc_html_e('Minimal Analytics.js (~3KB GZipped)', 'wp-optimize');?></option>
 							</select>

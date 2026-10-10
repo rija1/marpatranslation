@@ -1,15 +1,15 @@
 <?php
 /**
  * Plugin Name: WPML Multilingual & Multicurrency for WooCommerce
- * Plugin URI: https://wpml.org/documentation/related-projects/woocommerce-multilingual/?utm_source=plugin&utm_medium=gui&utm_campaign=wcml
- * Description: Make your store multilingual and enable multiple currencies | <a href="https://wpml.org/documentation/related-projects/woocommerce-multilingual/?utm_source=plugin&utm_medium=gui&utm_campaign=wcml">Documentation</a>
+ * Plugin URI: https://wpml.org/documentation/wpml-core-and-add-on-plugins/woocommerce-multilingual/?utm_source=plugin&utm_medium=gui&utm_campaign=wcml
+ * Description: Make your store multilingual and enable multiple currencies | <a href="https://wpml.org/documentation/wpml-core-and-add-on-plugins/woocommerce-multilingual/?utm_source=plugin&utm_medium=gui&utm_campaign=wcml">Documentation</a>
  * Author: OnTheGoSystems
  * Author URI: http://www.onthegosystems.com/
  * Text Domain: woocommerce-multilingual
- * Version: 5.5.3.1
+ * Version: 5.6.3
  * Plugin Slug: woocommerce-multilingual
  * WC requires at least: 3.9
- * WC tested up to: 10.4
+ * WC tested up to: 11.2
  *
  * @package WCML
  * @author  OnTheGoSystems
@@ -17,13 +17,12 @@
 
 if (
 	defined( 'WCML_VERSION' )
-	/* phpcs:ignore WordPress.VIP.SuperGlobalInputUsage.AccessDetected */
 	|| ( isset( $_SERVER['REQUEST_URI'] ) && '/favicon.ico' === $_SERVER['REQUEST_URI'] )
 ) {
 	return;
 }
 
-define( 'WCML_VERSION', '5.5.3.1' );
+define( 'WCML_VERSION', '5.6.3' );
 define( 'WCML_PLUGIN_PATH', dirname( __FILE__ ) );
 define( 'WCML_PLUGIN_FOLDER', basename( WCML_PLUGIN_PATH ) );
 define( 'WCML_LOCALE_PATH', WCML_PLUGIN_PATH . '/locale' );
@@ -39,7 +38,7 @@ require WCML_PLUGIN_PATH . '/inc/wcml-core-functions.php';
 require WCML_PLUGIN_PATH . '/vendor/autoload.php';
 
 require_once WCML_PLUGIN_PATH . '/vendor/otgs/ui/loader.php';
-otgs_ui_initialize( WCML_PLUGIN_PATH . '/vendor/otgs/ui', WCML_PLUGIN_URL . '/vendor/otgs/ui' ); // @phpstan-ignore-line
+otgs_ui_initialize( WCML_PLUGIN_PATH . '/vendor/otgs/ui', WCML_PLUGIN_URL . '/vendor/otgs/ui' );
 
 $vendor_root_url = WCML_PLUGIN_URL . '/vendor';
 require_once WCML_PLUGIN_PATH . '/vendor/otgs/icons/loader.php';
@@ -49,7 +48,6 @@ WCML_Locale::load_locale();
 if ( WPML_Core_Version_Check::is_ok( WCML_PLUGIN_PATH . '/wpml-dependencies.json' ) ) {
 	global $woocommerce_wpml;
 
-	/* @phpstan-ignore booleanNot.alwaysTrue */
 	if ( defined( 'ICL_SITEPRESS_VERSION' ) && ! ICL_PLUGIN_INACTIVE && class_exists( 'SitePress' ) ) {
 		( new WPML_Action_Filter_Loader() )->load( [
 			WCML_Switch_Lang_Request::class,
@@ -64,9 +62,6 @@ if ( WPML_Core_Version_Check::is_ok( WCML_PLUGIN_PATH . '/wpml-dependencies.json
 	add_action( 'wpml_loaded', 'wcml_loader' );
 }
 
-/**
- * Load WPML Multilingual & Multicurrency for WooCommerce after WPML is loaded
- */
 function wcml_loader() {
 	if ( ! class_exists( 'WooCommerce' ) ) {
 		\WPML\Container\share( \WCML\Container\Config::getSharedClassesWhenWooCommerceIsInactive() );
@@ -95,9 +90,11 @@ function wcml_loader() {
 		\WCML\AdminDashboard\Hooks::class,
 		\WCML\AdminNotices\Review::class,
 		\WCML\Multicurrency\UI\Factory::class,
+		\WCML\Multicurrency\StripeConnect\Factory::class,
 		\WCML\PaymentGateways\BlockHooksFactory::class,
 		\WCML\PaymentGateways\Factory::class,
 		\WCML\Permalinks\Factory::class,
+		\WCML\Permalinks\TaxonomySlugTranslationActivator::class,
 		\WCML\CLI\Hooks::class,
 		\WCML\Reports\Hooks::class,
 		\WCML\Reports\Products\Query::class,
@@ -107,18 +104,20 @@ function wcml_loader() {
 		\WCML\Reports\Orders\Hooks::class,
 		\WCML\Multicurrency\Analytics\Factory::class,
 		\WCML\Setup\BeforeHooks::class,
+		\WCML\Setup\CostEstimateContributorsFactory::class,
 		\WCML\AdminNotices\CurrencySwitcherUseTwigTemplate::class,
 		\WCML\AdminNotices\MultiCurrencyMissing::class,
-		\WCML\AdminNotices\TranslationControlMovedNotice::class,
 		\WCML\Products\Hooks::class,
 		\WCML\API\VendorAddon\Hooks::class,
 		\WCML\Attributes\LookupTableFactory::class,
 		\WCML\Attributes\LookupFiltersFactory::class,
 		\WCML\HomeScreen\Factory::class,
 		\WCML\Terms\Count\Hooks::class,
+		\WCML\ProductFilters\TaxonomyHierarchyCache::class,
 		\WCML\Rest\Store\HooksFactory::class,
 		\WCML\Importer\Products::class,
 		\WCML\COT\Hooks::class,
+		\WCML\ProductCache\Hooks::class,
 		\WCML\DisplayAsTranslated\FrontendHooksFactory::class,
 		\WCML\User\Hooks::class,
 		\WCML\Exporter\AllLanguagesHooks::class,
@@ -129,7 +128,12 @@ function wcml_loader() {
 		\WCML\OrderItems\Hooks::class,
 		\WCML\Multicurrency\WpQueryMcPrice\Factory::class,
 		\WCML\Synchronization\Hooks::class,
+		\WCML\Synchronization\ProtectSyncHashMeta::class,
 		\WCML\PostHog\Hooks::class,
+		\WCML\WcEmailSettings\MultilingualHooks::class,
+		\WCML\EditorScopedSync\HooksFactory::class,
+		\WCML\Abilities\Hooks::class,
+		\WCML\Bonded\EmbeddedBodyRendererFactory::class,
 	];
 
 	$loaders[] = 'WCML_Product_Image_Filter_Factory';
@@ -145,9 +149,6 @@ if ( WCML\Rest\Functions::isRestApiRequest() ) {
 	add_action( 'wpml_before_init', [ WCML\Rest\Generic::class, 'removeHomeUrlFilterOnRestAuthentication' ] );
 }
 
-/**
- * Load WPML Multilingual & Multicurrency for WooCommerce when WPML is NOT active.
- */
 function load_wcml_without_wpml() {
 	if ( ! did_action( 'wpml_loaded' ) ) {
 		require_once WCML_PLUGIN_PATH . '/addons/load-standalone-dependencies.php';

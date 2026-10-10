@@ -1,8 +1,5 @@
 <?php
 
-/**
- * Class WCML_Not_Supported_Payment_Gateway
- */
 class WCML_Not_Supported_Payment_Gateway extends WCML_Payment_Gateway{
 
 	public function get_output_model() {
@@ -13,6 +10,7 @@ class WCML_Not_Supported_Payment_Gateway extends WCML_Payment_Gateway{
 			'settings'    => [],
 			'tooltip'     => '',
 			'strings'     => [
+				/* translators: Status shown next to a payment method WPML cannot yet set currencies for. */
 				'labelNotYetSupported' => __( 'Not yet supported', 'woocommerce-multilingual' ),
 			],
 		];

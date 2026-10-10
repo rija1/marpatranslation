@@ -10,6 +10,7 @@
 namespace CookieYes\Lite\Admin\Modules\Banners\Includes;
 
 use CookieYes\Lite\Includes\Base_Controller;
+use CookieYes\Lite\Includes\Cache;
 
 use stdClass;
 
@@ -97,9 +98,9 @@ class Controller extends Base_Controller {
 			name varchar(190) NOT NULL DEFAULT '',
 			slug varchar(190) NOT NULL DEFAULT '',
 			status int(11) NOT NULL DEFAULT 0,
-			settings longtext NOT NULL DEFAULT '',
+			settings longtext NOT NULL,
 			banner_default int(11) NOT NULL DEFAULT 0,
-			contents longtext NOT NULL DEFAULT '',
+			contents longtext NOT NULL,
 			date_created datetime NOT NULL DEFAULT '0000-00-00 00:00:00',
 			date_modified datetime NOT NULL DEFAULT '0000-00-00 00:00:00',
 			PRIMARY KEY (banner_id)
@@ -291,6 +292,12 @@ class Controller extends Base_Controller {
 		$banner->set_name( 'CCPA' );
 		$banner->set_settings( self::get_default_configs( 'ccpa' ) );
 		$banner->save();
+
+		// Stored banner HTML (in the `cky_banner_template` option) outlives
+		// its source rows when the DB is wiped manually; drop it so the next
+		// front-end request regenerates against the freshly-seeded banners.
+		delete_option( 'cky_banner_template' );
+		Cache::delete( 'banner_template' );
 	}
 
 	/**
@@ -351,16 +358,19 @@ class Controller extends Base_Controller {
 	}
 
 	/**
-	 *  Return the default settings of a banner.
+	 * Return the default settings of a banner.
 	 *
-	 * @param string $type Consent type. Default value "gdpr".
+	 * @param string $type    Consent type. Default value "gdpr".
+	 * @param string $version Template version. "6.2.0" for new users, "6.0.0" for legacy banners.
 	 * @return array
 	 */
-	public static function get_default_configs( $type = 'gdpr' ) {
-		$settings = wp_cache_get( 'default', 'cky_banner_settings_' . $type );
+	public static function get_default_configs( $type = 'gdpr', $version = '6.2.0' ) {
+		$cache_key = $version . '_' . $type;
+		$settings  = wp_cache_get( $cache_key, 'cky_banner_settings' );
 		if ( ! $settings ) {
-			$settings = cky_read_json_file( dirname( __FILE__ ) . '/configs/' . $type . '.json' );
-			wp_cache_set( 'default', $settings, 'cky_banner_settings_' . $type, 12 * HOUR_IN_SECONDS );
+			$config_dir = dirname( __FILE__ ) . '/configs/' . $version . '/';
+			$settings   = cky_read_json_file( $config_dir . $type . '.json' );
+			wp_cache_set( $cache_key, $settings, 'cky_banner_settings', 12 * HOUR_IN_SECONDS );
 		}
 		return $settings;
 	}

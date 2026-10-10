@@ -30,7 +30,7 @@
             //[utm47]
             $trp_addons_listing->tooltip_content = sprintf(__('You need an active license to have access to the addon. Renew or purchase a new one %1$shere%2$s.', 'translatepress-multilingual'), '<a target="_blank" href="https://translatepress.com/pricing/?utm_source=tp-addons&utm_medium=client-site&utm_campaign=enable-addons">', '</a>');
         else if ($license_status == false) {
-            $trp_addons_listing->tooltip_content = sprintf(__('Please %1$senter your license%2$s key first, to activate this addon.', 'translatepress-multilingual'), '<a target="_blank" href="' . admin_url('admin.php?page=trp_license_key') . '">', '</a>');
+            $trp_addons_listing->tooltip_content = sprintf(__('Please %1$senter your license%2$s key first, to activate this addon.', 'translatepress-multilingual'), '<a target="_blank" href="' . admin_url('admin.php?page=trp_ai_api_key') . '">', '</a>');
         }
     }
 
@@ -107,6 +107,14 @@
             'icon' => 'navigation_based_on_lang_addon_page.png',
             //[utm54]
             'doc_url' => 'https://translatepress.com/docs/addons/navigate-based-language/?utm_source=tp-addons&utm_medium=client-site&utm_campaign=nav-based-on-lang-addon',
+        ),
+        array(  'slug' => 'tp-add-on-multiple-domains/tp-multiple-domains.php',
+            'type' => 'add-on',
+            'name' => __( 'Different Domain per Language', 'translatepress-multilingual' ),
+            'description' => __( 'Connect separate domains or subdomains to each of your translated versions. Strengthen your brand’s local identity and boost SEO performance for every language you support.', 'translatepress-multilingual' ),
+            'icon' => 'multiple_domains_addon_page.png',
+            //[utm55]
+            'doc_url' => 'https://translatepress.com/docs/developers/different-domain-per-language/?utm_source=tp-addons&utm_medium=client-site&utm_campaign=different-domain-adddon',
         ),
     );
     $trp_addons_listing->add_section();

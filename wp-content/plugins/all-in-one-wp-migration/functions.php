@@ -65,6 +65,29 @@ function ai1wm_storage_path( $params ) {
 }
 
 /**
+ * Resolve the backups path.
+ * If the stored option points to a stale path (e.g., from a server migration)
+ * where neither the path nor its parent directory exist, the option is deleted
+ * and the default path is returned.
+ *
+ * @return string
+ */
+function ai1wm_resolve_backups_path() {
+	$backups_path = get_option( AI1WM_BACKUPS_PATH_OPTION, false );
+	if ( $backups_path === false ) {
+		return AI1WM_DEFAULT_BACKUPS_PATH;
+	}
+
+	$parent_backups_path = dirname( $backups_path );
+	if ( ! is_dir( $parent_backups_path ) || ! is_writable( $parent_backups_path ) ) {
+		delete_option( AI1WM_BACKUPS_PATH_OPTION );
+		return AI1WM_DEFAULT_BACKUPS_PATH;
+	}
+
+	return $backups_path;
+}
+
+/**
  * Get backup absolute path
  *
  * @param  array  $params Request parameters
@@ -314,10 +337,18 @@ function ai1wm_blogs_path( $params ) {
  * Get settings.json absolute path
  *
  * @param  array  $params Request parameters
+ * @param  mixed  $prefix Filename prefix
  * @return string
  */
-function ai1wm_settings_path( $params ) {
-	return ai1wm_storage_path( $params ) . DIRECTORY_SEPARATOR . AI1WM_SETTINGS_NAME;
+function ai1wm_settings_path( $params, $prefix = '' ) {
+	// Build the file name from the base name of a clean string identifier.
+	if ( is_scalar( $prefix ) ) {
+		$prefix = ai1wm_basename( str_replace( chr( 0 ), '', strval( $prefix ) ) );
+	} else {
+		$prefix = '';
+	}
+
+	return ai1wm_storage_path( $params ) . DIRECTORY_SEPARATOR . ( empty( $prefix ) ? AI1WM_SETTINGS_NAME : sprintf( '%s.%s', $prefix, AI1WM_SETTINGS_NAME ) );
 }
 
 /**
@@ -343,10 +374,17 @@ function ai1wm_cookies_path( $params ) {
 /**
  * Get error log absolute path
  *
- * @param  string $nonce Log nonce
+ * @param  mixed  $nonce Log file identifier
  * @return string
  */
 function ai1wm_error_path( $nonce ) {
+	// Build the file name from the base name of a clean string identifier.
+	if ( is_scalar( $nonce ) ) {
+		$nonce = ai1wm_basename( str_replace( chr( 0 ), '', strval( $nonce ) ) );
+	} else {
+		$nonce = '';
+	}
+
 	return AI1WM_STORAGE_PATH . DIRECTORY_SEPARATOR . sprintf( AI1WM_ERROR_NAME, $nonce );
 }
 
@@ -392,7 +430,10 @@ function ai1wm_backup_url( $params ) {
  * @return integer
  */
 function ai1wm_archive_bytes( $params ) {
-	return filesize( ai1wm_archive_path( $params ) );
+	$archive_path = ai1wm_archive_path( $params );
+	clearstatcache( true, $archive_path );
+
+	return filesize( $archive_path );
 }
 
 /**
@@ -927,6 +968,22 @@ function ai1wm_table_prefix( $blog_id = null ) {
 	}
 
 	return $wpdb->base_prefix . $blog_id . '_';
+}
+
+/**
+ * Get default config filters
+ *
+ * @param  array $filters List of files and directories
+ * @return array
+ */
+function ai1wm_config_filters( $filters = array() ) {
+	return array_merge(
+		$filters,
+		array(
+			AI1WM_PACKAGE_NAME,
+			AI1WM_MULTISITE_NAME,
+		)
+	);
 }
 
 /**
@@ -1863,8 +1920,8 @@ function ai1wm_is_filename_supported( $file, $extensions = array( 'wpress' ) ) {
  */
 function ai1wm_is_filedata_supported( $file ) {
 	if ( ( $file_handle = @fopen( $file, 'rb' ) ) ) {
-		if ( ( $file_buffer = @fread( $file_handle, 4377 ) ) ) {
-			if ( ( $file_data = @unpack( 'a255filename/a14size/a12mtime/a4096path', $file_buffer ) ) !== false ) {
+		if ( ( $file_buffer = @fread( $file_handle, Ai1wm_Archiver::HEADER_SIZE ) ) ) {
+			if ( ( $file_data = @unpack( 'a255filename/a14size/a12mtime/a4088path/a8crc32', $file_buffer ) ) !== false ) {
 				if ( AI1WM_PACKAGE_NAME === trim( $file_data['filename'] ) ) {
 					return true;
 				}
@@ -1885,8 +1942,8 @@ function ai1wm_is_filedata_supported( $file ) {
  */
 function ai1wm_is_gzipped_filedata_supported( $file ) {
 	if ( ( $file_handle = @gzopen( $file, 'rb' ) ) ) {
-		if ( ( $file_buffer = @gzread( $file_handle, 4377 ) ) ) {
-			if ( ( $file_data = @unpack( 'a255filename/a14size/a12mtime/a4096path', $file_buffer ) ) !== false ) {
+		if ( ( $file_buffer = @gzread( $file_handle, Ai1wm_Archiver::HEADER_SIZE ) ) ) {
+			if ( ( $file_data = @unpack( 'a255filename/a14size/a12mtime/a4088path/a8crc32', $file_buffer ) ) !== false ) {
 				if ( AI1WM_PACKAGE_NAME === trim( $file_data['filename'] ) ) {
 					return true;
 				}
@@ -1982,6 +2039,36 @@ function ai1wm_setup_environment() {
 function ai1wm_setup_errors() {
 	@set_error_handler( 'Ai1wm_Handler::error' );
 	@register_shutdown_function( 'Ai1wm_Handler::shutdown' );
+}
+
+/**
+ * Send the response and close the connection, leaving PHP running
+ *
+ * Only the loopback steps of an export or import have nobody waiting on the
+ * response, and those are the requests that otherwise hold a connection open
+ * for the whole step. A manual run is driven by the browser, which reads the
+ * response, and the REST and WP-CLI entry points are not ajax requests.
+ *
+ * Supported by PHP-FPM and LiteSpeed. Anywhere else the connection stays open
+ * until the script ends, as it does now.
+ *
+ * @param  array<string, mixed> $params Request parameters
+ * @return void
+ */
+function ai1wm_close_connection( $params ) {
+	if ( ! defined( 'DOING_AJAX' ) || ! DOING_AJAX ) {
+		return;
+	}
+
+	if ( isset( $params['ai1wm_manual_export'] ) || isset( $params['ai1wm_manual_import'] ) || isset( $params['ai1wm_manual_restore'] ) ) {
+		return;
+	}
+
+	if ( function_exists( 'fastcgi_finish_request' ) ) {
+		fastcgi_finish_request();
+	} elseif ( function_exists( 'litespeed_finish_request' ) ) {
+		litespeed_finish_request();
+	}
 }
 
 /**
@@ -2325,7 +2412,7 @@ function ai1wm_crypt_iv_length() {
 }
 
 /**
- * Decrypts a string with a eky
+ * Decrypts a string with a key
  *
  * @param string $encrypted_string String to decrypt
  * @param string $key              Key to decrypt the string with
@@ -2432,6 +2519,13 @@ function ai1wm_allowed_html_tags() {
 		),
 		'br'     => array(),
 		'em'     => array(),
+		'h3'     => array(),
+		'i'      => array(
+			'class'       => array(),
+			'aria-hidden' => array(),
+			'aria-label'  => array(),
+		),
+		'small'  => array(),
 		'strong' => array(),
 		'input'  => array(
 			'type'       => array(),
@@ -2512,4 +2606,23 @@ function ai1wm_register_script( $handle, $src, $deps = array(), $ver = false, $a
  */
 function ai1wm_enqueue_script( $handle, $src = '', $deps = array(), $ver = false, $args = array() ) {
 	wp_enqueue_script( $handle, $src, $deps, $ver, $args );
+}
+
+/**
+ * Check for compression type availability
+ *
+ * @param  string  $name Compression type
+ * @return boolean
+ */
+function ai1wm_has_compression_type( $name ) {
+	switch ( strtolower( $name ) ) {
+		case 'gzip':
+			return function_exists( 'gzcompress' );
+
+		case 'bzip2':
+			return function_exists( 'bzcompress' );
+
+		default:
+			return false;
+	}
 }

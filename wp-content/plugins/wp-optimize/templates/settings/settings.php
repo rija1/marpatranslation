@@ -1,10 +1,10 @@
-<?php if (!defined('WPO_VERSION')) die('No direct access allowed'); ?>
+<?php if (!defined('ABSPATH')) die('No direct access allowed'); ?>
 
 <div id="wp-optimize-general-settings" class="wpo_section wpo_group">
 	<form action="#" method="post" enctype="multipart/form-data" name="settings_form" id="settings_form">
 		<div id="wpo_settings_warnings"></div>
 
-		<?php WP_Optimize()->include_template('settings/settings-general.php'); ?>
+		<?php WP_Optimize()->include_template('settings/settings-general.php', false, array('settings_general_data' => $settings_general_data)); ?>
 		<?php WP_Optimize()->include_template('settings/settings-trackback-and-comments.php', false, array('settings_trackback_data' => $settings_trackback_data, 'settings_comments_data' => $settings_comments_data)); ?>
 		<?php WP_Optimize()->include_template('settings/settings-logging.php', false, array('loggers_data' => $loggers_data)); ?>
 		<?php WP_Optimize()->include_template('settings/settings-export-import.php'); ?>
@@ -31,18 +31,18 @@
 					echo esc_html($message);
 					?>
 				</small>
-				<br>
-				<br>
+			</p>
+
+			<div class="wpo-save-btn-container">
 				<input class="button wpo-wipe-settings" type="button" name="wp-optimize-wipe-settings" value="<?php esc_attr_e('Wipe settings', 'wp-optimize'); ?>" />
 
 				<img class="wpo_spinner" src="<?php echo esc_url(admin_url('images/spinner-2x.gif')); // phpcs:ignore PluginCheck.CodeAnalysis.ImageFunctions.NonEnqueuedImage -- N/A ?>" alt="...">
 
 				<span class="dashicons dashicons-yes display-none save-done"></span>
-
-			</p>
+			</div>
 		</div>
 
-		<div>
+		<div class="wpo-save-btn-container">
 			<input id="wp-optimize-save-main-settings" class="button button-primary wpo-save-settings" type="submit" name="wp-optimize-settings" value="<?php esc_attr_e('Save settings', 'wp-optimize'); ?>" />
 
 			<img class="wpo_spinner wpo-saving-settings" src="<?php echo esc_url(admin_url('images/spinner-2x.gif')); // phpcs:ignore PluginCheck.CodeAnalysis.ImageFunctions.NonEnqueuedImage -- N/A ?>" alt="...">

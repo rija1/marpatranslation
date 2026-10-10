@@ -1972,6 +1972,7 @@ function give_v20_upgrades_payment_metadata_callback() {
 /**
  * Move payment and form metadata to new table
  *
+ * @since 4.14.0 Replace {$wpdb->paymentmeta} with {$wpdb->donationmeta}
  * @since  2.0
  * @return void
  */
@@ -2008,7 +2009,7 @@ function give_v20_move_metadata_into_new_table_callback() {
 			if ( ! empty( $meta_data ) ) {
 				foreach ( $meta_data as $index => $data ) {
 					// Check for duplicate meta values.
-					if ( $result = $wpdb->get_results( $wpdb->prepare( 'SELECT * FROM ' . ( 'give_forms' === $post->post_type ? $wpdb->formmeta : $wpdb->paymentmeta ) . ' WHERE meta_id=%d', $data['meta_id'] ), ARRAY_A ) ) {
+					if ( $result = $wpdb->get_results( $wpdb->prepare( 'SELECT * FROM ' . ( 'give_forms' === $post->post_type ? $wpdb->formmeta : $wpdb->donationmeta ) . ' WHERE meta_id=%d', $data['meta_id'] ), ARRAY_A ) ) {
 						continue;
 					}
 
@@ -2323,6 +2324,7 @@ function give_v201_upgrades_payment_metadata_callback() {
 /**
  * Move payment and form metadata to new table
  *
+ * @since 4.14.0 Replace {$wpdb->paymentmeta} with {$wpdb->donationmeta}
  * @since  2.0.1
  * @return void
  */
@@ -2368,7 +2370,7 @@ function give_v201_move_metadata_into_new_table_callback() {
 			if ( ! empty( $meta_data ) ) {
 				foreach ( $meta_data as $index => $data ) {
 					// Check for duplicate meta values.
-					if ( $result = $wpdb->get_results( $wpdb->prepare( 'SELECT * FROM ' . ( 'give_forms' === $post->post_type ? $wpdb->formmeta : $wpdb->paymentmeta ) . ' WHERE meta_id=%d', $data['meta_id'] ), ARRAY_A ) ) {
+					if ( $result = $wpdb->get_results( $wpdb->prepare( 'SELECT * FROM ' . ( 'give_forms' === $post->post_type ? $wpdb->formmeta : $wpdb->donationmeta ) . ' WHERE meta_id=%d', $data['meta_id'] ), ARRAY_A ) ) {
 						continue;
 					}
 
@@ -3111,7 +3113,9 @@ function give_v230_delete_dw_related_donor_data_callback() {
 
 	$give_updates = Give_Updates::get_instance();
 
-	$wpdb->query( "DELETE FROM {$wpdb->donormeta} WHERE meta_key LIKE '%_give_anonymous_donor%' OR meta_key='_give_has_comment';" );
+	$donor_meta_table_name = Give()->donor_meta->table_name;
+
+	$wpdb->query( "DELETE FROM {$donor_meta_table_name} WHERE meta_key LIKE '%_give_anonymous_donor%' OR meta_key='_give_has_comment';" );
 
 	$give_updates->percentage = 100;
 

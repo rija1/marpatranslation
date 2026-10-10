@@ -18,6 +18,7 @@ if ( ! defined( 'WPINC' ) ) {
 	var cli_error_message = '<?php echo esc_html__( 'Unable to update Settings.', 'cookie-law-info' ); ?>';
 </script>
 <div class="wrap">
+	<?php include_once CLI_PLUGIN_PATH . 'admin/partials/wt-cli-update-banner.php'; ?>
 	<div class="cookie-law-info-form-container">
 		<div class="cli-plugin-toolbar top">
 			<h3><?php echo esc_html__( 'Non-necessary Cookie Settings', 'cookie-law-info' ); ?></h3>

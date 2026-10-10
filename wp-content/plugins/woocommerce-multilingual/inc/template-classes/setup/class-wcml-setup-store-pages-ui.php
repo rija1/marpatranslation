@@ -4,22 +4,11 @@ class WCML_Setup_Store_Pages_UI extends WCML_Setup_Step {
 
 	const SLUG = 'store-pages';
 
-	/** @var woocommerce_wpml */
 	private $woocommerce_wpml;
 
-	/** @var SitePress */
 	private $sitepress;
 
-	/**
-	 * WCML_Setup_Store_Pages_UI constructor.
-	 *
-	 * @param woocommerce_wpml $woocommerce_wpml
-	 * @param SitePress        $sitepress
-	 * @param string           $next_step_url
-	 * @param string           $previous_step_url
-	 */
 	public function __construct( $woocommerce_wpml, $sitepress, $next_step_url, $previous_step_url ) {
-		// @todo Cover by tests, required for wcml-3037.
 		parent::__construct( $next_step_url, $previous_step_url );
 
 		$this->woocommerce_wpml = $woocommerce_wpml;
@@ -37,12 +26,13 @@ class WCML_Setup_Store_Pages_UI extends WCML_Setup_Step {
 
 			$store_pages_view = preg_replace(
 				'@<i class="otgs-ico-warning"></i>[^<]*@',
-				__( 'Click continue to create missing WooCommerce pages translate your store pages into the following languages:', 'woocommerce-multilingual' ),
+				/* translators: Line in the store-pages step of the setup wizard, shown when some WooCommerce pages are missing; the language list follows the colon. "Continue" is the button below it. */
+				addcslashes( __( 'Click continue to create missing WooCommerce pages translate your store pages into the following languages:', 'woocommerce-multilingual' ), '\\$' ),
 				$store_pages_view
 			);
 			$store_pages_view = preg_replace(
 				'@<a [^>]+>[^<]+</a>@',
-				$this->get_secondary_languages(),
+				addcslashes( $this->get_secondary_languages(), '\\$' ),
 				$store_pages_view
 			);
 
@@ -52,7 +42,8 @@ class WCML_Setup_Store_Pages_UI extends WCML_Setup_Step {
 
 			$store_pages_view = preg_replace(
 				'@<i class="otgs-ico-warning"></i>[^<]*@',
-				__( 'Click continue to translate your store pages into the following languages:', 'woocommerce-multilingual' ),
+				/* translators: Line in the store-pages step of the setup wizard, shown when every WooCommerce page exists; the language list follows the colon. "Continue" is the button below it. */
+				addcslashes( __( 'Click continue to translate your store pages into the following languages:', 'woocommerce-multilingual' ), '\\$' ),
 				$store_pages_view
 			);
 			$store_pages_view = preg_replace(
@@ -68,9 +59,13 @@ class WCML_Setup_Store_Pages_UI extends WCML_Setup_Step {
 		return [
 			'strings'      => [
 				'step_id'     => 'store_pages_step',
+				/* translators: Name of one step of the setup wizard, used in the step list and as that step's heading. Verb phrase, imperative. */
 				'heading'     => __( "Create store pages in all your site's languages", 'woocommerce-multilingual' ),
+				/* translators: Explanation under the heading of the store-pages step of the setup wizard; the four names are WooCommerce page names. */
 				'description' => __( 'WPML automatically generates translated versions of default WooCommerce pages, such as Shop, Account, Checkout, and Cart.', 'woocommerce-multilingual' ),
+				/* translators: Button label that moves the setup wizard on to the next step. Verb, imperative. */
 				'continue'    => __( 'Continue', 'woocommerce-multilingual' ),
+				/* translators: Button label that returns the setup wizard to the previous step. Verb phrase, imperative. */
 				'go_back'     => __( 'Go back', 'woocommerce-multilingual' ),
 			],
 			'store_pages'  => $store_pages_view,
@@ -83,9 +78,6 @@ class WCML_Setup_Store_Pages_UI extends WCML_Setup_Step {
 		return '/setup/store-pages.twig';
 	}
 
-	/**
-	 * @return string
-	 */
 	private function get_secondary_languages() {
 		$default_language = $this->sitepress->get_default_language();
 		$languages        = $this->sitepress->get_active_languages();

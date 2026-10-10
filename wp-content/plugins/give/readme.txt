@@ -1,11 +1,11 @@
 === GiveWP - Donation Plugin and Fundraising Platform ===
-Contributors: givewp, dlocc, webdevmattcrom, ravinderk, mehul0810, kevinwhoffman, jason_the_adams, henryholtgeerts, kbjohnson90, alaca, benmeredithgmailcom, jonwaldstein, joshuadinh, glaubersilvawp, pauloiankoski
+Contributors: givewp, dlocc, webdevmattcrom, ravinderk, mehul0810, kevinwhoffman, jason_the_adams, henryholtgeerts, kbjohnson90, alaca, benmeredithgmailcom, jonwaldstein, joshuadinh, glaubersilvawp, pauloiankoski, filipecouto, waynerocha
 Donate link: https://go.givewp.com/home
 Tags: donation, donate, recurring donations, fundraising, crowdfunding
-Requires at least: 6.6
-Tested up to: 6.8
+Requires at least: 6.9
+Tested up to: 7.1
 Requires PHP: 7.4
-Stable tag: 4.12.0
+Stable tag: 4.18.0.1
 License: GPLv3
 License URI: http://www.gnu.org/licenses/gpl-3.0.html
 
@@ -112,6 +112,7 @@ GiveWP comes with several payment gateway options:
 * **Offline Donations** -- Enable your donors to send checks or physical donations with an offline gateway with instructions.
 * **Test Gateway** -- use the Test Gateway to see exactly how your donors will walk through the donation process.
 * **And many more Gateways** - View additional payment gateways on our website. These include Authorize.net, Bitpay, Square, Razorpay, Paytm, and more.
+* **In-Person Donations (Tap To Pay)** -- Accept swipe, insert, or Tap to Pay card donations right from your mobile device or Stripe reader with [Jovvie](https://wordpress.org/plugins/jovvie-in-person-payments-givewp/).
 
 === ⚙️ Extend GiveWP with Powerful Add-ons ===
 
@@ -149,7 +150,7 @@ Are you a developer? GiveWP is built with best practices and easy to extend and 
 
 === 💚 About the GiveWP Team ===
 
-GiveWP is part of StellarWP, a Liquid Web Family Brand. Our donation plugin is backed by a growing team of WordPress developers, support engineers, customer success managers, and marketing professionals who’ve worked with WordPress and nonprofits since 2009. This means GiveWP is made with best practices in mind; extremely extensible and customizable, stable, and reliable. We’ll be here in years to come for you and your nonprofit organization.
+The most downloaded fundraising plugin on WordPress, Give has helped users raise over $350 million since 2009. Behind it is a professional team of WordPress developers who know what serious fundraising operations need: flexible tools, rock-solid reliability, and software that grows with your mission. As part of Nexcess’s software offerings, Give is backed by decades of experience building and hosting WordPress solutions.
 
 === 📧 Connect with GiveWP ===
 
@@ -272,6 +273,197 @@ You can report security bugs through the Patchstack Vulnerability Disclosure Pro
 10. Use almost any payment gateway integration with GiveWP through our add-ons or by creating your own add-on.
 
 == Changelog ==
+= 4.18.0.1: October 6th, 2026 =
+* Security: Improved validation of PayPal Standard IPN notifications.
+* Fix: Resolved an issue where PayPal Standard donations and subscription renewals with recovered fees were not recorded after the IPN validation update.
+
+= 4.18.0: October 1st, 2026 =
+* Enhancement: Improved donations list table performance on sites with hundreds of thousands of donations by paging on IDs first, fixing the total count query, and replacing the single-column donation meta indexes with composite ones
+* Enhancement: Improved the Reports screen and legacy earnings stats on large sites by summing and counting donations in the database instead of loading every donation into memory
+* Enhancement: Improved donation processing speed by skipping unnecessary offline donation email checks
+* Fix: Recurring donation stats on the campaigns list now read from the cache correctly instead of showing empty values
+* Fix: Campaign stats now show for campaigns that were added after the stats cache was built
+* Fix: Resolved an issue where campaign stats showed as zero after viewing the Campaigns screen with test mode enabled
+* Fix: Donations list table was running extremely slowly and including trashed donations on large sites.
+* Fix: Resolved an issue where a database error while saving a donation, donor, subscription, campaign, or event caused a critical error and hid the real cause
+* Fix: Resolved an issue where sites running PHP 8.4 or newer logged deprecation notices from GiveWP
+* Fix: Database migrations started a second time in requests that arrive while a slow migration is still running. Now it runs one time and the migrations list now shows the latest run first.
+* Fix: Resolved an issue where a PHP warning could appear on development copies of GiveWP that have not been built
+* Fix: Resolved an issue where subscription webhook events caused a fatal error when the subscription had no initial donation
+* Fix: Updated campaign duplication to create a single copy of each associated form when form metadata contains duplicate keys.
+* Fix: Restored donor names, initials, and totals on the donor wall block and shortcode.
+* Security: Enhanced security in Stripe webhook module
+* Security: Enhanced security on the campaign block. (CVE-2026-97643)
+* Security: Enhanced security for the Donor Dashboard access.
+
+= 4.17.0: September 23rd, 2026 =
+* Feature: Added the ability to embed donation forms on any website with a copy-paste snippet from the form builder
+* Enhancement: Donation form embeds now show a loading state while the form loads
+* Fix: Fixed PHP 8.4 deprecation notices about implicitly nullable parameters
+* Fix: Fixed the revenue table index migration adding duplicate indexes when it runs more than once
+* Fix: Added additional escaping to the legacy donation form's billing address fields.
+* Security: Donors can no longer add unverified email addresses to their own donor record.
+* Security: Enhanced security for donations imported from CSV
+
+= 4.16.9: September 16th, 2026 =
+* Security: Added additional validation to PayPal Commerce donation processing.
+* Security: Added additional sanitization to donor information displayed on public pages.
+* Fix: Resolved an issue where resuming a paused Stripe subscription triggered a fatal error.
+
+= 4.16.8.1: September 10th, 2026 =
+* Security: Improved validation of the event tickets purchase flow.
+* Security: Added additional validation to PayPal Commerce completed-order processing.
+* Security: Added additional validation to donor email lookups. Thanks Jakub Herman for responsibly disclosing this issue.
+
+= 4.16.8: September 2nd, 2026 =
+* Fix: Fixed a campaign's default donation form appearing unpublished in the form builder.
+* Fix: Fixed PHP warnings on the form builder screen when its page is opened without the locale or donation form ID query arguments.
+* Fix: Resolved a plugin conflict that prevented donor first and last names from being recorded when the Charitable plugin was active alongside GiveWP.
+* Fix: Resolved an issue where the custom amount minimum and maximum also applied to the donation levels and the set donation amount, so a level below the minimum could not be donated. Forms that leave the minimum empty now fall back to the lowest configured amount, and a minimum or maximum with cents is no longer rounded down.
+* Security: Removed vulnerable dead code related to legacy donor relinking. (CVE-2026-82676)
+* Security: Enhanced security on donor account access. (CVE-2026-82675)
+* Tweak: Replaced the axios HTTP client with WordPress core's apiFetch in the donor dashboard, reports, onboarding wizard, and the log and migration list tables, and removed axios from the plugin's JavaScript dependencies.
+
+= 4.16.7.2: August 27th, 2026 =
+* Security: Added additional hardening for serialized data handling in the donation flow.
+
+= 4.16.7.1: August 24th, 2026 =
+* Security: Added additional validation to PayPal Donations order requests.
+
+= 4.16.7: August 20th, 2026 =
+* Security: Hardened donor-account email access authentication.
+* Security: Improved validation of the checkout login form.
+* Fix: Resolved an issue where paused or failing Stripe Payment Element subscriptions remained stuck when the donor updated their payment method or the subscription was resumed in Stripe.
+* Fix: Resolved a conflict where scripts enqueued by other plugins while a donation form was being rendered could stop the form builder design preview and embedded forms from loading.
+* Fix: Resolved an issue where editing a page could exhaust the PHP call stack when a theme or plugin filtered post metadata.
+* Fix: Activation banner for addons doesn't show when addons are activated from the Unified License Manager
+
+= 4.16.6.1: August 12th, 2026 =
+* Security: Added additional validation to PayPal Standard IPN.
+
+= 4.16.6: August 6th, 2026 =
+* Tweak: Improved the unified licensing page experience.
+* Security: Added additional validation when handling serialized data during the donation process.
+* Security: Added additional escaping and validation to legacy donor admin screens and the donors REST API.
+* Security: Strengthened validation of the donor email-access token and the donation receipt email preview.
+* Security: Added a capability check to the onboarding form preview screen to prevent unauthorized access.
+* Security: Added nonce verification to the front-end registration handler and restricted automatic donor account linking to the verified donation checkout flow.
+* Fix: Added validation to prevent empty password updates in the Donor Dashboard.
+* Fix: Resolved an issue where uploading a ZIP add-on with a folder name that differs from the ZIP filename (e.g. give-recurring-donations-2.19.0.zip containing the folder give-recurring/) would fail to detect the plugin after extraction.
+
+= 4.16.5.1: July 27th, 2026 =
+* Security: Strengthened security on legacy donors listing and donation details pages.
+
+= 4.16.5: July 22nd, 2026 =
+* Fix: Resolved an issue where selecting a donation amount level would also select other levels with the same value.
+* Fix: Resolved an issue where extra separators could render in the donation confirmation page header when line breaks were present in the header text.
+* Fix: Resolved an issue where refunding a donation made with a per-form Stripe account would fail because the refund request used the default account instead of the form-specific account.
+
+= 4.16.4: July 14th, 2026 =
+* Security: Added additional validation to the core settings importer.
+* Security: Added additional escaping to donor information displayed in the admin.
+* Security: Added additional escaping to the Sequoia (Multi-Step Form) template output. (CVE-2026-14987)
+
+= 4.16.3: July 6th, 2026 =
+* Security: Added additional validation to ensure donation gateway selection respects the enabled payment gateway settings.
+* Security: Improved escaping of donation form template output.
+* Security: Improved the security of the recurring donation REST API.
+
+= 4.16.2: July 1st, 2026 =
+* Security: Added additional escaping and sanitization to the Sequoia (Multi-Step Form) template settings and donation form markup (CVE-2026-13704).
+
+= 4.16.1: June 29th, 2026 =
+* Security: Standardized email access confirmation AJAX responses to prevent distinguishable server responses.
+* Security: Added additional escaping and sanitization to the Campaign Comments block and shortcode attributes (CVE-2026-13246).
+
+= 4.16.0: June 24th, 2026 =
+* Feature: Added an optional donation ID parameter to gateway webhook event handlers, allowing gateways to locate donations when the transaction ID is only available in the webhook payload.
+* Fix: Resolved an issue where multi-step donation forms could be incorrectly rejected as spam because Akismet was checked on every form step; the spam check now runs once on final submission.
+
+= 4.15.5: June 22nd, 2026 =
+* Security: Improved the security of the Donor Dashboard login process.
+
+= 4.15.4: June 15th, 2026 =
+* Security: Added additional protection to the email notification settings.
+
+= 4.15.3: May 28th, 2026 =
+* Fix: Resolved a user role permission conflict with The Events Calendar Pro
+* Fix: Resolved an issue when using multiple Stripe accounts, recurring donations, and webhook API 2026-02-25.clover
+
+= 4.15.2: May 13th, 2026 =
+* Tweak: Update Harbor to 1.2.0, removing the Liquid Web Products page when there are no premium plugins present.
+
+= 4.15.1: May 12th, 2026 =
+* Tweak: Moved the Liquid Web menu item to Settings -> Liquid Web Products.
+* Tweak: The Settings -> Liquid Web Products page now requires a opt-in to communicate with external servers.
+
+= 4.15.0: May 11th, 2026 =
+* Feature: Integrate with Nexcess Licensing and Portal.
+* Tweak: Updated branding references from StellarWP to Nexcess.
+* Fix: Resolved issue with separator style for title on donation-form thanks message.
+
+= 4.14.6: April 22nd, 2026 =
+* Security: Added additional sanitization to the Donation Form.
+* Security: Added additional access control checks to the REST API.
+
+= 4.14.5: April 8th, 2026 =
+* Security: Added additional escaping to the Donation Form Block attributes.
+* Fix: Resolved an issue with donation level labels not displaying correctly for multi-currency donations.
+
+= 4.14.4: April 2nd, 2026 =
+* Security: Added additional validation to PayPal Commerce requests.
+
+= 4.14.3: March 11th, 2026 =
+* Security: Added additional sanitization to the Donation Form.
+
+= 4.14.2: February 25th, 2026 =
+* Enhancement: Added form migration and campaign compatibility for P2P.
+* Fix: Resolved an accessibility issue with the Form Grid Block where screen readers announced all nested content as a single links
+* Fix: Resolved an accessibility issue with buttons on the View Subscription screen on Donor Dashboard page
+* Fix: Resolved an issue with the Donation Form modal when opened in a mobile device
+* Fix: Resolved an issue with emailTags not being assigned to block fields
+* Fix: Resolved an issue with the Donor Confirmation header and description colors on changing text
+* Fix: Resolved an issue where campaign default form title didn’t match campaign name
+
+= 4.14.1: February 11th, 2026 =
+* Fix: Resolved an issue with the Stripe refunded webhook
+* Fix: Resolved an issue with importing Subscriptions without a donor_id
+* Fix: Resolved an issue when using additional Stripe accounts and recurring donations
+* Fix: Resolved an issue with custom visibility conditions on donation forms when initially rendering
+* Fix: Resolved several PHP deprecated warnings on the donor dashboard
+
+= 4.14.0: January 28th, 2026 =
+* New: Added failed donation email notifications to keep you informed when donations don't go through
+* New: Added default country field setting for the billing address block to streamline the donation process
+* Enhancement: Improved compatibility with legacy user roles for sites upgrading from older versions of GiveWP
+* Fix: Resolved a conflict with the Paid Membership Subscriptions plugin
+* Fix: Resolved inconsistencies with the currency switcher display and functionality
+* Fix: Resolved an issue where revenue entries were not being properly removed when donations were deleted
+* Fix: Resolved schema mismatches for donors and donor subresources in the REST API V3
+* Fix: Resolved an issue with the admin fee recovery upgrade notice display
+
+= 4.13.2: December 8th, 2025 =
+* Fix: Resolved block compatibility with WordPress 6.9
+* Security: Added additional sanitization to the donor wall and campaign blocks (CVE-2025-66533)
+* Security: Added additional CSRF protection to PayPal onboarding settings (CVE-2025-67467)
+
+= 4.13.1: November 18th, 2025 =
+* Enhancement: Added Caribbean guilder (XCG) as a currency option
+* Enhancement: Added Curaçao as a country option (open-source contribution by @Genevieve-K)
+* Security: Added additional escaping to the donor wall (CVE-2025-13206)
+* Fix: Resolved a validation issue with some custom form fields using conditional logic
+* Fix: Resolved an issue that was causing REST API console log errors in the browser for not being logged in
+* Fix: Resolved an issue with Donor REST API and sorting by totalAmountDonated
+* Fix: Resolved an issue with merging campaigns and cached campaign goal data
+
+= 4.13.0: November 5th, 2025 =
+* Enhancement: Updated the date and time formatting throughout the new admin screens to respect WordPress settings for timezone, date format, and time format
+* Fix: Resolved an issue with form field manager checkboxes and conditional logic
+* Fix: Resolved an issue with the legacy future status of donations
+* Fix: Resolved a compatibility issue with the Divi color pickers default palette setting
+* Fix: Resolved an issue with Loco Translate that was preventing custom translation files from being loaded properly
+* Dev: Updated the schema for Campaigns and Donations in the v3 REST API
+* Dev: Updated MCP server to be compatible with Angie 1.0.2
 
 = 4.12.0: October 29th, 2025 =
 * New: The admin subscription list table has been upgraded to a new design with additional sorting, filters and statistics

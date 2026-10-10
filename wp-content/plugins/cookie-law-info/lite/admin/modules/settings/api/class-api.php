@@ -15,6 +15,7 @@ use CookieYes\Lite\Admin\Modules\Settings\Includes\Settings;
 use CookieYes\Lite\Admin\Modules\Settings\Includes\Controller;
 use CookieYes\Lite\Includes\Connect_Notice;
 use CookieYes\Lite\Includes\Notice;
+use CookieYes\Lite\Includes\Review_Request;
 
 if ( ! defined( 'ABSPATH' ) ) {
 	exit; // Exit if accessed directly.
@@ -49,6 +50,29 @@ class Api extends Rest_Controller {
 	public function __construct() {
 		add_action( 'rest_api_init', array( $this, 'register_routes' ), 10 );
 	}
+
+	/**
+	 * Register a simple POST-only route.
+	 *
+	 * @param string $endpoint The endpoint path segment.
+	 * @param string $callback The callback method name on this class.
+	 * @return void
+	 */
+	private function register_post_route( $endpoint, $callback ) {
+		register_rest_route(
+			$this->namespace,
+			'/' . $this->rest_base . '/' . $endpoint,
+			array(
+				array(
+					'methods'             => WP_REST_Server::CREATABLE,
+					'callback'            => array( $this, $callback ),
+					'permission_callback' => array( $this, 'create_item_permissions_check' ),
+					'args'                => $this->get_collection_params(),
+				),
+			)
+		);
+	}
+
 	/**
 	 * Register the routes for cookies.
 	 *
@@ -100,18 +124,6 @@ class Api extends Rest_Controller {
 		);
 		register_rest_route(
 			$this->namespace,
-			'/' . $this->rest_base . '/disconnect',
-			array(
-				array(
-					'methods'             => WP_REST_Server::CREATABLE,
-					'callback'            => array( $this, 'disconnect' ),
-					'permission_callback' => array( $this, 'create_item_permissions_check' ),
-					'args'                => $this->get_collection_params(),
-				),
-			)
-		);
-		register_rest_route(
-			$this->namespace,
 			'/' . $this->rest_base . '/sync',
 			array(
 				'args'   => array(
@@ -131,18 +143,6 @@ class Api extends Rest_Controller {
 		);
 		register_rest_route(
 			$this->namespace,
-			'/' . $this->rest_base . '/cache/purge',
-			array(
-				array(
-					'methods'             => WP_REST_Server::CREATABLE,
-					'callback'            => array( $this, 'clear_cache' ),
-					'permission_callback' => array( $this, 'create_item_permissions_check' ),
-					'args'                => $this->get_collection_params(),
-				),
-			)
-		);
-		register_rest_route(
-			$this->namespace,
 			'/' . $this->rest_base . '/notices/(?P<notice>[a-zA-Z0-9-_]+)',
 			array(
 				array(
@@ -155,52 +155,29 @@ class Api extends Rest_Controller {
 		);
 		register_rest_route(
 			$this->namespace,
-			'/' . $this->rest_base . '/expand',
+			'/' . $this->rest_base . '/review_action',
 			array(
 				array(
 					'methods'             => WP_REST_Server::CREATABLE,
-					'callback'            => array( $this, 'expand_notice' ),
+					'callback'            => array( $this, 'review_action' ),
 					'permission_callback' => array( $this, 'create_item_permissions_check' ),
-					'args'                => $this->get_collection_params(),
+					'args'                => array(
+						'action' => array(
+							'type'     => 'string',
+							'enum'     => array( 'later', 'never', 'review', 'closed' ),
+							'required' => true,
+						),
+					),
 				),
 			)
 		);
-		register_rest_route(
-			$this->namespace,
-			'/' . $this->rest_base . '/connect_notice',
-			array(
-				array(
-					'methods'             => WP_REST_Server::CREATABLE,
-					'callback'            => array( $this, 'update_connect_notice' ),
-					'permission_callback' => array( $this, 'create_item_permissions_check' ),
-					'args'                => $this->get_collection_params(),
-				),
-			)
-		);
-		register_rest_route(
-			$this->namespace,
-			'/' . $this->rest_base . '/reinstall',
-			array(
-				array(
-					'methods'             => WP_REST_Server::CREATABLE,
-					'callback'            => array( $this, 'install_missing_tables' ),
-					'permission_callback' => array( $this, 'create_item_permissions_check' ),
-					'args'                => $this->get_collection_params(),
-				),
-			)
-		);
-		register_rest_route(
-			$this->namespace,
-			'/' . $this->rest_base . '/apply_filter',
-			array(
-				array(
-					'methods'             => WP_REST_Server::CREATABLE,
-					'callback'            => array( $this, 'apply_filter' ),
-					'permission_callback' => array( $this, 'create_item_permissions_check' ),
-					'args'                => $this->get_collection_params(),
-				),
-			)
-		);
+		$this->register_post_route( 'disconnect', 'disconnect' );
+		$this->register_post_route( 'cache/purge', 'clear_cache' );
+		$this->register_post_route( 'expand', 'expand_notice' );
+		$this->register_post_route( 'connect_notice', 'update_connect_notice' );
+		$this->register_post_route( 'reinstall', 'install_missing_tables' );
+		$this->register_post_route( 'apply_filter', 'apply_filter' );
+		$this->register_post_route( 'payments', 'add_payments' );
 	}
 	/**
 	 * Get a collection of items.
@@ -337,6 +314,24 @@ class Api extends Rest_Controller {
 	}
 
 	/**
+	 * Add payments/subscription.
+	 *
+	 * @param WP_REST_Request $request Full details about the request.
+	 * @return WP_Error|WP_REST_Response
+	 */
+	public function add_payments( $request ) {
+		$data = array(
+			'currency'            => sanitize_text_field( $request->get_param( 'currency' ) ),
+			'is_trial'            => (bool) $request->get_param( 'is_trial' ),
+			'is_trial_experiment' => (bool) $request->get_param( 'is_trial_experiment' ),
+			'plan_id'             => sanitize_text_field( $request->get_param( 'plan_id' ) ),
+			'website_id'          => sanitize_text_field( $request->get_param( 'website_id' ) ),
+		);
+		$response = Controller::get_instance()->add_payments( $data );
+		return rest_ensure_response( $response );
+	}
+
+	/**
 	 * Apply WordPress filter hook
 	 *
 	 * @param WP_REST_Request $request Full details about the request.
@@ -348,6 +343,11 @@ class Api extends Rest_Controller {
 
 		if ( empty( $filter_name ) ) {
 			return new WP_Error( 'missing_filter_name', __( 'Filter name is required.', 'cookie-law-info' ), array( 'status' => 400 ) );
+		}
+
+		$allowed_filters = array( 'cookieyes_cloudways_redirect' );
+		if ( ! in_array( $filter_name, $allowed_filters, true ) ) {
+			return new WP_Error( 'invalid_filter', __( 'Filter not allowed.', 'cookie-law-info' ), array( 'status' => 400 ) );
 		}
 
 		// Apply the WordPress filter
@@ -407,6 +407,18 @@ class Api extends Rest_Controller {
 		Connect_Notice::get_instance()->save_connect_notice( $connect_notice );
 		$response['status'] = true;
 		return rest_ensure_response( $response );
+	}
+
+	/**
+	 * Process review notice action (later, never, review, closed).
+	 *
+	 * @param \WP_REST_Request $request Request.
+	 * @return \WP_REST_Response
+	 */
+	public function review_action( $request ) {
+		$action   = $request->get_param( 'action' );
+		$success  = Review_Request::process_action( $action );
+		return rest_ensure_response( array( 'status' => $success ) );
 	}
 
 	/**

@@ -54,12 +54,40 @@ class Base_CSS {
 	protected static $google_fonts = array();
 
 	/**
+	 * Renderer instances built from the class list, in registration order.
+	 *
+	 * @var array<int, object>|null
+	 */
+	protected static $blocks_instances = null;
+
+	/**
+	 * Renderer instances indexed by the block name they render.
+	 *
+	 * @var array<string, array<int, object>>|null
+	 */
+	protected static $blocks_instances_by_name = null;
+
+	/**
+	 * Whether the class list is already scheduled for autoloading.
+	 *
+	 * @var bool
+	 */
+	protected static $is_autoload_registered = false;
+
+	/**
 	 * Base_CSS constructor.
 	 *
 	 * @since   1.3.0
 	 * @access  public
 	 */
 	public function __construct() {
+		// Register once per request; renderers inherit this constructor.
+		if ( self::$is_autoload_registered ) {
+			return;
+		}
+
+		self::$is_autoload_registered = true;
+
 		add_action( 'init', array( $this, 'autoload_block_classes' ), 99 );
 	}
 
@@ -102,6 +130,86 @@ class Base_CSS {
 		);
 
 		self::$blocks_classes = apply_filters( 'otter_blocks_register_css', self::$blocks_classes );
+
+		self::reset_blocks_instances();
+	}
+
+	/**
+	 * Drop the cached renderer instances, so a changed class list is picked up.
+	 *
+	 * @return void
+	 * @access  public
+	 */
+	public static function reset_blocks_instances() {
+		self::$blocks_instances         = null;
+		self::$blocks_instances_by_name = null;
+	}
+
+	/**
+	 * Get one renderer instance per registered class, built once per request.
+	 *
+	 * Renderers hold no per-block state, so reusing them keeps memory flat
+	 * instead of scaling with the number of parsed blocks.
+	 *
+	 * @return array<int, object> Instances, in registration order.
+	 * @access  public
+	 */
+	public function get_blocks_instances() {
+		if ( null !== self::$blocks_instances ) {
+			return self::$blocks_instances;
+		}
+
+		$instances = array();
+
+		foreach ( self::$blocks_classes as $classname ) {
+			$path = Loader::instantiate( $classname );
+
+			if ( null === $path ) {
+				continue;
+			}
+
+			$instances[] = $path;
+		}
+
+		self::$blocks_instances = $instances;
+
+		return self::$blocks_instances;
+	}
+
+	/**
+	 * Get the renderers that handle a given block name.
+	 *
+	 * @param mixed $block_name Block name, as parsed; may be missing or null.
+	 *
+	 * @return array<int, object> Renderers for that block, in registration order.
+	 * @access  public
+	 */
+	public function get_blocks_instances_for( $block_name ) {
+		if ( null === self::$blocks_instances_by_name ) {
+			$index = array();
+
+			foreach ( $this->get_blocks_instances() as $path ) {
+				if ( ! method_exists( $path, 'render_css' ) || ! isset( $path->block_prefix ) ) {
+					continue;
+				}
+
+				$name = ( isset( $path->library_prefix ) ? $path->library_prefix : $this->library_prefix ) . '/' . $path->block_prefix;
+
+				if ( ! isset( $index[ $name ] ) ) {
+					$index[ $name ] = array();
+				}
+
+				$index[ $name ][] = $path;
+			}
+
+			self::$blocks_instances_by_name = $index;
+		}
+
+		if ( ! is_string( $block_name ) || ! isset( self::$blocks_instances_by_name[ $block_name ] ) ) {
+			return array();
+		}
+
+		return self::$blocks_instances_by_name[ $block_name ];
 	}
 
 	/**
@@ -150,8 +258,11 @@ class Base_CSS {
 					'fontfamily'  => $attr['fontFamily'],
 					'fontvariant' => ( isset( $attr['fontVariant'] ) && ! empty( $attr['fontVariant'] ) ? array( $attr['fontVariant'] ) : array() ),
 				);
-			} elseif ( ! in_array( $attr['fontVariant'], self::$google_fonts[ $attr['fontFamily'] ]['fontvariant'], true ) ) {
-					array_push( self::$google_fonts[ $attr['fontFamily'] ]['fontvariant'], ( isset( $attr['fontStyle'] ) && 'italic' === $attr['fontStyle'] ) ? $attr['fontVariant'] . ':i' : $attr['fontVariant'] );
+			} elseif ( isset( $attr['fontVariant'] ) && ! empty( $attr['fontVariant'] ) ) {
+				$font_variant = $attr['fontVariant'];
+				if ( ! in_array( $font_variant, self::$google_fonts[ $attr['fontFamily'] ]['fontvariant'], true ) ) {
+					self::$google_fonts[ $attr['fontFamily'] ]['fontvariant'][] = $font_variant;
+				}
 			}
 		}
 	}
@@ -197,6 +308,54 @@ class Base_CSS {
 		}
 
 		return $output;
+	}
+
+	/**
+	 * Convert a color slug to a CSS variable reference.
+	 * WordPress generates CSS variables in the format: --wp--preset--color--{slug}
+	 *
+	 * @param string|null $slug The color slug.
+	 * @return string|null The CSS variable reference.
+	 * @since   3.1.5
+	 * @access  public
+	 */
+	public static function get_color_css_variable( $slug ) {
+		if ( empty( $slug ) ) {
+			return $slug;
+		}
+
+		// If it's already a color value or CSS variable, return as-is.
+		if (
+			strpos( $slug, '#' ) === 0 ||
+			strpos( $slug, 'rgb' ) === 0 ||
+			strpos( $slug, 'hsl' ) === 0 ||
+			strpos( $slug, 'var(' ) === 0
+		) {
+			return $slug;
+		}
+
+		// Sanitize slug: WordPress slugs should only contain lowercase alphanumeric, hyphens, and underscores.
+		// This prevents potential CSS injection if slug comes from untrusted sources.
+		$sanitized_slug = strtolower( preg_replace( '/[^a-z0-9-_]/', '', $slug ) );
+
+		// Convert slug to CSS variable.
+		return 'var(--wp--preset--color--' . $sanitized_slug . ')';
+	}
+
+	/**
+	 * Resolve a color value which may be a slug from the theme color palette.
+	 * This function converts slugs to CSS variables to preserve the connection to theme.json.
+	 * If the value is a slug, it returns a CSS variable reference.
+	 * Otherwise, returns the value as-is (for hex, rgb, hsl values).
+	 *
+	 * @param string|null $value The color value or slug.
+	 * @return string|null The CSS variable or color value.
+	 * @since   3.1.5
+	 * @access  public
+	 */
+	public static function resolve_color_value( $value ) {
+		// Use CSS variable conversion for slugs.
+		return self::get_color_css_variable( $value );
 	}
 
 	/**
@@ -288,14 +447,10 @@ class Base_CSS {
 		$style = '';
 
 		foreach ( $blocks as $block ) {
-			foreach ( self::$blocks_classes as $classname ) {
-				$path = new $classname();
+			$renderers = $this->get_blocks_instances_for( isset( $block['blockName'] ) ? $block['blockName'] : null );
 
-				if ( method_exists( $path, 'render_css' ) && isset( $path->block_prefix ) ) {
-					if ( ( isset( $path->library_prefix ) ? $path->library_prefix : $this->library_prefix ) . '/' . $path->block_prefix === $block['blockName'] ) {
-						$style .= $path->render_css( $block );
-					}
-				}
+			foreach ( $renderers as $path ) {
+				$style .= $path->render_css( $block );
 			}
 
 			$custom_css = apply_filters( 'otter_blocks_css', $block );
@@ -330,6 +485,14 @@ class Base_CSS {
 		$classes = $this->get_animation_classes( $blocks );
 
 		if ( 0 === count( $classes ) ) {
+			return $style;
+		}
+
+		if ( ! self::has_own_css_parser() ) {
+			// A foreign php-css-parser release is loaded; parsing now fatals
+			// uncatchably at class-link time (#2942). The frontend loader serves
+			// the stock stylesheet instead.
+			error_log( '[Otter Blocks] A conflicting Sabberworm php-css-parser release is loaded; skipping animation CSS optimization and serving the stock stylesheet instead.' ); // phpcs:ignore WordPress.PHP.DevelopmentFunctions.error_log_error_log
 			return $style;
 		}
 
@@ -392,6 +555,70 @@ class Base_CSS {
 		}
 
 		return $style;
+	}
+
+	/**
+	 * Check that every loaded Sabberworm\CSS symbol resolves to this plugin's copy.
+	 *
+	 * Another plugin can ship a different php-css-parser release under the same
+	 * namespace. Once any of its classes loads, loading the bundled counterparts
+	 * fatals at class-link time, and that error is not catchable.
+	 *
+	 * @return bool
+	 */
+	public static function has_own_css_parser() {
+		$own_vendor = wp_normalize_path( OTTER_BLOCKS_PATH . '/vendor/' );
+		$prefix     = 'Sabberworm\\CSS\\';
+
+		// Reject any foreign copy already in memory before the sentinel checks
+		// autoload a bundled class: the parser uses more classes than the
+		// sentinels, and one preloaded foreign symbol poisons the process.
+		$declared = array_merge( get_declared_classes(), get_declared_interfaces(), get_declared_traits() );
+
+		foreach ( $declared as $declared_name ) {
+			// PHP class names are case-insensitive; match a foreign copy in any casing.
+			if ( 0 !== stripos( $declared_name, $prefix ) ) {
+				continue;
+			}
+
+			if ( ! self::is_bundled_class( $declared_name, $own_vendor ) ) {
+				return false;
+			}
+		}
+
+		// Entry points nothing may have loaded yet: whichever autoloader resolves
+		// them must serve the bundled copy.
+		$sentinels = array(
+			'\Sabberworm\CSS\Parser',
+			'\Sabberworm\CSS\Comment\Commentable',
+			'\Sabberworm\CSS\Renderable',
+		);
+
+		foreach ( $sentinels as $sentinel ) {
+			if ( ! class_exists( $sentinel ) && ! interface_exists( $sentinel ) ) {
+				return false;
+			}
+
+			if ( ! self::is_bundled_class( $sentinel, $own_vendor ) ) {
+				return false;
+			}
+		}
+
+		return true;
+	}
+
+	/**
+	 * Check that a class, interface, or trait was loaded from this plugin's vendor directory.
+	 *
+	 * @param string $name Fully qualified name.
+	 * @param string $own_vendor Normalized path of this plugin's vendor directory.
+	 * @return bool
+	 */
+	private static function is_bundled_class( $name, $own_vendor ) {
+		$reflection = new \ReflectionClass( $name );
+		$file       = $reflection->getFileName();
+
+		return false !== $file && 0 === strpos( wp_normalize_path( $file ), $own_vendor );
 	}
 
 	/**
@@ -560,10 +787,10 @@ class Base_CSS {
 		);
 
 		foreach ( $blocks as $block ) {
-			if ( isset( $block['attrs']['className'] ) && ! empty( $block['attrs']['className'] ) ) {
-				if ( preg_match( '/\banimated\b/', $block['attrs']['className'] ) ) {
-					$classes = array_merge( $classes, explode( ' ', trim( $block['attrs']['className'] ) ) );
-				}
+			$block_classes = Registration::get_class_name( isset( $block['attrs'] ) ? $block['attrs'] : array() );
+
+			if ( ! empty( $block_classes ) && preg_match( '/\banimated\b/', $block_classes ) ) {
+				$classes = array_merge( $classes, explode( ' ', trim( $block_classes ) ) );
 			}
 
 			if ( isset( $block['innerBlocks'] ) && ! empty( $block['innerBlocks'] ) && is_array( $block['innerBlocks'] ) ) {
@@ -585,9 +812,7 @@ class Base_CSS {
 	 */
 	public function cycle_through_global_styles() {
 		$style = '';
-		foreach ( self::$blocks_classes as $classname ) {
-			$path = new $classname();
-
+		foreach ( $this->get_blocks_instances() as $path ) {
 			if ( method_exists( $path, 'render_global_css' ) ) {
 				$style .= $path->render_global_css();
 			}

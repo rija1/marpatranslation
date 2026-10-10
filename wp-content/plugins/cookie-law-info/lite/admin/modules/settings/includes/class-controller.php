@@ -8,6 +8,7 @@
 namespace CookieYes\Lite\Admin\Modules\Settings\Includes;
 
 use CookieYes\Lite\Admin\Modules\Settings\Includes\Settings;
+use CookieYes\Lite\Includes\Notice;
 use CookieYes\Lite\Integrations\Cookieyes\Includes\Cloud;
 use WP_Error;
 
@@ -108,6 +109,7 @@ class Controller extends Cloud {
 		}
 		$options['api']['token'] = '';
 		$settings->update( $options );
+		Notice::get_instance()->undismiss( 'affiliate_banner' );
 		do_action( 'cky_after_connect' );
 		return true;
 	}
@@ -124,9 +126,11 @@ class Controller extends Cloud {
 		$banner   = new \CookieYes\Lite\Admin\Modules\Banners\Includes\Banner( $item );
 		/** General Settings */
 		$data['settings']   = array(
-			'plan'       => $settings->get_plan(),
-			'domain'     => home_url(),
-			'consentLog' => array(
+			'plan'              => $settings->get_plan(),
+			'domain'            => home_url(),
+			'installSource'     => cky_get_install_source(),
+			'activationContext' => cky_get_activation_context(),
+			'consentLog'        => array(
 				'status' => true,
 			),
 		);
@@ -223,17 +227,25 @@ class Controller extends Cloud {
 	/**
 	 *  Fetch site info from either locally or from API.
 	 *
+	 * When the request is not a REST (cloud) call but the site is connected,
+	 * load plan data from the web app so admin contexts (e.g. plugin action links)
+	 * match behaviour that relies on `get_info()` (see Vue admin).
+	 *
 	 * @param array $args Array of arguments.
-	 * @return array
+	 * @return array|\WP_Error
 	 */
 	public function get_info( $args = array() ) {
-		$data = array();
-		if ( false === cky_is_cloud_request() ) {
-			$data = $this->get_site_info( $args );
-		} else {
-			$data = $this->get_app_info( $args );
+		if ( cky_is_cloud_request() ) {
+			return $this->get_app_info( $args );
 		}
-		return $data;
+		$settings = new Settings();
+		if ( $settings->is_connected() && $this->get_website_id() ) {
+			$data = $this->get_app_info( $args );
+			if ( ! is_wp_error( $data ) ) {
+				return $data;
+			}
+		}
+		return $this->get_site_info( $args );
 	}
 
 	/**
@@ -253,7 +265,6 @@ class Controller extends Cloud {
 	 */
 	public function get_default() {
 		$settings = new Settings();
-		$scan     = \CookieYes\Lite\Admin\Modules\Scanner\Includes\Controller::get_instance()->get_info();
 		return array(
 			'id'             => '',
 			'url'            => get_site_url(),
@@ -281,8 +292,8 @@ class Controller extends Cloud {
 				'status' => $settings->get_consent_log_status(),
 			),
 			'scans'          => array(
-				'date'   => isset( $scan['date'] ) ? $scan['date'] : '',
-				'status' => isset( $scan['status'] ) ? $scan['status'] : false,
+				'date'   => '',
+				'status' => false,
 			),
 			'languages'      => array(
 				'default' => $settings->get_default_language(),
@@ -353,6 +364,8 @@ class Controller extends Cloud {
 			$time            = isset( $scan_timestamp ) && is_int( $scan_timestamp ) ? gmdate( 'H:i:s', $scan_timestamp ) : '';
 			$success_date            = isset( $scan_success_timestamp ) && is_int( $scan_success_timestamp ) ? gmdate( 'd M Y', $scan_success_timestamp ) : '';
 			$success_time            = isset( $scan_success_timestamp ) && is_int( $scan_success_timestamp ) ? gmdate( 'H:i:s', $scan_success_timestamp ) : '';
+			$trial_ends_at = isset( $response['trial_ends_at'] ) ? strtotime( sanitize_text_field( $response['trial_ends_at'] ) ) : false;
+			$trial_ends_at_date = isset( $trial_ends_at ) && is_int( $trial_ends_at ) ? gmdate( 'F d, Y', $trial_ends_at ) : '';
 			$applicable_laws = isset( $response['applicableLaws'] ) ? $response['applicableLaws'] : array( 'gdpr' );
 			$applicable_laws = implode( ' & ', $applicable_laws );
 
@@ -375,9 +388,9 @@ class Controller extends Cloud {
 					'id'          => isset( $plan['id'] ) ? sanitize_text_field( $plan['id'] ) : '',
 					'slug'        => isset( $plan['slug'] ) ? sanitize_text_field( $plan['slug'] ) : '',
 					'name'        => isset( $plan['name'] ) ? sanitize_text_field( $plan['name'] ) : '',
+					'currency'    => isset( $plan['currency'] ) ? sanitize_text_field( $plan['currency'] ) : 'USD',
 					'description' => isset( $plan['description'] ) ? sanitize_text_field( $plan['description'] ) : '',
 					'scan_limit'  => isset( $plan['scan_limit'] ) ? absint( $plan['scan_limit'] ) : 100,
-					'log_limit'   => isset( $plan['log_limit'] ) ? absint( $plan['log_limit'] ) : 5000,
 					'log_limit'   => isset( $plan['log_limit'] ) ? absint( $plan['log_limit'] ) : 5000,
 					'features'    => array(
 						'multi_law'         => isset( $features['multi_law'] ) && true === $features['multi_law'] ? true : false,
@@ -419,21 +432,40 @@ class Controller extends Cloud {
 				'tables_missing' => false,
 				'pageviews'      => array(
 					'count'    => isset( $response['pageviews']['views'] ) ? absint( $response['pageviews']['views'] ) : 0,
-					'limit'    => isset( $response['pageviews']['views_limit'] ) ? absint( $response['pageviews']['views_limit'] ) : 25000,
+					'limit'    => isset( $response['pageviews']['views_limit'] ) ? absint( $response['pageviews']['views_limit'] ) : 5000,
 					'exceeded' => isset( $response['pageviews']['limit_exceeded'] ) && 1 === absint( $response['pageviews']['limit_exceeded'] ),
 					'ends_at'   => $pageview_reset_date,
 				),
 				'website'        => array(
 					'status'               => isset( $response['website_status'] ) ? sanitize_text_field( $response['website_status'] ) : 'active',
 					'is_trial'             => isset( $response['is_trial'] ) && true === $response['is_trial'],
+					'isInOptoutTrial'      => isset( $response['isInOptoutTrial'] ) && true === $response['isInOptoutTrial'],
+					'isInReverseTrial'     => isset( $response['isInReverseTrial'] ) && true === $response['isInReverseTrial'],
+					'isInOptinTrial'       => isset( $response['isInOptinTrial'] ) && true === $response['isInOptinTrial'],
+					'is_trial_experiment'  => isset( $response['website_metadata']['trial_experiment'] ) && true === $response['website_metadata']['trial_experiment'],
+					'trial_ends_at'        => $trial_ends_at_date,
+					'ends_in'              => isset( $response['ends_in'] ) ? absint( $response['ends_in'] ) : 0,
 					'is_trial_with_card'   => isset( $response['trial_with_card'] ) && true === $response['trial_with_card'],
 					'grace_period_ends_at' => $grace_period_ends,
 					'payment_status'       => isset( $response['payment_status'] ) && true === $response['payment_status'],
+					'hasPaymentMethod'     => isset( $response['hasPaymentMethod'] ) && true === $response['hasPaymentMethod'],
 					'selected_plan'        => isset( $plan['slug'] ) ? sanitize_text_field( $plan['slug'] ) : 'free',
 					'canStartOptoutTrial'  => isset( $response['canStartOptoutTrial'] ) ? (bool) $response['canStartOptoutTrial'] : false,
 				),
+				'overage' => array(
+					'applicable'         => isset( $response['overage']['applicable'] ) ? (bool) $response['overage']['applicable'] : false,
+					'enabled'            => isset( $response['overage']['enabled'] ) ? (bool) $response['overage']['enabled'] : false,
+					'is_after_rollout'   => isset( $response['overage']['is_after_rollout'] ) ? (bool) $response['overage']['is_after_rollout'] : false,
+					'overage_view_count' => isset( $response['overage']['overage_view_count'] ) ? absint( $response['overage']['overage_view_count'] ) : 0,
+				),
 			);
 			return $data;
+		} elseif ( 401 === $response_code ) {
+			return new WP_Error(
+				'cky_unauthorized',
+				__( 'Your session has expired. Please verify your connection.', 'cookie-law-info' ),
+				array( 'status' => 401 )
+			);
 		}
 		return new WP_Error(
 			'cky_api_fetching_failed',
@@ -471,6 +503,52 @@ class Controller extends Cloud {
 			);
 		}
 	}
+	/**
+	 * Add payment/subscription data.
+	 *
+	 * @param array $data Payment data.
+	 * @return array|WP_Error
+	 */
+	public function add_payments( $data ) {
+		// Validate required fields are present
+		$required_fields = array( 'currency', 'is_trial', 'is_trial_experiment', 'plan_id', 'website_id' );
+
+		foreach ( $required_fields as $field ) {
+			if ( ! isset( $data[ $field ] ) ) {
+				return new WP_Error(
+					'cky_missing_payment_data',
+					/* translators: %s: field name */
+					sprintf( __( 'Missing required payment data: %s', 'cookie-law-info' ), $field ),
+					array( 'status' => 400 )
+				);
+			}
+		}
+
+		// Validate website_id matches current website
+		if ( isset( $data['website_id'] ) && $data['website_id'] !== $this->get_website_id() ) {
+			return new WP_Error(
+				'cky_invalid_website_id',
+				__( 'Invalid website ID provided', 'cookie-law-info' ),
+				array( 'status' => 400 )
+			);
+		}
+
+		$response = $this->post(
+			'subscriptions/checkout',
+			wp_json_encode( $data )
+		);
+		$response_code = wp_remote_retrieve_response_code( $response );
+		if ( 200 === $response_code ) {
+			$response = json_decode( wp_remote_retrieve_body( $response ), true );
+			return $response;
+		}
+		return new WP_Error(
+			'cky_api_fetching_failed',
+			__( 'Failed to fetch data from the API', 'cookie-law-info' ),
+			array( 'status' => 400 )
+		);
+	}
+
 	/**
 	 * Delete the cache.
 	 *

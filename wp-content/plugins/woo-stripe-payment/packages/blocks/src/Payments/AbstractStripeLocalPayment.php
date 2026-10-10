@@ -1,17 +1,17 @@
 <?php
 
 
-namespace PaymentPlugins\Blocks\Stripe\Payments;
+namespace PaymentPlugins\Stripe\Blocks\Payments;
 
 use Automattic\WooCommerce\StoreApi\Schemas\V1\CartSchema;
-use PaymentPlugins\Blocks\Stripe\StoreApi\EndpointData;
-use PaymentPlugins\Stripe\Controllers\PaymentIntent;
+use PaymentPlugins\Stripe\Blocks\StoreApi\EndpointData;
+use PaymentPlugins\Stripe\Controllers\PaymentIntentController;
 use PaymentPlugins\Stripe\RequestContext;
 
 /**
  * Class AbstractLocalStripePayment
  *
- * @package PaymentPlugins\Blocks\Stripe\Payments
+ * @package PaymentPlugins\Stripe\Blocks\Payments
  */
 abstract class AbstractStripeLocalPayment extends AbstractStripePayment {
 
@@ -25,7 +25,8 @@ abstract class AbstractStripeLocalPayment extends AbstractStripePayment {
 
 	public function get_payment_method_data() {
 		return array(
-			'name'                  => $this->name,
+			'name'                  => $this->get_name(),
+			'gatewayId'             => $this->get_name(),
 			'title'                 => $this->payment_method->get_title(),
 			'description'           => $this->payment_method->get_description(),
 			'icon'                  => $this->get_payment_method_icon(),
@@ -34,16 +35,15 @@ abstract class AbstractStripeLocalPayment extends AbstractStripePayment {
 			'allowedCountries'      => $this->payment_method->get_option( 'allowed_countries' ),
 			'exceptCountries'       => $this->payment_method->get_option( 'except_countries', array() ),
 			'specificCountries'     => $this->payment_method->get_option( 'specific_countries', array() ),
-			'countries'             => $this->payment_method->limited_countries,
+			'limitedCountries'      => $this->payment_method->limited_countries,
 			'currencies'            => $this->payment_method->currencies,
 			'paymentElementOptions' => $this->payment_method->get_payment_element_options(),
 			'elementOptions'        => $this->payment_method->get_element_options(),
 			'isAdmin'               => is_admin(),
-			'returnUrl'             => $this->get_source_return_url(),
-			'paymentType'           => $this->payment_method->local_payment_type,
+			'paymentMethodType'     => $this->payment_method->get_payment_method_type(),
 			'locale'                => str_replace( '_', '-', substr( get_locale(), 0, 5 ) ),
 			'i18n'                  => $this->get_script_translations(),
-			'mandate'               => wc_string_to_bool( $this->get_setting( 'stripe_mandate', 'yes' ) )
+			'termsDisplayRule'      => stripe_wc()->advanced_settings->get_terms_display_rule()
 		);
 	}
 
@@ -53,12 +53,6 @@ abstract class AbstractStripeLocalPayment extends AbstractStripePayment {
 			'alt' => '',
 			'src' => $this->payment_method->icon
 		);
-	}
-
-	protected function get_source_return_url() {
-		return add_query_arg( array(
-			'_stripe_local_payment' => $this->name
-		), wc_get_checkout_url() );
 	}
 
 	protected function get_script_translations() {
@@ -84,7 +78,10 @@ abstract class AbstractStripeLocalPayment extends AbstractStripePayment {
 	}
 
 	public function get_cart_extension_data() {
-		$payment_intent_ctrl = PaymentIntent::instance();
+		/**
+		 * @var PaymentIntentController $payment_intent_ctrl
+		 */
+		$payment_intent_ctrl = wc_stripe_get_container()->get( PaymentIntentController::class );
 		$payment_intent_ctrl->set_request_context( new RequestContext( RequestContext::CHECKOUT ) );
 		if ( method_exists( $this->payment_method, 'get_payment_method_type' ) ) {
 			return [

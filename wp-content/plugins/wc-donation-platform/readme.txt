@@ -3,8 +3,8 @@ Contributors: flinnn
 Tags: donation, fundraising, charity, woocommerce donation, recurring donation
 Donate link: https://www.wc-donation.com/documentation/support/contact/
 Requires at least: 5.8
-Tested up to: 6.8
-Stable tag: 1.3.4.1
+Tested up to: 6.9
+Stable tag: 1.4.0
 Requires PHP: 7.1
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
@@ -165,12 +165,42 @@ If you want to disable the wording changes applied by Donation Platform for WooC
 == Changelog ==
 Active development of Donation Platform for WooCommerce: Fundraising & Donation Management is handled [on GitHub](https://github.com/wc-donation/wc-donation-platform/).
 
-= 1.3.4.1 =
+= 1.4.0 2026-02-05 =
+feat: complete refactoring of Leaderboard functionality
+feat: suggested donation amounts with correct number of decimals
+feat: refactor form error handling for improved flow
+feat: add "Powered by" functionality
+feat: add Leaderboard anonymous status info in account order details page
+feat: add product image in styled div
+feat: improved & updated email templates
+dev: add wcdp_donate_label filter
+dev: add wcdp_other_label filter
+dev: add wcdp_product_settings_fundraising action
+fix: update donation revenue when wc_order_product_lookup table is updated
+fix: hide Payment Plugins for Stripe WooCommerce express checkout buttons since they are not working properly
+fix: show "thank you certificate" action button only for donation orders
+fix: do not attach thank you certificates to orders that do not contain a donation
+fix: rename invoice button to "donation receipt" only for orders that contain a donation 
+fix: only show Leaderboard anonymous status info in frontend when anonymous donation setting is enabled
+fix: fallback for attribute layout
+a11y: progress bar a11y improvements
+a11y: improve contrast of default colors
+a11y: improve accessibility styles in donation form
+a11y: improve accessibility of fee recovery checkbox
+a11y: improve tab flow on step 2 for next/back buttons
+chore: improve feedback survey
+chore: bump supported supported WooCommerce version
+chore: bump supported supported WP version
+chore: Remove Subtotal line from order review when the cart only contains donation products
+chore: improve next/back button placement
+chore: prefix all CSS variables properly
+
+= 1.3.4.1 2025-05-24 =
 hotfix: fix anonymous donation checkbox always visible
 chore: provide full path name for includes
 
-= 1.3.4 =
-**Minor Breaking Changes:**:
+= 1.3.4 2025-05-22 =
+**Minor Breaking Changes:**
 - The Anonymous / Public checkbox now requires you to define a headline for both the checked and unchecked states.
 - Some element IDs have been changed in this version, which may affect any custom CSS you've applied to your site.
 - The addids parameter for the progress bar will now only take donable products into account.
@@ -242,7 +272,7 @@ fix: progress bar only for donation projects
 fix: improve order autocomplete logic
 fix: untranslated string
 fix: typo in classname
-fix: make text of "fix invalid fields" banner a <p> element
+fix: make text of "fix invalid fields" banner a p element
 fix: style 1 of progress bar template
 fix: only allow leaderboard for donation projects
 a11y: make hidden label also aria-hidden

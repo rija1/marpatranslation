@@ -32,6 +32,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 class Ai1wm_Export_Database {
 
 	public static function execute( $params ) {
+
 		// Set exclude database
 		if ( isset( $params['options']['no_database'] ) ) {
 			return $params;
@@ -84,15 +85,16 @@ class Ai1wm_Export_Database {
 
 		// Loop over tables
 		$tables = array();
-		while ( list( $table_name ) = ai1wm_getcsv( $tables_list ) ) {
-			$tables[] = $table_name;
+		while ( ( $row = ai1wm_getcsv( $tables_list ) ) !== false ) {
+			list( $table_name ) = $row;
+			$tables[] = $table_name; // phpcs:ignore Generic.Formatting.MultipleStatementAlignment.NotSameWarning
 		}
 
 		// Close the tables list file
 		ai1wm_close( $tables_list );
 
 		// Get database client
-		$db_client = Ai1wm_Database_Utility::create_client();
+		$db_client = Ai1wm_Database_Utility::get_client();
 
 		// Exclude spam comments
 		if ( isset( $params['options']['no_spam_comments'] ) ) {

@@ -1,24 +1,14 @@
 <?php
 
+use WCML\Utilities\CustomFieldPreferences;
+
 class WCML_Woobe implements \IWPML_Action {
 
-	/**
-	 * @var SitePress
-	 */
 	private $sitepress;
 
-	/**
-	 * @var WPML_Post_Translation
-	 */
 	private $post_translations;
 
 
-	/**
-	 * WCML_Woobe constructor.
-	 *
-	 * @param SitePress             $sitepress
-	 * @param WPML_Post_Translation $post_translations
-	 */
 	public function __construct( SitePress $sitepress, WPML_Post_Translation $post_translations ) {
 		$this->sitepress         = $sitepress;
 		$this->post_translations = $post_translations;
@@ -28,15 +18,6 @@ class WCML_Woobe implements \IWPML_Action {
 		add_action( 'woobe_after_update_page_field', [ $this, 'replace_price_in_translations' ], 10, 5 );
 	}
 
-	/**
-	 * Replaces product price for translation of given product.
-	 *
-	 * @param int|null        $product_id Product ID.
-	 * @param WC_Product|null $product    Product object.
-	 * @param string|null     $field_key  Key of processed custom field.
-	 * @param mixed|null      $value      Value of processed custom field.
-	 * @param string|null     $field_type Type of processed custom field.
-	 */
 	public function replace_price_in_translations( $product_id = null, $product = null, $field_key = null, $value = null, $field_type = null ) {
 		if ( $this->is_price_updated( $product_id, $field_key, $value )
 			 && $this->is_field_set_to_copy( $field_key )
@@ -51,15 +32,6 @@ class WCML_Woobe implements \IWPML_Action {
 		}
 	}
 
-	/**
-	 * Check if filter runs during the  bulk price update
-	 *
-	 * @param int    $product_id Product ID
-	 * @param string $field_key  Key of processed custom field
-	 * @param mixed  $value      Value of processed custom field
-	 *
-	 * @return bool
-	 */
 	private function is_price_updated( $product_id, $field_key, $value ) {
 		return is_numeric( $product_id )
 			   && 'regular_price' === $field_key
@@ -67,8 +39,7 @@ class WCML_Woobe implements \IWPML_Action {
 	}
 
 	private function is_field_set_to_copy( $field_key ) {
-		$settings                  = $this->sitepress->get_settings();
-		$field_translation_setting = isset( $settings['translation-management']['custom_fields_translation'][ '_' . $field_key ] ) ? $settings['translation-management']['custom_fields_translation'][ '_' . $field_key ] : null;
-		return $field_translation_setting === $this->sitepress->get_wp_api()->constant( 'WPML_COPY_CUSTOM_FIELD' );
+		return CustomFieldPreferences::mode( '_' . $field_key )
+			=== $this->sitepress->get_wp_api()->constant( 'WPML_COPY_CUSTOM_FIELD' );
 	}
 }

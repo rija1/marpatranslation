@@ -53,7 +53,6 @@ jQuery( function() {
                 return;
             }
 
-
             if ( _this.error_check( new_language ) === true ){
                 return;
             }
@@ -68,8 +67,6 @@ jQuery( function() {
 
             new_option = jQuery( new_option );
 
-            new_option.find('.trp-translation-language').on( 'change', _this.change_language );
-
             new_option.find( '.trp-hidden-default-language' ).remove();
             new_option.find( '.select2-container' ).remove();
             var select = new_option.find( 'select.trp-translation-language' );
@@ -81,9 +78,28 @@ jQuery( function() {
             select.val( new_language );
             select.select2();
 
-            var checkbox = new_option.find( 'input.trp-translation-published' );
-            checkbox.removeAttr( 'disabled' );
-            checkbox.val( new_language );
+            // Attach change event listener AFTER select2 is initialized
+            new_option.find('.trp-translation-language').on( 'change', _this.change_language );
+
+            var checkboxes = new_option.find( 'input[type="checkbox"]' );
+            checkboxes.each( function() {
+                var checkbox = jQuery( this );
+                checkbox.removeAttr( 'disabled' );
+                checkbox.val( new_language );
+
+                // Update checkbox ID and label 'for' attribute to match the new language
+                var old_checkbox_id = checkbox.attr( 'id' );
+                if ( old_checkbox_id ) {
+                    var new_checkbox_id = old_checkbox_id.replace( /[a-z]{2}_[A-Z]{2}(_formal|_informal)?/g, new_language );
+                    checkbox.attr( 'id', new_checkbox_id );
+
+                    // Update the corresponding label's 'for' attribute
+                    var label = new_option.find( 'label[for="' + old_checkbox_id + '"]' );
+                    if ( label.length > 0 ) {
+                        label.attr( 'for', new_checkbox_id );
+                    }
+                }
+            });
 
             var url_slug = new_option.find( 'input.trp-language-slug' );
             url_slug.val( _this.get_default_url_slug( new_language ) );
@@ -96,10 +112,18 @@ jQuery( function() {
 
             new_option = jQuery( '#trp-sortable-languages' ).append( new_option );
             new_option.find( '.trp-remove-language__container' ).last().click( _this.remove_language );
+            // Scope to the newly added language row only. `new_option` was reassigned to the
+            // whole list by the append() above, so an unscoped find() would overwrite the
+            // published value of every existing language (dropping active ones from publish-languages).
+            new_option.find( '.trp-language' ).last().find( '.trp-translation-published' ).val( new_language );
 
-            jQuery( '#trp-new-language.trp-add-new-language-row' ).remove();
+            // Check if we've reached the maximum number of languages
+            var max_secondary = trp_url_slugs_info['max_secondary_languages'] || 1;
+            var current_count = jQuery( "#trp-sortable-languages .trp-language" ).length;
+            var secondary_count = current_count - 1; // Subtract 1 for default language
 
-            if ( jQuery( "#trp-languages-table .trp-language" ).length >= 2 ){
+            if ( secondary_count >= max_secondary ){
+                jQuery( '#trp-new-language' ).hide();
                 jQuery(".trp-upgrade-notice-table__wrapper").show();
             }
         };
@@ -125,6 +149,16 @@ jQuery( function() {
                 language_to_remove.remove();
 
                 error_handler.show_hide_warning( language_to_remove_code );
+
+                // Check if we can add more languages after removal
+                var max_secondary = trp_url_slugs_info['max_secondary_languages'] || 1;
+                var current_count = jQuery( "#trp-sortable-languages .trp-language" ).length;
+                var secondary_count = current_count - 1; // Subtract 1 for default language
+
+                if ( secondary_count < max_secondary ){
+                    jQuery( '#trp-new-language' ).show();
+                    jQuery(".trp-upgrade-notice-table__wrapper").hide();
+                }
             }
 
         };
@@ -183,7 +217,9 @@ jQuery( function() {
                 return;
             }
 
-            formality_select_field.removeClass( 'trp-formality-disabled' ); // when a language is added,  the fields are cloned - which means that the select field could have the .trp-formality-disabled class even if the language supports formality
+            // Remove disabled class and enable the field by default
+            formality_select_field.removeClass( 'trp-formality-disabled' );
+            formality_select_field.prop('disabled', false);
 
             if ( stripped_formal_language && languages_that_support_formality[ stripped_formal_language ] === 'true' ){
                 select_change( formality_match );
@@ -192,6 +228,7 @@ jQuery( function() {
 
             if ( !languages_that_support_formality[new_language_code] || languages_that_support_formality[new_language_code] === 'false' ){
                 formality_select_field.addClass( 'trp-formality-disabled' );
+                formality_select_field.prop('disabled', true);
             }
 
             select_change( 'default' );
@@ -221,12 +258,14 @@ jQuery( function() {
             duplicate_url_error_message = trp_url_slugs_info['error_message_duplicate_slugs'];
             iso_codes = trp_url_slugs_info['iso_codes'];
 
-            jQuery( '#trp-sortable-languages' ).sortable({ handle: '.trp-sortable-handle' });
+            jQuery( '#trp-sortable-languages' ).sortable({
+                handle: '.trp-sortable-handle'
+            });
             jQuery( '#trp-add-language' ).click( _this.add_language );
             jQuery('.trp-remove-language__container:not(.trp-adst-remove-element)').click(_this.remove_language);
             jQuery( '#trp-default-language' ).on( 'change', _this.update_default_language );
             jQuery( "form[action='options.php']").on ( 'submit', _this.check_unique_url_slugs );
-            jQuery( '#trp-languages-table' ).on( 'change', '.trp-translation-language', _this.update_url_slug_and_status );
+            jQuery( '#trp-sortable-languages' ).on( 'change', '.trp-translation-language', _this.update_url_slug_and_status );
             jQuery('.trp-language .trp-select2').not( '#trp-default-language' ).on( 'change', _this.change_language );
             jQuery( '.trp-select2' ).on( 'select2:open', function(){
                 document.querySelector( '.select2-search__field' ).focus();
@@ -472,11 +511,12 @@ jQuery( function() {
                         security: document.querySelector('#trp_test_api_nonce_field').value
                     },
                     success: function (response) {
-                        if (response.success) {
+                        if ( response && response.data ) {
                             testPopup.style.visibility = 'visible';
+                            populatePopup( response.data );
+                        }
 
-                            populatePopup(response.data);
-                        } else {
+                        if ( response && !response.success ) {
                             console.error("Error:", response.data.message);
                         }
                     },
@@ -490,14 +530,76 @@ jQuery( function() {
             });
         }
 
-        function populatePopup( response ){
-            const popupResponse = testPopup.querySelector('.trp-test-api-key-response .trp-settings-container');
-            const popupResponseBody = testPopup.querySelector('.trp-test-api-key-response-body .trp-settings-container');
-            const popupResponseFull = testPopup.querySelector('.trp-test-api-key-response-full .trp-settings-container');
+        function prettyFormat( value, tryQueryString ){
+            if ( value === null || typeof value === 'undefined' ) {
+                return '';
+            }
 
-            popupResponse.textContent     = JSON.stringify( response.response.response );
-            popupResponseBody.textContent = response.response.body;
-            popupResponseFull.textContent = response.raw_response;
+            if ( typeof value === 'string' ) {
+                const trimmed = value.trim();
+
+                if ( !trimmed ) {
+                    return '';
+                }
+
+                try {
+                    return JSON.stringify( JSON.parse( trimmed ), null, 2 );
+                } catch ( e ) { /* not JSON */ }
+
+                if ( tryQueryString && /^[A-Za-z0-9_\[\]\-\.%]+=/.test( trimmed ) && trimmed.indexOf( '\n' ) === -1 ) {
+                    try {
+                        const params = new URLSearchParams( trimmed );
+                        const obj = {};
+
+                        for ( const [ key, val ] of params.entries() ) {
+                            if ( Object.prototype.hasOwnProperty.call( obj, key ) ) {
+                                if ( Array.isArray( obj[ key ] ) ) {
+                                    obj[ key ].push( val );
+                                } else {
+                                    obj[ key ] = [ obj[ key ], val ];
+                                }
+                            } else {
+                                obj[ key ] = val;
+                            }
+                        }
+
+                        if ( Object.keys( obj ).length ) {
+                            return JSON.stringify( obj, null, 2 );
+                        }
+                    } catch ( e ) { /* not a query string */ }
+                }
+
+                return value;
+            }
+
+            try {
+                return JSON.stringify( value, null, 2 );
+            } catch ( e ) {
+                return String( value );
+            }
+        }
+
+        function populatePopup( response ){
+            const popupReferrer       = testPopup.querySelector('.trp-referrer-name');
+            const popupRequestUrl     = testPopup.querySelector('.trp-test-api-key-request-url .trp-settings-container');
+            const popupRequestHeaders = testPopup.querySelector('.trp-test-api-key-request-headers .trp-settings-container');
+            const popupRequestBody    = testPopup.querySelector('.trp-test-api-key-request-body .trp-settings-container');
+            const popupResponse       = testPopup.querySelector('.trp-test-api-key-response .trp-settings-container');
+            const popupResponseBody   = testPopup.querySelector('.trp-test-api-key-response-body .trp-settings-container');
+            const popupResponseFull   = testPopup.querySelector('.trp-test-api-key-response-full .trp-settings-container');
+
+            popupReferrer.textContent = response.referrer || '';
+
+            const request = response.request || {};
+            const method  = request.method ? String( request.method ).toUpperCase() : '';
+            const url     = request.url || '';
+            popupRequestUrl.textContent     = ( method && url ) ? ( method + ' ' + url ) : ( method || url );
+            popupRequestHeaders.textContent = prettyFormat( request.headers );
+            popupRequestBody.textContent    = prettyFormat( request.body, true );
+
+            popupResponse.textContent     = prettyFormat( response.response && response.response.response );
+            popupResponseBody.textContent = prettyFormat( response.response && response.response.body, true );
+            popupResponseFull.textContent = response.raw_response || '';
         }
     }
     TRP_test_API_key();
@@ -588,19 +690,24 @@ jQuery( function() {
 //Advanced Settings Tabs
 function TRP_Advanced_Settings_Tabs() {
     function init() {
-        if (!window.location.search.includes('trp_advanced_page')) return;
+        const page = new URLSearchParams(window.location.search).get('page');
+        if (page !== 'trp_advanced_page' && page !== 'trp_machine_translation' && page !== 'trp_machine_translation_glossary') return;
 
-        jQuery('.trp-settings-container').hide();
+        const settingsContainers = [...document.querySelectorAll(".trp-settings-container")]
+            .filter(container => !container.closest(".trp-test-api-key-popup"));
+
+        jQuery(settingsContainers).hide();
 
         // Backwards compatibility for old Pro versions. We did not have trp-settings-containers then
         const aldSettingsContainer = document.querySelector('.advanced_settings_class.ald_settings');
 
         let navItems = document.querySelectorAll(".trp_advanced_tab_content_table_item");
         let containers = !aldSettingsContainer ?
-            document.querySelectorAll(".trp-settings-container") :
-            [...document.querySelectorAll(".trp-settings-container"), aldSettingsContainer];
+            settingsContainers :
+            [...settingsContainers, aldSettingsContainer];
 
-        let settingsReferer = document.querySelector("#trp_advanced_settings_referer"); // Hidden input field
+        let settingsReferer = document.querySelector("#trp_advanced_settings_referer")
+            || document.querySelector("#trp_machine_translation_settings_referer"); // Hidden input field
 
         function getURLParameter(name) {
             const urlParams = new URLSearchParams(window.location.search);
@@ -615,10 +722,16 @@ function TRP_Advanced_Settings_Tabs() {
 
         function showTargetContainer(targetClass) {
             containers.forEach(container => container.style.display = "none");
+            const settingsSubmit = document.querySelector('#trp-settings__wrap > .trp-submit-btn');
+            const aldPopupConfigurator = document.getElementById('tp-ald-popup-configurator-root');
 
             let targetContainers = targetClass === 'ald_settings' && aldSettingsContainer ?
                 document.querySelectorAll('.advanced_settings_class.ald_settings') :
                 document.querySelectorAll(`.trp-settings-container-${targetClass}`);
+
+            if (settingsSubmit) {
+                settingsSubmit.style.display = targetClass === 'ald_settings' && aldPopupConfigurator ? 'none' : '';
+            }
 
             if (targetContainers.length > 0) {
                 targetContainers.forEach(container => container.style.display = "block");
@@ -628,17 +741,30 @@ function TRP_Advanced_Settings_Tabs() {
                 el.classList.remove("trp-nav-active");
             });
 
-            let activeNavItem = document.querySelector(`.trp_advanced_tab_content_table_item a.${targetClass}`);
-            if (activeNavItem) {
-                activeNavItem.closest(".trp_advanced_tab_content_table_item").classList.add("trp-nav-active");
+            // Anchor may be inside the span (hash-anchor layout) or wrap it (real-URL layout).
+            let activeAnchor = document.querySelector(`a.${targetClass}`);
+            if (activeAnchor) {
+                let itemSpan = activeAnchor.querySelector(".trp_advanced_tab_content_table_item")
+                    || activeAnchor.closest(".trp_advanced_tab_content_table_item");
+                if (itemSpan) itemSpan.classList.add("trp-nav-active");
             }
         }
 
         navItems.forEach(item => {
             item.addEventListener("click", function (event) {
+                const anchor = this.querySelector("a");
+
+                // Real-URL layout: span is inside the anchor; no descendant <a>. Let the browser navigate.
+                if (!anchor) return;
+
+                const href = anchor.getAttribute("href") || "";
+
+                // If it's a real URL (not a hash anchor) let the browser navigate.
+                if (href && !href.startsWith("#")) return;
+
                 event.preventDefault();
 
-                let targetClass = this.querySelector("a").classList[0];
+                let targetClass = anchor.classList[0];
 
                 updateURLParameter("tab", targetClass);
                 if (settingsReferer) settingsReferer.value = targetClass;

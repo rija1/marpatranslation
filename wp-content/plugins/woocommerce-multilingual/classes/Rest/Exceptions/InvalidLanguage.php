@@ -6,13 +6,10 @@ use WC_REST_Exception;
 
 class InvalidLanguage extends WC_REST_Exception {
 
-	/**
-	 * @param string $language_code
-	 */
 	public function __construct( $language_code ) {
 		parent::__construct(
 			"422",
-			/* translators: $s is a language code */
+			/* translators: Error returned by the WooCommerce REST API when the language asked for is not active on the site. %s: the language code that was sent. */
 			sprintf( __( 'Invalid language parameter: "%s"', 'woocommerce-multilingual' ),
 				$language_code ),
 			422

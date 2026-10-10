@@ -75,7 +75,6 @@
 				$.unblockUI();
 			});
 		});
-		
 
 		// ======= SLIDERS ========
 		// Generic slider save
@@ -116,20 +115,39 @@
 			
 			$(this).closest('.wpo_section').toggleClass('wpo-feature-is-disabled', !$(this).is(':checked'));
 		});
-
+		
 		// Toggle wpo-feature-is-disabled class
 		$('#wpo_min_enable_minify_css, #wpo_min_enable_minify_js')
-			// Set value on status change
+			// Update UI when setting is saved
 			.on('wp-optimize/minify/saved_setting', function() {
-				$('#wp-optimize-nav-tab-wrapper__wpo_minify a[data-tab="' + $(this).data('tabname') + '"] span.disabled').toggleClass('hidden', $(this).is(':checked'));
-				$('#wpo_section_' + $(this).data('tabname')).toggleClass('wpo-disabled-section', $(this).is(':not(:checked)'));
+				toggle_minify_tab_section($(this));
 			})
-			// Set value on page load
+			// Initialize UI on page load
 			.each(function() {
-				$('#wp-optimize-nav-tab-wrapper__wpo_minify a[data-tab="' + $(this).data('tabname') + '"] span.disabled').toggleClass('hidden', $(this).is(':checked'));
-				$('#wpo_section_' + $(this).data('tabname')).toggleClass('wpo-disabled-section', $(this).is(':not(:checked)'));
+				toggle_minify_tab_section($(this));
 			});
-
+		
+		/**
+		 * Toggle the UI state of a minify tab section based on the associated checkbox state.
+		 *
+		 * - For JS minification, only elements marked with `.show-if-enabled` are toggled.
+		 *
+		 * @param {jQuery} $el The checkbox element controlling the minified setting
+		 *
+		 * @return {void}
+		 */
+		function toggle_minify_tab_section($el) {
+			var tab_name = $el.data('tabname');
+			var tab_id = '#wpo_section_' + tab_name;
+			var is_checked = $el.is(':checked');
+			
+			var $section = $el.is('#wpo_min_enable_minify_js') ? $(tab_id + ' .show-if-enabled') : $(tab_id);
+			
+			$('#wp-optimize-nav-tab-wrapper__wpo_minify a[data-tab="' + tab_name + '"] span.disabled').toggleClass('hidden', is_checked);
+			
+			$section.toggleClass('wpo-disabled-section', !is_checked);
+		}
+		
 		// slider enable Debug mode
 		$('#wpo_min_enable_minify_debug').on('wp-optimize/minify/saved_setting', function() {
 			// Refresh the page as it's needed to show the extra options
@@ -146,7 +164,7 @@
 		var disable_google_fonts_processing = $('#disable_google_fonts_processing');
 
 		function handle_disable_google_fonts_processing() {
-			$('#wp-optimize-nav-tab-wpo_minify-font-contents .google_fonts_option').prop('disabled', disable_google_fonts_processing.is(':checked'));
+			$('#wp-optimize-nav-tab-wpo_minify-font-contents .google_fonts_option:not(.skip-disable-processing)').prop('disabled', disable_google_fonts_processing.is(':checked'));
 		}
 
 		disable_google_fonts_processing.on('change', handle_disable_google_fonts_processing);
@@ -165,6 +183,11 @@
 			block_ui(wpoptimize.saving);
 
 			var data = {};
+			
+			var merge_state = {
+				js: null,
+				css: null
+			};
 
 			var tabs = $('[data-whichpage="wpo_minify"] .wp-optimize-nav-tab-contents form');
 			tabs.each(function() {
@@ -172,6 +195,14 @@
 				if (true === tab.data('need_saving')) {
 					data = Object.assign(data, gather_data(tab));
 					tab.data('need_saving', false);
+					
+					if (typeof data.enable_merging_of_js !== 'undefined') {
+						merge_state.js = data.enable_merging_of_js === 'true';
+					}
+					
+					if (typeof data.enable_merging_of_css !== 'undefined') {
+						merge_state.css = data.enable_merging_of_css === 'true';
+					}
 				}
 			});
 
@@ -188,6 +219,12 @@
 					minify.updateFilesLists(response.files);
 					minify.updateStats(response.files);
 				}
+				
+				$.each(merge_state, function(type, enabled) {
+					if (null !== enabled) {
+						toggle_minify_notice(type, enabled, false);
+					}
+				});
 
 				spinner.hide();
 				success_icon.show();
@@ -200,12 +237,51 @@
 				$.unblockUI();
 			});
 		})
-
+		
 		// Dismiss information notice
-		$('.wp-optimize-minify-status-information-notice').on('click', '.notice-dismiss', function(e) {
+		$('.wpo_section_notice_minify').on('click', '.notice-dismiss', function(e) {
 			e.preventDefault();
-			send_command('hide_minify_notice');
+			toggle_minify_notice('minify', null, true);
 		});
+		
+		$('.wpo_section_notice_js').on('click', '.notice-dismiss', function(e) {
+			e.preventDefault();
+			toggle_minify_notice('js', null, true);
+		});
+		
+		$('.wpo_section_notice_css').on('click', '.notice-dismiss', function(e) {
+			e.preventDefault();
+			toggle_minify_notice('css', null, true);
+		});
+		
+		/**
+		 * Toggle visibility of a WP-Optimize minify notice and persist user preference.
+		 *
+		 * @param {string} type - Notice type ('minify', 'js', 'css').
+		 * @param {boolean|null} merging_enabled  - Whether the JS/CSS merging checkbox is enabled (true = checked, false = unchecked, null = not applicable).
+		 * @param {boolean} force_hide - Whether to hide forcefully (true) or (false).
+		 *
+		 * @returns {void}
+		 */
+		function toggle_minify_notice(type, merging_enabled, force_hide) {
+			var $notice = $('.wpo_section_notice_' + type);
+			if (!$notice.length) return;
+			
+			send_command('toggle_minify_notice', { type: type, merging_enabled: merging_enabled, force_hide: force_hide }, function(response) {
+				if (response.hasOwnProperty('success') && response.success === true) {
+					if (response.hasOwnProperty('hide') && response.hide === true) {
+						$notice.stop(true, true).slideUp(300);
+					}
+					
+					if (response.hasOwnProperty('hide') && response.hide === false) {
+						$notice.stop(true, true).slideDown(300);
+					}
+				}
+				if (response.hasOwnProperty('message') && response.success !== true) {
+					wp_optimize.notices.show_notice('error', response.message);
+				}
+			});
+		}
 
 		// Show logs
 		$('#wpo_min_jsprocessed, #wpo_min_cssprocessed').on('click', '.log', function(e) {
@@ -217,7 +293,7 @@
 			} else {
 				$(this).text(wpoptimize.show_information);
 			}
-	});
+		});
 
 		// Delete log file
 		$('#wpo_min_jsprocessed, #wpo_min_cssprocessed').on('click', '.delete-file', function(e) {
@@ -247,26 +323,6 @@
 			});
 		});
 
-		// Handle js excludes
-		$('#wpo_min_jsprocessed').on('click', '.exclude', function(e) {
-			e.preventDefault();
-			var el = $(this);
-			var excluded_file = get_excluded_file(el);
-			add_excluded_js_file(excluded_file);
-			tab_need_saving('js');
-			highlight_excluded_item(el);
-		});
-
-		// Handle css excludes
-		$('#wpo_min_cssprocessed').on('click', '.exclude', function(e) {
-			e.preventDefault();
-			var el = $(this);
-			var excluded_file = get_excluded_file(el);
-			add_excluded_css_file(excluded_file);
-			tab_need_saving('css');
-			highlight_excluded_item(el);
-		});
-
 		// Trigger combined meta.json file download
 		$('.wpo-minify-download-metas-button').on('click', function(e) {
 			e.preventDefault();
@@ -285,81 +341,66 @@
 			})
 		});
 
-		/**
-		 * Get excluded file url
-		 *
-		 * @param {HTMLElement} el
-		 *
-		 * @return {string}
-		 */
-		function get_excluded_file(el) {
-			return el.data('url');
-		}
+		// Handle js excludes
+		$('#wpo_min_jsprocessed').on('click', '.exclude', function(e) {
+			e.preventDefault();
+			get_url_and_tab_saving($(this), '#exclude_js', 'js');
+		});
 
-		/**
-		 * Exclude js file
-		 *
-		 * @param {string} excluded_file File url
-		 */
-		function add_excluded_js_file(excluded_file) {
-			var $js_textarea = $('#exclude_js');
-			var list_of_excluded_files = $js_textarea.val();
-			list_of_excluded_files += excluded_file + '\n';
-			$js_textarea.val(list_of_excluded_files);
-		}
-
-		/**
-		 * Exclude css file
-		 *
-		 * @param {string} excluded_file File url
-		 */
-		function add_excluded_css_file(excluded_file) {
-			var $css_textarea = $('#exclude_css');
-			var list_of_excluded_files = $css_textarea.val();
-			list_of_excluded_files += excluded_file + '\n';
-			$css_textarea.val(list_of_excluded_files);
-		}
+		// Handle css excludes
+		$('#wpo_min_cssprocessed').on('click', '.exclude', function(e) {
+			e.preventDefault();
+			get_url_and_tab_saving($(this), '#exclude_css', 'css');
+		});
 
 		// Handle defer
 		$('#wpo_min_jsprocessed').on('click', '.defer', function(e) {
 			e.preventDefault();
-			add_deferred_file($(this));
+			get_url_and_tab_saving($(this), '#async_js', 'js');
 		});
 
 		// Handle async loading
 		$('#wpo_min_cssprocessed').on('click', '.async', function(e) {
 			e.preventDefault();
-			add_async_file($(this));
+			get_url_and_tab_saving($(this), '#async_css', 'css');
 		});
-
+		
 		/**
-		 * Add deferred file
+		 * Get url from an element and then save it
 		 *
-		 * @param {HTMLElement} el target element
+		 * @param {HTMLElement} el
+		 * @param {string} target_el_id
+		 * @param {string} tab_name
+		 *
+		 * @return void
 		 */
-		function add_deferred_file(el) {
-			var deferred_file = el.data('url');
-			var $async_js_textarea = $('#async_js');
-			var list_of_deferred_files = $async_js_textarea.val();
-			list_of_deferred_files += deferred_file + '\n';
-			$async_js_textarea.val(list_of_deferred_files);
-			tab_need_saving('js');
+		function get_url_and_tab_saving(el, target_el_id, tab_name) {
+			var file_url = el.data('url');
+			if ('' === file_url || undefined === file_url) {
+				return;
+			}
+			
+			add_url_to_next_line(target_el_id, file_url);
+			tab_need_saving(tab_name);
 			highlight_excluded_item(el);
 		}
-
+		
 		/**
-		 * Add asynchronously loading file
+		 * Add url to the next line of the element textarea
 		 *
-		 * @param {HTMLElement} el target element
+		 * @param {string} target_el_id
+		 * @param {string} file_url
+		 *
+		 * @return void
 		 */
-		function add_async_file(el) {
-			var async_file = el.data('url');
-			var $async_css_textarea = $('#async_css');
-			var list_of_async_files = $async_css_textarea.val();
-			list_of_async_files += async_file + '\n';
-			$async_css_textarea.val(list_of_async_files);
-			tab_need_saving('css');
-			highlight_excluded_item(el);
+		function add_url_to_next_line(target_el_id, file_url) {
+			var $textarea = $(target_el_id);
+			var list_of_files = $textarea.val().trim();
+			if ('' !== list_of_files) {
+				list_of_files += '\n';
+			}
+			list_of_files += file_url;
+			$textarea.val(list_of_files);
 		}
 		
 		/**

@@ -55,7 +55,7 @@ class I18n {
 		load_plugin_textdomain( // phpcs:ignore PluginCheck.CodeAnalysis.DiscouragedFunctions.load_plugin_textdomainFound
 			'cookie-law-info',
 			false,
-			dirname( dirname( CLI_PLUGIN_BASENAME ) ) . '/languages/'
+			dirname( CLI_PLUGIN_BASENAME ) . '/languages/'
 		);
 
 	}

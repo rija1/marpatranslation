@@ -2,21 +2,9 @@
 
 class WCML_wcExporter implements \IWPML_Action {
 
-	/**
-	 * @var SitePress
-	 */
 	private $sitepress;
-	/**
-	 * @var woocommerce_wpml
-	 */
 	private $woocommerce_wpml;
 
-	/**
-	 * WCML_wcExporter constructor.
-	 *
-	 * @param SitePress $sitepress
-	 * @param woocommerce_wpml $woocommerce_wpml
-	 */
 	public function __construct( SitePress $sitepress, woocommerce_wpml $woocommerce_wpml ) {
 		$this->sitepress        = $sitepress;
 		$this->woocommerce_wpml = $woocommerce_wpml;
@@ -37,6 +25,7 @@ class WCML_wcExporter implements \IWPML_Action {
 	public function woo_ce_fields( $fields ) {
 		$fields[] = [
 			'name'    => 'language',
+			/* translators: Column heading for the language of an order or a product, in the WooCommerce analytics reports and their exported files. Noun. */
 			'label'   => __( 'Language', 'woo_ce' ),
 			'default' => 1
 		];
@@ -52,6 +41,7 @@ class WCML_wcExporter implements \IWPML_Action {
 	public function woo_ce_order_fields( $fields ) {
 		$fields[] = [
 			'name'    => 'language',
+			/* translators: Column heading for the language of an order or a product, in the WooCommerce analytics reports and their exported files. Noun. */
 			'label'   => __( 'Language', 'woo_ce' ),
 			'default' => 1
 		];

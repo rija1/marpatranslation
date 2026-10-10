@@ -3,7 +3,9 @@
 namespace Give\FormBuilder\ViewModels;
 
 use Give\Campaigns\Models\Campaign;
+use Give\DonationForms\Actions\GenerateDonationFormPageUrl;
 use Give\DonationForms\Actions\GenerateDonationFormPreviewRouteUrl;
+use Give\DonationForms\Actions\GenerateExternalEmbedScriptUrl;
 use Give\DonationForms\Models\DonationForm;
 use Give\DonationForms\ValueObjects\GoalProgressType;
 use Give\DonationForms\ValueObjects\GoalSource;
@@ -25,9 +27,11 @@ use Give_License;
 class FormBuilderViewModel
 {
     /**
-     * @since 3.12.0  Add goalProgressOptions key to the returned array
+     * @since 4.17.0 Add externalEmbedScriptUrl key (naming the form, so the embed script carries its skeleton) to the returned array; build permalink through GenerateDonationFormPageUrl
+     * @since 4.14.0 Add countries key to the returned array
+     * @since 3.12.0 Add goalProgressOptions key to the returned array
      * @since 3.9.0 Add support to intlTelInputSettings key in the returned array
-     * @since      3.7.0 Add support to isExcerptEnabled key in the returned array
+     * @since 3.7.0 Add support to isExcerptEnabled key in the returned array
      * @since 3.2.0 Add nameTitlePrefixes key to the returned array
      * @since 3.0.0
      */
@@ -40,6 +44,7 @@ class FormBuilderViewModel
             'formId' => $donationFormId,
             'resourceURL' => rest_url(FormBuilderRestRouteConfig::NAMESPACE . '/form/' . $donationFormId),
             'previewURL' => (new GenerateDonationFormPreviewRouteUrl())($donationFormId),
+            'externalEmbedScriptUrl' => (new GenerateExternalEmbedScriptUrl())($donationFormId),
             'nonce' => wp_create_nonce('wp_rest'),
             'blockData' => $donationForm->blocks->toJson(),
             'settings' => $donationForm->settings->toJson(),
@@ -57,7 +62,7 @@ class FormBuilderViewModel
             'formPage' => [
                 'isEnabled' => give_is_setting_enabled(give_get_option('forms_singular')),
                 // Note: Boolean values must be nested in an array to maintain boolean type, see \WP_Scripts::localize().
-                'permalink' => add_query_arg(['p' => $donationFormId], site_url('?post_type=give_forms')),
+                'permalink' => (new GenerateDonationFormPageUrl())($donationFormId),
                 'rewriteSlug' => get_post_type_object('give_forms')->rewrite['slug'],
                 'baseUrl' => preg_replace('/^https?:\/\//', '', site_url()),
             ],
@@ -91,6 +96,7 @@ class FormBuilderViewModel
             'intlTelInputSettings' => IntlTelInput::getSettings(),
             'campaignColors' => $this->getCampaignColors($donationFormId),
             'showFormGoalNotice' => !get_user_meta(get_current_user_id(), 'givewp_campaign_form_goal_notice', true),
+            'countries' => give_get_country_list(),
         ];
     }
 

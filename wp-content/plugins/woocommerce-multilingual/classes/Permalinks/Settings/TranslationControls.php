@@ -29,21 +29,10 @@ class TranslationControls extends TranslationControlsBase {
 		return WpAdminPages::isPermalinksSettings();
 	}
 
-	/**
-	 * @param string $domain
-	 * @param string $search
-	 *
-	 * @return string
-	 */
 	protected function getInstructionsLink( $domain, $search = '' ) {
 		return AdminUrl::getStoreURLTab();
 	}
 
-	/**
-	 * @param string $variation
-	 *
-	 * @return string
-	 */
 	private function getInstructionsVariation( $variation ) {
 		if ( ! $this->hasStringsInDomain( Strings::TRANSLATION_DOMAIN ) ) {
 			return $this->getInstructionsWithoutRegisteredStrings( Strings::TRANSLATION_DOMAIN );
@@ -70,6 +59,7 @@ class TranslationControls extends TranslationControlsBase {
 	public function translationInstructions() {
 		$this->pointerFactory
 			->create( [
+				/* translators: Link text that opens the help bubble about translating product-category and product-tag URL slugs, on the WooCommerce permalinks settings. */
 				'anchor'     => esc_html__( 'How to translate permalinks for product taxonomies', 'woocommerce-multilingual' ),
 				'content'    => $this->getInstructionsVariation( self::INSTRUCTIONS_FOR_PRODUCT_TAXONOMIES ),
 				'selectorId' => 'wpbody-content h2:nth-of-type(2) + p',
@@ -77,6 +67,7 @@ class TranslationControls extends TranslationControlsBase {
 
 			$this->pointerFactory
 			->create( [
+				/* translators: Link text that opens the help bubble about translating product URL slugs, on the WooCommerce permalinks settings. */
 				'anchor'     => esc_html__( 'How to translate product permalinks', 'woocommerce-multilingual' ),
 				'content'    => $this->getInstructionsVariation( self::INSTRUCTIONS_FOR_PRODUCTS ),
 				'selectorId' => 'wpbody-content table.form-table.wc-permalink-structure',
@@ -84,9 +75,6 @@ class TranslationControls extends TranslationControlsBase {
 			] )->show();
 	}
 
-	/**
-	 * @return array
-	 */
 	protected function getTranslationControls() {
 		$translationControls = [];
 		$permalink_options   = get_option( 'woocommerce_permalinks' );
@@ -112,7 +100,6 @@ class TranslationControls extends TranslationControlsBase {
 				case 'product':
 					$value = ! empty( $permalink_options['product_base'] )
 						? trim( $permalink_options['product_base'], '/' )
-						/* phpcs:ignore WordPress.WP.I18n.NonSingularStringLiteralText */
 						: _x( Strings::DEFAULT_PRODUCT_BASE, 'default-slug', 'woocommerce' );
 					break;
 				default:
@@ -135,35 +122,14 @@ class TranslationControls extends TranslationControlsBase {
 		add_filter( 'pre_update_option_woocommerce_permalinks', [ $this, 'registerStringsOnPreUpdate' ] );
 	}
 
-	/**
-	 * Delegated into WCML_Url_Translation::register_product_and_taxonomy_bases().
-	 *
-	 * @param array $wcPermalinks
-	 *
-	 * @return array
-	 */
 	public function registerStringsOnPreUpdate( $wcPermalinks ) {
 		return $this->wcmlStrings->getUrlTranslation()->register_product_and_taxonomy_bases( $wcPermalinks );
 	}
 
-	/**
-	 * @param string $dummyContext
-	 * @param string $base
-	 *
-	 * @return string
-	 */
 	protected function getStringName( $dummyContext, $base ) {
 		return Strings::getStringName( $base );
 	}
 
-	/**
-	 * Gets the id attribute value of the input node holding a translatable string.
-	 *
-	 * @param string $dummyContext
-	 * @param string $baseKey
-	 *
-	 * @return string
-	 */
 	protected function getInputName( $dummyContext, $baseKey ) {
 		switch ( $baseKey ) {
 			case 'tag_base':
@@ -179,36 +145,16 @@ class TranslationControls extends TranslationControlsBase {
 		return '';
 	}
 
-	/**
-	 * Gets the id attribute value of the input node holding a translatable string.
-	 *
-	 * @param string $dummyContext
-	 * @param string $baseKey
-	 *
-	 * @return string
-	 */
 	protected function getInputId( $dummyContext, $baseKey ) {
 		return '';
 	}
 
-	/**
-	 * @param string $dummyContext
-	 * @param string $baseKey
-	 *
-	 * @return string
-	 */
 	protected function getLanguageSelectorId( $dummyContext, $baseKey ) {
 		return $baseKey . '_' . self::LANGUAGE_SELECTOR_ID_SUFFIX;
 	}
 
 
 
-	/**
-	 * @param string $dummy
-	 * @param string $baseKey
-	 *
-	 * @return string
-	 */
 	protected function getLanguageSelectorName( $dummy, $baseKey ) {
 		return $baseKey . '_language';
 	}

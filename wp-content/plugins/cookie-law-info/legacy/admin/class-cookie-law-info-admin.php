@@ -1,5 +1,9 @@
 <?php
 
+if ( ! defined( 'ABSPATH' ) ) {
+	exit;
+}
+
 /**
  * The admin-specific functionality of the plugin.
  *
@@ -123,7 +127,7 @@ class Cookie_Law_Info_Admin {
 		 * between the defined hooks and the functions defined in this
 		 * class.
 		 */
-		if ( isset( $_GET['post_type'] ) && $_GET['post_type'] == CLI_POST_TYPE || isset( $_GET['page'] ) && $_GET['page'] == 'cookie-law-info' ) { // phpcs:ignore WordPress.Security.NonceVerification.Recommended
+		if ( $this->is_cookie_law_info_admin_screen() ) {
 			wp_enqueue_style( 'wp-color-picker' );
 			wp_enqueue_style( $this->plugin_name, plugin_dir_url( __FILE__ ) . 'css/cookie-law-info-admin.css', array(), $this->version, 'all' );
 		}
@@ -147,7 +151,7 @@ class Cookie_Law_Info_Admin {
 		 * between the defined hooks and the functions defined in this
 		 * class.
 		 */
-		if ( isset( $_GET['post_type'] ) && $_GET['post_type'] == CLI_POST_TYPE ) { // phpcs:ignore WordPress.Security.NonceVerification.Recommended
+		if ( $this->is_cookie_law_info_admin_screen() ) {
 			wp_enqueue_script( $this->plugin_name, plugin_dir_url( __FILE__ ) . 'js/cookie-law-info-admin.js', array( 'jquery', 'wp-color-picker' ), $this->version, false );
 			wp_localize_script(
 				$this->plugin_name,
@@ -492,4 +496,47 @@ class Cookie_Law_Info_Admin {
 		}
 	}
 
+	/**
+	 * Output the update banner on all CY plugin admin pages.
+	 *
+	 * @return void
+	 */
+	public function render_update_banner() {
+		if ( $this->is_cookie_law_info_admin_screen() ) {
+			include_once CLI_PLUGIN_PATH . 'admin/partials/wt-cli-update-banner.php';
+		}
+	}
+
+	/**
+	 * Output the overlay and modals used by the update banner.
+	 * Rendered via admin_footer so position:fixed elements don't sit inside
+	 * the admin_notices flow and interfere with other notices.
+	 *
+	 * @return void
+	 */
+	public function render_update_modals() {
+		if ( $this->is_cookie_law_info_admin_screen() ) {
+			include_once CLI_PLUGIN_PATH . 'admin/partials/wt-cli-update-modals.php';
+		}
+	}
+
+	/**
+	 * Returns true when the current screen is a Cookie Law Info admin screen.
+	 *
+	 * Submenu page screen IDs are prefixed with the CPT label ('gdpr-cookie-consent_page_*'),
+	 * not the post type slug, so post_type in the URL is the reliable cross-page signal.
+	 *
+	 * @return bool
+	 */
+	private function is_cookie_law_info_admin_screen() {
+		$screen = get_current_screen();
+		if ( $screen && ( CLI_POST_TYPE === $screen->post_type || preg_match( '/cookielawinfo/', $screen->id ) ) ) {
+			return true;
+		}
+
+		$page      = isset( $_GET['page'] ) ? sanitize_text_field( wp_unslash( $_GET['page'] ) ) : ''; // phpcs:ignore WordPress.Security.NonceVerification.Recommended
+		$post_type = isset( $_GET['post_type'] ) ? sanitize_text_field( wp_unslash( $_GET['post_type'] ) ) : ''; // phpcs:ignore WordPress.Security.NonceVerification.Recommended
+
+		return CLI_POST_TYPE === $post_type || 0 === strpos( $page, 'cookie-law-info' );
+	}
 }

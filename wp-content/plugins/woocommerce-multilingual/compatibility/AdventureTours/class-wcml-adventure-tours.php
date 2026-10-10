@@ -4,27 +4,11 @@ use WCML\Utilities\AdminPages;
 
 class WCML_Adventure_Tours implements \IWPML_Action {
 
-	/**
-	 * @var woocommerce_wpml
-	 */
 	private $woocommerce_wpml;
-	/**
-	 * @var SitePress
-	 */
 	private $sitepress;
 
-	/**
-	 * @var WPML_Element_Translation_Package
-	 */
 	private $tp;
 
-	/**
-	 * WCML_Adventure_Tours constructor.
-	 *
-	 * @param woocommerce_wpml                 $woocommerce_wpml
-	 * @param SitePress                        $sitepress
-	 * @param WPML_Element_Translation_Package $tp
-	 */
 	public function __construct( woocommerce_wpml $woocommerce_wpml, SitePress $sitepress, WPML_Element_Translation_Package $tp ) {
 		$this->woocommerce_wpml = $woocommerce_wpml;
 		$this->sitepress        = $sitepress;
@@ -71,8 +55,6 @@ class WCML_Adventure_Tours implements \IWPML_Action {
 
 		$post = get_post( $post_id );
 
-		// Skip auto-drafts // skip autosave.
-		/* phpcs:ignore WordPress.VIP.SuperGlobalInputUsage.AccessDetected */
 		if ( 'auto-draft' === $post->post_status || isset( $_POST['autosave'] ) ) {
 			return false;
 		}
@@ -113,6 +95,7 @@ class WCML_Adventure_Tours implements \IWPML_Action {
 
 		if ( $tour_tabs_meta = get_post_meta( $product_id, 'tour_tabs_meta', true ) ) {
 
+			/* translators: Heading of the group of tour fields in WPML's translation editor for a product. */
 			$tour_section = new WPML_Editor_UI_Field_Section( __( 'Tour Data', 'woocommerce-multilingual' ) );
 
 			$divider = true;
@@ -120,8 +103,10 @@ class WCML_Adventure_Tours implements \IWPML_Action {
 			foreach ( $tour_tabs_meta['tabs'] as $tour_tab_id => $tour_tab_meta ) {
 
 				$group           = new WPML_Editor_UI_Field_Group( '', $divider );
+				/* translators: Label of the title field of an item in WPML's translation editor for a product. Noun. */
 				$composite_field = new WPML_Editor_UI_Single_Line_Field( 'adventure_tour_' . $tour_tab_id . '_title', __( 'Title', 'woocommerce-multilingual' ), $data, false );
 				$group->add_field( $composite_field );
+				/* translators: Label of the body-text field of a tour tab in WPML's translation editor for a product. Noun. */
 				$composite_field = new WPML_Editor_UI_Single_Line_Field( 'adventure_tour_' . $tour_tab_id . '_content', __( 'Content', 'woocommerce-multilingual' ), $data, false );
 				$group->add_field( $composite_field );
 				$tour_section->add_field( $group );

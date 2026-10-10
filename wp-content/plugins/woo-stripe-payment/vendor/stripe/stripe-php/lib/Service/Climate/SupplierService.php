@@ -2,25 +2,24 @@
 
 // File generated from our OpenAPI spec
 
-namespace Stripe\Service\Climate;
+namespace PaymentPlugins\Vendor\Stripe\Service\Climate;
 
 /**
  * @phpstan-import-type RequestOptionsArray from \Stripe\Util\RequestOptions
- */
-/**
+ *
  * @psalm-import-type RequestOptionsArray from \Stripe\Util\RequestOptions
  */
-class SupplierService extends \Stripe\Service\AbstractService
+class SupplierService extends \PaymentPlugins\Vendor\Stripe\Service\AbstractService
 {
     /**
      * Lists all available Climate supplier objects.
      *
-     * @param null|array $params
-     * @param null|RequestOptionsArray|\Stripe\Util\RequestOptions $opts
+     * @param null|array{ending_before?: string, expand?: string[], limit?: int, starting_after?: string} $params
+     * @param null|RequestOptionsArray|\PaymentPlugins\Vendor\Stripe\Util\RequestOptions $opts
      *
-     * @throws \Stripe\Exception\ApiErrorException if the request fails
+     * @return \PaymentPlugins\Vendor\Stripe\Collection<\PaymentPlugins\Vendor\Stripe\Climate\Supplier>
      *
-     * @return \Stripe\Collection<\Stripe\Climate\Supplier>
+     * @throws \PaymentPlugins\Vendor\Stripe\Exception\ApiErrorException if the request fails
      */
     public function all($params = null, $opts = null)
     {
@@ -31,12 +30,12 @@ class SupplierService extends \Stripe\Service\AbstractService
      * Retrieves a Climate supplier object.
      *
      * @param string $id
-     * @param null|array $params
-     * @param null|RequestOptionsArray|\Stripe\Util\RequestOptions $opts
+     * @param null|array{expand?: string[]} $params
+     * @param null|RequestOptionsArray|\PaymentPlugins\Vendor\Stripe\Util\RequestOptions $opts
      *
-     * @throws \Stripe\Exception\ApiErrorException if the request fails
+     * @return \PaymentPlugins\Vendor\Stripe\Climate\Supplier
      *
-     * @return \Stripe\Climate\Supplier
+     * @throws \PaymentPlugins\Vendor\Stripe\Exception\ApiErrorException if the request fails
      */
     public function retrieve($id, $params = null, $opts = null)
     {

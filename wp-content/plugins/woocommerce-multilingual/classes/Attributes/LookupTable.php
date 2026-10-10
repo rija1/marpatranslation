@@ -12,12 +12,13 @@ use WPML\FP\Fns;
 
 class LookupTable implements \IWPML_Action {
 
-	/** @var \SitePress $sitepress */
+	const PRIORITY_BEFORE_LOOKUP_CALLBACK = 5;
+	const PRIORITY_AFTER_LOOKUP_CALLBACK  = 20;
+
 	private $sitepress;
 
-	/**
-	 * @param \SitePress $sitepress
-	 */
+	private $filtersSuspend;
+
 	public function __construct( \SitePress $sitepress ) {
 		$this->sitepress = $sitepress;
 	}
@@ -26,18 +27,20 @@ class LookupTable implements \IWPML_Action {
 		Hooks::onAction( 'save_post' )
 			->then( spreadArgs( [ $this, 'triggerUpdateForTranslations' ] ) );
 
-		// For defered updates, we adjust terms filter just before the action scheduler.
-		Hooks::onAction( 'woocommerce_run_product_attribute_lookup_update_callback', 5 )
-			->then( [ $this, 'adjustTermsFilters' ] );
+		Hooks::onAction( 'woocommerce_run_product_attribute_lookup_update_callback', self::PRIORITY_BEFORE_LOOKUP_CALLBACK )
+			->then( [ $this, 'suspendTermsFilters' ] );
+		Hooks::onAction( 'woocommerce_run_product_attribute_lookup_update_callback', self::PRIORITY_AFTER_LOOKUP_CALLBACK )
+			->then( [ $this, 'resumeTermsFilters' ] );
 
-		// When regenerating the table we need all products and all terms.
 		Hooks::onFilter( 'woocommerce_attribute_lookup_regeneration_step_size' )
 			->then( spreadArgs( Fns::tap( [ $this, 'regenerateTable' ] ) ) );
+		Hooks::onAction( 'woocommerce_run_product_attribute_lookup_regeneration_callback', self::PRIORITY_AFTER_LOOKUP_CALLBACK )
+			->then( [ $this, 'resumeTermsFilters' ] );
+
+		Hooks::onFilter( 'pre_update_option_woocommerce_attribute_lookup_last_product_id_to_process' )
+			->then( spreadArgs( [ $this, 'setLastProductIdAcrossLanguages' ] ) );
 	}
 
-	/**
-	 * @param int $productId
-	 */
 	public function triggerUpdateForTranslations( $productId ) {
 		if (
 			'product' === get_post_type( $productId )
@@ -48,29 +51,53 @@ class LookupTable implements \IWPML_Action {
 
 			Hooks::onAction( 'shutdown' )
 				->then( function() use ( $productId, $savedOnBlogId ) {
-					$savedOnAnotherBlog = get_current_blog_id() !== $savedOnBlogId;
-
-					if ( $savedOnAnotherBlog ) {
-						switch_to_blog( $savedOnBlogId );
-					}
-
-					// For direct updates, we adjust terms filters just before triggering the update.
-					$hasTermsClausesFilter = $this->adjustTermsFilters();
-
-					wc_get_container()->get( ProductAttributesLookupDataStore::class )->on_product_changed( $productId );
-
-					$this->restoreTermsFilters( $hasTermsClausesFilter );
-
-					if ( $savedOnAnotherBlog ) {
-						restore_current_blog();
-					}
+					$this->refreshLookupTable( $productId, $savedOnBlogId );
 				} );
 		}
 	}
 
-	/**
-	 * @return \WCML\Utilities\Suspend\Suspend
-	 */
+	private function refreshLookupTable( $productId, $savedOnBlogId ) {
+		$savedOnAnotherBlog    = get_current_blog_id() !== $savedOnBlogId;
+		$hasTermsClausesFilter = null;
+
+		if ( $savedOnAnotherBlog ) {
+			switch_to_blog( $savedOnBlogId );
+		}
+
+		try {
+			$product = wc_get_product( $productId );
+
+			if ( $product ) {
+				$hasTermsClausesFilter = $this->adjustTermsFilters();
+
+				wc_get_container()->get( ProductAttributesLookupDataStore::class )->on_product_changed( $product );
+			}
+		} catch ( \Throwable $e ) {
+			return;
+		} finally {
+			if ( $hasTermsClausesFilter ) {
+				$this->restoreTermsFilters( $hasTermsClausesFilter );
+			}
+
+			if ( $savedOnAnotherBlog ) {
+				restore_current_blog();
+			}
+		}
+	}
+
+	public function suspendTermsFilters() {
+		if ( ! $this->filtersSuspend ) {
+			$this->filtersSuspend = $this->adjustTermsFilters();
+		}
+	}
+
+	public function resumeTermsFilters() {
+		if ( $this->filtersSuspend ) {
+			$this->restoreTermsFilters( $this->filtersSuspend );
+			$this->filtersSuspend = null;
+		}
+	}
+
 	public function adjustTermsFilters() {
 		add_filter( 'woocommerce_product_get_attributes', [ $this, 'translateAttributeOptions' ], 10, 2 );
 		add_filter( 'woocommerce_product_variation_get_attributes', [ $this, 'translateVariationTerms' ], 10, 2 );
@@ -78,9 +105,6 @@ class LookupTable implements \IWPML_Action {
 		return SuspendWpmlFiltersFactory::create();
 	}
 
-	/**
-	 * @param \WCML\Utilities\Suspend\Suspend $filtersSuspend
-	 */
 	private function restoreTermsFilters( $filtersSuspend ) {
 		$filtersSuspend->resume();
 
@@ -88,12 +112,6 @@ class LookupTable implements \IWPML_Action {
 		remove_filter( 'woocommerce_product_variation_get_attributes', [ $this, 'translateVariationTerms' ] );
 	}
 
-	/**
-	 * @param \WC_Product_Attribute[] $attributes
-	 * @param \WC_Product             $product
-	 *
-	 * @return \WC_Product_Attribute[]
-	 */
 	public function translateAttributeOptions( $attributes, $product ) {
 		$language = $this->sitepress->get_language_for_element(
 			$product->get_id(),
@@ -101,7 +119,6 @@ class LookupTable implements \IWPML_Action {
 		);
 
 		if ( $language ) {
-			// $getTranslatedOptions :: string -> string|null
 			$getTranslatedOptions = function( $attribute, $taxonomy ) use ( $language ) {
 				$attribute->set_options( Ids::convert( $attribute->get_options(), $taxonomy, true, $language ) );
 
@@ -116,12 +133,6 @@ class LookupTable implements \IWPML_Action {
 		return $attributes;
 	}
 
-	/**
-	 * @param array                 $attributes
-	 * @param \WC_Product_Variation $product
-	 *
-	 * @return array
-	 */
 	public function translateVariationTerms( $attributes, $product ) {
 		$language = $this->sitepress->get_language_for_element(
 			$product->get_id(),
@@ -129,7 +140,6 @@ class LookupTable implements \IWPML_Action {
 		);
 
 		if ( $language ) {
-			// $getTranslatedSlug :: string -> string|null
 			$getTranslatedSlug = function( $slug, $taxonomy ) use ( $language ) {
 				$term = get_term_by( 'slug', $slug, $taxonomy );
 				if ( false === $term ) {
@@ -150,8 +160,25 @@ class LookupTable implements \IWPML_Action {
 	}
 
 	public function regenerateTable() {
-		$this->adjustTermsFilters();
+		$this->suspendTermsFilters();
+		$this->suppressLanguageFilterOnProductQueries();
+	}
 
+	public function setLastProductIdAcrossLanguages( $lastProductId ) {
+		$this->suppressLanguageFilterOnProductQueries();
+
+		$ids = wc_get_products(
+			[
+				'return'  => 'ids',
+				'limit'   => 1,
+				'orderby' => [ 'ID' => 'DESC' ],
+			]
+		);
+
+		return $ids ? (int) $ids[0] : $lastProductId;
+	}
+
+	private function suppressLanguageFilterOnProductQueries() {
 		add_filter( 'woocommerce_product_object_query_args', Obj::assoc( 'suppress_filters', true ) );
 	}
 

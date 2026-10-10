@@ -53,7 +53,7 @@ class WC_Order_Refund_Data_Store_CPT extends Abstract_WC_Order_Data_Store_CPT im
 		}
 
 		$parent_order_id  = $order->get_parent_id();
-		$refund_cache_key = WC_Cache_Helper::get_cache_prefix( 'orders' ) . 'refunds' . $parent_order_id;
+		$refund_cache_key = WC_Cache_Helper::get_cache_prefix( 'orders' ) . 'refund_ids' . $parent_order_id;
 		wp_delete_post( $id );
 		wp_cache_delete( $refund_cache_key, 'orders' );
 		$order->set_id( 0 );
@@ -91,6 +91,25 @@ class WC_Order_Refund_Data_Store_CPT extends Abstract_WC_Order_Data_Store_CPT im
 				'reason'           => metadata_exists( 'post', $id, '_refund_reason' ) ? $reason : $post_object->post_excerpt,
 			)
 		);
+	}
+
+	/**
+	 * Method to update a refund in the database.
+	 *
+	 * @param \WC_Order_Refund $refund Refund object.
+	 */
+	public function update( &$refund ) {
+		parent::update( $refund );
+
+		/**
+		 * Fires when an order refund is updated.
+		 *
+		 * @since 10.4.0
+		 *
+		 * @param int              $refund_id The order refund ID.
+		 * @param \WC_Order_Refund $refund    The order refund object.
+		 */
+		do_action( 'woocommerce_update_order_refund', $refund->get_id(), $refund );
 	}
 
 	/**

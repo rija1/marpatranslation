@@ -4,8 +4,8 @@ namespace Automattic\WooCommerce\Blocks\BlockTypes;
 
 use Automattic\WooCommerce\Blocks\BlockTypes\AbstractBlock;
 use Automattic\WooCommerce\Internal\EmailEditor\BlockEmailRenderer;
-use Automattic\WooCommerce\Internal\EmailEditor\WooContentProcessor;
 use Automattic\WooCommerce\Internal\Admin\EmailPreview\EmailPreview;
+use Automattic\WooCommerce\Internal\EmailEditor\WCTransactionalEmails\WCTransactionalEmailPostsManager;
 
 /**
  * EmailContent class.
@@ -25,21 +25,6 @@ class EmailContent extends AbstractBlock {
 	 */
 	protected function get_block_type_style() {
 		return null;
-	}
-
-	/**
-	 * Get the editor script handle for this block type.
-	 *
-	 * @param string $key Data to get, or default to everything.
-	 * @return array|string
-	 */
-	protected function get_block_type_editor_script( $key = null ) {
-		$script = [
-			'handle'       => 'wc-' . $this->block_name . '-block',
-			'path'         => $this->asset_api->get_block_asset_build_path( $this->block_name ),
-			'dependencies' => [ 'wc-blocks' ],
-		];
-		return $key ? $script[ $key ] : $script;
 	}
 
 	/**
@@ -66,7 +51,11 @@ class EmailContent extends AbstractBlock {
 		$email_preview = wc_get_container()->get( EmailPreview::class );
 
 		$type_param = EmailPreview::DEFAULT_EMAIL_TYPE;
-		if ( isset( $attributes['emailType'] ) ) {
+
+		if ( isset( $attributes['postId'] ) ) {
+			$email_type_class_name = WCTransactionalEmailPostsManager::get_instance()->get_email_type_class_name_from_post_id( $attributes['postId'] );
+			$type_param            = ! empty( $email_type_class_name ) ? $email_type_class_name : $type_param;
+		} elseif ( isset( $attributes['emailType'] ) ) {
 			$type_param = sanitize_text_field( wp_unslash( $attributes['emailType'] ) );
 		}
 

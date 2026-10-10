@@ -1,7 +1,7 @@
-const data = window._ckyGcm;
+const _ckyGcmData = window._ckyGcm;
 let setDefaultSetting = true;
-const regionSettings = data.default_settings || [];
-const waitForTime = data.wait_for_update;
+const regionSettings = _ckyGcmData.default_settings || [];
+const waitForTime = _ckyGcmData.wait_for_update;
 
 function getCookieValues(cookieName) {
     const values = [];
@@ -39,8 +39,8 @@ function setConsentInitStates(consentData) {
     gtag("consent", "default", consentData );
 }
 
-gtag("set", "ads_data_redaction", !!data.ads_data_redaction);
-gtag("set", "url_passthrough", !!data.url_passthrough);
+gtag("set", "ads_data_redaction", !!_ckyGcmData.ads_data_redaction);
+gtag("set", "url_passthrough", !!_ckyGcmData.url_passthrough);
 gtag("set", "developer_id.dY2Q2ZW", true);
 
 for (let index = 0; index < regionSettings.length; index++) {

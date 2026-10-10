@@ -4,9 +4,6 @@ use WCML\Utilities\WCTaxonomies;
 
 class WCML_Taxonomy_Translation_Link_Filters {
 
-	/**
-	 * @var WCML_Attributes
-	 */
 	private $wcml_attributes;
 
 	public function __construct( WCML_Attributes $wcml_attributes ) {
@@ -18,12 +15,6 @@ class WCML_Taxonomy_Translation_Link_Filters {
 		add_filter( 'wpml_taxonomy_slug_translation_ui', [ $this, 'slug_translation_ui_class' ], 10, 2 );
 	}
 
-	/**
-	 * @param string $text
-	 * @param array  $notice
-	 *
-	 * @return string
-	 */
 	public function override_translation_notice_text( $text, $notice ) {
 		if ( 'taxonomy-term-help-notices' === $notice['group'] ) {
 			$taxonomy            = get_taxonomy( $notice['id'] );
@@ -32,15 +23,15 @@ class WCML_Taxonomy_Translation_Link_Filters {
 
 				$link = sprintf(
 					'<a href="%s">%s</a>',
-					$this->get_screen_url( $taxonomy->name ),
-					/* translators: %s is a taxonomy singular label */
-					sprintf( esc_html__( '%s translation', 'woocommerce-multilingual' ), $taxonomy->labels->singular_name )
+					esc_url( $this->get_screen_url( $taxonomy->name ) ),
+					/* translators: Link text that opens WPML's taxonomy translation screen for one taxonomy. %s: the taxonomy's singular name, for example "Product category". */
+					sprintf( esc_html__( '%s translation', 'woocommerce-multilingual' ), esc_html( $taxonomy->labels->singular_name ) )
 				);
 
 				$text = sprintf(
 					/* translators: %1$s is a taxonomy singular label and %2$s is an HTML link */
 					esc_html__( 'Translating %1$s? Use the %2$s table for easier translation.', 'woocommerce-multilingual' ),
-					$taxonomy->labels->name,
+					esc_html( $taxonomy->labels->name ),
 					$link
 				);
 			}
@@ -49,11 +40,6 @@ class WCML_Taxonomy_Translation_Link_Filters {
 		return $text;
 	}
 
-	/**
-	 * @param string $taxonomy
-	 *
-	 * @return string|false
-	 */
 	public function get_screen_url( $taxonomy = '' ) {
 		$built_in_taxonomies = [ WCTaxonomies::TAXONOMY_PRODUCT_CATEGORY, WCTaxonomies::TAXONOMY_PRODUCT_TAG, WCML_Terms::PRODUCT_SHIPPING_CLASS ];
 		if ( in_array( $taxonomy, $built_in_taxonomies, true ) ) {

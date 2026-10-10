@@ -89,6 +89,7 @@ if ( ! class_exists( 'WC_Connect_Debug_Tools' ) ) {
 
 			global $wpdb;
 
+			// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching -- WooCommerce's tax rate table has no core reader that can filter on tax_rate_name; caching is pointless because the matched rows are deleted immediately below and the tool only runs on an explicit click in WooCommerce » Status » Tools.
 			$found_ca_rates = $wpdb->get_results(
 				$wpdb->prepare(
 					"SELECT * FROM {$wpdb->prefix}woocommerce_tax_rates
@@ -123,6 +124,7 @@ if ( ! class_exists( 'WC_Connect_Debug_Tools' ) ) {
 			}
 
 			echo '<div class="updated inline"><p>';
+			/* translators: %1$d: number of deleted rows */
 			printf( esc_html__( 'Successfully deleted %1$d rows from the database.', 'woocommerce-services' ), intval( $deleted_count ) );
 			echo '</p></div>';
 		}
@@ -136,12 +138,14 @@ if ( ! class_exists( 'WC_Connect_Debug_Tools' ) ) {
 			global $wpdb;
 
 			$deleted_count = absint(
+				// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching -- Core has no API for deleting transients by name pattern, and the tool is only registered when wp_using_ext_object_cache() is false (see woocommerce_debug_tools()), so the options table is the authoritative store here. It runs on an explicit click in WooCommerce » Status » Tools.
 				$wpdb->query(
 					"DELETE FROM {$wpdb->options} WHERE option_name LIKE '%tj\_tax\_%';"
 				)
 			);
 
 			echo '<div class="updated inline"><p>';
+			/* translators: %1$d: number of deleted transients */
 			printf( esc_html__( 'Successfully deleted %1$d transients from the database.', 'woocommerce-services' ), intval( $deleted_count ) );
 			echo '</p></div>';
 		}

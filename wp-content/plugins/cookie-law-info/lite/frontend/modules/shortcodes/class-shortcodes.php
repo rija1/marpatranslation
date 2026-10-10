@@ -726,5 +726,23 @@ class Shortcodes {
 		return isset( $this->contents['optoutPopup']['elements']['closeButton'] ) ? $this->contents['optoutPopup']['elements']['closeButton'] : '';
 	}
 
+	/**
+	 * Callback for the shortcode [cky_optout_success_text]
+	 *
+	 * @return string
+	 */
+	public function cky_optout_success_text() {
+		return isset( $this->contents['optoutPopup']['elements']['optoutSuccess']['elements']['text'] ) ? $this->contents['optoutPopup']['elements']['optoutSuccess']['elements']['text'] : '';
+	}
+
+	/**
+	 * Callback for the shortcode [cky_optout_success_subtext]
+	 *
+	 * @return string
+	 */
+	public function cky_optout_success_subtext() {
+		return isset( $this->contents['optoutPopup']['elements']['optoutSuccess']['elements']['subtext'] ) ? $this->contents['optoutPopup']['elements']['optoutSuccess']['elements']['subtext'] : '';
+	}
+
 }
 

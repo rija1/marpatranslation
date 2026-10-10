@@ -19,7 +19,24 @@ class Forms extends Base {
 	 *
 	 * @var array
 	 */
-	public const FORM_GENERATOR_REQUIRED_ADDONS = [ 'surveys-polls', 'signatures', 'coupons', 'calculations' ];
+	public const FORM_GENERATOR_REQUIRED_ADDONS = [
+		'surveys-polls',
+		'signatures',
+		'coupons',
+		'calculations',
+		'quiz',
+		'geolocation',
+	];
+
+	/**
+	 * Value of `$data['source']` handed to Form::add() for a form the generator built.
+	 *
+	 * A key of its own rather than `template`, which the creation filters look up in the
+	 * template catalog and would apply if a template ever took that slug.
+	 *
+	 * @since 2.0.2.1
+	 */
+	public const CREATION_SOURCE = 'ai';
 
 	/**
 	 * The addon fields.
@@ -31,8 +48,10 @@ class Forms extends Base {
 	public const FORM_GENERATOR_ADDON_FIELDS = [
 		'likert_scale'       => 'surveys-polls',
 		'net_promoter_score' => 'surveys-polls',
+		'ranking'            => 'surveys-polls',
 		'signature'          => 'signatures',
 		'payment-coupon'     => 'coupons',
+		'map'                => 'geolocation',
 	];
 
 	/**
@@ -214,12 +233,16 @@ class Forms extends Base {
 	 */
 	private function prepare_form_settings( array $form_data ): array {
 
+		// Prepare the notifications.
 		if ( isset( $form_data['settings']['notifications']['1'] ) ) {
 			$form_data['settings']['notifications']['1']['subject'] = sprintf( /* translators: %s - form name. */
 				esc_html__( 'New Entry: %s', 'wpforms-lite' ),
 				esc_html( $form_data['form_title'] )
 			);
 		}
+
+		// Quiz settings.
+		$form_data = $this->prepare_quiz_settings( $form_data );
 
 		return $form_data['settings'];
 	}
@@ -279,7 +302,13 @@ class Forms extends Base {
 			);
 		}
 
-		if ( ! wpforms_current_user_can( 'edit_form_single', $form_id ) ) {
+		if ( empty( $form_id ) && ! wpforms_current_user_can( 'create_forms' ) ) {
+			wp_send_json_error(
+				[ 'error' => esc_html__( 'Sorry, you are not allowed to create new forms.', 'wpforms-lite' ) ]
+			);
+		}
+
+		if ( ! empty( $form_id ) && ! wpforms_current_user_can( 'edit_form_single', $form_id ) ) {
 			wp_send_json_error(
 				[ 'error' => esc_html__( 'Sorry, you are not allowed to edit this form.', 'wpforms-lite' ) ]
 			);
@@ -331,6 +360,7 @@ class Forms extends Base {
 		// Prepare the new form data.
 		$form_data['fields']   = $this->prepare_fields_data( $form_data );
 		$form_data['settings'] = $this->prepare_form_settings( $form_data );
+		$form_data             = $this->randomize_graded_quiz_choices( $form_data );
 		$form_data['field_id'] = count( $form_data['fields'] ) + 1;
 
 		$meta               = [];
@@ -349,7 +379,8 @@ class Forms extends Base {
 
 		// Add a new form if it is a new form.
 		if ( empty( $form_id ) ) {
-			$form_id = $form_obj->add( $form_data['form_title'] );
+			// Tells a wpforms_create_form listener this form came from the generator.
+			$form_id = $form_obj->add( $form_data['form_title'], [], [ 'source' => self::CREATION_SOURCE ] );
 		}
 
 		// Check if the form was created.
@@ -438,5 +469,204 @@ class Forms extends Base {
 
 		update_user_meta( $user_id, 'wpforms_dismissed', $dismissed );
 		wp_send_json_success();
+	}
+
+	/**
+	 * Prepare the quiz settings.
+	 *
+	 * @since 1.9.9
+	 *
+	 * @param array $form_data Form data.
+	 *
+	 * @return array
+	 */
+	private function prepare_quiz_settings( array $form_data ): array {
+
+		if ( empty( $form_data['settings']['quiz']['enabled'] ) ) {
+			return $form_data;
+		}
+
+		$outcomes = (array) ( $form_data['settings']['quiz']['outcomes'] ?? [] );
+
+		$default_outcome = [
+			'graded_message'      => '',
+			'personality_message' => '',
+			'weighted_message'    => '',
+			'conditionals'        => [],
+		];
+
+		// Decode the outcome messages.
+		foreach ( $outcomes as $key => $outcome ) {
+			$outcome = wp_parse_args( $outcome, $default_outcome );
+
+			$outcome['graded_message']      = htmlspecialchars_decode( $outcome['graded_message'] );
+			$outcome['personality_message'] = htmlspecialchars_decode( $outcome['personality_message'] );
+			$outcome['weighted_message']    = htmlspecialchars_decode( $outcome['weighted_message'] );
+			$outcome['conditionals']        = $this->prepare_field_cl( $outcome );
+
+			$outcomes[ $key ] = $outcome;
+		}
+
+		// Normalize outcome order for graded quizzes so the best grade (index 0) renders at the
+		// visual top. The outcomes panel uses CSS column-reverse, so the LAST entry in storage
+		// is the FIRST visually. We therefore sort DESCENDING by grade index here — worst grade
+		// (highest index) first in storage, best grade (index 0) last. Idempotent on already-
+		// sorted data. Weighted and personality types are left as the LLM emitted.
+		$quiz_type = $form_data['settings']['quiz']['type'] ?? '';
+
+		if ( $quiz_type === 'graded' ) {
+			uasort( $outcomes, [ $this, 'compare_graded_outcomes_by_index' ] );
+		}
+
+		$form_data['settings']['quiz']['outcomes'] = $outcomes;
+
+		return $form_data;
+	}
+
+	/**
+	 * Randomize the correct-answer position among choices of graded-quiz answer fields.
+	 *
+	 * AI-generated graded quizzes tend to place the correct choice first. Shuffle the
+	 * choices of each radio, checkbox, or select field that has exactly one default
+	 * (correct) choice so the correct answer no longer always lands first.
+	 *
+	 * @since 2.0.0
+	 *
+	 * @param array $form_data Form data.
+	 *
+	 * @return array
+	 */
+	private function randomize_graded_quiz_choices( array $form_data ): array {
+
+		// Only graded quizzes need their correct-answer position randomized.
+		if ( ( $form_data['settings']['quiz']['type'] ?? '' ) !== 'graded' ) {
+			return $form_data;
+		}
+
+		/**
+		 * Allow disabling graded-quiz correct-answer randomization.
+		 *
+		 * @since 2.0.0
+		 *
+		 * @param bool  $randomize Whether to randomize the correct-answer position.
+		 * @param array $form_data Form data.
+		 */
+		if ( ! apply_filters( 'wpforms_integrations_ai_admin_ajax_forms_randomize_graded_quiz_choices', true, $form_data ) ) {
+			return $form_data;
+		}
+
+		foreach ( $form_data['fields'] ?? [] as $id => $field ) {
+			$form_data['fields'][ $id ] = $this->maybe_shuffle_field_choices( $field );
+		}
+
+		return $form_data;
+	}
+
+	/**
+	 * Shuffle the choices of a single field if it qualifies for randomization.
+	 *
+	 * A field qualifies when it is a radio, checkbox, or select type, has at least
+	 * two choices, and has exactly one choice marked as the correct answer (default).
+	 *
+	 * @since 2.0.0
+	 *
+	 * @param array $field Field data.
+	 *
+	 * @return array Field data, with choices shuffled and 1-based re-indexed if applicable.
+	 */
+	private function maybe_shuffle_field_choices( array $field ): array {
+
+		// Only choice-based fields can have a correct answer to randomize.
+		if ( ! in_array( $field['type'] ?? '', [ 'radio', 'checkbox', 'select' ], true ) ) {
+			return $field;
+		}
+
+		$choices = $field['choices'] ?? [];
+
+		// Need at least two choices to randomize their order.
+		if ( ! is_array( $choices ) || count( $choices ) < 2 ) {
+			return $field;
+		}
+
+		// Count the choices flagged as the correct answer.
+		$correct_count = 0;
+
+		foreach ( $choices as $choice ) {
+			if ( ! empty( $choice['default'] ) ) {
+				++$correct_count;
+			}
+		}
+
+		// Only randomize when there is exactly one correct answer.
+		if ( $correct_count !== 1 ) {
+			return $field;
+		}
+
+		$choices = array_values( $choices );
+
+		shuffle( $choices );
+
+		// Re-key the shuffled choices starting from 1, matching FormsAPI::fix_choices().
+		$field['choices'] = array_combine( range( 1, count( $choices ) ), $choices );
+
+		return $field;
+	}
+
+	/**
+	 * Compare two graded outcomes by their first quiz_graded conditional rule value.
+	 *
+	 * Used by uasort() to sort graded-quiz outcomes DESCENDING by referenced grade
+	 * index, so the worst grade (highest index) ends up first in storage and the
+	 * best grade (index 0) ends up last. The outcomes panel uses CSS column-reverse,
+	 * which renders the LAST stored entry at the VISUAL TOP — so the user sees Grade A
+	 * on top. Outcomes without a quiz_graded rule sort to the visual bottom (storage top).
+	 *
+	 * @since 1.10.1
+	 *
+	 * @param array $a First outcome.
+	 * @param array $b Second outcome.
+	 *
+	 * @return int Negative if $a should sort first, positive if $b should sort first, zero if equal.
+	 */
+	private function compare_graded_outcomes_by_index( array $a, array $b ): int {
+
+		return $this->get_outcome_graded_index( $b ) <=> $this->get_outcome_graded_index( $a );
+	}
+
+	/**
+	 * Extract the grade index from an outcome's first quiz_graded conditional rule.
+	 *
+	 * Returns PHP_INT_MAX for outcomes without a quiz_graded rule. Under the
+	 * descending sort applied by compare_graded_outcomes_by_index(), PHP_INT_MAX
+	 * floats these outcomes to the top of storage — which renders at the visual
+	 * bottom thanks to CSS column-reverse on the outcomes panel.
+	 *
+	 * @since 1.10.1
+	 *
+	 * @param array $outcome Outcome data with a `conditionals` array of rule groups.
+	 *
+	 * @return int Grade index, or PHP_INT_MAX if no quiz_graded rule found.
+	 */
+	private function get_outcome_graded_index( array $outcome ): int {
+
+		$groups = $outcome['conditionals'] ?? [];
+
+		if ( ! is_array( $groups ) ) {
+			return PHP_INT_MAX;
+		}
+
+		foreach ( $groups as $group ) {
+			if ( ! is_array( $group ) ) {
+				continue;
+			}
+
+			foreach ( $group as $rule ) {
+				if ( ( $rule['field'] ?? '' ) === 'quiz_graded' && isset( $rule['value'] ) && is_numeric( $rule['value'] ) ) {
+					return (int) $rule['value'];
+				}
+			}
+		}
+
+		return PHP_INT_MAX;
 	}
 }

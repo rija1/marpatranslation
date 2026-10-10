@@ -1,4 +1,4 @@
-<?php if (!defined('WPO_VERSION')) die('No direct access.'); ?>
+<?php if (!defined('ABSPATH')) die('No direct access allowed'); ?>
 <div id='smush-metabox-inside-wrapper'>
 	<div class='wpo_restore_single_image' style="<?php echo esc_attr($restore_display); ?>">
 		<div class='restore_possible' style="<?php echo esc_attr($restore_action); ?>">
@@ -6,7 +6,7 @@
 				<label>
 					<span>  <?php esc_html_e('Restore original', 'wp-optimize'); ?></span>
 
-					<span tabindex="0" data-tooltip="<?php echo esc_attr($restore_tooltip);?>"><span class="dashicons dashicons-editor-help"></span> </span>
+					<span tabindex="0" class="wpo-tooltip" data-tooltip="<?php echo esc_attr($restore_tooltip);?>"><span class="dashicons dashicons-editor-help"></span> </span>
 				</label>
 			</div>
 

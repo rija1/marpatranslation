@@ -15,6 +15,9 @@ class TRP_String_Translation_Helper {
 	/** Functions used by regular, gettext and slugs from SEO Pack */
 	public function check_ajax( $type, $action ) {
 		if ( defined( 'DOING_AJAX' ) && DOING_AJAX ) {
+			if ( ! current_user_can( apply_filters( 'trp_translating_capability', 'manage_options' ) ) ) {
+				wp_die( -1, 403 );
+			}
             $handle_suffix = ( $action !== 'delete' ) ? '_' . $type : '';
 			check_ajax_referer( 'string_translation_' . $action . '_strings' . $handle_suffix, 'security' );
 
@@ -43,6 +46,9 @@ class TRP_String_Translation_Helper {
 
 		// translation status
 		$translation_status_filters = $this->string_translation->get_translation_status_filters();
+		if ( $string_type !== 'gettext' ) {
+			unset( $translation_status_filters['translation_status']['gettext_translated_in_language_file'] );
+		}
 		$query_args['status']       = array();
 		foreach ( $translation_status_filters['translation_status'] as $translation_status_key => $value ) {
 			if ( ! empty( $posted_query[ $translation_status_key ] ) && ( $posted_query[ $translation_status_key ] === true || $posted_query[ $translation_status_key ] === 'true' ) ) {
@@ -50,13 +56,13 @@ class TRP_String_Translation_Helper {
 				$query_args['status'][] = $this->trp_query->$constant_func_name();
 			}
 		}
-		if ( count( $query_args['status'] ) === 3 ) {
-			// if all 3 states are true then consider the query as if the no special translation status requirement was requested
+		if ( count( $query_args['status'] ) === count( $translation_status_filters['translation_status'] ) ) {
+			// if all states are true then consider the query as if no special translation status requirement was requested
 			$query_args['status'] = array();
 		}
 
-		// search string
-		$query_args['s'] = ( empty( $posted_query['s'] ) ) ? '' : trim( esc_sql( sanitize_text_field( $posted_query['s'] ) ) );
+		// search string - sanitize but don't escape (escaping happens in wpdb->prepare)
+		$query_args['s'] = ( empty( $posted_query['s'] ) ) ? '' : trim( sanitize_text_field( $posted_query['s'] ) );
 
 		// page
 		$query_args['page'] = ( empty( $posted_query['page'] ) ? 1 : ( ( intval( $posted_query['page'] ) < 1 ) ? 1 : intval( $posted_query['page'] ) ) );
@@ -144,6 +150,43 @@ class TRP_String_Translation_Helper {
 	}
 
 	/**
+	 * Parse search input for exact match detection
+	 *
+	 * Detects if the search term is wrapped in quotes (plain or escaped) for exact matching.
+	 * Supports both "term" and \"term\" formats.
+	 *
+	 * @param string $search_input The raw search input from user
+	 * @return array {
+	 *     Array containing parsed search information
+	 *
+	 *     @type bool   $is_exact_match Whether this is an exact match search (quoted)
+	 *     @type string $search_term    The cleaned search term without quotes
+	 * }
+	 */
+	public function parse_search_input( $search_input ) {
+		$is_exact_match = false;
+		$search_term = $search_input;
+
+		if ( strlen( $search_input ) >= 2 ) {
+			// Check for escaped quotes \"...\"
+			if ( substr( $search_input, 0, 2 ) === '\"' && substr( $search_input, -2 ) === '\"' ) {
+				$is_exact_match = true;
+				$search_term = substr( $search_input, 2, -2 );
+			}
+			// Check for plain quotes "..."
+			elseif ( isset( $search_input[0] ) && $search_input[0] === '"' && $search_input[ strlen( $search_input ) - 1 ] === '"' ) {
+				$is_exact_match = true;
+				$search_term = substr( $search_input, 1, -1 );
+			}
+		}
+
+		return array(
+			'is_exact_match' => $is_exact_match,
+			'search_term'    => $search_term
+		);
+	}
+
+	/**
 	 * Used by regular and gettext strings for returning original ids matching filters
 	 *
 	 * @param $type
@@ -225,7 +268,13 @@ class TRP_String_Translation_Helper {
 
 		// search
 		if ( ! empty( $sanitized_args['s'] ) ) {
-            $search_term = $sanitized_args['s'];
+            // Use helper method to parse search input for exact match detection
+            $search_data = $this->parse_search_input( $sanitized_args['s'] );
+            $is_exact_match = $search_data['is_exact_match'];
+            $search_term = $search_data['search_term'];
+
+            // Properly escape the search term for SQL
+            $search_term_escaped = esc_sql( $search_term );
 
             $search = [
                 'queries' => [],
@@ -243,9 +292,16 @@ class TRP_String_Translation_Helper {
                     $search['queries'][ $language ] .= $this->get_join_meta_table_sql( $original_meta_table );
                 }
 
-                $language_clauses = ["$language.translated LIKE '$search_term%'"];
+                // Use exact match or partial match based on quotes
+                if ( $is_exact_match ) {
+                    $language_clauses = ["$language.translated = '$search_term_escaped'"];
+                } else {
+                    // Use esc_like to escape special LIKE wildcards (%, _, \)
+                    $search_term_like = '%' . $wpdb->esc_like( $search_term_escaped ) . '%';
+                    $language_clauses = ["$language.translated LIKE '$search_term_like'"];
+                }
 
-                if ( !empty( $sanitized_args['status'] ) ) {
+                if ( ! empty( $sanitized_args['status'] ) ) {
                     $status_array = array_map( function( $status ) use ( $language ){
                         return "$language.status = $status";
                     }, $sanitized_args['status'] );
@@ -255,7 +311,7 @@ class TRP_String_Translation_Helper {
                     $language_clauses[] = "($status_clause)";
                 }
 
-                if ( !empty( $sanitized_args['translation-block-type'] ) ) {
+                if ( ! empty( $sanitized_args['translation-block-type'] ) ) {
                     $block_type = $sanitized_args['translation-block-type'];
 
                     $language_clauses[] = "$language.block_type = $block_type";
@@ -264,11 +320,20 @@ class TRP_String_Translation_Helper {
                 $search['clauses'][$language] = array_merge( $where_clauses, $language_clauses );
             }
 
-			$where_clauses[] = "(original_strings.original LIKE '%$search_term%' )";
+            // Use exact match or partial match for originals based on quotes
+            if ( $is_exact_match ) {
+                $where_clauses[] = "(original_strings.original = '$search_term_escaped' )";
+            } else {
+                // Use esc_like to escape special LIKE wildcards (%, _, \)
+                $search_term_like = '%' . $wpdb->esc_like( $search_term_escaped ) . '%';
+                $where_clauses[] = "(original_strings.original LIKE '$search_term_like' )";
+            }
 		}
 
 		if ( ! empty( $sanitized_args['domain'] ) ) {
-			$where_clauses[] = '(original_strings.domain LIKE \'%' . $sanitized_args['domain'] . '%\' )';
+			$domain_escaped = esc_sql( $sanitized_args['domain'] );
+			$domain_like = '%' . $wpdb->esc_like( $domain_escaped ) . '%';
+			$where_clauses[] = "(original_strings.domain LIKE '$domain_like' )";
 		}
 
 		$query = $this->add_where_clauses_to_query( $query, $where_clauses );
@@ -287,7 +352,9 @@ class TRP_String_Translation_Helper {
 		// order by
 		if ( ! empty( $sanitized_args['orderby'] ) ) {
 			if ( $sanitized_args['orderby'] === 'original' ) {
-                $order_clause = 'ORDER BY original_strings.' . $sanitized_args['orderby'] . ' ' . $sanitized_args['order'] . ' ';
+                // When using UNION (search), can't use table-qualified column names in ORDER BY
+                $column_name = isset( $search ) ? $sanitized_args['orderby'] : 'original_strings.' . $sanitized_args['orderby'];
+                $order_clause = 'ORDER BY ' . $column_name . ' ' . $sanitized_args['order'] . ' ';
 
 				$query .= $order_clause;
 			}

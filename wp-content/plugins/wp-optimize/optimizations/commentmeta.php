@@ -1,10 +1,12 @@
 <?php
 
-if (!defined('WPO_VERSION')) die('No direct access allowed');
+if (!defined('ABSPATH')) die('No direct access allowed');
 
 class WP_Optimization_commentmeta extends WP_Optimization {
 
 	public $ui_sort_order = 9000;
+
+	public $available_for_auto = true;
 
 	public $available_for_saving = true;
 
@@ -220,15 +222,6 @@ class WP_Optimization_commentmeta extends WP_Optimization {
 	 * @return string
 	 */
 	public function settings_label() {
-		return __('Clean comment metadata', 'wp-optimize');
-	}
-
-	/**
-	 * Return description
-	 *
-	 * @return string
-	 */
-	public function get_auto_option_description() {
 		return __('Clean comment metadata', 'wp-optimize');
 	}
 }

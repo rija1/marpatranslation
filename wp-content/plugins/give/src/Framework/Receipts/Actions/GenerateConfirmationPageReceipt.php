@@ -86,6 +86,10 @@ class GenerateConfirmationPageReceipt
                 $value = null;
             }
 
+            if (is_null($value)) {
+                continue;
+            }
+
             $value = apply_filters(
                 sprintf("givewp_donation_confirmation_page_field_value_for_%s", $field->getName()),
                 $value,
@@ -330,9 +334,11 @@ class GenerateConfirmationPageReceipt
     }
 
     /**
+     * @since 4.17.0 Declare the nullable parameter explicitly.
+     * @since 4.16.8 Apply legacy tags before donor-supplied V3 tag values.
      * @since 3.0.0
      */
-    protected function getHeading(DonationReceipt $receipt, DonationForm $donationForm = null): string
+    protected function getHeading(DonationReceipt $receipt, ?DonationForm $donationForm = null): string
     {
         if (!$donationForm) {
             $content = __("Hey {first_name}, thanks for your donation!", 'give');
@@ -340,16 +346,18 @@ class GenerateConfirmationPageReceipt
             $content = $donationForm->settings->receiptHeading;
         }
 
-        return $this->transformV2FormTags(
-            (new DonationTemplateTags($receipt->donation, $content))->getContent(),
-            $receipt->donation
-        );
+        return (new DonationTemplateTags(
+            $receipt->donation,
+            $this->transformV2FormTags($content, $receipt->donation)
+        ))->getContent();
     }
 
     /**
+     * @since 4.17.0 Declare the nullable parameter explicitly.
+     * @since 4.16.8 Apply legacy tags before donor-supplied V3 tag values.
      * @since 3.0.0
      */
-    protected function getDescription(DonationReceipt $receipt, DonationForm $donationForm = null): string
+    protected function getDescription(DonationReceipt $receipt, ?DonationForm $donationForm = null): string
     {
         if (!$donationForm) {
             $content = __(
@@ -360,10 +368,10 @@ class GenerateConfirmationPageReceipt
             $content = $donationForm->settings->receiptDescription;
         }
 
-        return $this->transformV2FormTags(
-            (new DonationTemplateTags($receipt->donation, $content))->getContent(),
-            $receipt->donation
-        );
+        return (new DonationTemplateTags(
+            $receipt->donation,
+            $this->transformV2FormTags($content, $receipt->donation)
+        ))->getContent();
     }
 
     /**

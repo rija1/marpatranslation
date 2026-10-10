@@ -95,27 +95,54 @@ class StylesHelper {
     $style = self::applyHeadingMargin($style, $selector);
     $style = self::applyLineHeight($style, $selector);
     foreach ($style as $attribute => $individualStyle) {
+      $property = self::translateCSSAttribute($attribute);
+      if (!self::isValidCssPropertyName($property) || !self::isValidCssValue($individualStyle)) {
+        continue;
+      }
       $individualStyle = self::applyFontFamily($attribute, $individualStyle);
-      $css .= self::translateCSSAttribute($attribute) . ':' . $individualStyle . ';' . PHP_EOL;
+      $css .= $property . ':' . $individualStyle . ';' . PHP_EOL;
     }
     $css .= '}' . PHP_EOL;
     return $css;
   }
 
-  public static function applyTextAlignment($block) {
+  /**
+   * Rejects characters that can break out of the declaration or the <style> element,
+   * and "@", because an at-rule without a block stalls the CSS inliner.
+   * @param mixed $value
+   */
+  public static function isValidCssValue($value): bool {
+    return is_scalar($value) && strpbrk((string)$value, '<>{};@') === false;
+  }
+
+  /**
+   * @param mixed $property
+   */
+  private static function isValidCssPropertyName($property): bool {
+    return is_string($property)
+      && $property !== ''
+      && strspn($property, 'abcdefghijklmnopqrstuvwxyz-') === strlen($property);
+  }
+
+  public static function applyTextAlignment($block, string $defaultAlignment = 'left', string $styleType = 'block') {
     if (is_array($block)) {
-      $textAlignment = isset($block['styles']['block']['textAlign']) ?
-        strtolower($block['styles']['block']['textAlign']) :
-        '';
-      if (preg_match('/center|right|justify/i', (string)$textAlignment)) {
+      if (!isset($block['styles']) || !is_array($block['styles'])) {
+        $block['styles'] = [];
+      }
+      if (!isset($block['styles'][$styleType]) || !is_array($block['styles'][$styleType])) {
+        $block['styles'][$styleType] = [];
+      }
+      $rawTextAlign = $block['styles'][$styleType]['textAlign'] ?? null;
+      $textAlignment = is_string($rawTextAlign) ? trim(strtolower($rawTextAlign)) : '';
+      if (in_array($textAlignment, ['center', 'right', 'justify'], true)) {
         return $block;
       }
-      $block['styles']['block']['textAlign'] = 'left';
+      $block['styles'][$styleType]['textAlign'] = $defaultAlignment;
       return $block;
     }
 
     // Check if text-align is already set to center, right, or justify
-    if (preg_match('/text-align\s*:\s*(center|justify|right)/i', (string)$block)) {
+    if (preg_match('/text-align\s*:\s*(center|justify|right)\s*(;|$)/i', (string)$block)) {
       return $block;
     }
 
@@ -125,7 +152,7 @@ class StylesHelper {
       $block .= ';';
     }
 
-    return $block . 'text-align:left;';
+    return $block . 'text-align:' . $defaultAlignment . ';';
   }
 
   /**

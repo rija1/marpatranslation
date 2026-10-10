@@ -258,7 +258,6 @@
 }
 .gdpr-tab-content .gdpr-button-wrapper .btn-gdpr {
 	background-color: #0070ad;
-	border-color: #0070ad;
 	color: #ffffff;
 	font-size: 14px;
 	display: inline-block;
@@ -1020,7 +1019,6 @@ color:inherit;
 .cli-tab-container h4,.cli-tab-container h1 {
 	font-family: inherit;
 	font-size: 16px;
-	margin-bottom: 15px;
 	margin:10px 0;
 }
 #cliSettingsPopup .cli-tab-section-container {

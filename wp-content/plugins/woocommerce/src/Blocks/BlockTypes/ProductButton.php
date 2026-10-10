@@ -14,7 +14,6 @@ use Automattic\WooCommerce\Enums\ProductType;
  */
 class ProductButton extends AbstractBlock {
 	use EnableBlockJsonAssetsTrait;
-	use BlocksSharedState;
 
 	/**
 	 * Block name.
@@ -47,7 +46,6 @@ class ProductButton extends AbstractBlock {
 	 */
 	protected function enqueue_assets( array $attributes, $content, $block ) {
 		parent::enqueue_assets( $attributes, $content, $block );
-		wp_enqueue_script( 'wp-a11y' );
 
 		if ( wp_is_block_theme() ) {
 			add_action(
@@ -100,7 +98,7 @@ class ProductButton extends AbstractBlock {
 			return '';
 		}
 
-		$this->register_cart_interactivity( 'I acknowledge that using private APIs means my theme or plugin will inevitably break in the next version of WooCommerce' );
+		BlocksSharedState::load_cart_state( 'I acknowledge that using private APIs means my theme or plugin will inevitably break in the next version of WooCommerce' );
 
 		$number_of_items_in_cart  = $this->get_cart_item_quantities_by_product_id( $product->get_id() );
 		$is_product_purchasable   = $this->is_product_purchasable( $product );
@@ -134,10 +132,12 @@ class ProductButton extends AbstractBlock {
 			 * Filters the change the quantity to add to cart.
 			 *
 			 * @since 8.5.0
-			 * @param number $default_quantity The default quantity.
-			 * @param number $product_id The product id.
+			 * @since 11.0.0 Added the `$variation_id` parameter.
+			 * @param int|float $default_quantity The default quantity.
+			 * @param int       $product_id The product id.
+			 * @param int       $variation_id The variation ID. Always 0 in this context.
 			 */
-			$default_quantity = apply_filters( 'woocommerce_add_to_cart_quantity', $default_quantity, $product->get_id() );
+			$default_quantity = apply_filters( 'woocommerce_add_to_cart_quantity', $default_quantity, $product->get_id(), 0 );
 		}
 
 		$add_to_cart_text = null !== $product->add_to_cart_text() ? $product->add_to_cart_text() : __( 'Add to cart', 'woocommerce' );
@@ -148,8 +148,6 @@ class ProductButton extends AbstractBlock {
 
 		$context = array(
 			'quantityToAdd'    => $default_quantity,
-			'productId'        => $product->get_id(),
-			'productType'      => $product->get_type(),
 			'addToCartText'    => $add_to_cart_text,
 			'tempQuantity'     => $number_of_items_in_cart,
 			'animationStatus'  => 'IDLE',
@@ -167,10 +165,20 @@ class ProductButton extends AbstractBlock {
 		);
 
 		if ( 'a' === $html_element ) {
-			$attributes = array(
-				'href' => esc_url( $product->add_to_cart_url() ),
-				'rel'  => 'nofollow',
+			$add_to_cart_url = $product->add_to_cart_url();
+			$attributes      = array(
+				'href' => esc_url( $add_to_cart_url ),
+				'rel'  => '',
 			);
+
+			if ( $product->get_permalink() !== $add_to_cart_url ) {
+				$attributes['rel'] = 'nofollow';
+			}
+
+			if ( $product->is_type( ProductType::EXTERNAL ) ) {
+				$attributes['target'] = '_blank';
+				$attributes['rel']    = 'nofollow noopener noreferrer';
+			}
 		}
 
 		wp_interactivity_config(
@@ -203,6 +211,9 @@ class ProductButton extends AbstractBlock {
 		 * Allow filtering of the add to cart button arguments.
 		 *
 		 * @since 9.7.0
+		 *
+		 * @param array       $args    Button arguments, with a `class` string and an `attributes` array.
+		 * @param \WC_Product $product Product the button is rendered for.
 		 */
 		$args = apply_filters(
 			'woocommerce_loop_add_to_cart_args',
@@ -226,13 +237,14 @@ class ProductButton extends AbstractBlock {
 
 		$div_directives = '
 			data-wp-interactive="woocommerce/product-button"
-			data-wp-init="actions.refreshCartItems"
 		';
 
 		$context_directives = wp_interactivity_data_wp_context( $context );
 
 		$button_directives = $is_descendant_of_add_to_cart_form ?
-			'data-wp-class--disabled="woocommerce/add-to-cart-with-options::!state.isFormValid" data-wp-on--click="actions.handlePressedState"' :
+			'data-wp-class--disabled="woocommerce/add-to-cart-with-options::!state.isFormValid"
+			data-wp-bind--hidden="woocommerce/add-to-cart-with-options::!state.allowsAddingToCart"
+			data-wp-on--click="actions.handlePressedState"' :
 			'data-wp-on--click="actions.addCartItem"';
 		$anchor_directive  = $is_descendant_of_add_to_cart_form ? '' : 'data-wp-on--click="woocommerce/product-collection::actions.viewProduct"';
 
@@ -287,7 +299,7 @@ class ProductButton extends AbstractBlock {
 				'{context_directives}'     => $context_directives,
 				'{button_styles}'          => esc_attr( $styles_and_classes['styles'] ),
 				'{attributes}'             => isset( $args['attributes'] ) ? wc_implode_html_attributes( $args['attributes'] ) : '',
-				'{add_to_cart_text}'       => $is_ajax_button ? '' : $add_to_cart_text,
+				'{add_to_cart_text}'       => $is_ajax_button ? '' : esc_html( $add_to_cart_text ),
 				'{div_directives}'         => $is_ajax_button ? $div_directives : '',
 				'{button_directives}'      => $is_ajax_button ? $button_directives : $anchor_directive,
 				'{span_button_directives}' => $is_ajax_button ? $span_button_directives : '',
@@ -340,6 +352,9 @@ class ProductButton extends AbstractBlock {
 	private function is_product_purchasable( $product ) {
 		if ( $product->is_type( ProductType::GROUPED ) ) {
 			$grouped_product_ids = $product->get_children();
+			if ( ! empty( $grouped_product_ids ) ) {
+				_prime_post_caches( $grouped_product_ids );
+			}
 			foreach ( $grouped_product_ids as $child ) {
 				$child_product = wc_get_product( $child );
 				if ( ! $child_product instanceof \WC_Product ) {

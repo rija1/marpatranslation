@@ -14,9 +14,24 @@ use WPForms\Helpers\Chain;
  *
  * @return string
  */
-function wpforms_get_min_suffix() {
+function wpforms_get_min_suffix(): string {
 
-	return wpforms_debug() ? '' : '.min';
+	$script_debug = false;
+
+	if ( ( defined( 'WPFORMS_SCRIPT_DEBUG' ) && WPFORMS_SCRIPT_DEBUG ) && is_super_admin() ) {
+		$script_debug = true;
+	}
+
+	/**
+	 * Filters wpforms script debug status.
+	 *
+	 * @since 1.9.9
+	 *
+	 * @param bool $script_debug WPForms script debug status.
+	 */
+	$script_debug = (bool) apply_filters( 'wpforms_script_debug', $script_debug );
+
+	return $script_debug ? '' : '.min';
 }
 
 /**
@@ -73,8 +88,10 @@ function wpforms_array_insert( $array, $pairs, $key, $position = 'after' ) {
 
 	$key_pos = array_search( $key, array_keys( $array ), true );
 
-	if ( $position === 'after' ) {
-		$key_pos ++;
+	// Only advance the position when the key was actually found; array_search() returns
+	// boolean false when it is not, and incrementing that warns on PHP 8.3+ (#17538).
+	if ( $key_pos !== false && $position === 'after' ) {
+		++$key_pos;
 	}
 
 	if ( $key_pos !== false ) {
@@ -236,12 +253,7 @@ function wpforms_utm_link( $link, $medium, $content = '', $term = '' ) {
  */
 function wpforms_wp_org_review_link(): string {
 
-	$link = 'https://wordpress.org/support/plugin/wpforms-lite/reviews/#new-post';
-
-	$link = add_query_arg(
-		[ 'filter' => 5 ],
-		$link
-	);
+	$link = 'https://wpforms.com/wpforms-wordpress-rating/';
 
 	return esc_url( $link );
 }

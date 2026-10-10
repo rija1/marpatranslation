@@ -16,6 +16,7 @@ class TRP_Languages{
 	protected $wp_languages_backup = array();
 	protected $settings;
 	protected $is_admin_request;
+	protected $editor_interface_locale;
 
     /**
      * Returns array of all possible languages.
@@ -40,27 +41,13 @@ class TRP_Languages{
      * @return mixed
      */
     public function change_locale( $locale ){
-
-        if ( $this->is_string_translation_request_for_different_language() ){
-            $trp_ajax_language = (isset($_POST['trp_ajax_language']) ) ? sanitize_text_field( $_POST['trp_ajax_language'] ) : '';
-            if ( !$this->settings ){
-                $trp = TRP_Translate_Press::get_trp_instance();
-                $trp_settings = $trp->get_component( 'settings' );
-                $this->settings = $trp_settings->get_settings();
-            }
-            if ( $trp_ajax_language && in_array( $trp_ajax_language, $this->settings['translation-languages'] ) ){
-                return $trp_ajax_language;
-            }
-        }
-
-        if ( $this->is_admin_request === null ){
-            $trp = TRP_Translate_Press::get_trp_instance();
-            $trp_is_admin_request = $trp->get_component( 'url_converter' );
-            $this->is_admin_request= $trp_is_admin_request->is_admin_request();
-        }
-
-        if ( $this->is_admin_request ){
+        if ( $this->is_admin_request() ){
             return $locale;
+        }
+
+        $editor_interface_locale = $this->get_translation_editor_interface_locale();
+        if ( $editor_interface_locale !== '' ) {
+            return $editor_interface_locale;
         }
 
         global $TRP_LANGUAGE;
@@ -70,15 +57,92 @@ class TRP_Languages{
         return $locale;
     }
 
-	public function is_string_translation_request_for_different_language(){
-		if ( defined( 'DOING_AJAX' ) && DOING_AJAX ) {
-			$action = 'trp_string_translation_get_missing_gettext_strings';
-			if ( isset( $_POST['action'] ) && $_POST['action'] === $action ) {
-				return true;
-			}
-		}
-		return false;
-	}
+    protected function is_admin_request() {
+        if ( $this->is_admin_request === null ){
+            $trp = TRP_Translate_Press::get_trp_instance();
+            $trp_is_admin_request = $trp->get_component( 'url_converter' );
+            $this->is_admin_request = $trp_is_admin_request->is_admin_request();
+        }
+
+        return $this->is_admin_request;
+    }
+
+    /**
+     * Locale the editor UI was displayed in before a language switch (trp-editor-locale, set by editor.vue).
+     *
+     * @return string
+     */
+    protected function get_translation_editor_interface_locale() {
+        if ( $this->editor_interface_locale !== null ) {
+            return $this->editor_interface_locale;
+        }
+
+        $this->editor_interface_locale = '';
+
+        if ( isset( $_REQUEST['trp-edit-translation'] ) && $_REQUEST['trp-edit-translation'] === 'true'
+             && ! empty( $_REQUEST['trp-editor-locale'] ) ) {
+            $requested    = sanitize_text_field( wp_unslash( $_REQUEST['trp-editor-locale'] ) );
+            $trp_settings = get_option( 'trp_settings', array() );
+            $allowed      = isset( $trp_settings['translation-languages'] ) ? $trp_settings['translation-languages'] : array();
+            if ( in_array( $requested, $allowed, true ) ) {
+                $this->editor_interface_locale = $requested;
+            }
+        }
+
+        return $this->editor_interface_locale;
+    }
+
+    /**
+     * Align WordPress' determine_locale() (which .mo files load) with the TP language, so
+     * frontend AJAX/REST does not load the user's profile-locale catalog instead of the referer one.
+     *
+     * @param string $locale Locale determined by WordPress.
+     * @return string
+     */
+    public function change_determine_locale( $locale ) {
+        // Resolving the TP language below can ask for the locale again; avoid recursion.
+        static $in_progress = false;
+        if ( $in_progress ) {
+            return $locale;
+        }
+
+        // wp-login.php picks its language via wp_lang
+        if ( isset( $GLOBALS['pagenow'] ) && 'wp-login.php' === $GLOBALS['pagenow'] ) {
+            return $locale;
+        }
+
+        // Real backend requests keep the user/site locale so wp-admin stays localized.
+        if ( $this->is_admin_request() ){
+            return $locale;
+        }
+
+        // inside switch_to_locale() WP_Locale_Switcher already set the locale on this filter
+        global $wp_locale_switcher;
+        if ( $wp_locale_switcher instanceof WP_Locale_Switcher && $wp_locale_switcher->is_switched() ) {
+            return $locale;
+        }
+
+        $editor_interface_locale = $this->get_translation_editor_interface_locale();
+        if ( $editor_interface_locale !== '' ) {
+            return $editor_interface_locale;
+        }
+
+        global $TRP_LANGUAGE;
+
+        // determine_locale() runs before 'init' (load_default_textdomain), so resolve the
+        // referer language now via is_ajax_on_frontend(), which does not depend on 'init'.
+        if ( empty( $TRP_LANGUAGE ) && ( ( defined( 'DOING_AJAX' ) && DOING_AJAX ) || ( defined( 'WC_DOING_AJAX' ) && WC_DOING_AJAX ) ) ) {
+            $in_progress = true;
+            TRP_Gettext_Manager::is_ajax_on_frontend();
+            $in_progress = false;
+        }
+
+        if ( ! empty( $TRP_LANGUAGE ) ) {
+            return $TRP_LANGUAGE;
+        }
+
+        return $locale;
+    }
 
     /**
      * Returns all languages information provided by WP.
@@ -243,6 +307,24 @@ class TRP_Languages{
 	 */
 	public function reorder_languages( $languages_array, $english_or_native_name ){
 		$english_array = array();
+
+        // Remove English (United States) language before sorting
+        $keyToMoveFirst = 'en_US';
+        if ( isset( $languages_array[ $keyToMoveFirst ] ) ) {
+            $english_united_states = $languages_array[ $keyToMoveFirst ];
+            unset( $languages_array[ $keyToMoveFirst ] );
+        }
+
+        // Remove English (United Kingdom) language before sorting
+        $keyToMoveSecond = 'en_GB';
+        if ( isset( $languages_array[ $keyToMoveSecond ] ) ) {
+            $english_united_kingdom = $languages_array[ $keyToMoveSecond ];
+            unset( $languages_array[ $keyToMoveSecond ] );
+        }
+
+        // Sort languages by name
+        asort($languages_array);
+
 		foreach( $languages_array as $key => $value ){
 			if ( $this->string_trim_after_character( $key, '_' ) == 'en' ){
 				$english_array[$key] = $value;
@@ -250,7 +332,19 @@ class TRP_Languages{
 			}
 		}
 
-		return $english_array + $languages_array;
+        // Add English languages back
+        $languages_array = $english_array + $languages_array;
+
+        // Move English (United Kingdom) language to the second position of the array
+        if ( isset( $english_united_kingdom ) ) {
+            $languages_array = array( $keyToMoveSecond => $english_united_kingdom ) + $languages_array;
+        }
+
+        // Move English (United States) language to the first position of the array
+        if ( isset( $english_united_states ) ) {
+            $languages_array = array( $keyToMoveFirst => $english_united_states ) + $languages_array;
+        }
+		return $languages_array;
 	}
 
     /**
@@ -265,4 +359,70 @@ class TRP_Languages{
 		$decoded = json_decode( $string, true );
 		return $decoded['translations'];
 	}
+
+    /**
+     * Merge extra languages with existing WP languages but don't overwrite WP languages
+     *
+     * @param $languages
+     * @return mixed
+     */
+    public function add_extra_languages( $languages ) {
+        $extra_languages = $this->get_extra_languages();
+        foreach ( $extra_languages as $key => $extra_language ) {
+
+            // check just in case WP adds a language from the extra languages array
+            if ( isset( $languages[ $key ] ) ) {
+                continue;
+            } else {
+                $languages[ $key ] = $extra_language;
+            }
+        }
+
+        return $languages;
+    }
+
+    /**
+     * Languages supported by DeepL but not found in WP
+     *
+     * @return array
+     */
+    public function get_extra_languages() {
+        return array(
+            'ace' => array( 'language' => 'ace', 'english_name' => 'Acehnese', 'native_name' => 'Acehnese', 'iso' => array( 'ace' ) ),
+            'ay'  => array( 'language' => 'ay', 'english_name' => 'Aymara', 'native_name' => 'Aymara', 'iso' => array( 'ay' ) ),
+            'ba'  => array( 'language' => 'ba', 'english_name' => 'Bashkir', 'native_name' => 'Bashkir', 'iso' => array( 'ba' ) ),
+            'bho' => array( 'language' => 'bho', 'english_name' => 'Bhojpuri', 'native_name' => 'Bhojpuri', 'iso' => array( 'bho' ) ),
+            'br'  => array( 'language' => 'br', 'english_name' => 'Breton', 'native_name' => 'Breton', 'iso' => array( 'br' ) ),
+            'ga'  => array( 'language' => 'ga', 'english_name' => 'Irish', 'native_name' => 'Irish', 'iso' => array( 'ga' ) ),
+            'gn'  => array( 'language' => 'gn', 'english_name' => 'Guarani', 'native_name' => 'Guarani', 'iso' => array( 'gn' ) ),
+            'gom' => array( 'language' => 'gom', 'english_name' => 'Konkani', 'native_name' => 'Konkani', 'iso' => array( 'gom' ) ),
+            'ha'  => array( 'language' => 'ha', 'english_name' => 'Hausa', 'native_name' => 'Hausa', 'iso' => array( 'ha' ) ),
+            'ht'  => array( 'language' => 'ht', 'english_name' => 'Haitian Creole', 'native_name' => 'Haitian Creole', 'iso' => array( 'ht' ) ),
+            'ig'  => array( 'language' => 'ig', 'english_name' => 'Igbo', 'native_name' => 'Igbo', 'iso' => array( 'ig' ) ),
+            'kmr' => array( 'language' => 'kmr', 'english_name' => 'Kurdish (Kurmanji)', 'native_name' => 'Kurdish (Kurmanji)', 'iso' => array( 'kmr' ) ),
+            'la'  => array( 'language' => 'la', 'english_name' => 'Latin', 'native_name' => 'Latin', 'iso' => array( 'la' ) ),
+            'lb'  => array( 'language' => 'lb', 'english_name' => 'Luxembourgish', 'native_name' => 'Luxembourgish', 'iso' => array( 'lb' ) ),
+            'lmo' => array( 'language' => 'lmo', 'english_name' => 'Lombard', 'native_name' => 'Lombard', 'iso' => array( 'lmo' ) ),
+            'ln'  => array( 'language' => 'ln', 'english_name' => 'Lingala', 'native_name' => 'Lingala', 'iso' => array( 'ln' ) ),
+            'mai' => array( 'language' => 'mai', 'english_name' => 'Maithili', 'native_name' => 'Maithili', 'iso' => array( 'mai' ) ),
+            'mg'  => array( 'language' => 'mg', 'english_name' => 'Malagasy', 'native_name' => 'Malagasy', 'iso' => array( 'mg' ) ),
+            'mi'  => array( 'language' => 'mi', 'english_name' => 'Maori', 'native_name' => 'Maori', 'iso' => array( 'mi' ) ),
+            'mt'  => array( 'language' => 'mt', 'english_name' => 'Maltese', 'native_name' => 'Maltese', 'iso' => array( 'mt' ) ),
+            'pag' => array( 'language' => 'pag', 'english_name' => 'Pangasinan', 'native_name' => 'Pangasinan', 'iso' => array( 'pag' ) ),
+            'pam' => array( 'language' => 'pam', 'english_name' => 'Kapampangan', 'native_name' => 'Kapampangan', 'iso' => array( 'pam' ) ),
+            'prs' => array( 'language' => 'prs', 'english_name' => 'Dari', 'native_name' => 'Dari', 'iso' => array( 'prs' ) ),
+            'qu'  => array( 'language' => 'qu', 'english_name' => 'Quechua', 'native_name' => 'Quechua', 'iso' => array( 'qu' ) ),
+            'sa'  => array( 'language' => 'sa', 'english_name' => 'Sanskrit', 'native_name' => 'Sanskrit', 'iso' => array( 'sa' ) ),
+            'scn' => array( 'language' => 'scn', 'english_name' => 'Sicilian', 'native_name' => 'Sicilian', 'iso' => array( 'scn' ) ),
+            'su'  => array( 'language' => 'su', 'english_name' => 'Sundanese', 'native_name' => 'Sundanese', 'iso' => array( 'su' ) ),
+            'tg'  => array( 'language' => 'tg', 'english_name' => 'Tajik', 'native_name' => 'Tajik', 'iso' => array( 'tg' ) ),
+            'tk'  => array( 'language' => 'tk', 'english_name' => 'Turkmen', 'native_name' => 'Turkmen', 'iso' => array( 'tk' ) ),
+            'tn'  => array( 'language' => 'tn', 'english_name' => 'Tswana', 'native_name' => 'Tswana', 'iso' => array( 'tn' ) ),
+            'ts'  => array( 'language' => 'ts', 'english_name' => 'Tsonga', 'native_name' => 'Tsonga', 'iso' => array( 'ts' ) ),
+            'wo'  => array( 'language' => 'wo', 'english_name' => 'Wolof', 'native_name' => 'Wolof', 'iso' => array( 'wo' ) ),
+            'xh'  => array( 'language' => 'xh', 'english_name' => 'Xhosa', 'native_name' => 'Xhosa', 'iso' => array( 'xh' ) ),
+            'yue' => array( 'language' => 'yue', 'english_name' => 'Cantonese', 'native_name' => 'Cantonese', 'iso' => array( 'yue' ) )
+        );
+
+    }
 }

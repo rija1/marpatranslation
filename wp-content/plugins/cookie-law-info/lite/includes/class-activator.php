@@ -1,4 +1,5 @@
 <?php
+
 /**
  * Fired during plugin activation
  *
@@ -13,6 +14,10 @@ namespace CookieYes\Lite\Includes;
 
 use CookieYes\Lite\Admin\Modules\Banners\Includes\Banner;
 use CookieYes\Lite\Admin\Modules\Banners\Includes\Controller;
+
+if ( ! defined( 'ABSPATH' ) ) {
+	exit;
+}
 
 /**
  * Fired during plugin activation.
@@ -43,7 +48,22 @@ class Activator {
 		),
 		'3.2.1' => array(
 			'update_db_321',
-		)
+		),
+		'3.3.7' => array(
+			'update_db_337',
+		),
+		'3.4.0' => array(
+			'update_db_340',
+		),
+		'3.4.1' => array(
+			'update_db_341',
+		),
+		'3.5.0' => array(
+			'update_db_350',
+		),
+		'3.5.2' => array(
+			'update_db_352',
+		),
 	);
 	/**
 	 * Return the current instance of the class
@@ -65,6 +85,24 @@ class Activator {
 	 */
 	public static function init() {
 		add_action( 'init', array( __CLASS__, 'check_version' ), 5 );
+		add_action( 'update_option_siteurl', array( __CLASS__, 'maybe_clear_template_on_scheme_change' ), 10, 2 );
+	}
+
+	/**
+	 * Clear the cached banner template when the site URL scheme changes
+	 * (e.g. HTTP → HTTPS migration) so the next frontend request regenerates
+	 * it with the corrected asset URLs.
+	 *
+	 * @since 3.5.2
+	 * @param string $old_value Previous siteurl value.
+	 * @param string $new_value New siteurl value.
+	 * @return void
+	 */
+	public static function maybe_clear_template_on_scheme_change( $old_value, $new_value ) {
+		if ( wp_parse_url( $old_value, PHP_URL_SCHEME ) !== wp_parse_url( $new_value, PHP_URL_SCHEME ) ) {
+			delete_option( 'cky_banner_template' );
+			Cache::delete( 'banner_template' );
+		}
 	}
 	/**
 	 * Check the plugin version and run the updater is required.
@@ -85,6 +123,45 @@ class Activator {
 		self::check_for_upgrade();
 		if ( true === cky_first_time_install() ) {
 			add_option( 'cky_first_time_activated_plugin', 'true' );
+			/**
+			 * Record how this activation was performed, on a genuine first-time install
+			 * only.
+			 *
+			 * The outer guard is not sufficient. cky_first_time_install() also returns
+			 * true whenever cky_first_time_activated_plugin merely exists, and that
+			 * option is deleted only on the first wp-admin page load - so a site
+			 * provisioned over WP-CLI that never opens wp-admin keeps it indefinitely.
+			 * check_version() calls install() on `init`, which fires on front-end
+			 * requests too, so on such a site an upgrade to 3.5.6 would record
+			 * 'wp-admin' for a site that has only ever been driven from the command
+			 * line - the wrong value, and one the docs promise is absent.
+			 *
+			 * check_for_upgrade() above sets this transient only when cky_settings is
+			 * missing, which is true on a fresh install and false on every upgrade.
+			 * add_option() then keeps the first value if this ever runs twice.
+			 */
+			if ( (bool) get_site_transient( '_cky_first_time_install' ) ) {
+				/**
+				 * Three-way, not two. install() can first run on a front-end request:
+				 * tooling that activates by writing active_plugins directly never fires
+				 * register_activation_hook, and the same applies to REST, XML-RPC and
+				 * some hosting auto-installers. Calling those 'wp-admin' would report a
+				 * context that did not happen, so anything that is neither WP-CLI nor an
+				 * admin request is recorded as 'other' rather than guessed at.
+				 *
+				 * is_admin() is true for admin-ajax.php as well, so an activation whose
+				 * first run lands in an AJAX request still records 'wp-admin'. That is a
+				 * known imprecision and is left as is - it is an admin-side request.
+				 */
+				if ( defined( 'WP_CLI' ) && WP_CLI ) {
+					$context = 'wp-cli';
+				} elseif ( is_admin() ) {
+					$context = 'wp-admin';
+				} else {
+					$context = 'other';
+				}
+				add_option( 'cky_activation_context', $context, '', 'no' );
+			}
 		}
 		self::maybe_update_db();
 		update_option( 'wt_cli_version', CLI_VERSION );
@@ -193,6 +270,245 @@ class Activator {
 			$banner->set_contents( $contents );
 			$banner->set_settings( $settings );
 			$banner->save();
+		}
+	}
+
+	/**
+	 * Fix MySQL schema compatibility for TEXT/LONGTEXT columns.
+	 * Remove DEFAULT values from TEXT/LONGTEXT columns to prevent MySQL errors.
+	 *
+	 * @since 3.3.7
+	 * @return void
+	 */
+	public static function update_db_337() {
+		// Reset table version options to force schema update with corrected definitions
+		delete_option( 'cky_banners_table_version' );
+		delete_option( 'cky_cookie_table_version' );
+		delete_option( 'cky_cookie_category_table_version' );
+
+		// Reinstall tables with the corrected schema (without DEFAULT on TEXT/LONGTEXT columns)
+		$controllers = array(
+			'CookieYes\Lite\Admin\Modules\Banners\Includes\Controller',
+			'CookieYes\Lite\Admin\Modules\Cookies\Includes\Cookie_Controller',
+			'CookieYes\Lite\Admin\Modules\Cookies\Includes\Category_Controller',
+		);
+
+		foreach ( $controllers as $controller_class ) {
+			if ( class_exists( $controller_class ) ) {
+				$controller = $controller_class::get_instance();
+				$controller->install_tables();
+			}
+		}
+	}
+
+	/**
+	 * Fix the accept-button state on CCPA vs non-CCPA banners for users who
+	 * migrated from the legacy UI (which left every banner with accept enabled).
+	 *
+	 * @since 3.4.0
+	 * @return void
+	 */
+	public static function update_db_340() {
+		$migration_options = get_option( 'cky_migration_options', array() );
+		$migration_status  = isset( $migration_options['status'] ) ? $migration_options['status'] : false;
+
+		if ( ! $migration_status ) {
+			return;
+		}
+
+		$items = Controller::get_instance()->get_items();
+		foreach ( $items as $item ) {
+			$banner   = new Banner( $item->banner_id );
+			$settings = $banner->get_settings();
+			$law      = $banner->get_law();
+
+			if ( 'ccpa' === $law ) {
+				if ( isset( $settings['config']['notice']['elements']['buttons']['elements']['accept'] ) ) {
+					$settings['config']['notice']['elements']['buttons']['elements']['accept']['status'] = false;
+					$banner->set_settings( $settings );
+					$banner->save();
+				}
+			} else {
+				if ( isset( $settings['config']['notice']['elements']['buttons']['elements']['accept']['status'] )
+					&& false === $settings['config']['notice']['elements']['buttons']['elements']['accept']['status'] ) {
+					$settings['config']['notice']['elements']['buttons']['elements']['accept']['status'] = true;
+					$banner->set_settings( $settings );
+					$banner->save();
+				}
+			}
+		}
+	}
+
+	/**
+	 * Remove accessibilityOverrides from banners with versionID 6.0.0, seed
+	 * default opt-out success content on CCPA banners, and purge the banner
+	 * template cache so the refreshed HTML/theme is regenerated.
+	 *
+	 * @since 3.4.1
+	 * @return void
+	 */
+	public static function update_db_341() {
+		$controller = Controller::get_instance();
+		$controller->delete_cache();
+		$items = $controller->get_items();
+
+		if ( ! empty( $items ) ) {
+			foreach ( $items as $item ) {
+				self::maybe_strip_accessibility_overrides_341( $item );
+			}
+			self::seed_ccpa_optout_success_defaults( $items );
+		}
+
+		delete_option( 'cky_banner_template' );
+		Cache::delete( 'banner_template' );
+		$controller->delete_cache();
+	}
+
+	/**
+	 * Invalidate cached banner markup so the front end rebuilds HTML from the
+	 * current plugin templates and shortcodes (preference-center IDs, button
+	 * ARIA, etc.).
+	 *
+	 * @since 3.5.0
+	 * @return void
+	 */
+	public static function update_db_350() {
+		$controller = Controller::get_instance();
+		$controller->delete_cache();
+		delete_option( 'cky_banner_template' );
+		Cache::delete( 'banner_template' );
+		$controller->delete_cache();
+	}
+
+	/**
+	 * Clear cached banner template HTML so it is regenerated with the corrected
+	 * asset URL scheme (fixes mixed-content errors on HTTPS sites behind reverse proxies).
+	 *
+	 * @since 3.5.2
+	 * @return void
+	 */
+	public static function update_db_352() {
+		delete_option( 'cky_banner_template' );
+		Cache::delete( 'banner_template' );
+	}
+
+	/**
+	 * Drop legacy accessibilityOverrides for 6.0.0 banners (or banners missing versionID).
+	 *
+	 * @param object $item Row from Controller::get_items(); settings are decoded JSON.
+	 * @return void
+	 */
+	private static function maybe_strip_accessibility_overrides_341( $item ) {
+		if ( ! isset( $item->banner_id, $item->settings ) || ! is_array( $item->settings ) ) {
+			return;
+		}
+
+		$raw_settings = $item->settings;
+
+		if ( ! isset( $raw_settings['config']['accessibilityOverrides'] ) ) {
+			return;
+		}
+
+		$version_id = isset( $raw_settings['settings']['versionID'] ) ? $raw_settings['settings']['versionID'] : '';
+		if ( '' !== $version_id && '6.0.0' !== $version_id ) {
+			return;
+		}
+
+		unset( $raw_settings['config']['accessibilityOverrides'] );
+
+		if ( '' === $version_id ) {
+			$raw_settings['settings']['versionID'] = '6.0.0';
+		}
+
+		$banner = new Banner( $item->banner_id );
+		$banner->set_settings( $raw_settings );
+		$banner->save();
+	}
+
+	/**
+	 * Ensure CCPA banners have optoutSuccess config + per-language strings
+	 * (for databases created before this field existed).
+	 *
+	 * @param array $items Rows from Controller::get_items().
+	 * @return void
+	 */
+	private static function seed_ccpa_optout_success_defaults( $items ) {
+		$optout_success_defaults = array(
+			'text'    => 'Your opt-out preference has been honored.',
+			'subtext' => 'Banner closes automatically in 15 s...',
+		);
+
+		foreach ( $items as $item ) {
+			if ( ! isset( $item->banner_id ) ) {
+				continue;
+			}
+
+			$banner = new Banner( $item->banner_id );
+			$law    = $banner->get_law();
+
+			if ( ! is_string( $law ) || false === stripos( $law, 'ccpa' ) ) {
+				continue;
+			}
+
+			$need     = false;
+			$settings = $banner->get_settings();
+			$opt_ok   = isset( $settings['config']['optoutPopup']['elements']['optoutSuccess'] )
+				&& is_array( $settings['config']['optoutPopup']['elements']['optoutSuccess'] );
+
+			if ( $opt_ok && ! isset( $settings['config']['optoutPopup']['elements']['optoutSuccess']['status'] ) ) {
+				$settings['config']['optoutPopup']['elements']['optoutSuccess']['status'] = true;
+				$banner->set_settings( $settings );
+				$need = true;
+			}
+
+			$contents = $banner->get_contents();
+
+			foreach ( $contents as $lang => $content ) {
+				if ( ! is_array( $content )
+					|| ! isset( $content['optoutPopup']['elements'] )
+					|| ! is_array( $content['optoutPopup']['elements'] ) ) {
+					continue;
+				}
+
+				$elements = &$content['optoutPopup']['elements'];
+
+				if ( ! isset( $elements['optoutSuccess'] ) || ! is_array( $elements['optoutSuccess'] ) ) {
+					$elements['optoutSuccess'] = array(
+						'elements' => array(
+							'text'    => $optout_success_defaults['text'],
+							'subtext' => $optout_success_defaults['subtext'],
+						),
+					);
+					$need = true;
+				} else {
+					if ( ! isset( $elements['optoutSuccess']['elements'] ) || ! is_array( $elements['optoutSuccess']['elements'] ) ) {
+						$elements['optoutSuccess']['elements'] = array();
+						$need = true;
+					}
+
+					$success_els = &$elements['optoutSuccess']['elements'];
+
+					if ( ! isset( $success_els['text'] ) || '' === trim( (string) $success_els['text'] ) ) {
+						$success_els['text'] = $optout_success_defaults['text'];
+						$need                = true;
+					}
+					if ( ! isset( $success_els['subtext'] ) || '' === trim( (string) $success_els['subtext'] ) ) {
+						$success_els['subtext'] = $optout_success_defaults['subtext'];
+						$need                   = true;
+					}
+
+					unset( $success_els );
+				}
+
+				unset( $elements );
+
+				$contents[ $lang ] = $content;
+			}
+
+			if ( $need ) {
+				$banner->set_contents( $contents );
+				$banner->save();
+			}
 		}
 	}
 }

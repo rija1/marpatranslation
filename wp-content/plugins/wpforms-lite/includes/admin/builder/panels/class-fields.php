@@ -3,6 +3,9 @@
 // phpcs:ignore Generic.Commenting.DocComment.MissingShort
 /** @noinspection AutoloadingIssuesInspection */
 
+use WPForms\Forms\Fields\Traits\MoveButtons as MoveButtonsTrait;
+use WPForms\Forms\Fields\Traits\MultiFieldMenu as MultiFieldMenuTrait;
+
 if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
@@ -14,10 +17,15 @@ if ( ! defined( 'ABSPATH' ) ) {
  */
 class WPForms_Builder_Panel_Fields extends WPForms_Builder_Panel {
 
+	use MoveButtonsTrait;
+	use MultiFieldMenuTrait;
+
 	/**
 	 * All systems go.
 	 *
 	 * @since 1.0.0
+	 *
+	 * @noinspection ReturnTypeCanBeDeclaredInspection
 	 */
 	public function init() {
 
@@ -48,6 +56,7 @@ class WPForms_Builder_Panel_Fields extends WPForms_Builder_Panel {
 		add_action( 'wpforms_builder_fields', [ $this, 'fields' ] );
 		add_action( 'wpforms_builder_fields_options', [ $this, 'fields_options' ] );
 		add_action( 'wpforms_builder_preview', [ $this, 'preview' ] );
+		add_filter( 'wpforms_builder_strings', [ $this, 'multi_select_strings' ] );
 
 		// Template for form builder previews.
 		add_action( 'wpforms_builder_print_footer_scripts', [ $this, 'field_preview_templates' ] );
@@ -60,18 +69,12 @@ class WPForms_Builder_Panel_Fields extends WPForms_Builder_Panel {
 	 *
 	 * @since 1.0.0
 	 * @since 1.6.8 All the builder stylesheets enqueues moved to the `\WPForms_Builder::enqueues()`.
+	 *
+	 * @noinspection ReturnTypeCanBeDeclaredInspection
 	 */
 	public function enqueues() {
 
 		$min = wpforms_get_min_suffix();
-
-		wp_enqueue_script(
-			'wpforms-builder-drag-fields',
-			WPFORMS_PLUGIN_URL . "assets/js/admin/builder/drag-fields{$min}.js",
-			[ 'wpforms-builder' ],
-			WPFORMS_VERSION,
-			true
-		);
 
 		wp_enqueue_script(
 			'wpforms-builder-search-fields',
@@ -83,9 +86,35 @@ class WPForms_Builder_Panel_Fields extends WPForms_Builder_Panel {
 	}
 
 	/**
+	 * Add Multi-Select Builder strings.
+	 *
+	 * @since 1.9.9
+	 *
+	 * @param array $strings Form Builder strings.
+	 *
+	 * @return array Form Builder strings.
+	 */
+	public function multi_select_strings( array $strings ): array {
+
+		$strings['multi_select'] = [
+			'repeater_tooltip'    => esc_html__( "The Repeater field can't be selected with other fields.", 'wpforms-lite' ),
+			'layout_tooltip'      => esc_html__( "The Layout field can't be selected with other fields.", 'wpforms-lite' ),
+			'general_tooltip'     => esc_html__( 'This field can’t be selected alongside Layout or Repeater fields.', 'wpforms-lite' ),
+			/* translators: %s - Cmd or Ctrl key. */
+			'copy_toast_single'   => esc_html__( 'Field copied. Use %1$s + V to paste.', 'wpforms-lite' ),
+			/* translators: %d - number of fields, %s - Cmd or Ctrl key. */
+			'copy_toast_multiple' => esc_html__( '%1$d fields copied. Use %2$s + V to paste.', 'wpforms-lite' ),
+		];
+
+		return $strings;
+	}
+
+	/**
 	 * Output the Field panel sidebar.
 	 *
 	 * @since 1.0.0
+	 *
+	 * @noinspection ReturnTypeCanBeDeclaredInspection
 	 */
 	public function panel_sidebar() {
 
@@ -110,7 +139,7 @@ class WPForms_Builder_Panel_Fields extends WPForms_Builder_Panel {
 
 		</ul>
 
-		<div class="wpforms-add-fields wpforms-tab-content">
+		<div id="wpforms-add-fields-tab" class="wpforms-add-fields wpforms-tab-content">
 			<?php
 			/**
 			 * Fires to add fields.
@@ -142,6 +171,8 @@ class WPForms_Builder_Panel_Fields extends WPForms_Builder_Panel {
 	 * Output the Field panel primary content.
 	 *
 	 * @since 1.0.0
+	 *
+	 * @noinspection ReturnTypeCanBeDeclaredInspection
 	 */
 	public function panel_content() {
 
@@ -149,7 +180,7 @@ class WPForms_Builder_Panel_Fields extends WPForms_Builder_Panel {
 		if ( ! $this->form ) {
 			echo '<div class="wpforms-alert wpforms-alert-info">';
 			echo wp_kses(
-				__( 'You need to <a href="#" class="wpforms-panel-switch" data-panel="setup">setup your form</a> before you can manage the fields.', 'wpforms-lite' ),
+				__( 'You need to <a href="#" class="wpforms-panel-switch" data-panel="setup">set up your form</a> before you can manage the fields.', 'wpforms-lite' ),
 				[
 					'a' => [
 						'href'       => [],
@@ -316,7 +347,7 @@ class WPForms_Builder_Panel_Fields extends WPForms_Builder_Panel {
 
 				echo '<button ' . wpforms_html_attributes( $atts['id'], $atts['class'], $atts['data'], $atts['atts'] ) . '>';
 					if ( $field['icon'] ) {
-						echo '<i class="fa ' . esc_attr( $field['icon'] ) . '"></i> ';
+					echo '<i class="fa ' . esc_attr( $field['icon'] ) . '"></i> ';
 					}
 					echo esc_html( $field['name'] );
 				echo '</button>';
@@ -452,11 +483,13 @@ class WPForms_Builder_Panel_Fields extends WPForms_Builder_Panel {
 		}
 
 		printf(
-			'<div class="wpforms-field wpforms-field-%1$s %2$s" id="wpforms-field-%3$s" data-field-id="%3$s" data-field-type="%1$s">',
+			'<div class="wpforms-field wpforms-field-%1$s %2$s" id="wpforms-field-%3$s" data-field-id="%3$s" data-field-type="%1$s" tabindex="0">',
 			esc_attr( $field['type'] ),
 			esc_attr( $class ),
 			wpforms_validate_field_id( $field['id'] )
 		);
+
+		echo $this->get_move_buttons_html(); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
 
 		/**
 		 * Filters display the field duplicate button flag.
@@ -469,15 +502,18 @@ class WPForms_Builder_Panel_Fields extends WPForms_Builder_Panel {
 		 */
 		if ( apply_filters( 'wpforms_field_preview_display_duplicate_button', true, $field, $this->form_data ) ) { // phpcs:ignore WPForms.PHP.ValidateHooks.InvalidHookName
 			printf(
-				'<a href="#" class="wpforms-field-duplicate" title="%s"><i class="fa fa-files-o" aria-hidden="true"></i></a>',
+				'<a href="#" role="button" tabindex="-1" class="wpforms-field-duplicate" title="%1$s" aria-label="%1$s"><i class="fa fa-files-o" aria-hidden="true"></i></a>',
 				esc_attr__( 'Duplicate Field', 'wpforms-lite' )
 			);
 		}
 
 		printf(
-			'<a href="#" class="wpforms-field-delete" title="%s"><i class="fa fa-trash-o" aria-hidden="true"></i></a>',
+			'<a href="#" role="button" tabindex="-1" class="wpforms-field-delete" title="%1$s" aria-label="%1$s"><i class="fa fa-trash-o" aria-hidden="true"></i></a>',
 			esc_attr__( 'Delete Field', 'wpforms-lite' )
 		);
+
+		// Multi-field actions menu.
+		echo $this->get_multi_field_menu_html(); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
 
 		if ( empty( $_COOKIE['wpforms_field_helper_hide'] ) ) {
 			printf(
@@ -514,11 +550,7 @@ class WPForms_Builder_Panel_Fields extends WPForms_Builder_Panel {
 	 * @param array  $data Field array data.
 	 * @param string $name Input name prefix.
 	 */
-	private function generate_hidden_inputs( $data = [], string $name = '' ): void {
-
-		if ( ! is_array( $data ) || empty( $data ) ) {
-			return;
-		}
+	private function generate_hidden_inputs( array $data = [], string $name = '' ): void {
 
 		foreach ( $data as $key => $value ) {
 			if ( $key === 'id' ) {

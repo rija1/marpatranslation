@@ -236,6 +236,7 @@ class SubscriptionController extends WP_REST_Controller
     /**
      * Get a subscription.
      *
+     * @since 4.16.3 Return 404 for anonymous donors unless explicitly included.
      * @since 4.8.0
      *
      * @param WP_REST_Request $request Full data about the request.
@@ -247,13 +248,17 @@ class SubscriptionController extends WP_REST_Controller
     public function get_item($request)
     {
         $subscription = Subscription::find($request->get_param('id'));
+        $donorAnonymousMode = new DonorAnonymousMode($request->get_param('anonymousDonors'));
 
-        if (!$subscription) {
+        // Hide anonymous donors unless explicitly included, matching the collection and donor endpoints.
+        if (
+            !$subscription
+            || ($subscription->donor && $subscription->donor->isAnonymous() && $donorAnonymousMode->isExcluded())
+        ) {
             return new WP_Error('subscription_not_found', __('Subscription not found', 'give'), ['status' => 404]);
         }
 
         $includeSensitiveData = $request->get_param('includeSensitiveData');
-        $donorAnonymousMode = new DonorAnonymousMode($request->get_param('anonymousDonors'));
 
         $item = (new SubscriptionViewModel($subscription))
             ->anonymousMode($donorAnonymousMode)
@@ -538,6 +543,7 @@ class SubscriptionController extends WP_REST_Controller
     }
 
     /**
+     * @since 4.13.0 added anonymousDonors and includeSensitiveData to embeddable links
      * @since 4.10.0 added embeddable links for campaign and form
      * @since 4.8.0
      *
@@ -562,6 +568,8 @@ class SubscriptionController extends WP_REST_Controller
                     $donor_url = rest_url(sprintf('%s/%s/%d', $this->namespace, 'donors', $item['donorId']));
                     $donor_url = add_query_arg([
                         'mode' => $request->get_param('mode'),
+                        'anonymousDonors' => $request->get_param('anonymousDonors'),
+                        'includeSensitiveData' => $request->get_param('includeSensitiveData'),
                     ], $donor_url);
 
                     $links[CURIE::relationUrl('donor')] = [
@@ -598,6 +606,8 @@ class SubscriptionController extends WP_REST_Controller
                 $donations_url = add_query_arg([
                     'mode' => $subscription->mode->getValue(),
                     'subscriptionId' => $subscription->id,
+                    'anonymousDonations' => $request->get_param('anonymousDonors'),
+                    'includeSensitiveData' => $request->get_param('includeSensitiveData'),
                 ], $donations_url);
 
                 $links[CURIE::relationUrl('donations')] = [

@@ -70,6 +70,9 @@ class Connect_Banner extends Modules {
 	}
 
 	public function show_banner() {
+		if ( ! current_user_can( 'manage_options' ) ) {
+			return;
+		}
 		$screen = get_current_screen();
 		if ( $screen && 'plugins' === $screen->id ) {
 			?>
@@ -91,6 +94,7 @@ class Connect_Banner extends Modules {
 					.cky-connect-button {
 						padding: 7px 58px 7px 62px;
 						line-height: normal;
+						min-height: 30px;
 					}
 				}
 			</style>
@@ -104,6 +108,9 @@ class Connect_Banner extends Modules {
 	 * @return void
 	 */
 	public function add_script() {
+		if ( ! current_user_can( 'manage_options' ) ) {
+			return;
+		}
 		$expiry = 30 * DAY_IN_SECONDS;
 		?>
 			<script type="text/javascript">

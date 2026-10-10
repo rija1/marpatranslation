@@ -1,6 +1,6 @@
 <?php
 
-if (!defined('UPDRAFTPLUS_DIR')) die('No access.');
+if (!defined('ABSPATH')) die('No direct access allowed');
 
 /*
 	- A container for all the remote commands implemented. Commands map exactly onto method names (and hence this class should not implement anything else, beyond the constructor, and private methods)
@@ -377,7 +377,9 @@ class UpdraftPlus_Commands {
 
 		$vault = $updraftplus_admin->get_updraftvault($instance_id);
 
-		return $vault->ajax_vault_recountquota(false);
+		$return_data_only = UpdraftPlus_Manipulation_Functions::fetch_superglobal('request', 'return_data_only', false);
+
+		return $vault->ajax_vault_recountquota(false, $return_data_only);
 	}
 	
 	/**
@@ -394,8 +396,9 @@ class UpdraftPlus_Commands {
 
 		$instance_id = empty($credentials['instance_id']) ? '' : $credentials['instance_id'];
 
-		return $updraftplus_admin->get_updraftvault($instance_id)->ajax_vault_connect(false, $credentials);
-	
+		$return_data_only = isset($credentials['return_data_only']) && $credentials['return_data_only'] ? true : false;
+
+		return $updraftplus_admin->get_updraftvault($instance_id)->ajax_vault_connect(false, $credentials, $return_data_only);
 	}
 	
 	/**
@@ -1147,7 +1150,7 @@ class UpdraftPlus_Commands {
 			}
 			$content .= '</div>'; // end .updraftclone-main-row
 
-			$content .= isset($response['clone_list']) ? '<div class="clone-list"><h3>'.__('Current clones', 'updraftplus').' - <a target="_blank" href="https://updraftplus.com/my-account/clones/">'.__('manage', 'updraftplus').'</a></h3>'.$response['clone_list'].'</div>' : '';
+			$content .= isset($response['clone_list']) ? '<div class="clone-list"><h3>'.__('Current clones', 'updraftplus').' - <a target="_blank" href="https://teamupdraft.com/my-account/clones/">'.__('manage', 'updraftplus').'</a></h3>'.$response['clone_list'].'</div>' : '';
 
 			$response['html'] = $content;
 		}
@@ -1368,63 +1371,82 @@ class UpdraftPlus_Commands {
 	/**
 	 * Get advanced tools data in a structured format
 	 *
+	 * @param array $param The form data.
+	 *
 	 * @return array|WP_Error Structured data or error
 	 */
-	public function get_structured_data() {
+	public function get_structured_data($param) {
 		if (false === ($updraftplus_admin = $this->_load_ud_admin())) return new WP_Error('no_updraftplus');
 
+		$tool_type = $param['tool_type'];
+
 		// Site Info
-		$site_info = $updraftplus_admin->get_site_info_data();
-		$site_info['site_title'] = get_bloginfo('name');
-		$site_info['tagline'] = get_bloginfo('description');
-		$site_info['admin_email'] = get_bloginfo('admin_email');
+		if ('site-information' === $tool_type) {
+			$site_info = $updraftplus_admin->get_site_info_data();
+			$site_info['site_title'] = get_bloginfo('name');
+			$site_info['tagline'] = get_bloginfo('description');
+			$site_info['admin_email'] = get_bloginfo('admin_email');
+
+			return array('site_info' => $site_info);
+		}
 
 		// Lock Settings
-		$lock_settings = $this->get_lock_settings_data();
-		if (is_wp_error($lock_settings)) {
-			$lock_settings = array('has_premium' => false);
+		if ('lock-settings' === $tool_type) {
+			$lock_settings = $this->get_lock_settings_data();
+			if (is_wp_error($lock_settings)) {
+				$lock_settings = array('has_premium' => false);
+			}
+
+			return array('lock_settings' => $lock_settings);
 		}
 
 		// Directory Sizes
-		$site_size = array();
-		if (false !== ($updraftplus = $this->_load_ud())) {
-			$backupable_entities = $updraftplus->get_backupable_file_entities(true, true);
-			foreach ($backupable_entities as $entity => $info) {
-				$size = UpdraftPlus_Filesystem_Functions::get_disk_space_used($entity, 'numeric');
-				$size = is_numeric($size) ? $size : 0;
-				$site_size[$entity] = array(
-					'size' => $size,
-					'size_formatted' => size_format($size)
-				);
+		if ('site-size' === $tool_type) {
+			$site_size = array();
+			if (false !== ($updraftplus = $this->_load_ud())) {
+				$backupable_entities = $updraftplus->get_backupable_file_entities(true, true);
+				foreach ($backupable_entities as $entity => $info) {
+					$size = UpdraftPlus_Filesystem_Functions::get_disk_space_used($entity, 'numeric');
+
+					$size                 = is_numeric($size) ? $size : 0;
+					$site_size[$entity] = array(
+						'size'           => $size,
+						'size_formatted' => size_format($size)
+					);
+				}
 			}
+
+			return array('site_size' => $site_size);
 		}
 
 		// Connection Keys
-		updraft_try_include_file('central/bootstrap.php', 'include_once');
-		$keys = array();
-		global $updraftcentral_main;
-		if (is_a($updraftcentral_main, 'UpdraftCentral_Main') && method_exists($updraftcentral_main, 'get_connection_keys_data')) {
-			$keys = $updraftcentral_main->get_connection_keys_data();
+		if ('updraftcentral' === $tool_type) {
+			updraft_try_include_file('central/bootstrap.php', 'include_once');
+			$keys = array();
+			global $updraftcentral_main;
+			if (is_a($updraftcentral_main, 'UpdraftCentral_Main') && method_exists($updraftcentral_main, 'get_connection_keys_data')) {
+				$keys = $updraftcentral_main->get_connection_keys_data();
+			}
+
+			return array('keys' => $keys);
 		}
 
 		// Database Size Information
-		updraft_try_include_file('includes/class-wpadmin-commands.php', 'include_once');
-		
-		$db_size = array('size' => '0 B');
-		if (class_exists('UpdraftPlus_WPAdmin_Commands')) {
-			$wpadmin_commands = new UpdraftPlus_WPAdmin_Commands($this->_uc_helper);
-			$db_size_result = $wpadmin_commands->db_size(true);
-			if (!is_wp_error($db_size_result)) {
-				$db_size = $db_size_result;
+		if ('db-size' === $tool_type) {
+			updraft_try_include_file('includes/class-wpadmin-commands.php', 'include_once');
+
+			$db_size = array('size' => '0 B');
+			if (class_exists('UpdraftPlus_WPAdmin_Commands')) {
+				$wpadmin_commands = new UpdraftPlus_WPAdmin_Commands($this->_uc_helper);
+				$db_size_result   = $wpadmin_commands->db_size(true);
+				if (!is_wp_error($db_size_result)) {
+					$db_size = $db_size_result;
+				}
 			}
+
+			return array('db_size' => $db_size);
 		}
 
-		return array(
-			'site_info' => $site_info,
-			'site_size' => $site_size,
-			'lock_settings' => $lock_settings,
-			'keys' => $keys,
-			'db_size' => $db_size
-		);
+		return new WP_Error('invalid_tool_type', __('Invalid tool type', 'updraftplus'));
 	}
 }

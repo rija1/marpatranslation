@@ -5,10 +5,8 @@ use WPML\API\Sanitize;
 
 class WCML_Cart_Switch_Lang_Functions implements \IWPML_Frontend_Action, \IWPML_Backend_Action {
 
-	/** @var string $lang_from */
 	private $lang_from;
 
-	/** @var string $lang_to */
 	private $lang_to;
 
 	public function add_hooks() {
@@ -75,6 +73,7 @@ class WCML_Cart_Switch_Lang_Functions implements \IWPML_Frontend_Action, \IWPML_
 
 				$force_cart_url   = add_query_arg( 'force_switch', '1', $current_url );
 				$active_languages = apply_filters( 'wpml_active_languages', null, null );
+				/* translators: Title of the dialog that warns the shopper their cart will be emptied when they change language. */
 				$dialog_title     = __( 'Switching language?', 'woocommerce-multilingual' );
 
 				$confirmation_message = sprintf(
@@ -96,13 +95,7 @@ class WCML_Cart_Switch_Lang_Functions implements \IWPML_Frontend_Action, \IWPML_
 
 	}
 
-	/**
-	 * Get current page url with query parameters.
-	 *
-	 * @return string
-	 */
 	public function get_current_url() {
-		/* phpcs:ignore WordPress.CSRF.NonceVerification.NoNonceVerification, WordPress.VIP.SuperGlobalInputUsage.AccessDetected, WordPress.VIP.ValidatedSanitizedInput.InputNotValidated, WordPress.VIP.ValidatedSanitizedInput.MissingUnslash */
 		$get_query = $_GET;
 
 		foreach ( $get_query as $index => $item ) {

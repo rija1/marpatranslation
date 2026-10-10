@@ -39,11 +39,16 @@ class WP_Optimize_Updates {
 		'3.7.0' => array('update_370_disable_auto_preload_after_purge_feature'),
 		'3.8.0' => array('update_380_404_detector_table_create'),
 		'4.3.1' => array(
-			'update_431_update_browser_cache_htaccess_config',
 			'update_431_db_table_analysis_wipe_usage_data',
 		),
 		'4.4.0' => array(
 			'update_440_change_plugin_json_permissions',
+		),
+		'4.6.1' => array(
+			'update_461_update_post_meta_keys',
+		),
+		'4.7.0' => array(
+			'update_470_update_browser_cache_htaccess_config',
 		),
 	);
 
@@ -67,6 +72,20 @@ class WP_Optimize_Updates {
 				}
 			}
 			update_option('wpo_update_version', WPO_VERSION);
+		}
+
+		$wpo_version = get_option('wpo_version');
+
+		// If the wpo_version option is not set, but the db_version is, we assume that the wpo_version should be set to the db_version.
+		if (!$wpo_version) {
+			$wpo_version = $db_version ?: WPO_VERSION;
+			update_option('wpo_version', $wpo_version);
+		}
+
+		if ($wpo_version && version_compare($our_version, $wpo_version, '!=')) {
+			update_option('wpo_version', WPO_VERSION);
+			// Trigger the activation actions to ensure that any necessary setup is performed when the version changes.
+			WPO_Activation::silence_activation_actions();
 		}
 	}
 
@@ -93,11 +112,13 @@ class WP_Optimize_Updates {
 	 * Disable cache directories viewing.
 	 */
 	private static function disable_cache_directories_viewing() {
-
 		if (!function_exists('wpo_disable_cache_directories_viewing')) {
 			include_once WPO_PLUGIN_MAIN_PATH . 'cache/file-based-page-cache-functions.php';
 		}
-		
+		// Check if it's not a new installation
+		if (self::is_new_install()) {
+			return;
+		}
 		wpo_disable_cache_directories_viewing();
 	}
 	
@@ -345,16 +366,6 @@ class WP_Optimize_Updates {
 	}
 
 	/**
-	 * Update the browser cache htaccess config file with max-age values
-	 */
-	private static function update_431_update_browser_cache_htaccess_config() {
-		if (self::is_new_install()) return;
-		if (!WP_Optimize()->get_options()->get_option('enable_browser_cache')) return;
-
-		WP_Optimize()->get_browser_cache()->restore();
-	}
-
-	/**
 	 * Wipe WPO_DB_Table_Analysis usage data
 	 */
 	private static function update_431_db_table_analysis_wipe_usage_data() {
@@ -372,6 +383,80 @@ class WP_Optimize_Updates {
 		if (self::is_new_install()) return;
 
 		WP_Optimize()->get_db_info()->change_plugin_json_permissions();
+	}
+
+	/**
+	 * Prefix WPO specific post meta keys with `_` to make it private.
+	 */
+	private static function update_461_update_post_meta_keys() {
+		if (self::is_new_install()) return;
+
+		$keys_to_convert = array(
+			'smush-complete',
+			'smush-marked',
+			'smush-info',
+			'smush-stats',
+			'original-file',
+			'wpo-webp-conversion-complete',
+		);
+
+		if (is_multisite()) {
+			$sites = WP_Optimize()->get_sites();
+			foreach ($sites as $site) {
+				$blog_id = $site->blog_id;
+				switch_to_blog($blog_id);
+				self::update_461_convert_post_meta_keys($keys_to_convert);
+				restore_current_blog();
+			}
+		} else {
+			self::update_461_convert_post_meta_keys($keys_to_convert);
+		}
+
+	}
+
+	/**
+	 * Perform the post meta key renaming for the current blog.
+	 *
+	 * @param array $keys_to_convert List of meta keys to prefix.
+	 */
+	private static function update_461_convert_post_meta_keys(array $keys_to_convert) {
+		global $wpdb;
+
+		foreach ($keys_to_convert as $old_key) {
+			if ('wpo-webp-conversion-complete' !== $old_key) {
+				$new_key = '_wpo-' . $old_key;
+			} else {
+				$new_key = '_' . $old_key;
+			}
+
+			$result = $wpdb->query($wpdb->prepare(
+				"UPDATE {$wpdb->postmeta} SET meta_key = %s WHERE meta_key = %s",
+				$new_key,
+				$old_key
+			));
+
+			if (false === $result) {
+				WP_Optimize()->log(
+					sprintf(
+						'Update 4.6.1: Failed to rename post meta key "%s" to "%s" on blog %d. DB error: %s',
+						$old_key,
+						$new_key,
+						get_current_blog_id(),
+						$wpdb->last_error
+					)
+				);
+			}
+		}
+	}
+
+	/**
+	 * Update the browser cache htaccess config due to updated rules.
+	 */
+	private static function update_470_update_browser_cache_htaccess_config() {
+		if (self::is_new_install()) return;
+		if (!WP_Optimize()->get_options()->get_option('enable_browser_cache')) return;
+
+		WP_Optimize()->get_browser_cache()->restore();
 	}
 }
 

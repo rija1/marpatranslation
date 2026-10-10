@@ -5,41 +5,20 @@ namespace WCML\Multicurrency\Shipping;
 trait VariableCost {
 	use DefaultConversion;
 
-	/**
-	 * @see \WCML\Multicurrency\Shipping\ShippingMode::getFieldTitle
-	 *
-	 * @param string $currencyCode
-	 *
-	 * return string
-	 */
-	public function getFieldTitle( $currencyCode ) {
+	public function getFieldTitle( $currencyCode ): ?string {
 		/* translators: %s is a currency code */
 		return sprintf( esc_html_x( 'Cost in %s',
 			'The label for the field with shipping cost in additional currency. The currency symbol will be added in place of %s specifier.',
 			'woocommerce-multilingual' ), $currencyCode );
 	}
 
-	/**
-	 * @see \WCML\Multicurrency\Shipping\ShippingMode::getFieldDescription
-	 *
-	 * @param string $currencyCode
-	 *
-	 * @return string
-	 */
-	public function getFieldDescription( $currencyCode ) {
+	public function getFieldDescription( $currencyCode ): ?string {
 		/* translators: %s is a currency code */
 		return sprintf( esc_html_x( 'The shipping cost if customer choose %s as a purchase currency.',
 			'The description for the field with shipping cost in additional currency. The currency symbol will be added in place of %s specifier.',
 			'woocommerce-multilingual' ), $currencyCode );
 	}
 
-	/**
-	 * Returns cost key for given currency.
-	 *
-	 * @param string $currencyCode Currency code.
-	 *
-	 * @return string
-	 */
 	private function getCostKey( $currencyCode ) {
 		return sprintf( 'cost_%s', $currencyCode );
 	}
@@ -48,133 +27,62 @@ trait VariableCost {
 		return $this->replaceShippingClassId( $shippingClassKey ) . '_' . $currency;
 	}
 
-	private function getNoShippingClassCostKey( $currency ) {
+	private function getNoShippingClassCostKey( $currency ): string {
 		return 'no_class_cost_' . $currency;
 	}
 
-	/**
-	 * @see \WCML\Multicurrency\Shipping\ShippingMode::getSettingsFormKey
-	 *
-	 * @param string $currencyCode
-	 *
-	 * @return string
-	 */
 	public function getSettingsFormKey( $currencyCode ) {
 		return $this->getCostKey( $currencyCode );
 	}
 
-	/**
-	 * @see \WCML\Multicurrency\Shipping\ShippingMode::getMinimalOrderAmountValue
-	 *
-	 * @param integer|float|string $amount   The value as saved for original language.
-	 * @param array                $shipping The shipping metadata.
-	 * @param string               $currency Currency code.
-	 *
-	 * @return mixed
-	 */
 	public function getMinimalOrderAmountValue( $amount, $shipping, $currency ) {
 		return $amount;
 	}
 
-	/**
-	 * @param array|object $rate
-	 * @param string $currency
-	 *
-	 * @return int|mixed|string
-	 * @see \WCML\Multicurrency\Shipping\ShippingMode::getShippingCostValue
-	 *
-	 */
 	public function getShippingCostValue( $rate, $currency ) {
 		$costName = $this->getCostKey( $currency );
 		return $this->getCostValueForName( $rate, $currency, $costName, 'cost' );
 	}
 
-	/**
-	 * @see \WCML\Multicurrency\Shipping\ShippingClassesMode::getShippingClassCostValue
-	 *
-	 * @param array|object $rate
-	 * @param string       $currency
-	 * @param string       $shippingClassKey
-	 *
-	 * @return int Shipping class cost for given currency.
-	 */
 	public function getShippingClassCostValue( $rate, $currency, $shippingClassKey ) {
 		$costName = $this->getShippingClassCostKey( $shippingClassKey, $currency );
 		return $this->getCostValueForName( $rate, $currency, $costName, $shippingClassKey );
 	}
 
-	/**
-	 * @see \WCML\Multicurrency\Shipping\ShippingClassesMode::getNoShippingClassCostValue
-	 *
-	 * @param array|object $rate
-	 * @param string       $currency
-	 *
-	 * @return int "No shipping class" cost for given currency.
-	 */
 	public function getNoShippingClassCostValue( $rate, $currency ) {
 		$costName = $this->getNoShippingClassCostKey( $currency );
 		return $this->getCostValueForName( $rate, $currency, $costName, 'no_class_cost' );
 	}
 
 	private function getCostValueForName( $rate, $currency, $costName, $rateField ) {
-		/** @var $rate \WC_Shipping_Flat_Rate */
-		if ( ! isset( $rate->$rateField ) ) {
-			@$rate->$rateField = 0;
-		}
-		if ( isset( $rate->instance_id ) ) {
-			if ( $this->isManualPricingEnabled( $rate ) ) {
-				$rateSettings = $this->getWpOption( $this->getMethodId(), $rate->instance_id );
-				if ( ! empty( $rateSettings[ $costName ] ) ) {
-					$rate->$rateField = $rateSettings[ $costName ];
-				} else {
-					$rate->$rateField = $this->getValueFromDefaultCurrency( $rate->$rateField, $rateSettings, $costName, $currency );
-				}
+		$cost = $rate->$rateField ?? 0;
+
+		if ( ! empty( $rate->instance_id ) && $this->isManualPricingEnabled( $rate ) ) {
+			$rateSettings = $this->getWpOption( $this->getMethodId(), $rate->instance_id );
+			if ( ! empty( $rateSettings[ $costName ] ) ) {
+				$cost = $rateSettings[ $costName ];
+			} else {
+				$cost = $this->getValueFromDefaultCurrency( $cost, $rateSettings, $costName, $currency );
 			}
 		}
-		return $rate->$rateField;
+
+		return $cost;
 	}
 
-	/**
-	 * @see \WCML\Multicurrency\Shipping\ShippingMode::isManualPricingEnabled
-	 *
-	 * @param \WC_Shipping_Rate $instance
-	 *
-	 * @return mixed
-	 */
 	public function isManualPricingEnabled( $instance ) {
 		return self::isEnabled( $this->getWpOption( $this->getMethodId(), $instance->instance_id ) );
 	}
 
-	/**
-	 * Returns shipping data from wp_options table.
-	 *
-	 * @param string $methodId
-	 * @param int    $instanceId
-	 *
-	 * @return bool|mixed|void|null
-	 */
 	private function getWpOption( $methodId, $instanceId ) {
 		return get_option( \WCML_Multi_Currency_Shipping::getShippingOptionName( $methodId, $instanceId ) );
 	}
 
-	/**
-	 * Extracts numeric shipping class ID from shipping class key.
-	 *
-	 * @param string $key
-	 *
-	 * @return false|string Class ID or false if not found.
-	 */
 	private function getShippingClassTermId( $key ) {
 		if ( preg_match( '/^class_cost_(\d*)(_[A-Z]*)*$/', $key, $matches ) && isset( $matches[1] ) ) {
 			return $matches[1];
 		}
 		return false;
 	}
-	/**
-	 * @param string $shippingClassKey
-	 *
-	 * @return string
-	 */
 	private function replaceShippingClassId( $shippingClassKey ) {
 		$termId         = $this->getShippingClassTermId( $shippingClassKey );
 		if ( $termId ) {
@@ -193,13 +101,6 @@ trait VariableCost {
 	}
 
 
-	/**
-	 * Wrapper for getShippingClassTermId to avail testing private method.
-	 *
-	 * @param string $key
-	 *
-	 * @return bool|false|string
-	 */
 	public function _testGetShippingClassTermId( $key ) {
 		if ( ! isset( $_SERVER['SCRIPT_NAME'] ) || stristr( $_SERVER['SCRIPT_NAME'], 'phpunit' ) === false ) {
 			die( "don't run this method directly outside phpunit env" );
