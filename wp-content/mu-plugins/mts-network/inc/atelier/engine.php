@@ -18,6 +18,49 @@ function mts_atelier_is_configured() {
 }
 
 /**
+ * Plafond de dépense mensuel, réseau entier (audit A6). MTS_LLM_MONTHLY_BUDGET_USD = 0
+ * bloque tout appel payant (le mode mock reste utilisable). Compteur : site option
+ * mts_llm_spend = array( 'month' => 'YYYY-MM', 'usd' => float ), estimé depuis usage.
+ */
+function mts_atelier_price_per_mtok( $model ) {
+	$prices = array( // USD / million de tokens : input, output, lecture cache, écriture cache 5 min.
+		'claude-opus-5-5'   => array( 4.00, 20.00, 0.20, 5.00 ),
+		'claude-sonnet-5-5' => array( 2.00, 10.00, 0.20, 2.50 ),
+	);
+	// Modèle inconnu : tarif le plus élevé, pour ne jamais sous-estimer.
+	return isset( $prices[ $model ] ) ? $prices[ $model ] : array( 10.00, 50.00, 1.00, 12.50 );
+}
+
+function mts_atelier_spend_this_month() {
+	$spend = get_site_option( 'mts_llm_spend', array() );
+	return ( isset( $spend['month'] ) && gmdate( 'Y-m' ) === $spend['month'] ) ? (float) $spend['usd'] : 0.0;
+}
+
+function mts_atelier_record_spend( $usage ) {
+	list( $in, $out, $cache_read, $cache_write ) = mts_atelier_price_per_mtok( MTS_LLM_MODEL );
+	$usd = ( (int) ( $usage['input_tokens'] ?? 0 ) * $in
+		+ (int) ( $usage['output_tokens'] ?? 0 ) * $out
+		+ (int) ( $usage['cache_read_input_tokens'] ?? 0 ) * $cache_read
+		+ (int) ( $usage['cache_creation_input_tokens'] ?? 0 ) * $cache_write ) / 1000000;
+	update_site_option( 'mts_llm_spend', array(
+		'month' => gmdate( 'Y-m' ),
+		'usd'   => mts_atelier_spend_this_month() + $usd,
+	) );
+}
+
+function mts_atelier_budget_status() {
+	$budget = (float) MTS_LLM_MONTHLY_BUDGET_USD;
+	$spent  = mts_atelier_spend_this_month();
+	if ( $budget <= 0 ) {
+		return array( 'allowed' => false, 'budget' => $budget, 'spent' => $spent, 'message' => __( 'AI extraction is disabled: the monthly budget (MTS_LLM_MONTHLY_BUDGET_USD) is 0.', 'mts-network' ) );
+	}
+	if ( $spent >= $budget ) {
+		return array( 'allowed' => false, 'budget' => $budget, 'spent' => $spent, 'message' => sprintf( __( 'Monthly AI budget reached (%1$.2f / %2$.2f USD).', 'mts-network' ), $spent, $budget ) );
+	}
+	return array( 'allowed' => true, 'budget' => $budget, 'spent' => $spent, 'message' => '' );
+}
+
+/**
  * Découpe grossière en paires de chunks (~$size caractères source),
  * frontières sur shad (།) côté tibétain, proportionnel côté cible (spec §2).
  */
@@ -116,6 +159,11 @@ function mts_atelier_extract_chunk( $chunk, $glossary_block, $target_lang ) {
 		return new WP_Error( 'mts_no_api_key', __( 'ANTHROPIC_API_KEY is not configured in wp-config.php.', 'mts-network' ) );
 	}
 
+	$budget = mts_atelier_budget_status();
+	if ( ! $budget['allowed'] ) {
+		return new WP_Error( 'mts_budget_exhausted', $budget['message'] );
+	}
+
 	$body = array(
 		'model'         => MTS_LLM_MODEL,
 		// Marge pour la réflexion adaptative (toujours active sur Opus 5.5).
@@ -159,6 +207,9 @@ function mts_atelier_extract_chunk( $chunk, $glossary_block, $target_lang ) {
 	}
 	$code = (int) wp_remote_retrieve_response_code( $response );
 	$data = json_decode( wp_remote_retrieve_body( $response ), true );
+	if ( isset( $data['usage'] ) ) {
+		mts_atelier_record_spend( $data['usage'] ); // Facturé même si la sortie est inexploitable.
+	}
 	if ( 429 === $code || $code >= 500 ) {
 		return new WP_Error( 'mts_api_retryable', 'HTTP ' . $code );
 	}

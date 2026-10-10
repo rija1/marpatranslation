@@ -27,6 +27,12 @@ if ( ! defined( 'MTS_LLM_EFFORT' ) ) {
 	define( 'MTS_LLM_EFFORT', 'medium' );
 }
 
+// Plafond de dépense IA par mois (USD, tout le réseau). 0 = aucun appel payant (décision Rija 2026-10-10,
+// en attente de fonds alloués par MTS). Surchargeable dans wp-config.php.
+if ( ! defined( 'MTS_LLM_MONTHLY_BUDGET_USD' ) ) {
+	define( 'MTS_LLM_MONTHLY_BUDGET_USD', 0 );
+}
+
 $mts_network_inc = __DIR__ . '/mts-network/inc/';
 
 require $mts_network_inc . 'post-types.php';

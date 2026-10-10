@@ -47,6 +47,12 @@ function mts_rest_atelier_extract( WP_REST_Request $request ) {
 	if ( ! mts_atelier_is_configured() ) {
 		return new WP_Error( 'mts_not_configured', __( 'The extraction engine is not configured (ANTHROPIC_API_KEY missing).', 'mts-network' ), array( 'status' => 409 ) );
 	}
+	if ( ! has_filter( 'mts_atelier_mock_pairs' ) ) {
+		$budget = mts_atelier_budget_status();
+		if ( ! $budget['allowed'] ) {
+			return new WP_Error( 'mts_budget_exhausted', $budget['message'], array( 'status' => 409 ) );
+		}
+	}
 	$source = sanitize_textarea_field( (string) $request['source'] );
 	$target = sanitize_textarea_field( (string) $request['target'] );
 	if ( '' === trim( $source ) || '' === trim( $target ) ) {
