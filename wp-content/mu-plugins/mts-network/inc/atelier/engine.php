@@ -4,7 +4,7 @@
  *
  * Client HTTP direct de l'API Claude (fallback documenté de la spec §1 ;
  * migration vers le SDK PHP officiel possible sans toucher au contrat).
- * Modèle : MTS_LLM_MODEL (défaut claude-opus-4-8). Clé : ANTHROPIC_API_KEY
+ * Modèle : MTS_LLM_MODEL (défaut claude-opus-5-5), effort MTS_LLM_EFFORT. Clé : ANTHROPIC_API_KEY
  * (wp-config.php, jamais en base). Mode mock : filtre
  * `mts_atelier_mock_pairs` (tests E2E sans clé ni coût).
  */
@@ -118,7 +118,8 @@ function mts_atelier_extract_chunk( $chunk, $glossary_block, $target_lang ) {
 
 	$body = array(
 		'model'         => MTS_LLM_MODEL,
-		'max_tokens'    => 4096,
+		// Marge pour la réflexion adaptative (toujours active sur Opus 5.5).
+		'max_tokens'    => 16000,
 		'system'        => array(
 			array( 'type' => 'text', 'text' => mts_atelier_system_instructions( $target_lang ) ),
 			array(
@@ -135,6 +136,7 @@ function mts_atelier_extract_chunk( $chunk, $glossary_block, $target_lang ) {
 			),
 		),
 		'output_config' => array(
+			'effort' => MTS_LLM_EFFORT,
 			'format' => array(
 				'type'   => 'json_schema',
 				'schema' => mts_atelier_output_schema(),

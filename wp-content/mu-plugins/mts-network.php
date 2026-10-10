@@ -19,7 +19,12 @@ if ( ! defined( 'MTS_MAIN_SITE_ID' ) ) {
 
 // Modèle LLM par défaut de l'Atelier (surchageable dans wp-config.php). Utilisé en Phase 6.
 if ( ! defined( 'MTS_LLM_MODEL' ) ) {
-	define( 'MTS_LLM_MODEL', 'claude-opus-4-8' );
+	define( 'MTS_LLM_MODEL', 'claude-opus-5-5' );
+}
+
+// Effort de l'Atelier (low|medium|high|xhigh|max). Défaut explicite : sur Opus 5.5 le défaut API est medium.
+if ( ! defined( 'MTS_LLM_EFFORT' ) ) {
+	define( 'MTS_LLM_EFFORT', 'medium' );
 }
 
 $mts_network_inc = __DIR__ . '/mts-network/inc/';

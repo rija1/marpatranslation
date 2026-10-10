@@ -86,6 +86,17 @@ function mts_rest_atelier_candidate_action( WP_REST_Request $request ) {
 		return new WP_Error( 'mts_already_done', __( 'Candidate already processed.', 'mts-network' ), array( 'status' => 409 ) );
 	}
 
+	// Verrou : un seul traitement par candidat (double clic, onglets multiples).
+	$claimed = $wpdb->query( $wpdb->prepare( "UPDATE $table SET status = 'processing' WHERE id = %d AND status = 'open'", (int) $candidate['id'] ) );
+	if ( 1 !== (int) $claimed ) {
+		return new WP_Error( 'mts_already_done', __( 'Candidate already processed.', 'mts-network' ), array( 'status' => 409 ) );
+	}
+	// Rend la main (statut open) si le traitement échoue après le verrou.
+	$fail = function ( $error ) use ( $wpdb, $table, $candidate ) {
+		$wpdb->update( $table, array( 'status' => 'open' ), array( 'id' => $candidate['id'] ) );
+		return $error;
+	};
+
 	$action = (string) $request['action'];
 	$job    = mts_atelier_get_job( $candidate['job_id'] );
 
@@ -113,7 +124,7 @@ function mts_rest_atelier_candidate_action( WP_REST_Request $request ) {
 			'job_id'         => $candidate['job_id'],
 		) );
 		if ( is_wp_error( $created ) ) {
-			return $created;
+			return $fail( $created );
 		}
 		$central_id    = (int) $created['id'];
 		$pending_chain = ! $created['existing'];
@@ -121,7 +132,15 @@ function mts_rest_atelier_candidate_action( WP_REST_Request $request ) {
 	} else { // approve_link | merge
 		$central_id = ( 'merge' === $action ) ? (int) $request['central_id'] : (int) $candidate['central_match'];
 		if ( ! $central_id ) {
-			return new WP_Error( 'mts_no_central', __( 'No central term to link to (use create_term or merge with central_id).', 'mts-network' ), array( 'status' => 400 ) );
+			return $fail( new WP_Error( 'mts_no_central', __( 'No central term to link to (use create_term or merge with central_id).', 'mts-network' ), array( 'status' => 400 ) ) );
+		}
+		// Le terme cible doit être un tibetan_term publié ou en attente du référentiel.
+		$central_ok = mts_with_hub( function () use ( $central_id ) {
+			$post = get_post( $central_id );
+			return $post && 'tibetan_term' === $post->post_type && in_array( $post->post_status, array( 'publish', 'pending' ), true );
+		} );
+		if ( ! $central_ok ) {
+			return $fail( new WP_Error( 'mts_bad_central', __( 'The central term does not exist in the referential.', 'mts-network' ), array( 'status' => 400 ) ) );
 		}
 		$new_status = 'linked';
 	}
@@ -144,7 +163,7 @@ function mts_rest_atelier_candidate_action( WP_REST_Request $request ) {
 			'post_title'  => $candidate['target'],
 		), true );
 		if ( is_wp_error( $term_id ) ) {
-			return $term_id;
+			return $fail( $term_id );
 		}
 		update_post_meta( $term_id, 'central_tibetan_term_id', $central_id );
 		wp_set_object_terms( $term_id, $candidate['target_lang'], 'mts_language' );
@@ -157,7 +176,7 @@ function mts_rest_atelier_candidate_action( WP_REST_Request $request ) {
 		'post_title'  => $candidate['target'],
 	), true );
 	if ( is_wp_error( $usage_id ) ) {
-		return $usage_id;
+		return $fail( $usage_id );
 	}
 	update_post_meta( $usage_id, 'translated_term_id', $term_id );
 	update_post_meta( $usage_id, 'translation_id', $job ? (int) $job['translation_id'] : 0 );
